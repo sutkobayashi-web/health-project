@@ -176,6 +176,9 @@ function refineActionPlanByAI(planId, currentDraft, feedbackData, currentTitle) 
 function saveAdminNotice(data) {
   return api('/notices/save', data, getAdminToken());
 }
+function getAllNotices(uid) {
+  return api('/notices/all/' + uid);
+}
 function getUnreadPersonalNotice(uid) {
   return api('/notices/unread/' + uid);
 }

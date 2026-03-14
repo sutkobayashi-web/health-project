@@ -3,6 +3,26 @@ const { getDb } = require('../services/db');
 
 const router = express.Router();
 
+// ユーザー向け全通知取得（個別＋全体、新しい順）
+router.get('/all/:uid', (req, res) => {
+  try {
+    const db = getDb();
+    const uid = req.params.uid;
+    const notices = db.prepare("SELECT * FROM notices WHERE target_id = ? OR target_id = 'ALL' ORDER BY created_at DESC LIMIT 50").all(uid);
+    const result = notices.map(n => ({
+      id: n.notice_id,
+      date: new Date(n.created_at).toLocaleString('ja-JP', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Tokyo' }),
+      sender: n.sender,
+      message: n.content,
+      isPersonal: n.target_id !== 'ALL',
+      status: n.status,
+      reply: n.reply || '',
+      readAt: n.read_at || null
+    }));
+    res.json(result);
+  } catch (e) { res.json([]); }
+});
+
 // お知らせ保存
 router.post('/save', (req, res) => {
   try {

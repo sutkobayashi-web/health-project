@@ -1329,7 +1329,7 @@ function nurseScrollBottom() {
 /* --- Inbox シート --- */
 #inbox-sheet {
   position: fixed; bottom: 0; left: 0;
-  width: 100%; max-height: 80vh; max-height: 80dvh;
+  width: 100%; height: 95vh; height: 95dvh;
   background: #f8f9fa;
   border-radius: 20px 20px 0 0;
   z-index: 4001;
@@ -1424,6 +1424,10 @@ function nurseScrollBottom() {
 .inbox-reply-btn:active { transform: scale(0.98); }
 
 /* --- 空状態 --- */
+.inbox-card.read { opacity: 0.6; border-left-color: #ccc; }
+.inbox-card.read .inbox-card-tag { background: #aaa; }
+.inbox-read-badge { font-size: 0.6rem; color: #aaa; font-weight: 700; }
+.inbox-unread-dot { width: 8px; height: 8px; border-radius: 50%; background: #ec407a; display: inline-block; margin-right: 6px; animation: nPulse 1.5s infinite; }
 .inbox-empty {
   text-align: center; padding: 40px 20px; color: #bbb;
 }
@@ -1506,58 +1510,78 @@ function loadInboxContent() {
   var body = document.getElementById('inbox-body');
   body.innerHTML = '<div style="text-align:center;padding:30px;"><div class="spinner-border text-primary" role="status"></div></div>';
 
-  getUnreadPersonalNotice(currentUser.uid).then(function(personal) {
-    if (personal) {
-      body.innerHTML =
-        '<div class="inbox-card personal">' +
-          '<div class="inbox-card-header">' +
-            '<span class="inbox-card-tag personal"><i class="fas fa-envelope"></i> 個別メッセージ</span>' +
-            '<span class="inbox-card-date"><i class="far fa-clock"></i> ' + personal.date + '</span>' +
-          '</div>' +
-          '<div class="inbox-card-body">' + escInbox(personal.message) + '</div>' +
-          '<div class="inbox-reply-area">' +
-            '<textarea id="inbox-reply-input" placeholder="返信があればこちらに..." rows="2"></textarea>' +
-            '<button class="inbox-reply-btn" onclick="inboxMarkRead(\'' + personal.id + '\')">' +
-              '<i class="fas fa-check-circle"></i> 確認して既読にする' +
-            '</button>' +
-          '</div>' +
-        '</div>';
-    } else {
-      getLatestNotice('ALL').then(function(n) {
-        if (n) {
-          body.innerHTML =
-            '<div class="inbox-card">' +
-              '<div class="inbox-card-header">' +
-                '<span class="inbox-card-tag general"><i class="fas fa-bullhorn"></i> お知らせ</span>' +
-                '<span class="inbox-card-date"><i class="far fa-clock"></i> ' + n.date + '</span>' +
-              '</div>' +
-              '<div class="inbox-card-body">' + escInbox(n.message) + '</div>' +
-            '</div>';
-          localStorage.setItem('co_heart_last_read_notice', n.date);
-          var badge = document.getElementById('inbox-badge');
-          if (badge) badge.style.display = 'none';
-        } else {
-          body.innerHTML =
-            '<div class="inbox-empty">' +
-              '<i class="far fa-bell-slash"></i>' +
-              '<div class="inbox-empty-text">新しいお知らせはありません</div>' +
-            '</div>';
-        }
-      });
+  getAllNotices(currentUser.uid).then(function(notices) {
+    if (!notices || notices.length === 0) {
+      body.innerHTML = '<div class="inbox-empty"><i class="far fa-bell-slash"></i><div class="inbox-empty-text">お知らせはありません</div></div>';
+      return;
+    }
+    var html = '';
+    var unreadCount = 0;
+    notices.forEach(function(n, idx) {
+      var isRead = (n.status === 'read' || n.readAt);
+      if (!isRead && n.isPersonal) unreadCount++;
+      var cardClass = 'inbox-card' + (n.isPersonal ? ' personal' : '') + (isRead ? ' read' : '');
+      var tagClass = n.isPersonal ? 'personal' : 'general';
+      var tagIcon = n.isPersonal ? '<i class="fas fa-envelope"></i> 個別' : '<i class="fas fa-bullhorn"></i> お知らせ';
+      var unreadDot = (!isRead && n.isPersonal) ? '<span class="inbox-unread-dot"></span>' : '';
+      var readBadge = isRead ? '<span class="inbox-read-badge"><i class="fas fa-check"></i> 既読</span>' : '';
+
+      html += '<div class="' + cardClass + '" id="inbox-card-' + idx + '">' +
+        '<div class="inbox-card-header">' +
+          '<span class="inbox-card-tag ' + tagClass + '">' + unreadDot + tagIcon + '</span>' +
+          '<span class="inbox-card-date"><i class="far fa-clock"></i> ' + escInbox(n.date) + ' ' + readBadge + '</span>' +
+        '</div>' +
+        '<div class="inbox-card-body">' + escInbox(n.message) + '</div>';
+
+      if (n.isPersonal && !isRead) {
+        html += '<div class="inbox-reply-area">' +
+          '<textarea id="inbox-reply-' + idx + '" placeholder="返信があればこちらに..." rows="2"></textarea>' +
+          '<button class="inbox-reply-btn" onclick="inboxMarkRead(\'' + escInbox(n.id) + '\', ' + idx + ')">' +
+            '<i class="fas fa-check-circle"></i> 確認して既読にする' +
+          '</button></div>';
+      } else if (n.isPersonal && isRead && n.reply) {
+        html += '<div style="margin-top:8px; padding:8px 12px; background:#f0f8ff; border-radius:8px; font-size:0.8rem; color:#555;"><i class="fas fa-reply text-primary me-1"></i>あなたの返信: ' + escInbox(n.reply) + '</div>';
+      }
+
+      html += '</div>';
+    });
+
+    body.innerHTML = '<div style="padding:0 2px 4px; font-size:0.75rem; color:#999; text-align:right;">' + notices.length + '件のお知らせ' + (unreadCount > 0 ? ' / <span style="color:#ec407a; font-weight:700;">' + unreadCount + '件未読</span>' : '') + '</div>' + html;
+
+    // バッジ更新
+    var badge = document.getElementById('inbox-badge');
+    if (badge) {
+      if (unreadCount > 0) { badge.style.display = 'flex'; badge.innerText = unreadCount; }
+      else { badge.style.display = 'none'; }
     }
   });
 }
 
-function inboxMarkRead(noticeId) {
-  var replyEl = document.getElementById('inbox-reply-input');
+function inboxMarkRead(noticeId, idx) {
+  var replyEl = document.getElementById('inbox-reply-' + idx);
   var replyText = replyEl ? replyEl.value : '';
-  var body = document.getElementById('inbox-body');
-  body.innerHTML = '<div style="text-align:center;padding:30px;color:#6c5ce7;"><div class="spinner-border spinner-border-sm"></div> 処理中...</div>';
+  var card = document.getElementById('inbox-card-' + idx);
+
+  // UIを即座に更新
+  if (card) {
+    card.classList.add('read');
+    var replyArea = card.querySelector('.inbox-reply-area');
+    if (replyArea) {
+      if (replyText) {
+        replyArea.innerHTML = '<div style="padding:8px 12px; background:#e8f5e9; border-radius:8px; font-size:0.8rem; color:#2e7d32;"><i class="fas fa-check-circle me-1"></i>既読にしました' + (replyText ? ' / 返信: ' + escInbox(replyText) : '') + '</div>';
+      } else {
+        replyArea.innerHTML = '<div style="padding:8px 12px; background:#e8f5e9; border-radius:8px; font-size:0.8rem; color:#2e7d32;"><i class="fas fa-check-circle me-1"></i>既読にしました</div>';
+      }
+    }
+  }
 
   markNoticeAsRead(noticeId, replyText).then(function() {
-    closeInbox();
     var badge = document.getElementById('inbox-badge');
-    if (badge) badge.style.display = 'none';
+    if (badge) {
+      var current = parseInt(badge.innerText) || 0;
+      if (current <= 1) badge.style.display = 'none';
+      else { badge.innerText = current - 1; }
+    }
   });
 }
 

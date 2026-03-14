@@ -240,7 +240,21 @@
       <div class="form-group"><label><i class="fas fa-lock" style="color:#e74c3c; margin-right:4px;"></i> パスワード</label><input type="password" id="admin-pass" placeholder="管理者パスワード"></div>
       <div style="margin-bottom:15px;"><label style="font-weight:normal; display:flex; align-items:center; cursor:pointer; font-size:0.85rem; color:#555;"><input type="checkbox" id="admin-remember" style="width:auto; margin-right:8px; transform:scale(1.3); accent-color:#d63384;"> ログイン情報を保存する</label></div>
       <button class="auth-submit-btn" style="background:linear-gradient(135deg,#e74c3c,#ff6b6b); box-shadow:0 4px 14px rgba(231,76,60,0.3);" onclick="doAdminLogin()"><i class="fas fa-shield-alt" style="margin-right:6px;"></i> 管理画面へ</button>
+      <div style="text-align:center; margin-top:12px;"><a style="font-size:0.82rem; color:#e74c3c; cursor:pointer; text-decoration:underline;" onclick="goToAdminReset()"><i class="fas fa-key" style="margin-right:3px;"></i> パスワードを忘れた方はこちら</a></div>
       <div class="back-btn" onclick="showStep('menu')">← 戻る</div>
+    </div>
+
+    <div id="auth-step-admin-reset" style="display:none;">
+      <div style="text-align:center; margin-bottom:14px;">
+        <div style="font-size:2.5rem; animation: authHeroBounce 2.5s ease-in-out infinite;">🔑</div>
+        <div class="modal-title" style="border:none; margin-bottom:4px; padding-bottom:0; color:#d63384;">管理者パスワード再設定</div>
+        <div style="font-size:0.8rem; color:#888;">登録メールアドレスと氏名で本人確認します</div>
+      </div>
+      <div class="form-group"><label><i class="fas fa-envelope" style="color:#3478f6; margin-right:4px;"></i> メールアドレス</label><input type="email" id="admin-reset-email" placeholder="登録したメールアドレス"></div>
+      <div class="form-group"><label><i class="fas fa-user" style="color:#20c997; margin-right:4px;"></i> 氏名</label><input type="text" id="admin-reset-name" placeholder="登録した氏名"></div>
+      <div class="form-group"><label><i class="fas fa-lock" style="color:#e74c3c; margin-right:4px;"></i> 新しいパスワード</label><input type="password" id="admin-reset-new-pass" placeholder="新しいパスワード"></div>
+      <button class="auth-submit-btn" style="background:linear-gradient(135deg,#f39c12,#f1c40f); box-shadow:0 4px 14px rgba(243,156,18,0.3);" onclick="doAdminResetPassword()"><i class="fas fa-redo" style="margin-right:6px;"></i> パスワードを再設定</button>
+      <div class="back-btn" onclick="showStep('admin-login')">← 管理者ログインに戻る</div>
     </div>
   </div>
 </div>
@@ -394,6 +408,7 @@ function showStep(step) {
   document.getElementById('auth-step-login').style.display = step === 'login' ? 'block' : 'none';
   document.getElementById('auth-step-admin-login').style.display = step === 'admin-login' ? 'block' : 'none';
   document.getElementById('auth-step-reset').style.display = step === 'reset' ? 'block' : 'none';
+  document.getElementById('auth-step-admin-reset').style.display = step === 'admin-reset' ? 'block' : 'none';
   if (step === 'register') initAvatarGrid();
   if (step === 'login') {
     var savedNick = localStorage.getItem('co_heart_user_nick');
@@ -504,6 +519,27 @@ function doResetPassword() {
   resetPassword(n, d, b, p).then(function(res) {
     hideLoading();
     if (res.success) { alert(res.msg); showStep('login'); }
+    else alert(res.msg);
+  }).catch(function(e) { hideLoading(); alert("エラー: " + e.message); });
+}
+
+function goToAdminReset() {
+  var email = document.getElementById('admin-email').value.trim();
+  showStep('admin-reset');
+  if (email) document.getElementById('admin-reset-email').value = email;
+}
+
+function doAdminResetPassword() {
+  var email = document.getElementById('admin-reset-email').value.trim();
+  var name = document.getElementById('admin-reset-name').value.trim();
+  var newPass = document.getElementById('admin-reset-new-pass').value.trim();
+  if (!email) return alert("メールアドレスを入力してください");
+  if (!name) return alert("氏名を入力してください");
+  if (!newPass) return alert("新しいパスワードを入力してください");
+  showLoading("確認中...");
+  resetAdminPassword(email, name, newPass).then(function(res) {
+    hideLoading();
+    if (res.success) { alert(res.msg); showStep('admin-login'); }
     else alert(res.msg);
   }).catch(function(e) { hideLoading(); alert("エラー: " + e.message); });
 }

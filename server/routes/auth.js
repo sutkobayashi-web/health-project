@@ -78,6 +78,23 @@ router.post('/admin-login', (req, res) => {
   }
 });
 
+// 管理者パスワードリセット（メール＋氏名で本人確認）
+router.post('/admin-reset-password', (req, res) => {
+  try {
+    const { email, name, newPassword } = req.body;
+    if (!email || !name) return res.json({ success: false, msg: 'メールアドレスと氏名を入力してください' });
+    if (!newPassword) return res.json({ success: false, msg: '新しいパスワードを入力してください' });
+    const db = getDb();
+    const member = db.prepare('SELECT * FROM core_members WHERE email = ? AND name = ?').get(email.trim().toLowerCase(), name.trim());
+    if (!member) return res.json({ success: false, msg: '入力情報が一致するアカウントが見つかりません' });
+    const newHash = hashPasswordSHA256(newPassword.trim());
+    db.prepare('UPDATE core_members SET password_hash = ? WHERE id = ?').run(newHash, member.id);
+    res.json({ success: true, msg: 'パスワードを再設定しました。新しいパスワードでログインしてください。' });
+  } catch (e) {
+    res.json({ success: false, msg: 'エラー: ' + e.message });
+  }
+});
+
 // パスワードリセット（ニックネーム＋部署＋生年月日で本人確認）
 router.post('/reset-password', (req, res) => {
   try {

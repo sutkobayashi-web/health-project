@@ -168,17 +168,19 @@ window.openPriorityModal = function(pid) {
     var similarArea = document.getElementById('similar-posts-area');
     if(similarArea) similarArea.innerHTML = '';
     var tl = document.getElementById('deep-dive-timeline');
-    tl.innerHTML = '<div class="text-center py-4"><button class="btn btn-outline-primary btn-sm rounded-pill px-4 shadow-sm" onclick="forceStartAISimulation()"><i class="fas fa-robot me-2"></i>AIメンバーを招集する</button></div>';
+    tl.innerHTML = '<div class="text-center py-5" style="color:rgba(255,255,255,0.7);"><div style="font-size:2rem; margin-bottom:10px;">💬</div><div style="font-size:0.85rem; margin-bottom:14px;">まだ議論は始まっていません</div><button class="btn btn-light btn-sm rounded-pill px-4 shadow-sm" onclick="forceStartAISimulation()"><i class="fas fa-robot me-2"></i>AIメンバーを招集する</button></div>';
     getDiscussionLog(pid).then(function(logs) {
         if(logs && logs.length > 0) {
-            tl.innerHTML = ""; var hasAi = false;
-            logs.forEach(function(h) { if(h.role==='AI_Council') hasAi=true; var isMe=(h.role!=='AI_Council' && h.member==="Admin"); var safeAvatar=getMatrixAvatar(h.member,h.role,h.avatar); addChatBubble(tl,h.member,h.comment,safeAvatar,(h.role==='AI_Council'?'ai':'human'),isMe,h.row); });
-            if(!hasAi) forceStartAISimulation(); else setTimeout(function(){ tl.scrollTop=tl.scrollHeight; }, 100);
-        } else { tl.innerHTML = ""; forceStartAISimulation(); }
+            tl.innerHTML = "";
+            logs.forEach(function(h) { var isMe=(h.role!=='AI_Council' && h.member==="Admin"); var safeAvatar=getMatrixAvatar(h.member,h.role,h.avatar); addChatBubble(tl,h.member,h.comment,safeAvatar,(h.role==='AI_Council'?'ai':'human'),isMe,h.row); });
+            setTimeout(function(){ tl.scrollTop=tl.scrollHeight; }, 100);
+        }
+        // 過去ログがなくても自動開始しない → ユーザーがボタンで開始
     });
     document.getElementById('priority-modal').style.display = 'flex';
-    // Trigger similar posts search
-    findSimilarPosts();
+    // 左パネルをトップにスクロール
+    var leftPane = document.querySelector('.col-left-prio');
+    if(leftPane) leftPane.scrollTop = 0;
 };
 
 window.findSimilarPosts = function() {

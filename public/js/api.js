@@ -16,8 +16,17 @@ async function api(path, data, token) {
     opts.method = 'POST';
     opts.body = JSON.stringify(data);
   }
-  const res = await fetch(API_BASE + path, opts);
-  return res.json();
+  try {
+    const res = await fetch(API_BASE + path, opts);
+    if (!res.ok) {
+      console.error('API error:', path, res.status, res.statusText);
+      return { success: false, msg: 'HTTP ' + res.status };
+    }
+    return res.json();
+  } catch (e) {
+    console.error('API fetch error:', path, e);
+    return { success: false, msg: '通信エラー: ' + e.message };
+  }
 }
 
 // ===== Auth =====

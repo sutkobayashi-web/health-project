@@ -96,6 +96,7 @@
   .auth-hero { text-align: center; margin-bottom: 18px; }
   .auth-hero-icons { font-size: 2.2rem; letter-spacing: 6px; margin-bottom: 10px; animation: authHeroBounce 3s ease-in-out infinite; }
   @keyframes authHeroBounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+  @keyframes authCharFloat { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-8px) rotate(2deg); } }
   .auth-hero-catch { font-size: 0.82rem; color: #888; font-weight: 600; line-height: 1.6; }
   .auth-hero-catch strong { color: #d63384; }
   .auth-menu-btn { display: flex; align-items: center; justify-content: flex-start; width: 100%; padding: 16px; margin-bottom: 12px; border-radius: 16px; border: 2px solid #eef0f3; background: white; cursor: pointer; text-align: left; box-sizing: border-box; box-shadow: none; transition: all 0.15s; }
@@ -143,7 +144,10 @@
   <div class="modal-box" id="auth-box">
     <div id="auth-step-menu">
       <div class="auth-hero">
-        <div class="auth-hero-icons">🏃‍♂️ 💪 🥗 😊 🩺</div>
+        <div style="display:flex; justify-content:center; gap:10px; margin-bottom:10px;">
+          <img src="https://drive.google.com/thumbnail?id=16yng5mofQMoyvSbdHT4WfaVNQH6n29pp&sz=w200" alt="AI保健師" style="height:80px; filter:drop-shadow(2px 4px 8px rgba(0,0,0,0.15)); animation: authCharFloat 3s ease-in-out infinite;">
+          <img src="https://drive.google.com/thumbnail?id=1e025vJfgmEcqy9eDDN19QGuZkYLowDeZ&sz=w200" alt="AI栄養士" style="height:80px; filter:drop-shadow(2px 4px 8px rgba(0,0,0,0.15)); animation: authCharFloat 3s ease-in-out 0.5s infinite;">
+        </div>
         <div style="font-size:1.6rem; font-weight:900; color:#2c3e50; margin-bottom:4px;">健康プロジェクト</div>
         <div class="auth-hero-catch">みんなの声で職場を元気に。<br><strong>AI保健師</strong>と<strong>AI栄養士</strong>があなたの健康をサポートします</div>
       </div>

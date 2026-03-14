@@ -627,11 +627,37 @@ function togglePost(card) { card.classList.toggle('expanded'); }
 function submitPost() {
   var txt = document.getElementById('honne-input').value;
   if (!txt) return alert("内容を入力してください");
-  showLoading("AIが分析中...");
+  showLoading("AI保健師が分析中...");
   processForm({ uid: currentUser.uid, nickname: currentUser.nickname, avatar: currentUser.avatar, honne: encodeURIComponent(txt), department: currentUser.department, birthDate: currentUser.birthDate }).then(function(res) {
-    hideLoading(); document.getElementById('honne-input').value = ""; updateHeaderStats();
-    if (!isTimelineOpen) toggleTimeline(); else loadTimeline(0, true);
+    hideLoading();
+    if (res && res.success) {
+      document.getElementById('honne-input').value = "";
+      updateHeaderStats();
+      // AI分析結果をポップアップ表示
+      showAIResponse(res.analysis || "投稿を受け付けました。健康推進メンバーが確認します。");
+      if (!isTimelineOpen) toggleTimeline(); else loadTimeline(0, true);
+    } else {
+      alert("投稿エラー: " + (res ? res.error || res.msg : "不明なエラー"));
+    }
   }).catch(function(e) { hideLoading(); alert("送信エラー: " + e.message); });
+}
+
+function showAIResponse(text) {
+  var overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;display:flex;justify-content:center;align-items:center;padding:16px;backdrop-filter:blur(4px);';
+  overlay.onclick = function(e) { if(e.target === overlay) overlay.remove(); };
+  var box = document.createElement('div');
+  box.style.cssText = 'background:white;border-radius:20px;padding:24px 20px;max-width:400px;width:100%;max-height:80vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.2);animation:fadeIn 0.3s;';
+  box.innerHTML =
+    '<div style="text-align:center; margin-bottom:16px;">' +
+      '<div style="font-size:2.5rem; margin-bottom:8px;">🩺</div>' +
+      '<div style="font-weight:800; font-size:1.1rem; color:#d63384;">AI保健師からのコメント</div>' +
+      '<div style="font-size:0.75rem; color:#aaa; margin-top:4px;">投稿は健康推進メンバーに届きました</div>' +
+    '</div>' +
+    '<div style="background:linear-gradient(135deg,#fff5f7,#f0f4ff);padding:16px;border-radius:14px;font-size:0.9rem;line-height:1.8;color:#333;white-space:pre-wrap;border-left:4px solid #d63384;">' + escInbox(text) + '</div>' +
+    '<button onclick="this.closest(\'div[style*=fixed]\').remove()" style="width:100%;margin-top:16px;padding:14px;background:linear-gradient(135deg,#d63384,#e91e8c);color:white;border:none;border-radius:14px;font-weight:700;font-size:0.95rem;cursor:pointer;box-shadow:0 4px 14px rgba(214,51,132,0.3);">閉じる</button>';
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
 }
 
 function handleFileSelect(input) {
@@ -674,14 +700,42 @@ function submitFoodPost() {
   if (!selectedFoodData) return alert("写真を選択してください");
   if (!document.getElementById('food-confirm').checked) return alert("確認チェックを入れてください");
   var comment = document.getElementById('food-comment').value;
-  showLoading("AIが食事を分析中...");
+  showLoading("AI栄養士が分析中...");
   handleFoodPost({ uid: currentUser.uid, nickname: currentUser.nickname, avatar: currentUser.avatar, imageBase64: selectedFoodData, mimeType: selectedFoodMime, userComment: comment, department: currentUser.department, birthDate: currentUser.birthDate, isPublic: true }).then(function(res) {
     hideLoading();
     document.getElementById('food-comment').value = ""; document.getElementById('file-input').value = "";
     document.getElementById('food-preview-area').style.display = 'none'; document.getElementById('food-confirm').checked = true;
     toggleFoodSubmit(); selectedFoodData = null; updateHeaderStats();
-    if (!isTimelineOpen) toggleTimeline(); else loadTimeline(0, true);
+    if (res && res.success) {
+      var msg = '';
+      if (res.analysis) {
+        if (res.analysis.nutrition) msg += '【AI栄養士】\n' + res.analysis.nutrition + '\n\n';
+        if (res.analysis.nurse) msg += '【AI保健師】\n' + res.analysis.nurse;
+      }
+      showFoodResponse(msg || '食事の投稿を受け付けました。');
+      if (!isTimelineOpen) toggleTimeline(); else loadTimeline(0, true);
+    } else {
+      alert("投稿エラー: " + (res ? res.msg : "不明なエラー"));
+    }
   }).catch(function(e) { hideLoading(); alert("送信エラー: " + e.message); });
+}
+
+function showFoodResponse(text) {
+  var overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;display:flex;justify-content:center;align-items:center;padding:16px;backdrop-filter:blur(4px);';
+  overlay.onclick = function(e) { if(e.target === overlay) overlay.remove(); };
+  var box = document.createElement('div');
+  box.style.cssText = 'background:white;border-radius:20px;padding:24px 20px;max-width:400px;width:100%;max-height:80vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.2);animation:fadeIn 0.3s;';
+  box.innerHTML =
+    '<div style="text-align:center; margin-bottom:16px;">' +
+      '<div style="font-size:2.5rem; margin-bottom:8px;">🥗</div>' +
+      '<div style="font-weight:800; font-size:1.1rem; color:#20c997;">食事分析レポート</div>' +
+      '<div style="font-size:0.75rem; color:#aaa; margin-top:4px;">AI栄養士 × AI保健師</div>' +
+    '</div>' +
+    '<div style="background:linear-gradient(135deg,#f0faf4,#edf4ff);padding:16px;border-radius:14px;font-size:0.9rem;line-height:1.8;color:#333;white-space:pre-wrap;border-left:4px solid #20c997;">' + escInbox(text) + '</div>' +
+    '<button onclick="this.closest(\'div[style*=fixed]\').remove()" style="width:100%;margin-top:16px;padding:14px;background:linear-gradient(135deg,#20c997,#38d9a9);color:white;border:none;border-radius:14px;font-weight:700;font-size:0.95rem;cursor:pointer;box-shadow:0 4px 14px rgba(32,201,151,0.3);">閉じる</button>';
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
 }
 
 function like(row, btn, event) {

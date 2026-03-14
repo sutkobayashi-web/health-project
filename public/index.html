@@ -192,34 +192,47 @@
     </div>
 
     <div id="auth-step-login" style="display:none;">
-      <div class="modal-title">ログイン</div>
-      <div class="form-group"><label>ニックネーム</label><input type="text" id="login-nickname" placeholder="登録したニックネーム"></div>
-      <div class="form-group"><label>パスワード</label><input type="password" id="login-password" placeholder="パスワード"></div>
-      <div style="margin-bottom:15px;"><label style="font-weight:normal; display:flex; align-items:center; cursor:pointer;"><input type="checkbox" id="user-remember" style="width:auto; margin-right:8px; transform:scale(1.2);"> ログイン情報を保存する</label></div>
-      <button class="auth-submit-btn" onclick="doLogin()">ログイン</button>
-      <div style="text-align:center; margin-top:12px;"><a style="font-size:0.82rem; color:#e74c3c; cursor:pointer; text-decoration:underline;" onclick="showStep('reset')">パスワードを忘れた方はこちら</a></div>
+      <div style="text-align:center; margin-bottom:14px;">
+        <div style="font-size:2.5rem; animation: authHeroBounce 2.5s ease-in-out infinite;">👋</div>
+        <div class="modal-title" style="border:none; margin-bottom:4px; padding-bottom:0;">おかえりなさい！</div>
+        <div style="font-size:0.8rem; color:#888;">今日も健康チェックしましょう</div>
+      </div>
+      <div class="form-group"><label><i class="fas fa-mask" style="color:#6c5ce7; margin-right:4px;"></i> ニックネーム</label><input type="text" id="login-nickname" placeholder="登録したニックネーム"></div>
+      <div class="form-group"><label><i class="fas fa-lock" style="color:#e74c3c; margin-right:4px;"></i> パスワード</label><input type="password" id="login-password" placeholder="パスワード"></div>
+      <div style="margin-bottom:15px;"><label style="font-weight:normal; display:flex; align-items:center; cursor:pointer; font-size:0.85rem; color:#555;"><input type="checkbox" id="user-remember" style="width:auto; margin-right:8px; transform:scale(1.3); accent-color:#20c997;"> ログイン情報を保存する</label></div>
+      <button class="auth-submit-btn" style="background:linear-gradient(135deg, #20c997, #38d9a9);" onclick="doLogin()"><i class="fas fa-sign-in-alt" style="margin-right:6px;"></i> ログイン</button>
+      <div style="text-align:center; margin-top:12px;"><a style="font-size:0.82rem; color:#e74c3c; cursor:pointer; text-decoration:underline;" onclick="showStep('reset')"><i class="fas fa-key" style="margin-right:3px;"></i> パスワードを忘れた方はこちら</a></div>
       <div class="back-btn" onclick="showStep('menu')">← 戻る</div>
     </div>
 
     <div id="auth-step-reset" style="display:none;">
-      <div class="modal-title"><i class="fas fa-key" style="color:#f39c12;"></i> パスワード再設定</div>
-      <div style="font-size:0.82rem; color:#888; margin-bottom:14px; text-align:center;">登録時の情報で本人確認を行います</div>
-      <div class="form-group"><label>ニックネーム</label><input type="text" id="reset-nickname" placeholder="登録したニックネーム"></div>
-      <div class="form-group"><label>部署</label>
-        <select id="reset-department"><option value="">選択してください</option><option>管理部</option><option>海老名</option><option>南関東</option><option>座間</option><option>埼玉</option><option>鹿島</option><option>三和</option><option>ﾌﾚｯｸｽ</option><option>ｻﾙﾄﾞﾊﾞﾝ</option><option>スズエ</option></select>
+      <div style="text-align:center; margin-bottom:14px;">
+        <div style="font-size:2.5rem; animation: authHeroBounce 2.5s ease-in-out infinite;">🔑</div>
+        <div class="modal-title" style="border:none; margin-bottom:4px; padding-bottom:0;">パスワード再設定</div>
+        <div style="font-size:0.8rem; color:#888;">登録時の情報で本人確認を行います</div>
       </div>
-      <div class="form-group"><label>生年月日</label><input type="date" id="reset-birthdate"></div>
-      <div class="form-group"><label>新しいパスワード</label><input type="password" id="reset-new-password" placeholder="4文字以上"></div>
-      <button class="auth-submit-btn" style="background:linear-gradient(135deg,#f39c12,#f1c40f);" onclick="doResetPassword()">パスワードを再設定</button>
+      <div class="form-group"><label><i class="fas fa-mask" style="color:#6c5ce7; margin-right:4px;"></i> ニックネーム</label><input type="text" id="reset-nickname" placeholder="登録したニックネーム"></div>
+      <div style="display:flex; gap:12px; margin-bottom:16px;">
+        <div class="form-group" style="flex:1; margin-bottom:0;"><label><i class="fas fa-building" style="color:#20c997; margin-right:4px;"></i> 部署</label>
+          <select id="reset-department"><option value="">選択してください</option><option>管理部</option><option>海老名</option><option>南関東</option><option>座間</option><option>埼玉</option><option>鹿島</option><option>三和</option><option>ﾌﾚｯｸｽ</option><option>ｻﾙﾄﾞﾊﾞﾝ</option><option>スズエ</option></select>
+        </div>
+        <div class="form-group" style="flex:1; margin-bottom:0;"><label><i class="fas fa-birthday-cake" style="color:#f39c12; margin-right:4px;"></i> 生年月日</label><input type="date" id="reset-birthdate"></div>
+      </div>
+      <div class="form-group"><label><i class="fas fa-lock" style="color:#e74c3c; margin-right:4px;"></i> 新しいパスワード</label><input type="password" id="reset-new-password" placeholder="4文字以上"></div>
+      <button class="auth-submit-btn" style="background:linear-gradient(135deg,#f39c12,#f1c40f); box-shadow:0 4px 14px rgba(243,156,18,0.3);" onclick="doResetPassword()"><i class="fas fa-redo" style="margin-right:6px;"></i> パスワードを再設定</button>
       <div class="back-btn" onclick="showStep('login')">← ログインに戻る</div>
     </div>
 
     <div id="auth-step-admin-login" style="display:none;">
-      <div class="modal-title"><i class="fas fa-shield-alt text-danger"></i> 管理者ログイン</div>
-      <div class="form-group"><label>メールアドレス</label><input type="email" id="admin-email" placeholder="管理者メール"></div>
-      <div class="form-group"><label>パスワード</label><input type="password" id="admin-pass" placeholder="管理者パスワード"></div>
-      <div style="margin-bottom:15px;"><label style="font-weight:normal; display:flex; align-items:center; cursor:pointer;"><input type="checkbox" id="admin-remember" style="width:auto; margin-right:8px; transform:scale(1.2);"> ログイン情報を保存する</label></div>
-      <button class="auth-submit-btn" style="background:linear-gradient(135deg,#e74c3c,#ff6b6b);" onclick="doAdminLogin()">管理画面へ</button>
+      <div style="text-align:center; margin-bottom:14px;">
+        <div style="font-size:2.5rem; animation: authHeroBounce 2.5s ease-in-out infinite;">🛡️</div>
+        <div class="modal-title" style="border:none; margin-bottom:4px; padding-bottom:0; color:#d63384;">健康推進チーム</div>
+        <div style="font-size:0.8rem; color:#888;">管理者専用エリアです</div>
+      </div>
+      <div class="form-group"><label><i class="fas fa-envelope" style="color:#3478f6; margin-right:4px;"></i> メールアドレス</label><input type="email" id="admin-email" placeholder="管理者メール"></div>
+      <div class="form-group"><label><i class="fas fa-lock" style="color:#e74c3c; margin-right:4px;"></i> パスワード</label><input type="password" id="admin-pass" placeholder="管理者パスワード"></div>
+      <div style="margin-bottom:15px;"><label style="font-weight:normal; display:flex; align-items:center; cursor:pointer; font-size:0.85rem; color:#555;"><input type="checkbox" id="admin-remember" style="width:auto; margin-right:8px; transform:scale(1.3); accent-color:#d63384;"> ログイン情報を保存する</label></div>
+      <button class="auth-submit-btn" style="background:linear-gradient(135deg,#e74c3c,#ff6b6b); box-shadow:0 4px 14px rgba(231,76,60,0.3);" onclick="doAdminLogin()"><i class="fas fa-shield-alt" style="margin-right:6px;"></i> 管理画面へ</button>
       <div class="back-btn" onclick="showStep('menu')">← 戻る</div>
     </div>
   </div>

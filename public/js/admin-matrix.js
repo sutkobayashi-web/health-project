@@ -167,20 +167,28 @@ window.openPriorityModal = function(pid) {
     // Clear similar posts area on modal open
     var similarArea = document.getElementById('similar-posts-area');
     if(similarArea) similarArea.innerHTML = '';
+    // AIチャットは初期非表示、ボタンで開く
+    var chatWrapper = document.getElementById('chat-wrapper');
+    if(chatWrapper) chatWrapper.style.display = 'none';
+    var startBtn = document.getElementById('btn-open-chat');
+    if(startBtn) startBtn.style.display = 'inline-block';
     var tl = document.getElementById('deep-dive-timeline');
-    tl.innerHTML = '<div class="text-center py-5" style="color:rgba(255,255,255,0.7);"><div style="font-size:2rem; margin-bottom:10px;">💬</div><div style="font-size:0.85rem; margin-bottom:14px;">まだ議論は始まっていません</div><button class="btn btn-light btn-sm rounded-pill px-4 shadow-sm" onclick="forceStartAISimulation()"><i class="fas fa-robot me-2"></i>AIメンバーを招集する</button></div>';
+    tl.innerHTML = '';
+    // 過去ログチェック
     getDiscussionLog(pid).then(function(logs) {
         if(logs && logs.length > 0) {
-            tl.innerHTML = "";
             logs.forEach(function(h) { var isMe=(h.role!=='AI_Council' && h.member==="Admin"); var safeAvatar=getMatrixAvatar(h.member,h.role,h.avatar); addChatBubble(tl,h.member,h.comment,safeAvatar,(h.role==='AI_Council'?'ai':'human'),isMe,h.row); });
+            // 過去ログがある場合はチャット欄を自動表示
+            if(chatWrapper) chatWrapper.style.display = 'flex';
+            if(startBtn) startBtn.style.display = 'none';
             setTimeout(function(){ tl.scrollTop=tl.scrollHeight; }, 100);
         }
-        // 過去ログがなくても自動開始しない → ユーザーがボタンで開始
     });
     document.getElementById('priority-modal').style.display = 'flex';
-    // 左パネルをトップにスクロール
     var leftPane = document.querySelector('.col-left-prio');
     if(leftPane) leftPane.scrollTop = 0;
+    // 類似の声を自動検索
+    findSimilarPosts();
 };
 
 window.findSimilarPosts = function() {
@@ -222,6 +230,18 @@ window.findSimilarPosts = function() {
     }).catch(function() {
         area.innerHTML = '<div class="text-muted small py-2">類似の投稿は見つかりませんでした</div>';
     });
+};
+
+// チャット欄を開く＋AI招集
+window.openChatAndStartAI = function() {
+    var chatWrapper = document.getElementById('chat-wrapper');
+    if(chatWrapper) chatWrapper.style.display = 'flex';
+    var startBtn = document.getElementById('btn-open-chat');
+    if(startBtn) startBtn.style.display = 'none';
+    var tl = document.getElementById('deep-dive-timeline');
+    if(!tl.innerHTML || tl.innerHTML.trim() === '') {
+        forceStartAISimulation();
+    }
 };
 
 window.forceStartAISimulation = function() {

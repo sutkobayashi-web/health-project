@@ -542,17 +542,22 @@ if(localStorage.getItem('co_heart_admin_email') && localStorage.getItem('co_hear
         <div id="similar-posts-area"></div>
       </div>
       <div class="col-right-prio">
-        <div style="padding:8px 14px; background:linear-gradient(135deg,#667eea,#764ba2); display:flex; justify-content:space-between; align-items:center;">
-          <div style="font-weight:800; color:white; font-size:0.85rem;"><i class="fas fa-comments me-2"></i>深耕・戦略会議室</div>
-          <div style="font-size:0.65rem; color:rgba(255,255,255,0.7);">AI社員 + 推進チーム</div>
+        <div style="text-align:center; padding:20px;" id="btn-open-chat">
+          <div style="color:#999; font-size:0.85rem; margin-bottom:12px;">推進メンバーで議論を始めましょう</div>
+          <button class="btn btn-primary rounded-pill px-4 shadow-sm" onclick="openChatAndStartAI()"><i class="fas fa-robot me-2"></i>AIメンバーを招集して議論開始</button>
         </div>
-        <div id="deep-dive-timeline" class="deep-dive-container"></div>
-        <div class="input-area-sticky">
-          <input type="text" id="prio-comment-input" placeholder="議論に参加する..." onkeydown="if(event.key==='Enter'){event.preventDefault();postPrioComment();}">
-          <button class="btn btn-primary" onclick="postPrioComment()" style="border-radius:50%; width:40px; height:40px; display:flex; justify-content:center; align-items:center; flex-shrink:0;"><i class="fas fa-paper-plane"></i></button>
+        <div id="chat-wrapper" style="display:none; flex-direction:column; flex:1; overflow:hidden;">
+          <div style="padding:8px 14px; background:linear-gradient(135deg,#667eea,#764ba2); display:flex; justify-content:space-between; align-items:center; flex-shrink:0;">
+            <div style="font-weight:800; color:white; font-size:0.85rem;"><i class="fas fa-comments me-2"></i>深耕・戦略会議室</div>
+            <div style="font-size:0.65rem; color:rgba(255,255,255,0.7);">AI社員 + 推進チーム</div>
+          </div>
+          <div id="deep-dive-timeline" class="deep-dive-container"></div>
+          <div class="input-area-sticky">
+            <input type="text" id="prio-comment-input" placeholder="議論に参加する..." onkeydown="if(event.key==='Enter'){event.preventDefault();postPrioComment();}">
+            <button class="btn btn-primary" onclick="postPrioComment()" style="border-radius:50%; width:40px; height:40px; display:flex; justify-content:center; align-items:center; flex-shrink:0;"><i class="fas fa-paper-plane"></i></button>
+          </div>
         </div>
         <div style="padding:6px 12px; background:#f0f0f5; border-top:1px solid #ddd; display:flex; gap:6px; flex-shrink:0;">
-          <button class="btn btn-outline-info btn-sm flex-grow-1" style="font-size:0.72rem;" onclick="findSimilarPosts()"><i class="fas fa-search-plus me-1"></i>類似の声</button>
           <button class="btn btn-primary btn-sm flex-grow-1 fw-bold" style="font-size:0.72rem;" onclick="handlePriorityAction('like')"><i class="fas fa-thumbs-up me-1"></i>合意</button>
           <button class="btn btn-outline-secondary btn-sm flex-grow-1" style="font-size:0.72rem;" onclick="handlePriorityAction('demote')"><i class="fas fa-undo me-1"></i>戻す</button>
         </div>

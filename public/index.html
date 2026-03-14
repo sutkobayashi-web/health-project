@@ -564,7 +564,7 @@ function doAdminLogin() {
         localStorage.removeItem('co_heart_admin_pass');
         localStorage.removeItem('co_heart_admin_profile');
       }
-      window.top.location.href = deployUrl + "?page=report";
+      window.location.href = "/admin";
     } else alert(res.msg);
   }).catch(function(e) { hideLoading(); alert("エラー: " + e.message); });
 }

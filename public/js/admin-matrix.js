@@ -244,9 +244,11 @@ function addChatBubble(container, name, text, avatar, type, isMe, rowId) {
     if(typeof isMe === 'undefined') isMe = false;
     var div = document.createElement('div'); div.className = 'council-member-row ' + type;
     var deleteBtn = "";
-    if(isMe && rowId) deleteBtn = '<span class="ms-2 text-muted" style="cursor:pointer; font-size:0.8rem;" onclick="deleteMyComment('+rowId+', \''+name+'\', this)"><i class="fas fa-trash-alt"></i></span>';
+    if(isMe && rowId) deleteBtn = '<span style="cursor:pointer; font-size:0.7rem; opacity:0.5; margin-left:6px;" onclick="deleteMyComment('+rowId+', \''+name+'\', this)"><i class="fas fa-trash-alt"></i></span>';
     var safeText = escapeHtml(text);
-    div.innerHTML = '<div class="council-avatar">'+avatar+'</div><div class="council-content"><div class="council-role">'+name+'</div><div class="council-bubble">'+safeText+deleteBtn+'</div></div>';
+    var now = new Date();
+    var timeStr = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+    div.innerHTML = '<div class="council-avatar">'+avatar+'</div><div class="council-content"><div class="council-role">'+escapeHtml(name)+'</div><div class="council-bubble">'+safeText+deleteBtn+'<span class="chat-time">'+timeStr+'</span></div></div>';
     container.appendChild(div);
 }
 

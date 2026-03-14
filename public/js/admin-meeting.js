@@ -62,17 +62,21 @@ function startAIMeeting() {
             document.getElementById('btn-start-meeting').style.display = 'inline-block';
             return;
         }
-        var html = '<div class="d-flex flex-column gap-3 p-3">';
+        var html = '';
         res.discussion.forEach(function(msg) {
-            var align = "flex-start"; var bg = "#fff";
-            if(msg.role.includes("社員")) { align = "flex-end"; bg = "#fff3cd"; }
-            html += '<div style="display:flex; flex-direction:column; align-items:'+align+'; width:100%; margin-bottom:8px;">'
-                 + '<div style="max-width:90%;">'
-                 + '<div style="font-size:0.9rem; font-weight:bold; margin-bottom:4px; color:#555;">'+escapeHtml(msg.avatar)+' '+escapeHtml(msg.role)+'</div>'
-                 + '<div style="background:'+bg+'; padding:14px 16px; border-radius:12px; box-shadow:0 1px 4px rgba(0,0,0,0.08); font-size:0.95rem; line-height:1.7; color:#333;">'+escapeHtml(msg.message)+'</div>'
+            var safeAvatar = msg.avatar || '🤖';
+            if(safeAvatar.length > 4) safeAvatar = '🤖';
+            var safeRole = escapeHtml(msg.role);
+            var safeMsg = escapeHtml(msg.message);
+            var now = new Date();
+            var timeStr = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+            html += '<div class="council-member-row ai">'
+                 + '<div class="council-avatar">'+safeAvatar+'</div>'
+                 + '<div class="council-content">'
+                 + '<div class="council-role">'+safeRole+'</div>'
+                 + '<div class="council-bubble">'+safeMsg+'<span class="chat-time">'+timeStr+'</span></div>'
                  + '</div></div>';
         });
-        html += '</div>';
         html += '<div class="mt-4 p-3 border-top bg-white sticky-bottom text-center">'
              + '<div class="text-success fw-bold mb-2"><i class="fas fa-check-circle"></i> 会議終了</div>'
              + '<div class="d-flex justify-content-center gap-3">'

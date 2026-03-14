@@ -65,12 +65,23 @@ router.post('/admin-login', (req, res) => {
     const member = db.prepare('SELECT * FROM core_members WHERE email = ?').get(email.trim().toLowerCase());
     if (!member) return res.json({ success: false, msg: '認証失敗' });
 
+    // パスワード検証（ハッシュ or 平文 or 空の場合はスキップ）
+    if (member.password_hash && member.password_hash.length > 0) {
+      const ph = hashPasswordSHA256(password.trim());
+      if (member.password_hash !== ph && member.password_hash !== password.trim()) {
+        return res.json({ success: false, msg: '認証失敗' });
+      }
+    }
+
     let role = member.role || 'member';
     const isExec = (role === 'exec' || member.is_exec === 1);
+    // avatarが日付等の不正値の場合はデフォルトに
+    let avatar = member.avatar || '🛡️';
+    if (avatar.length > 4 || avatar.match(/\d{4}/)) avatar = '🛡️';
     const token = generateToken({ email: member.email, name: member.name, type: 'admin', role, isExec });
     res.json({
       success: true,
-      profile: { name: member.name, dept: member.dept, email: member.email, avatar: member.avatar || '🛡️', role, isExec },
+      profile: { name: member.name, dept: member.dept, email: member.email, avatar, role, isExec },
       token
     });
   } catch (e) {

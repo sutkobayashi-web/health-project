@@ -302,7 +302,7 @@
   </div>
 </div>
 
-<script src="/js/api.js"></script>
+<script src="/js/api.js?v=20260314"></script>
 <script>
 // ====== グローバル変数 ======
 var currentUser = null;
@@ -443,9 +443,11 @@ function doLogin() {
   var remember = document.getElementById('user-remember').checked;
   if (!n || !p) return alert("入力してください");
   showLoading("ログイン中...");
+  console.log('LOGIN attempt:', n);
   loginUser(n, p).then(function(res) {
     hideLoading();
-    if (res.success) {
+    console.log('LOGIN response:', JSON.stringify(res));
+    if (res && res.success) {
       setToken(res.token);
       currentUser = { uid: res.uid, nickname: res.nickname, avatar: res.avatar, department: res.department, birthDate: res.birthDate };
       if (remember) {
@@ -459,8 +461,8 @@ function doLogin() {
       }
       onLoginSuccess();
     }
-    else alert(res.msg);
-  }).catch(function(e) { hideLoading(); alert("エラー: " + e.message); });
+    else alert(res ? res.msg : "応答がありません");
+  }).catch(function(e) { hideLoading(); console.error('LOGIN error:', e); alert("通信エラー: " + e.message); });
 }
 
 function doResetPassword() {

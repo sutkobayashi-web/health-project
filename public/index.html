@@ -1031,11 +1031,7 @@ function initNurseChat() {
   var fab = document.getElementById('nurse-fab');
   if (!fab) return;
   fab.style.display = 'flex';
-  var done = localStorage.getItem('nurse_done_' + currentUser.uid);
-  if (!done) {
-    var badge = document.getElementById('nurse-fab-badge');
-    if (badge) badge.style.display = 'block';
-  }
+  // バッジは表示しない（常に新着が出る問題を解消）
 }
 
 function openNurseChat() {

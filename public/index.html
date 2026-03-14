@@ -14,46 +14,53 @@
   body.sheet-open { overflow: hidden !important; position: fixed !important; width: 100% !important; touch-action: none; }
 
   /* ====== ヘッダー ====== */
-  .app-header { background: rgba(255,255,255,0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 6px 10px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(0,0,0,0.06); box-shadow: 0 1px 8px rgba(0,0,0,0.04); position: sticky; top: 0; z-index: 100; gap: 8px; }
-  .app-header .logo { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
-  .app-header .logo i { color: #d63384; font-size: 1.1rem; }
-  .app-header .logo-text { font-weight: 800; font-size: 0.7rem; color: #2c3e50; line-height: 1.3; letter-spacing: 0.3px; }
-  .header-stats { display: flex; gap: 3px; align-items: center; flex-wrap: nowrap; justify-content: flex-end; flex-shrink: 1; min-width: 0; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .app-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 20px rgba(102,126,234,0.3); position: sticky; top: 0; z-index: 100; gap: 8px; }
+  .app-header .logo { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+  .app-header .logo i { color: #fff; font-size: 1.2rem; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.2)); }
+  .app-header .logo-text { font-weight: 800; font-size: 0.72rem; color: white; line-height: 1.3; letter-spacing: 0.3px; text-shadow: 0 1px 2px rgba(0,0,0,0.15); }
+  .header-stats { display: flex; gap: 4px; align-items: center; flex-wrap: nowrap; justify-content: flex-end; flex-shrink: 1; min-width: 0; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
   .header-stats::-webkit-scrollbar { display: none; }
-  .stat-chip { font-size: 0.68rem; background: #f0f2f5; border: none; border-radius: 14px; padding: 4px 8px; color: #555; white-space: nowrap; font-weight: 600; flex-shrink: 0; }
+  .stat-chip { font-size: 0.68rem; background: rgba(255,255,255,0.2); border: none; border-radius: 14px; padding: 4px 9px; color: white; white-space: nowrap; font-weight: 600; flex-shrink: 0; backdrop-filter: blur(4px); }
   .stat-chip i { margin-right: 2px; font-size: 0.6rem; }
 
   /* ====== メインコンテンツ ====== */
   .main-content { max-width: 500px; margin: 0 auto; padding: 16px 14px; }
 
   /* ====== カードセクション ====== */
-  .card-section { background: white; border-radius: 20px; padding: 22px 18px; margin-bottom: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.04), 0 0 0 1px rgba(0,0,0,0.03); border: none; }
+  .card-section { background: white; border-radius: 20px; padding: 22px 18px; margin-bottom: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); border: none; position: relative; overflow: hidden; }
   .section-title { font-weight: 800; font-size: 0.95rem; color: #2c3e50; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; letter-spacing: -0.2px; }
   .section-title i { font-size: 1.1rem; }
 
   /* ====== 相談セクション ====== */
-  .honne-area textarea { width: 100%; border: 2px solid #eef0f3; border-radius: 14px; padding: 14px; font-size: 0.92rem; resize: none; min-height: 90px; transition: all 0.25s; background: #fafbfc; color: #333; line-height: 1.6; }
-  .honne-area textarea:focus { outline: none; border-color: #3478f6; background: white; box-shadow: 0 0 0 4px rgba(52,120,246,0.08); }
-  .honne-area textarea::placeholder { color: #aaa; }
-  .btn-submit { background: linear-gradient(135deg, #3478f6, #5b9bf3); color: white; border: none; border-radius: 14px; padding: 14px 24px; font-weight: 700; font-size: 0.95rem; width: 100%; margin-top: 12px; box-shadow: 0 4px 14px rgba(52,120,246,0.25); transition: all 0.15s; letter-spacing: 0.3px; }
-  .btn-submit:active { transform: scale(0.98); box-shadow: 0 2px 8px rgba(52,120,246,0.2); }
+  .honne-area { border-top: 4px solid #d63384; }
+  .honne-area::before { content: ''; position: absolute; top: 0; right: 0; width: 120px; height: 120px; background: radial-gradient(circle, rgba(214,51,132,0.06) 0%, transparent 70%); pointer-events: none; }
+  .honne-area .section-title i { color: #d63384; }
+  .honne-area .section-sub { font-size: 0.78rem; color: #aaa; margin-top: -10px; margin-bottom: 12px; padding-left: 28px; }
+  .honne-area textarea { width: 100%; border: 2px solid #f0e0ea; border-radius: 14px; padding: 14px; font-size: 0.92rem; resize: none; min-height: 90px; transition: all 0.25s; background: #fef9fb; color: #333; line-height: 1.6; }
+  .honne-area textarea:focus { outline: none; border-color: #d63384; background: white; box-shadow: 0 0 0 4px rgba(214,51,132,0.08); }
+  .honne-area textarea::placeholder { color: #caa; }
+  .btn-submit { background: linear-gradient(135deg, #d63384, #e91e8c); color: white; border: none; border-radius: 14px; padding: 14px 24px; font-weight: 700; font-size: 0.95rem; width: 100%; margin-top: 12px; box-shadow: 0 4px 14px rgba(214,51,132,0.3); transition: all 0.15s; letter-spacing: 0.3px; }
+  .btn-submit:active { transform: scale(0.98); box-shadow: 0 2px 8px rgba(214,51,132,0.2); }
 
   /* ====== 食事セクション ====== */
-  .food-section { text-align: center; }
-  .food-upload-area { border: 2px dashed #d4e8d9; border-radius: 16px; padding: 28px 20px; cursor: pointer; transition: all 0.25s; background: linear-gradient(135deg, #f6fdf8 0%, #f0faf4 100%); }
-  .food-upload-area:hover, .food-upload-area:active { border-color: #20c997; background: #edfaf3; }
-  .food-upload-area i { font-size: 2rem; color: #20c997; }
+  .food-section { text-align: center; border-top: 4px solid #20c997; }
+  .food-section::before { content: ''; position: absolute; top: 0; left: 0; width: 120px; height: 120px; background: radial-gradient(circle, rgba(32,201,151,0.06) 0%, transparent 70%); pointer-events: none; }
+  .food-section .section-title i { color: #20c997; }
+  .food-section .section-sub { font-size: 0.78rem; color: #aaa; margin-top: -10px; margin-bottom: 12px; }
+  .food-upload-area { border: 2px dashed #b8e6d4; border-radius: 16px; padding: 24px 20px; cursor: pointer; transition: all 0.25s; background: linear-gradient(135deg, #f6fdf8 0%, #edfaf3 100%); }
+  .food-upload-area:hover, .food-upload-area:active { border-color: #20c997; background: #e0f7ed; transform: scale(1.01); }
+  .food-upload-area i { font-size: 2.2rem; color: #20c997; }
   .btn-food-submit { background: #d8dde3; color: white; border: none; border-radius: 14px; padding: 14px 24px; font-weight: 700; font-size: 0.95rem; width: 100%; margin-top: 12px; transition: all 0.2s; }
-  .btn-food-submit.active { background: linear-gradient(135deg, #20c997, #38d9a9); box-shadow: 0 4px 14px rgba(32,201,151,0.25); }
+  .btn-food-submit.active { background: linear-gradient(135deg, #20c997, #38d9a9); box-shadow: 0 4px 14px rgba(32,201,151,0.3); }
   .btn-food-submit:active { transform: scale(0.98); }
   #food-preview-area { display: none; margin-top: 12px; }
-  #food-preview-img { max-width: 100%; border-radius: 12px; border: 1px solid #eee; }
+  #food-preview-img { max-width: 100%; border-radius: 12px; border: 2px solid #e0f0e8; box-shadow: 0 2px 12px rgba(32,201,151,0.1); }
 
   /* ====== タイムライン ====== */
-  .timeline-toggle { text-align: center; margin: 12px 0; }
-  .btn-timeline { background: white; border: 2px solid #6c5ce7; color: #6c5ce7; border-radius: 14px; padding: 12px 28px; font-weight: 700; font-size: 0.9rem; transition: all 0.2s; box-shadow: 0 2px 8px rgba(108,92,231,0.08); }
+  .timeline-toggle { text-align: center; margin: 16px 0; }
+  .btn-timeline { background: white; border: 2px solid #6c5ce7; color: #6c5ce7; border-radius: 16px; padding: 14px 28px; font-weight: 700; font-size: 0.9rem; transition: all 0.2s; box-shadow: 0 4px 16px rgba(108,92,231,0.1); width: 100%; }
   .btn-timeline:active { transform: scale(0.98); }
-  .btn-timeline.active { background: #6c5ce7; color: white; box-shadow: 0 4px 14px rgba(108,92,231,0.25); }
+  .btn-timeline.active { background: linear-gradient(135deg, #6c5ce7, #a29bfe); color: white; box-shadow: 0 4px 18px rgba(108,92,231,0.3); border-color: transparent; }
   .timeline-container { display: none; }
   .timeline-container.active { display: block; }
   @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
@@ -247,7 +254,7 @@
       <span class="stat-chip" id="stat-rank"><i class="fas fa-medal"></i> --</span>
       <span class="stat-chip" id="stat-posts"><i class="fas fa-pen"></i> 0</span>
       <span class="stat-chip" id="stat-invites"><i class="fas fa-user-plus"></i> 0</span>
-      <span class="stat-chip" style="cursor:pointer; color:#e74c3c; border-color:#e74c3c;" onclick="doUserLogout()"><i class="fas fa-sign-out-alt"></i></span>
+      <span class="stat-chip" style="cursor:pointer; color:white; background:rgba(255,255,255,0.15);" onclick="doUserLogout()"><i class="fas fa-sign-out-alt"></i></span>
     </div>
   </div>
 
@@ -255,17 +262,29 @@
 
     <!-- 相談セクション -->
     <div class="card-section honne-area">
-      <div class="section-title"><i class="far fa-comment-dots"></i> 健康のお悩み・提案</div>
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+        <img src="https://drive.google.com/thumbnail?id=16yng5mofQMoyvSbdHT4WfaVNQH6n29pp&sz=w120" alt="AI保健師" style="height:56px; filter:drop-shadow(1px 2px 4px rgba(0,0,0,0.1));">
+        <div>
+          <div class="section-title" style="margin-bottom:2px;"><i class="far fa-comment-dots"></i> 健康のお悩み・提案</div>
+          <div class="honne-area section-sub">AI保健師が親身にお答えします</div>
+        </div>
+      </div>
       <textarea id="honne-input" placeholder="最近の体調や気になること、職場環境への提案など、なんでもどうぞ（匿名で届きます）"></textarea>
-      <button class="btn-submit" onclick="submitPost()"><i class="fas fa-paper-plane"></i> みんなに相談する</button>
+      <button class="btn-submit" onclick="submitPost()"><i class="fas fa-paper-plane" style="margin-right:6px;"></i> AI保健師に相談する</button>
     </div>
 
     <!-- 食事セクション -->
     <div class="card-section food-section">
-      <div class="section-title"><i class="fas fa-utensils" style="color:#20c997;"></i> 食事チェック</div>
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+        <img src="https://drive.google.com/thumbnail?id=1e025vJfgmEcqy9eDDN19QGuZkYLowDeZ&sz=w120" alt="AI栄養士" style="height:56px; filter:drop-shadow(1px 2px 4px rgba(0,0,0,0.1));">
+        <div>
+          <div class="section-title" style="margin-bottom:2px;"><i class="fas fa-utensils"></i> 食事チェック</div>
+          <div class="food-section section-sub">AI栄養士がバランスを分析します</div>
+        </div>
+      </div>
       <div class="food-upload-area" onclick="document.getElementById('file-input').click()">
         <i class="fas fa-camera"></i>
-        <div style="margin-top:8px; font-size:0.9rem; color:#666;">タップして食事写真を撮影・選択</div>
+        <div style="margin-top:8px; font-size:0.88rem; color:#666; font-weight:600;">タップして食事写真を撮影・選択</div>
       </div>
       <input type="file" id="file-input" accept="image/*" capture="environment" style="display:none;" onchange="handleFileSelect(this)">
       <div id="food-preview-area">
@@ -292,13 +311,14 @@
     </div>
 
     <!-- QR招待 -->
-    <div class="card-section" style="text-align:center;">
-      <div class="section-title" style="justify-content:center;"><i class="fas fa-qrcode"></i> 仲間を招待</div>
+    <div class="card-section" style="text-align:center; border-top:4px solid #6c5ce7; background:linear-gradient(135deg, #faf8ff 0%, #f3f0ff 100%);">
+      <div class="section-title" style="justify-content:center;"><i class="fas fa-qrcode" style="color:#6c5ce7;"></i> 仲間を招待しよう！</div>
+      <div style="font-size:0.8rem; color:#999; margin-bottom:12px;">QRコードを同僚に見せて<br>みんなで健康になりましょう</div>
       <div id="qr-area"></div>
-      <div class="small text-muted mt-2">このQRコードを同僚に見せてください</div>
+      <div style="margin-top:10px; font-size:0.75rem; color:#bbb;"><i class="fas fa-users" style="margin-right:4px;"></i> 招待するとランクがアップ！</div>
     </div>
 
-    <div class="app-footer">健康プロジェクト v2.0 &copy; 2026</div>
+    <div class="app-footer" style="color:#bbb;">健康プロジェクト v2.0 &copy; 2026 <span style="color:#d63384;">❤</span></div>
   </div>
 </div>
 

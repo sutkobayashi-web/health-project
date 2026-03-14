@@ -78,6 +78,23 @@ router.post('/admin-login', (req, res) => {
   }
 });
 
+// パスワードリセット（ニックネーム＋部署＋生年月日で本人確認）
+router.post('/reset-password', (req, res) => {
+  try {
+    const { nickname, department, birthDate, newPassword } = req.body;
+    if (!nickname || !department || !birthDate) return res.json({ success: false, msg: 'ニックネーム・部署・生年月日をすべて入力してください' });
+    if (!newPassword || newPassword.length < 4) return res.json({ success: false, msg: '新しいパスワードは4文字以上で入力してください' });
+    const db = getDb();
+    const user = db.prepare('SELECT * FROM users WHERE nickname = ? AND department = ? AND birth_date = ?').get(nickname.trim(), department, birthDate);
+    if (!user) return res.json({ success: false, msg: '入力情報が一致するアカウントが見つかりません' });
+    const newHash = hashPasswordSHA256(newPassword.trim());
+    db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(newHash, user.id);
+    res.json({ success: true, msg: 'パスワードを再設定しました。新しいパスワードでログインしてください。' });
+  } catch (e) {
+    res.json({ success: false, msg: 'エラー: ' + e.message });
+  }
+});
+
 // ユーザー統計
 router.get('/stats/:uid', (req, res) => {
   try {

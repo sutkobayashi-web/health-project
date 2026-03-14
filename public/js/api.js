@@ -30,6 +30,9 @@ function loginUser(n, p) {
 function loginCoreMember(email, pass) {
   return api('/auth/admin-login', { email, password: pass });
 }
+function resetPassword(nickname, department, birthDate, newPassword) {
+  return api('/auth/reset-password', { nickname, department, birthDate, newPassword });
+}
 function getLatestUserStats(uid) {
   return api('/auth/stats/' + uid);
 }

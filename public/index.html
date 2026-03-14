@@ -168,7 +168,21 @@
       <div class="form-group"><label>パスワード</label><input type="password" id="login-password" placeholder="パスワード"></div>
       <div style="margin-bottom:15px;"><label style="font-weight:normal; display:flex; align-items:center; cursor:pointer;"><input type="checkbox" id="user-remember" style="width:auto; margin-right:8px; transform:scale(1.2);"> ログイン情報を保存する</label></div>
       <button class="auth-submit-btn" onclick="doLogin()">ログイン</button>
+      <div style="text-align:center; margin-top:12px;"><a style="font-size:0.82rem; color:#e74c3c; cursor:pointer; text-decoration:underline;" onclick="showStep('reset')">パスワードを忘れた方はこちら</a></div>
       <div class="back-btn" onclick="showStep('menu')">← 戻る</div>
+    </div>
+
+    <div id="auth-step-reset" style="display:none;">
+      <div class="modal-title"><i class="fas fa-key" style="color:#f39c12;"></i> パスワード再設定</div>
+      <div style="font-size:0.82rem; color:#888; margin-bottom:14px; text-align:center;">登録時の情報で本人確認を行います</div>
+      <div class="form-group"><label>ニックネーム</label><input type="text" id="reset-nickname" placeholder="登録したニックネーム"></div>
+      <div class="form-group"><label>部署</label>
+        <select id="reset-department"><option value="">選択してください</option><option>管理部</option><option>営業部</option><option>製造部</option><option>品質管理部</option><option>開発部</option><option>物流部</option><option>その他</option></select>
+      </div>
+      <div class="form-group"><label>生年月日</label><input type="date" id="reset-birthdate"></div>
+      <div class="form-group"><label>新しいパスワード</label><input type="password" id="reset-new-password" placeholder="4文字以上"></div>
+      <button class="auth-submit-btn" style="background:linear-gradient(135deg,#f39c12,#f1c40f);" onclick="doResetPassword()">パスワードを再設定</button>
+      <div class="back-btn" onclick="showStep('login')">← ログインに戻る</div>
     </div>
 
     <div id="auth-step-admin-login" style="display:none;">
@@ -304,6 +318,7 @@ function showStep(step) {
   document.getElementById('auth-step-register').style.display = step === 'register' ? 'block' : 'none';
   document.getElementById('auth-step-login').style.display = step === 'login' ? 'block' : 'none';
   document.getElementById('auth-step-admin-login').style.display = step === 'admin-login' ? 'block' : 'none';
+  document.getElementById('auth-step-reset').style.display = step === 'reset' ? 'block' : 'none';
   if (step === 'register') initAvatarGrid();
   if (step === 'login') {
     var savedNick = localStorage.getItem('co_heart_user_nick');
@@ -379,6 +394,23 @@ function doLogin() {
       }
       onLoginSuccess();
     }
+    else alert(res.msg);
+  }).catch(function(e) { hideLoading(); alert("エラー: " + e.message); });
+}
+
+function doResetPassword() {
+  var n = document.getElementById('reset-nickname').value.trim();
+  var d = document.getElementById('reset-department').value;
+  var b = document.getElementById('reset-birthdate').value;
+  var p = document.getElementById('reset-new-password').value.trim();
+  if (!n) return alert("ニックネームを入力してください");
+  if (!d) return alert("部署を選択してください");
+  if (!b) return alert("生年月日を入力してください");
+  if (!p || p.length < 4) return alert("新しいパスワードは4文字以上で入力してください");
+  showLoading("確認中...");
+  resetPassword(n, d, b, p).then(function(res) {
+    hideLoading();
+    if (res.success) { alert(res.msg); showStep('login'); }
     else alert(res.msg);
   }).catch(function(e) { hideLoading(); alert("エラー: " + e.message); });
 }

@@ -555,15 +555,10 @@ function doAdminLogin() {
     if (!res) { alert("サーバー応答がnullです。デプロイを更新してください。"); return; }
     if (res.success) {
       setAdminToken(res.token);
-      if (remember) {
-        localStorage.setItem('co_heart_admin_email', em);
-        localStorage.setItem('co_heart_admin_pass', pw);
-        localStorage.setItem('co_heart_admin_profile', JSON.stringify(res.profile));
-      } else {
-        localStorage.removeItem('co_heart_admin_email');
-        localStorage.removeItem('co_heart_admin_pass');
-        localStorage.removeItem('co_heart_admin_profile');
-      }
+      // admin画面の自動認証に必要なため常に保存
+      localStorage.setItem('co_heart_admin_email', em);
+      localStorage.setItem('co_heart_admin_pass', pw);
+      localStorage.setItem('co_heart_admin_profile', JSON.stringify(res.profile));
       window.location.href = "/admin";
     } else alert(res.msg);
   }).catch(function(e) { hideLoading(); alert("エラー: " + e.message); });

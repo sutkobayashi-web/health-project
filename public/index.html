@@ -149,6 +149,7 @@
         ・食事写真の撮影・投稿への同意をお願いします。<br>
         ・回答はAIによる参考情報であり、医療行為ではありません。
       </div>
+      <div class="form-group"><label>氏名（実名）</label><input type="text" id="reg-realname" placeholder="例: 健康 太郎"></div>
       <div class="form-group"><label>ニックネーム</label><input type="text" id="reg-nickname" placeholder="匿名で表示されます"></div>
       <div class="form-group"><label>パスワード</label><input type="password" id="reg-password" placeholder="4文字以上"></div>
       <div class="form-group"><label>部署</label>
@@ -277,7 +278,7 @@ var avatarList = [
   // 顔・人
   '😀','😎','🤓','🥳','🤩','😇','🥸','🤠','👻','🤖','👽','🦸','🧙','🧛','🥷','🧑‍🚀','🧑‍🎤','🧑‍🍳','🧑‍🔬','🧑‍🌾',
   // 動物
-  '🐶','🐱','🐻','🦊','🐸','🐧','🐰','🦁','🐼','🐨','🐯','🦄','🐙','🦋','🐝','🐬','🦈','🐳','🦩','🦜','🐓','🦉','🐺','🦝','🐹',
+  '🐶','🐱','🐻','🦊','🐸','🐧','🐰','🦁','🐼','🐨','🐯','🦄','🐙','🦋','🐝','🐬','🦈','🐳','🦩','🦜','🐓','🦉','🐺','🦝','🐹','🦔',
   // 食べ物・健康
   '🍎','🍒','🍑','🥑','🥦','🍇','🍊','🥕','🍣','🍙','🍜','🍩','🧁','🍺','☕','🍵',
   // 自然・天気
@@ -363,15 +364,17 @@ function selectAvatar(el, av) {
 }
 
 function doRegister() {
+  var r = document.getElementById('reg-realname').value.trim();
   var n = document.getElementById('reg-nickname').value.trim();
   var p = document.getElementById('reg-password').value.trim();
   var d = document.getElementById('reg-department').value;
   var b = document.getElementById('reg-birthdate').value;
+  if (!r) return alert("氏名を入力してください");
   if (!n) return alert("ニックネームを入力してください");
   if (!p || p.length < 4) return alert("パスワードは4文字以上");
   if (!d) return alert("部署を選択してください");
   showLoading("登録中...");
-  registerUser(n, p, selectedAvatar, inviterId, "", d, b).then(function(res) {
+  registerUser(n, p, selectedAvatar, inviterId, r, d, b).then(function(res) {
     hideLoading();
     if (res.success) {
       setToken(res.token);

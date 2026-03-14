@@ -108,7 +108,7 @@
   .auth-submit-btn:active { transform: scale(0.98); box-shadow: 0 2px 8px rgba(52,120,246,0.15); }
   .back-btn { text-align: center; margin-top: 12px; cursor: pointer; color: #999; font-size: 0.85rem; text-decoration: none; font-weight: 600; }
   .terms-box { background: #fafbfc; border: 2px solid #eef0f3; padding: 14px; height: 120px; overflow-y: auto; font-size: 0.82rem; color: #666; margin-bottom: 16px; border-radius: 12px; line-height: 1.7; box-sizing: border-box; }
-  .avatar-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; max-height: 120px; overflow-y: auto; margin-bottom: 15px; }
+  .avatar-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; max-height: 200px; overflow-y: auto; margin-bottom: 15px; }
   .avatar-option { font-size: 26px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 10px; transition: all 0.15s; }
   .avatar-option:hover, .avatar-option.selected { background: #e8f5e9; transform: scale(1.15); }
 
@@ -273,7 +273,20 @@ var qrBaseUrl = window.location.origin + '/';
 var inviterId = new URLSearchParams(window.location.search).get('inviter') || '';
 
 // ====== 認証 ======
-var avatarList = ['😀','😎','🤓','😺','🐶','🐻','🦊','🐸','🌸','🌻','⭐','🌈','🎵','🎮','🏀','🍀','🦄','🐧','🐰','🐱','🍎','🍒'];
+var avatarList = [
+  // 顔・人
+  '😀','😎','🤓','🥳','🤩','😇','🥸','🤠','👻','🤖','👽','🦸','🧙','🧛','🥷','🧑‍🚀','🧑‍🎤','🧑‍🍳','🧑‍🔬','🧑‍🌾',
+  // 動物
+  '🐶','🐱','🐻','🦊','🐸','🐧','🐰','🦁','🐼','🐨','🐯','🦄','🐙','🦋','🐝','🐬','🦈','🐳','🦩','🦜','🐓','🦉','🐺','🦝','🐹',
+  // 食べ物・健康
+  '🍎','🍒','🍑','🥑','🥦','🍇','🍊','🥕','🍣','🍙','🍜','🍩','🧁','🍺','☕','🍵',
+  // 自然・天気
+  '🌸','🌻','🍀','🌈','⭐','🔥','❄️','🌊','🌙','☀️','🌴','🍁','🌵','💎',
+  // スポーツ・遊び
+  '🏀','⚽','🎮','🎯','🎲','🏄','🚴','🧗','🎸','🎵','🎭','🎨',
+  // 乗り物・仕事
+  '🚀','🚗','🚂','✈️','🏠','💼','🔧','💡','📱','🎒'
+];
 
 // ★ ページ読み込み時に保存済みログイン情報をチェック
 (function() {

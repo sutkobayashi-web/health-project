@@ -2,10 +2,6 @@
 //  Core: グローバル変数・初期化・タブ切替・認証
 // ====================================================
 window.addEventListener('submit', function(e) { e.preventDefault(); }, true);
-window.addEventListener('click', function(e) {
-    let t = e.target.closest('a, button');
-    if(t && (t.tagName==='BUTTON' && t.type==='submit' || t.tagName==='A' && (!t.href || t.getAttribute('href')==='#' || t.getAttribute('href')===''))) { e.preventDefault(); }
-}, true);
 
 // グローバル変数
 var allPostData = [];

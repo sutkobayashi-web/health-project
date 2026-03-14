@@ -303,12 +303,11 @@ window.deleteMyComment = function(rowId, name, btnEl) {
 window.handlePriorityAction = function(action) {
     if(!window.mxCurrentPrioPid) { alert("案件が選択されていません"); return; }
     var myName = (currentAdminProfile && currentAdminProfile.name) || "Admin";
-    var label = (action === 'like') ? '合意' : '降格';
+    var label = (action === 'like') ? '合意' : '戻す';
     if(!confirm(label + "しますか？")) return;
-    alert("送信中... pid=" + window.mxCurrentPrioPid + " name=" + myName + " action=" + action);
     votePriorityPost(window.mxCurrentPrioPid, myName, action).then(function(res) {
-        alert("結果: " + JSON.stringify(res));
         if(res && res.success) {
+            alert(res.msg);
             var el = document.getElementById('prio-like-count');
             if(el) el.innerHTML = '<i class="fas fa-thumbs-up me-1"></i> ' + (res.likeCount || 0);
             if(res.transitioned) {

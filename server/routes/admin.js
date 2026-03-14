@@ -37,7 +37,7 @@ router.get('/inbox', (req, res) => {
       const likesArr = r.likes ? r.likes.split(',').filter(x => x) : [];
       const demotesArr = r.demotes ? r.demotes.split(',').filter(x => x) : [];
       const dateStr = new Date(r.created_at).toLocaleString('ja-JP', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Tokyo' });
-      return [r.id, r.post_id, r.content, r.analysis, r.nickname, r.avatar, likesArr.length, r.id, r.category, r.status, r.user_id, r.image_url, nurse, nutri, dateStr, chatCounts[r.post_id] || 0, isTarget, isPlanned, demotesArr.length];
+      return [r.id, r.post_id, r.content, r.analysis, r.nickname, r.avatar, likesArr.length, r.post_id, r.category, r.status, r.user_id, r.image_url, nurse, nutri, dateStr, chatCounts[r.post_id] || 0, isTarget, isPlanned, demotesArr.length];
     });
     res.json(result);
   } catch (e) { res.json([]); }
@@ -50,7 +50,7 @@ router.get('/resolved', (req, res) => {
     const posts = db.prepare("SELECT * FROM posts WHERE status = 'resolved' ORDER BY created_at DESC").all();
     const result = posts.map(r => {
       const dateStr = new Date(r.created_at).toLocaleString('ja-JP', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Tokyo' });
-      return [r.id, r.post_id, r.content, r.analysis, r.nickname, r.avatar, 0, r.id, r.category, r.status, r.user_id, r.image_url, '', '', dateStr, 0, false, false, 0];
+      return [r.id, r.post_id, r.content, r.analysis, r.nickname, r.avatar, 0, r.post_id, r.category, r.status, r.user_id, r.image_url, '', '', dateStr, 0, false, false, 0];
     });
     res.json(result);
   } catch (e) { res.json([]); }

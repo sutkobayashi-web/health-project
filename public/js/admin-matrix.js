@@ -301,19 +301,24 @@ window.deleteMyComment = function(rowId, name, btnEl) {
 };
 
 window.handlePriorityAction = function(action) {
-    alert("DEBUG: action=" + action + " pid=" + window.mxCurrentPrioPid);
-    if(!window.mxCurrentPrioPid) { alert("DEBUG: pidがnull"); return; }
+    if(!window.mxCurrentPrioPid) { alert("案件が選択されていません"); return; }
     var myName = (currentAdminProfile && currentAdminProfile.name) || "Admin";
-    if(action==='like') {
-        if(!confirm("合意しますか？")) return;
-        votePriorityPost(window.mxCurrentPrioPid, myName, 'like').then(function(res) {
-            if(res.success) { alert(res.msg); document.getElementById('prio-like-count').innerHTML='<i class="fas fa-thumbs-up me-1"></i> '+res.likeCount;
-            if(res.transitioned) { document.getElementById('priority-modal').style.display='none'; loadCurrentAnalysis(); } }
-        });
-    } else if(action==='demote') {
-        if(!confirm("降格させますか？")) return;
-        votePriorityPost(window.mxCurrentPrioPid, myName, 'demote').then(function(res) {
-            if(res.success) { alert(res.msg); if(res.transitioned) { document.getElementById('priority-modal').style.display='none'; loadCurrentAnalysis(); } }
-        });
-    }
+    var label = (action === 'like') ? '合意' : '降格';
+    if(!confirm(label + "しますか？")) return;
+    alert("送信中... pid=" + window.mxCurrentPrioPid + " name=" + myName + " action=" + action);
+    votePriorityPost(window.mxCurrentPrioPid, myName, action).then(function(res) {
+        alert("結果: " + JSON.stringify(res));
+        if(res && res.success) {
+            var el = document.getElementById('prio-like-count');
+            if(el) el.innerHTML = '<i class="fas fa-thumbs-up me-1"></i> ' + (res.likeCount || 0);
+            if(res.transitioned) {
+                document.getElementById('priority-modal').style.display = 'none';
+                loadCurrentAnalysis();
+            }
+        } else {
+            alert("エラー: " + (res ? res.msg : "応答なし"));
+        }
+    }).catch(function(err) {
+        alert("通信エラー: " + err.message);
+    });
 };

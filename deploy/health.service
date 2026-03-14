@@ -1,0 +1,16 @@
+[Unit]
+Description=Health Project - AI健康経営支援プラットフォーム
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/health
+ExecStart=/usr/bin/node server/index.js
+Restart=always
+RestartSec=5
+Environment=NODE_ENV=production
+EnvironmentFile=/opt/health/.env
+
+[Install]
+WantedBy=multi-user.target

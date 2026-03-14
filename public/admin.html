@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>健康プロジェクト 管理画面</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Admin_CSS content -->
+  <style>
+    body { font-family: 'Noto Sans JP', sans-serif; margin: 0; background: #f0f2f5; }
+    .admin-header { background: white; padding: 0 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; height: 50px; }
+    .brand-container { display: flex; align-items: center; gap: 8px; }
+    .logo-mark { font-size: 1.2rem; }
+    .title-group { line-height: 1.1; }
+    .app-name-main { font-weight: 900; color: #2c3e50; font-size: 0.8rem; }
+    .app-name-sub { font-weight: 700; color: #888; font-size: 0.65rem; }
+    .header-right { display: flex; align-items: center; gap: 8px; }
+    .user-status-box { display: flex; align-items: center; gap: 6px; background: #f8f9fa; border-radius: 30px; padding: 4px 10px; font-size: 0.75rem; }
+    .status-avatar { font-size: 1.1rem; }
+    .status-name { font-weight: 700; font-size: 0.7rem; }
+    .status-role { font-size: 0.6rem; color: #888; }
+    .btn-return { background: #e74c3c; color: white; border: none; border-radius: 20px; padding: 5px 12px; font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+    .main-container { display: flex; min-height: calc(100vh - 50px); }
+    .sidebar { width: 70px; background: #2c3e50; display: flex; flex-direction: column; align-items: center; padding: 10px 0; gap: 2px; flex-shrink: 0; }
+    .nav-item { width: 60px; padding: 8px 0; text-align: center; cursor: pointer; border-radius: 8px; transition: all 0.2s; color: rgba(255,255,255,0.6); }
+    .nav-item:hover { background: rgba(255,255,255,0.1); color: white; }
+    .nav-item.active { background: rgba(255,255,255,0.15); color: white; }
+    .nav-icon { font-size: 1.1rem; display: block; margin-bottom: 2px; }
+    .nav-label { font-size: 0.55rem; font-weight: 700; line-height: 1.2; }
+    .content-area { flex: 1; padding: 15px; overflow-y: auto; }
+    .tab-view { display: none; }
+    .tab-view.active { display: block; }
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; display: flex; justify-content: center; align-items: center; }
+    .modal-box { background: white; border-radius: 12px; max-height: 90vh; overflow-y: auto; }
+    .plan-card { background: white; border-radius: 12px; padding: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid #eee; }
+    .eval-body { display: flex; flex: 1; overflow: hidden; }
+    .col-left-prio { width: 40%; padding: 20px; overflow-y: auto; border-right: 1px solid #eee; }
+    .col-right-prio { width: 60%; display: flex; flex-direction: column; }
+    .deep-dive-container { flex: 1; overflow-y: auto; padding: 15px; background: #f8f9fa; }
+    .input-area-sticky { padding: 10px 15px; background: white; border-top: 1px solid #eee; }
+    .council-member-row { display: flex; gap: 10px; margin-bottom: 12px; animation: fadeIn 0.3s; }
+    .council-member-row.ai { }
+    .council-member-row.human { flex-direction: row-reverse; }
+    .council-avatar { width: 32px; height: 32px; border-radius: 50%; background: #f1f3f5; display: flex; justify-content: center; align-items: center; font-size: 1rem; flex-shrink: 0; }
+    .council-content { max-width: 80%; }
+    .council-role { font-size: 0.7rem; font-weight: 700; color: #888; margin-bottom: 2px; }
+    .council-bubble { background: white; padding: 10px 14px; border-radius: 12px; font-size: 0.85rem; line-height: 1.6; box-shadow: 0 1px 3px rgba(0,0,0,0.06); border: 1px solid #eee; }
+    .council-member-row.human .council-bubble { background: #e3f2fd; border-color: #bbdefb; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .fs-compact { font-size: 0.85rem; }
+    .fs-compact-title { font-size: 0.95rem; }
+    .fs-compact-body { font-size: 0.9rem; }
+    .theme-modal-body { display: flex; flex: 1; overflow: hidden; }
+    .theme-left-col { width: 55%; padding: 15px; overflow-y: auto; }
+    .theme-right-col { width: 45%; padding: 15px; overflow-y: auto; border-left: 1px solid #eee; }
+    .theme-label { font-weight: 700; font-size: 0.8rem; color: #555; display: block; margin-bottom: 4px; }
+    .theme-input { width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 8px 12px; font-size: 0.85rem; }
+    .score-row-compact { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+    .score-label-compact { width: 40px; font-weight: bold; font-size: 0.7rem; }
+    .score-input-compact { flex: 1; }
+    .score-val-compact { width: 20px; text-align: center; font-weight: bold; font-size: 0.8rem; }
+    .prop-section-block { margin-bottom: 20px; border-radius: 12px; overflow: hidden; border: 1px solid #eee; }
+    .section-title-bar { padding: 10px 15px; font-weight: 700; font-size: 0.9rem; background: #f8f9fa; border-bottom: 1px solid #eee; }
+    .section-body { padding: 15px; }
+    .section-color-0 { border-left: 4px solid #3498db; }
+    .section-color-1 { border-left: 4px solid #e74c3c; }
+    .section-color-2 { border-left: 4px solid #2ecc71; }
+    .section-color-3 { border-left: 4px solid #f39c12; }
+    .section-color-4 { border-left: 4px solid #9b59b6; }
+    .section-color-5 { border-left: 4px solid #1abc9c; }
+    .existing-comment { font-size: 0.8rem; color: #555; margin-bottom: 4px; padding: 4px 0; }
+    .post-select-card { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border: 1px solid #eee; border-radius: 8px; margin-bottom: 6px; cursor: pointer; transition: all 0.15s; }
+    .post-select-card.selected { background: #e3f2fd; border-color: #2196f3; }
+    .post-select-check { font-size: 1rem; }
+    @media (max-width: 768px) {
+      .sidebar { width: 50px; }
+      .nav-label { font-size: 0.45rem; }
+      .eval-body { flex-direction: column; }
+      .col-left-prio { width: 100%; border-right: none; border-bottom: 1px solid #eee; }
+      .col-right-prio { width: 100%; }
+      .theme-modal-body { flex-direction: column; }
+      .theme-left-col, .theme-right-col { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<input type="hidden" id="deploy-url" value="">
+
+<div id="global-loading-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center; flex-direction:column;">
+  <div class="spinner-border text-light" role="status" style="width:3rem; height:3rem;"></div>
+  <div id="loading-text" style="color:white; margin-top:15px; font-weight:bold; font-size:1.1rem;">処理中...</div>
+</div>
+
+<!-- 管理者認証モーダル -->
+<div id="admin-auth-overlay" class="modal-overlay" style="display:flex; z-index:5000;">
+  <div class="modal-box" style="max-width:380px; background:white; padding:25px; border-radius:16px;">
+    <div style="text-align:center; margin-bottom:20px;">
+      <i class="fas fa-shield-alt" style="font-size:2rem; color:#d63384;"></i>
+      <h5 class="fw-bold mt-2">管理者認証</h5>
+    </div>
+    <div class="mb-3"><label class="small fw-bold text-muted">メールアドレス</label><input type="email" id="admin-login-email" class="form-control"></div>
+    <div class="mb-3"><label class="small fw-bold text-muted">パスワード</label><input type="password" id="admin-login-pass" class="form-control"></div>
+    <div class="mb-3"><label style="font-weight:normal; display:flex; align-items:center; cursor:pointer;"><input type="checkbox" id="admin-login-remember" style="width:auto; margin-right:8px; transform:scale(1.2);"> ログイン情報を保存する</label></div>
+    <button class="btn btn-primary w-100 fw-bold py-2" onclick="doAdminAuth()">ログイン</button>
+    <div class="text-center mt-3"><a href="/" class="small text-muted">ユーザー画面に戻る</a></div>
+  </div>
+</div>
+<script>
+// saved auth check - hide overlay immediately to prevent flicker
+if(localStorage.getItem('co_heart_admin_email') && localStorage.getItem('co_heart_admin_pass')) {
+  document.getElementById('admin-auth-overlay').style.display = 'none';
+}
+</script>
+
+<div class="admin-header">
+  <div class="brand-container">
+    <i class="fas fa-heart-pulse logo-mark" style="color:#d63384;"></i>
+    <div class="title-group">
+      <div class="app-name-main">健康プロジェクト</div>
+      <div class="app-name-sub">管理画面 (Admin)</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div id="admin-status-box" class="user-status-box" style="display:none;"></div>
+    <button class="btn-return" onclick="logoutAdmin()"><i class="fas fa-sign-out-alt"></i><span>ログアウト</span></button>
+  </div>
+</div>
+
+<div class="main-container">
+  <div class="sidebar">
+    <div class="nav-item active" onclick="switchTab('evaluation')" id="nav-eval">
+      <i class="fas fa-check-double nav-icon"></i><div class="nav-label">Inbox<br>評価</div>
+    </div>
+    <div class="nav-item" onclick="switchTab('current')" id="nav-curr">
+      <i class="fas fa-star nav-icon text-warning"></i><div class="nav-label" style="font-size:0.6rem; line-height:1.2;">重点<br>検討</div>
+    </div>
+    <div class="nav-item" onclick="switchTab('candidates')" id="nav-cand">
+      <i class="fas fa-file-alt nav-icon"></i><div class="nav-label">企画書</div>
+    </div>
+    <div class="nav-item" onclick="switchTab('aimeeting')" id="nav-aimeeting">
+      <i class="fas fa-users-cog nav-icon text-primary"></i><div class="nav-label" style="font-size:0.6rem; line-height:1.1;">AI企画<br>会議</div>
+    </div>
+    <div class="nav-item" onclick="switchTab('exec')" id="nav-exec">
+      <i class="fas fa-gavel nav-icon text-danger"></i><div class="nav-label" style="font-size:0.6rem; line-height:1.2;">役員<br>決裁</div>
+    </div>
+    <div class="nav-item" onclick="switchTab('bmi22')" id="nav-bmi22">
+      <i class="fas fa-leaf nav-icon text-success"></i><div class="nav-label" style="font-size:0.55rem; line-height:1.2;">全社<br>展開</div>
+    </div>
+    <div class="nav-item position-relative" onclick="switchTab('personal')" id="nav-personal">
+      <i class="fas fa-envelope-open-text nav-icon"></i><div class="nav-label">個別メール</div>
+      <span id="personal-badge" class="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-danger border border-light" style="display:none; font-size:0.6rem;">!</span>
+    </div>
+    <div class="nav-item" onclick="switchTab('resolved')" id="nav-res">
+      <i class="fas fa-archive nav-icon"></i><div class="nav-label">解決済み</div>
+    </div>
+  </div>
+
+  <div class="content-area">
+    <!-- Admin_Tabs content -->
+
+    <div id="tab-evaluation" class="tab-view active">
+      <div id="report-list-area"></div>
+    </div>
+
+    <div id="tab-current" class="tab-view">
+      <canvas id="currentChart"></canvas>
+    </div>
+
+    <div id="tab-candidates" class="tab-view">
+      <div id="candidates-list-area" class="row g-3"></div>
+    </div>
+
+    <div id="tab-aimeeting" class="tab-view">
+      <div id="aimeeting-area"></div>
+    </div>
+
+    <div id="tab-exec" class="tab-view">
+      <div id="exec-pending-area" class="row g-3"></div>
+    </div>
+
+    <div id="tab-bmi22" class="tab-view">
+      <div id="healthplan26-list-area" class="row g-3"></div>
+    </div>
+
+    <div id="tab-personal" class="tab-view">
+      <div id="personal-mail-area"></div>
+    </div>
+
+    <div id="tab-resolved" class="tab-view">
+      <div id="resolved-list-area"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Admin_Modals content -->
+
+<!-- broadcast modal -->
+<div id="broadcast-modal" class="modal-overlay" style="display:none; z-index:2050;">
+  <div class="modal-box" style="width:90%; max-width:500px; background:white; padding:25px; border-radius:12px;">
+    <div class="text-warning mb-3 fw-bold border-bottom pb-2 fs-5"><i class="fas fa-bullhorn"></i> 全員へお知らせ配信</div>
+    <div class="mb-3">
+      <label class="small fw-bold text-muted mb-2">通知内容</label>
+      <textarea id="broadcast-body" class="form-control" rows="5" placeholder="入力してください"></textarea>
+    </div>
+    <div class="d-flex gap-2 mt-4">
+      <button class="btn btn-warning flex-grow-1 fw-bold" onclick="sendBroadcastNotice()">配信</button>
+      <button class="btn btn-secondary" style="width:100px;" onclick="closeBroadcastModal()">キャンセル</button>
+    </div>
+  </div>
+</div>
+
+<!-- theme-plan modal -->
+<div id="theme-plan-modal" class="modal-overlay" style="display:none; z-index:2000;">
+  <div class="modal-box" style="width:95%; max-width:1100px; height:90vh; padding:0; border-radius:12px; display:flex; flex-direction:column; overflow:hidden;">
+    <div style="background:white; padding:12px 20px; border-bottom:1px solid #ddd; display:flex; justify-content:space-between; align-items:center; height:50px;">
+      <div class="text-dark fw-bold"><i class="fas fa-lightbulb text-warning me-2"></i> 重要投稿から企画書を作成</div>
+      <button type="button" class="btn-close" onclick="closeThemePlanModal()"></button>
+    </div>
+    <div class="theme-modal-body">
+      <div class="theme-left-col">
+        <div class="mb-3"><label class="theme-label">1. 課題テーマ</label><input type="text" id="theme-title-input" class="theme-input" placeholder="例：睡眠不足の改善"></div>
+        <div class="mb-3"><label class="theme-label">2. 背景・分析 <button class="btn btn-sm btn-outline-danger py-0" onclick="startThemeBrainstorm()" style="font-size:0.7rem;">AIアイデア</button></label><textarea id="theme-bg-input" class="theme-input" rows="3"></textarea><div id="theme-brainstorm-result" class="d-none p-2 bg-light border small"></div></div>
+        <div class="mb-3"><label class="theme-label">3. 企画名</label><input type="text" id="theme-plan-title" class="theme-input fw-bold"></div>
+        <div class="mb-2"><label class="theme-label">4. スコア設定</label>
+          <div class="score-chart-container"><div class="row align-items-center">
+            <div class="col-6 border-end">
+              <div class="score-row-compact"><div class="score-label-compact">法令</div><input type="range" class="score-input-compact" id="ts1" min="1" max="5" value="3" oninput="updThemeRadar()"><div class="score-val-compact" id="tv1">3</div></div>
+              <div class="score-row-compact"><div class="score-label-compact" style="width:40px; font-weight:bold;">リスク</div><input type="range" class="score-input-compact" id="ts2" min="1" max="5" value="3" oninput="updThemeRadar()"><div class="score-val-compact" id="tv2">3</div></div>
+              <div class="score-row-compact"><div class="score-label-compact" style="width:40px; font-weight:bold;">頻度</div><input type="range" class="score-input-compact" id="ts3" min="1" max="5" value="3" oninput="updThemeRadar()"><div class="score-val-compact" id="tv3">3</div></div>
+              <div class="score-row-compact"><div class="score-label-compact" style="width:40px; font-weight:bold;">緊急</div><input type="range" class="score-input-compact" id="ts4" min="1" max="5" value="3" oninput="updThemeRadar()"><div class="score-val-compact" id="tv4">3</div></div>
+              <div class="score-row-compact"><div class="score-label-compact" style="width:40px; font-weight:bold;">安全</div><input type="range" class="score-input-compact" id="ts5" min="1" max="5" value="3" oninput="updThemeRadar()"><div class="score-val-compact" id="tv5">3</div></div>
+              <div class="score-row-compact"><div class="score-label-compact" style="width:40px; font-weight:bold;">価値</div><input type="range" class="score-input-compact" id="ts6" min="1" max="5" value="3" oninput="updThemeRadar()"><div class="score-val-compact" id="tv6">3</div></div>
+              <div class="score-row-compact"><div class="score-label-compact" style="width:40px; font-weight:bold;">ニーズ</div><input type="range" class="score-input-compact" id="ts7" min="1" max="5" value="3" oninput="updThemeRadar()"><div class="score-val-compact" id="tv7">3</div></div>
+            </div>
+            <div class="col-6"><div style="height:180px; position:relative;"><canvas id="themeScoreRadar"></canvas></div></div>
+          </div></div>
+        </div>
+      </div>
+      <div class="theme-right-col">
+        <div class="d-flex justify-content-between mb-2"><label class="fw-bold text-secondary small">関連投稿選択</label></div>
+        <div id="theme-selection-list"></div>
+      </div>
+    </div>
+    <div style="padding:15px; border-top:1px solid #ddd; text-align:right;">
+      <button class="btn btn-primary fw-bold" onclick="generateThemeProposal()">作成</button>
+    </div>
+  </div>
+</div>
+
+<!-- proposal modal (fullscreen) -->
+<div id="proposal-modal" class="modal-overlay" style="display:none; z-index:9999;">
+  <div class="modal-box" style="width:100%; height:100%; max-width:none; background:#f8f9fa; padding:0; border-radius:0; display:flex; flex-direction:column; overflow:hidden;">
+    <div style="background:white; padding:15px 25px; border-bottom:1px solid #ddd; display:flex; justify-content:space-between; align-items:center;">
+      <div class="d-flex align-items-center gap-3">
+        <span class="badge bg-primary fs-6" id="prop-category">企画書</span>
+        <div class="text-dark fw-bold fs-4">企画書の最終確認</div>
+      </div>
+      <div class="d-flex gap-2">
+        <button class="btn btn-outline-info btn-sm fw-bold" onclick="submitToExecFromProposal()"><i class="fas fa-gavel me-1"></i> 役員上申</button>
+        <button class="btn btn-outline-danger btn-sm fw-bold" onclick="generatePdf(currentProposalId)"><i class="fas fa-file-pdf me-1"></i> PDF出力</button>
+        <button class="btn btn-secondary btn-sm" onclick="closeProposalModal()"><i class="fas fa-times me-1"></i> 閉じる</button>
+      </div>
+    </div>
+    <div class="proposal-wrapper" style="flex:1; overflow-y:auto; background:#fff; padding:20px;">
+      <div class="container p-0" style="max-width:900px; margin:0 auto;">
+        <div class="mb-4">
+          <div class="input-group input-group-lg shadow-sm">
+            <span class="input-group-text bg-white fw-bold text-primary">企画タイトル</span>
+            <input type="text" id="proposal-title-input" class="form-control fw-bold" placeholder="企画タイトル">
+            <button class="btn btn-outline-success" onclick="saveDraft(currentProposalId)"><i class="fas fa-save"></i> 保存</button>
+          </div>
+        </div>
+        <div id="proposal-blocks-area"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- priority modal (fullscreen) -->
+<div id="priority-modal" class="modal-overlay" style="display:none; z-index:3500;">
+  <div class="modal-box" style="width:100%; height:100%; max-width:none; border-radius:0; background:#fff; padding:0; display:flex; flex-direction:column; overflow:hidden;">
+    <div style="background:#fff; padding:12px 25px; border-bottom:1px solid #ddd; display:flex; justify-content:space-between; align-items:center;">
+      <div class="d-flex align-items-center gap-3">
+        <span class="badge bg-warning text-dark fs-6 shadow-sm"><i class="fas fa-star me-1"></i> 重点検討・深耕</span>
+        <div class="text-dark fw-bold fs-5" id="prio-title">案件詳細</div>
+        <span class="badge bg-primary rounded-pill shadow-sm" id="prio-like-count" style="font-size:0.8rem;"></span>
+      </div>
+      <button type="button" class="btn btn-outline-secondary btn-sm px-3 fw-bold" onclick="document.getElementById('priority-modal').style.display='none'"><i class="fas fa-times me-1"></i> 閉じる</button>
+    </div>
+    <div class="eval-body">
+      <div class="col-left-prio">
+        <div class="d-flex align-items-center mb-3 pb-3 border-bottom">
+          <div class="fs-2 me-3" id="prio-avatar">&#x1F464;</div>
+          <div><div class="fw-bold fs-compact-title" id="prio-user">Name</div><div class="text-muted small" id="prio-date">Date</div></div>
+        </div>
+        <div class="mb-3"><label class="small fw-bold text-secondary mb-1">主訴・投稿内容</label><div id="prio-content" class="fs-compact-body" style="white-space:pre-wrap;"></div></div>
+        <div class="bg-light p-3 rounded mb-3 border"><label class="small fw-bold text-danger mb-1"><i class="fas fa-user-nurse me-1"></i> 専門家の初期分析</label><div id="prio-analysis" class="small text-secondary fs-compact"></div></div>
+        <hr class="my-3">
+        <div class="d-grid gap-2">
+          <label class="small fw-bold text-center text-muted">アクション</label>
+          <button type="button" class="btn btn-primary fw-bold py-2 shadow-sm fs-compact" onclick="handlePriorityAction('like')"><i class="fas fa-thumbs-up me-2"></i> チーム合意 (いいね)</button>
+          <button type="button" class="btn btn-outline-secondary fw-bold py-1 fs-compact" onclick="handlePriorityAction('demote')"><i class="fas fa-leaf me-2"></i> 日常・見守りへ戻す</button>
+        </div>
+      </div>
+      <div class="col-right-prio">
+        <div class="px-3 py-2 bg-white border-bottom d-flex justify-content-between align-items:center shadow-sm" style="z-index:10;">
+          <div class="fw-bold text-primary fs-compact-title"><i class="fas fa-comments me-2"></i> 深耕・戦略会議室</div>
+          <div class="small text-muted">AI社員 + 推進チーム</div>
+        </div>
+        <div id="deep-dive-timeline" class="deep-dive-container"></div>
+        <div class="input-area-sticky">
+          <div class="input-group">
+            <span class="input-group-text bg-white"><i class="fas fa-user-shield text-primary"></i></span>
+            <input type="text" id="prio-comment-input" class="form-control" placeholder="議論に参加する (懸念点や解決策を入力)..." style="font-size:0.9rem;">
+            <button class="btn btn-primary px-4" onclick="postPrioComment()"><i class="fas fa-paper-plane"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- exec-detail modal -->
+<div id="exec-detail-modal" class="modal-overlay" style="display:none; z-index:4000;">
+  <div class="modal-box" style="width:95%; max-width:800px; max-height:90vh; padding:0; border-radius:12px; display:flex; flex-direction:column; overflow:hidden;">
+    <div style="background:white; padding:15px 20px; border-bottom:1px solid #ddd; display:flex; justify-content:space-between; align-items:center;">
+      <div class="d-flex align-items-center gap-2">
+        <span class="badge bg-danger fs-6"><i class="fas fa-gavel me-1"></i></span>
+        <div class="fw-bold text-dark" id="exec-detail-title">役員決裁</div>
+      </div>
+      <button type="button" class="btn-close" onclick="document.getElementById('exec-detail-modal').style.display='none'"></button>
+    </div>
+    <div style="flex:1; overflow-y:auto; padding:20px;" id="exec-detail-body"></div>
+    <div id="exec-decision-area" style="padding:15px; border-top:1px solid #ddd; background:#f8f9fa;"></div>
+  </div>
+</div>
+
+<!-- execution-plan modal -->
+<div id="execution-plan-modal" class="modal-overlay" style="display:none; z-index:4100;">
+  <div class="modal-box" style="width:90%; max-width:500px; background:white; padding:25px; border-radius:12px;">
+    <div class="text-success mb-3 fw-bold border-bottom pb-2 fs-5"><i class="fas fa-rocket me-1"></i> 全社展開 実行計画設定</div>
+    <input type="hidden" id="exec-plan-id">
+    <div class="mb-3"><label class="small fw-bold text-muted">実行責任者</label><input type="text" id="exec-owner" class="form-control" placeholder="例: 健康推進委員会 田中"></div>
+    <div class="mb-3"><label class="small fw-bold text-muted">実施期限</label><input type="date" id="exec-deadline" class="form-control"></div>
+    <div class="mb-3"><label class="small fw-bold text-muted">KPI目標</label><input type="text" id="exec-kpi-target" class="form-control" placeholder="例: 参加率80%, BMI平均23以下"></div>
+    <div class="d-flex gap-2 mt-4">
+      <button class="btn btn-success flex-grow-1 fw-bold" onclick="submitExecutionPlan()"><i class="fas fa-play me-1"></i> 実行開始</button>
+      <button class="btn btn-secondary" style="width:100px;" onclick="document.getElementById('execution-plan-modal').style.display='none'">キャンセル</button>
+    </div>
+  </div>
+</div>
+
+<script src="/js/api.js"></script>
+<script src="/js/admin-core.js"></script>
+<script src="/js/admin-inbox.js"></script>
+<script src="/js/admin-matrix.js"></script>
+<script src="/js/admin-proposal.js"></script>
+<script src="/js/admin-meeting.js"></script>
+<script src="/js/admin-mail.js"></script>
+
+</body>
+</html>

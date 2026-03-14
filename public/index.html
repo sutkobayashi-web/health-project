@@ -1,0 +1,1419 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>健康プロジェクト</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { background: #f0f0f5; overflow-x: hidden; }
+  body { font-family: 'Noto Sans JP', sans-serif; background: linear-gradient(160deg, #f5f0ff 0%, #eef6ff 40%, #f0faf5 100%); margin: 0; padding: 0; min-height: 100vh; padding-bottom: 100px; overscroll-behavior-y: none; }
+  body.sheet-open { overflow: hidden !important; position: fixed !important; width: 100% !important; touch-action: none; }
+
+  /* ====== ヘッダー ====== */
+  .app-header { background: rgba(255,255,255,0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 6px 10px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(0,0,0,0.06); box-shadow: 0 1px 8px rgba(0,0,0,0.04); position: sticky; top: 0; z-index: 100; gap: 8px; }
+  .app-header .logo { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
+  .app-header .logo i { color: #d63384; font-size: 1.1rem; }
+  .app-header .logo-text { font-weight: 800; font-size: 0.7rem; color: #2c3e50; line-height: 1.3; letter-spacing: 0.3px; }
+  .header-stats { display: flex; gap: 3px; align-items: center; flex-wrap: nowrap; justify-content: flex-end; flex-shrink: 1; min-width: 0; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .header-stats::-webkit-scrollbar { display: none; }
+  .stat-chip { font-size: 0.68rem; background: #f0f2f5; border: none; border-radius: 14px; padding: 4px 8px; color: #555; white-space: nowrap; font-weight: 600; flex-shrink: 0; }
+  .stat-chip i { margin-right: 2px; font-size: 0.6rem; }
+
+  /* ====== メインコンテンツ ====== */
+  .main-content { max-width: 500px; margin: 0 auto; padding: 16px 14px; }
+
+  /* ====== カードセクション ====== */
+  .card-section { background: white; border-radius: 20px; padding: 22px 18px; margin-bottom: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.04), 0 0 0 1px rgba(0,0,0,0.03); border: none; }
+  .section-title { font-weight: 800; font-size: 0.95rem; color: #2c3e50; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; letter-spacing: -0.2px; }
+  .section-title i { font-size: 1.1rem; }
+
+  /* ====== 相談セクション ====== */
+  .honne-area textarea { width: 100%; border: 2px solid #eef0f3; border-radius: 14px; padding: 14px; font-size: 0.92rem; resize: none; min-height: 90px; transition: all 0.25s; background: #fafbfc; color: #333; line-height: 1.6; }
+  .honne-area textarea:focus { outline: none; border-color: #3478f6; background: white; box-shadow: 0 0 0 4px rgba(52,120,246,0.08); }
+  .honne-area textarea::placeholder { color: #aaa; }
+  .btn-submit { background: linear-gradient(135deg, #3478f6, #5b9bf3); color: white; border: none; border-radius: 14px; padding: 14px 24px; font-weight: 700; font-size: 0.95rem; width: 100%; margin-top: 12px; box-shadow: 0 4px 14px rgba(52,120,246,0.25); transition: all 0.15s; letter-spacing: 0.3px; }
+  .btn-submit:active { transform: scale(0.98); box-shadow: 0 2px 8px rgba(52,120,246,0.2); }
+
+  /* ====== 食事セクション ====== */
+  .food-section { text-align: center; }
+  .food-upload-area { border: 2px dashed #d4e8d9; border-radius: 16px; padding: 28px 20px; cursor: pointer; transition: all 0.25s; background: linear-gradient(135deg, #f6fdf8 0%, #f0faf4 100%); }
+  .food-upload-area:hover, .food-upload-area:active { border-color: #20c997; background: #edfaf3; }
+  .food-upload-area i { font-size: 2rem; color: #20c997; }
+  .btn-food-submit { background: #d8dde3; color: white; border: none; border-radius: 14px; padding: 14px 24px; font-weight: 700; font-size: 0.95rem; width: 100%; margin-top: 12px; transition: all 0.2s; }
+  .btn-food-submit.active { background: linear-gradient(135deg, #20c997, #38d9a9); box-shadow: 0 4px 14px rgba(32,201,151,0.25); }
+  .btn-food-submit:active { transform: scale(0.98); }
+  #food-preview-area { display: none; margin-top: 12px; }
+  #food-preview-img { max-width: 100%; border-radius: 12px; border: 1px solid #eee; }
+
+  /* ====== タイムライン ====== */
+  .timeline-toggle { text-align: center; margin: 12px 0; }
+  .btn-timeline { background: white; border: 2px solid #6c5ce7; color: #6c5ce7; border-radius: 14px; padding: 12px 28px; font-weight: 700; font-size: 0.9rem; transition: all 0.2s; box-shadow: 0 2px 8px rgba(108,92,231,0.08); }
+  .btn-timeline:active { transform: scale(0.98); }
+  .btn-timeline.active { background: #6c5ce7; color: white; box-shadow: 0 4px 14px rgba(108,92,231,0.25); }
+  .timeline-container { display: none; }
+  .timeline-container.active { display: block; }
+  @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ====== 投稿カード ====== */
+  .post-card { background: white; border-radius: 16px; margin-bottom: 14px; box-shadow: 0 2px 10px rgba(0,0,0,0.04); overflow: hidden; border: 1px solid rgba(0,0,0,0.04); cursor: pointer; transition: all 0.2s; }
+  .post-card:active { background-color: #fafafa; transform: scale(0.995); }
+  .post-header-bar { padding: 8px 14px; display: flex; justify-content: space-between; align-items: center; color: white; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.3px; }
+  .header-consult { background: linear-gradient(90deg, #ff9a9e 0%, #fecfef 100%); }
+  .header-food { background: linear-gradient(90deg, #84fab0 0%, #8fd3f4 100%); }
+  .post-content { padding: 14px; }
+  .user-info { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .avatar { width: 38px; height: 38px; background: linear-gradient(135deg, #f8f9fa, #e9ecef); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.3rem; border: 2px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+  .nick { font-weight: 700; font-size: 0.9rem; color: #333; }
+  .rank { font-size: 0.65rem; color: #888; background: #f1f3f5; padding: 2px 8px; border-radius: 10px; border: 1px solid #e9ecef; margin-left: 5px; font-weight: 600; }
+  .post-body { font-size: 0.9rem; line-height: 1.7; color: #444; white-space: pre-wrap; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .post-details { display: none; }
+  .post-card.expanded .post-body { -webkit-line-clamp: unset; display: block; }
+  .post-card.expanded .post-details { display: block; animation: fadeIn 0.3s; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .post-img { width: 100%; border-radius: 10px; margin-top: 10px; border: 1px solid #eee; }
+  .ai-reply { background: linear-gradient(135deg, #f0f7ff 0%, #f5f0ff 100%); border-left: 4px solid #6c5ce7; padding: 12px 14px; border-radius: 0 12px 12px 0; font-size: 0.88rem; color: #2c3e50; margin-top: 12px; line-height: 1.6; }
+  .action-bar { padding: 10px 14px; border-top: 1px solid #f5f5f5; display: flex; justify-content: flex-end; }
+  .btn-like { background: white; border: 1.5px solid #ff6b6b; color: #ff6b6b; border-radius: 20px; padding: 5px 14px; font-size: 0.78rem; display: flex; align-items: center; gap: 5px; transition: all 0.2s; font-weight: 600; }
+  .btn-like.active { background: #ff6b6b; color: white; border-color: #ff6b6b; }
+  .paging-area { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+  .btn-more { background: white; color: #555; border: 1px solid #e0e0e0; padding: 12px; border-radius: 12px; width: 100%; font-weight: 700; font-size: 0.9rem; }
+  .btn-close-timeline { background: #2c3e50; color: white; border: none; padding: 12px; border-radius: 12px; width: 100%; font-weight: 700; font-size: 0.9rem; }
+
+  /* ====== ローディング ====== */
+  #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.96); z-index: 2147483648; display: none; justify-content: center; align-items: center; flex-direction: column; backdrop-filter: blur(8px); }
+
+  /* ====== 認証モーダル ====== */
+  .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15,23,42,0.6); z-index: 2147483647; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(6px); padding: 16px; box-sizing: border-box; }
+  .modal-box { background: white; width: 100%; max-width: 380px; border-radius: 24px; padding: 28px 22px; box-shadow: 0 25px 60px rgba(0,0,0,0.15); display: flex; flex-direction: column; max-height: 90vh; overflow-y: auto; box-sizing: border-box; }
+  .modal-title { font-weight: 800; color: #2c3e50; margin-bottom: 20px; font-size: 1.25rem; text-align: center; border-bottom: 2px solid #f0f2f5; padding-bottom: 14px; line-height: 1.4; letter-spacing: -0.3px; }
+  .auth-menu-btn { display: flex; align-items: center; justify-content: flex-start; width: 100%; padding: 16px; margin-bottom: 12px; border-radius: 16px; border: 2px solid #eef0f3; background: white; cursor: pointer; text-align: left; box-sizing: border-box; box-shadow: none; transition: all 0.15s; }
+  .auth-menu-btn:active { transform: scale(0.97); background: #f8f9fa; }
+  .auth-menu-btn i { font-size: 22px; margin-right: 14px; width: 28px; text-align: center; flex-shrink: 0; }
+  .auth-menu-title { font-weight: 700; font-size: 0.95rem; color: #2c3e50; display: block; }
+  .auth-menu-desc { font-size: 0.78rem; color: #888; display: block; margin-top: 3px; }
+  .btn-new-user { border-color: #d0e3ff; background: linear-gradient(135deg, #f5f9ff 0%, #edf4ff 100%); } .btn-new-user i { color: #3478f6; }
+  .btn-exist-user { border-color: #c8f0d4; background: linear-gradient(135deg, #f5fdf8 0%, #eefaf2 100%); } .btn-exist-user i { color: #20c997; }
+  .auth-guide-text { font-size: 0.85rem; font-weight: 600; color: #888; margin-bottom: 8px; text-align: center; }
+  .admin-link-small { display: inline-block; margin-top: 10px; font-size: 0.8rem; color: #999; background: #f5f5f5; padding: 6px 16px; border-radius: 20px; text-decoration: none; cursor: pointer; text-align: center; border: 1px solid #e0e0e0; transition: all 0.2s; }
+  .admin-link-small:active { background: #eee; }
+  .form-group { margin-bottom: 16px; width: 100%; box-sizing: border-box; }
+  .form-group label { display: block; font-size: 0.85rem; font-weight: 700; color: #555; margin-bottom: 6px; }
+  input, select { width: 100%; padding: 13px 14px; margin-bottom: 0; border: 2px solid #eef0f3; border-radius: 12px; box-sizing: border-box; font-size: 0.95rem; background: #fafbfc; transition: all 0.2s; color: #333; }
+  input:focus, select:focus { outline: none; border-color: #3478f6; background: white; box-shadow: 0 0 0 4px rgba(52,120,246,0.08); }
+  .auth-submit-btn { width: 100%; padding: 15px; background: linear-gradient(135deg, #3478f6, #5b9bf3); color: white; border-radius: 14px; font-size: 1rem; font-weight: 700; text-align: center; cursor: pointer; border: none; margin-top: 8px; margin-bottom: 10px; box-sizing: border-box; box-shadow: 0 4px 14px rgba(52,120,246,0.2); transition: all 0.15s; letter-spacing: 0.3px; }
+  .auth-submit-btn:active { transform: scale(0.98); box-shadow: 0 2px 8px rgba(52,120,246,0.15); }
+  .back-btn { text-align: center; margin-top: 12px; cursor: pointer; color: #999; font-size: 0.85rem; text-decoration: none; font-weight: 600; }
+  .terms-box { background: #fafbfc; border: 2px solid #eef0f3; padding: 14px; height: 120px; overflow-y: auto; font-size: 0.82rem; color: #666; margin-bottom: 16px; border-radius: 12px; line-height: 1.7; box-sizing: border-box; }
+  .avatar-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; max-height: 120px; overflow-y: auto; margin-bottom: 15px; }
+  .avatar-option { font-size: 26px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 10px; transition: all 0.15s; }
+  .avatar-option:hover, .avatar-option.selected { background: #e8f5e9; transform: scale(1.15); }
+
+  /* ====== フッター ====== */
+  .app-footer { text-align: center; padding: 24px 0 8px; color: #ccc; font-size: 0.7rem; }
+
+  /* ====== QR招待カード ====== */
+  #qr-area img { border-radius: 12px !important; border: 2px solid #f0f2f5 !important; }
+</style>
+</head>
+<body>
+
+<!-- ローディング -->
+<div id="loading-overlay">
+  <div class="spinner-border text-danger" role="status" style="width:3rem; height:3rem;"></div>
+  <div id="loading-text" style="margin-top:15px; font-weight:bold; color:#333;">処理中...</div>
+</div>
+
+<!-- 認証モーダル -->
+<div id="auth-modal" class="modal-overlay">
+  <div class="modal-box" id="auth-box">
+    <div id="auth-step-menu">
+      <div class="modal-title"><i class="fas fa-heart-pulse" style="color:#d63384;"></i> 健康プロジェクト</div>
+      <div class="auth-guide-text">はじめに選択してください</div>
+      <button class="auth-menu-btn btn-new-user" onclick="showStep('register')"><i class="fas fa-user-plus"></i><div><span class="auth-menu-title">はじめての方</span><span class="auth-menu-desc">新規登録して参加する</span></div></button>
+      <button class="auth-menu-btn btn-exist-user" onclick="showStep('login')"><i class="fas fa-sign-in-alt"></i><div><span class="auth-menu-title">登録済みの方</span><span class="auth-menu-desc">ログインして続ける</span></div></button>
+      <div style="text-align:center; margin-top:5px;">
+        <a class="admin-link-small" onclick="showStep('admin-login')"><i class="fas fa-lock"></i> 管理者ログイン</a>
+      </div>
+    </div>
+
+    <div id="auth-step-register" style="display:none;">
+      <div class="modal-title">新規登録</div>
+      <div class="terms-box">
+        <b>利用規約（抜粋）</b><br>
+        ・この投稿は匿名で健康推進チームに共有されます。<br>
+        ・不正利用・他者を傷つける目的の使用を禁止します。<br>
+        ・食事写真の撮影・投稿への同意をお願いします。<br>
+        ・回答はAIによる参考情報であり、医療行為ではありません。
+      </div>
+      <div class="form-group"><label>ニックネーム</label><input type="text" id="reg-nickname" placeholder="匿名で表示されます"></div>
+      <div class="form-group"><label>パスワード</label><input type="password" id="reg-password" placeholder="4文字以上"></div>
+      <div class="form-group"><label>部署</label>
+        <select id="reg-department"><option value="">選択してください</option><option>管理部</option><option>営業部</option><option>製造部</option><option>品質管理部</option><option>開発部</option><option>物流部</option><option>その他</option></select>
+      </div>
+      <div class="form-group"><label>生年月日</label><input type="date" id="reg-birthdate"></div>
+      <div class="form-group"><label>アバター</label>
+        <div class="avatar-grid" id="avatar-grid"></div>
+      </div>
+      <button class="auth-submit-btn" onclick="doRegister()">登録する</button>
+      <div class="back-btn" onclick="showStep('menu')">← 戻る</div>
+    </div>
+
+    <div id="auth-step-login" style="display:none;">
+      <div class="modal-title">ログイン</div>
+      <div class="form-group"><label>ニックネーム</label><input type="text" id="login-nickname" placeholder="登録したニックネーム"></div>
+      <div class="form-group"><label>パスワード</label><input type="password" id="login-password" placeholder="パスワード"></div>
+      <div style="margin-bottom:15px;"><label style="font-weight:normal; display:flex; align-items:center; cursor:pointer;"><input type="checkbox" id="user-remember" style="width:auto; margin-right:8px; transform:scale(1.2);"> ログイン情報を保存する</label></div>
+      <button class="auth-submit-btn" onclick="doLogin()">ログイン</button>
+      <div class="back-btn" onclick="showStep('menu')">← 戻る</div>
+    </div>
+
+    <div id="auth-step-admin-login" style="display:none;">
+      <div class="modal-title"><i class="fas fa-shield-alt text-danger"></i> 管理者ログイン</div>
+      <div class="form-group"><label>メールアドレス</label><input type="email" id="admin-email" placeholder="管理者メール"></div>
+      <div class="form-group"><label>パスワード</label><input type="password" id="admin-pass" placeholder="管理者パスワード"></div>
+      <div style="margin-bottom:15px;"><label style="font-weight:normal; display:flex; align-items:center; cursor:pointer;"><input type="checkbox" id="admin-remember" style="width:auto; margin-right:8px; transform:scale(1.2);"> ログイン情報を保存する</label></div>
+      <button class="auth-submit-btn" style="background:linear-gradient(135deg,#e74c3c,#ff6b6b);" onclick="doAdminLogin()">管理画面へ</button>
+      <div class="back-btn" onclick="showStep('menu')">← 戻る</div>
+    </div>
+  </div>
+</div>
+
+<!-- メインコンテンツ -->
+<div id="main-app" style="display:none;">
+  <div class="app-header">
+    <div class="logo"><i class="fas fa-heart-pulse"></i><span class="logo-text">健康<br>プロジェクト</span></div>
+    <div class="header-stats">
+      <span class="stat-chip" id="stat-user-info"><span id="stat-avatar">😀</span> <span id="stat-nickname">--</span></span>
+      <span class="stat-chip" id="stat-rank"><i class="fas fa-medal"></i> --</span>
+      <span class="stat-chip" id="stat-posts"><i class="fas fa-pen"></i> 0</span>
+      <span class="stat-chip" id="stat-invites"><i class="fas fa-user-plus"></i> 0</span>
+      <span class="stat-chip" style="cursor:pointer; color:#e74c3c; border-color:#e74c3c;" onclick="doUserLogout()"><i class="fas fa-sign-out-alt"></i></span>
+    </div>
+  </div>
+
+  <div class="main-content">
+
+    <!-- 相談セクション -->
+    <div class="card-section honne-area">
+      <div class="section-title"><i class="far fa-comment-dots"></i> 健康のお悩み・提案</div>
+      <textarea id="honne-input" placeholder="最近の体調や気になること、職場環境への提案など、なんでもどうぞ（匿名で届きます）"></textarea>
+      <button class="btn-submit" onclick="submitPost()"><i class="fas fa-paper-plane"></i> みんなに相談する</button>
+    </div>
+
+    <!-- 食事セクション -->
+    <div class="card-section food-section">
+      <div class="section-title"><i class="fas fa-utensils" style="color:#20c997;"></i> 食事チェック</div>
+      <div class="food-upload-area" onclick="document.getElementById('file-input').click()">
+        <i class="fas fa-camera"></i>
+        <div style="margin-top:8px; font-size:0.9rem; color:#666;">タップして食事写真を撮影・選択</div>
+      </div>
+      <input type="file" id="file-input" accept="image/*" capture="environment" style="display:none;" onchange="handleFileSelect(this)">
+      <div id="food-preview-area">
+        <img id="food-preview-img" src="">
+        <textarea id="food-comment" class="form-control mt-2" rows="2" placeholder="ひとこと（任意）"></textarea>
+      </div>
+      <div class="form-check mt-2" style="text-align:left;">
+        <input class="form-check-input" type="checkbox" id="food-confirm" checked onchange="toggleFoodSubmit()">
+        <label class="form-check-label small" for="food-confirm">AI栄養士に診断してもらう</label>
+      </div>
+      <button class="btn-food-submit" id="btn-food-submit" onclick="submitFoodPost()"><i class="fas fa-salad"></i> 食事診断を受ける</button>
+    </div>
+
+    <!-- タイムライン -->
+    <div class="timeline-toggle">
+      <button class="btn-timeline" id="btn-toggle-tl" onclick="toggleTimeline()"><i class="fas fa-stream"></i> みんなの投稿を見る</button>
+    </div>
+    <div class="timeline-container" id="timeline-wrapper">
+      <div id="timeline-content"></div>
+      <div class="paging-area">
+        <button class="btn-more" onclick="loadMore()"><i class="fas fa-chevron-down"></i> もっと見る</button>
+        <button class="btn-close-timeline" onclick="toggleTimeline()">閉じる</button>
+      </div>
+    </div>
+
+    <!-- QR招待 -->
+    <div class="card-section" style="text-align:center;">
+      <div class="section-title" style="justify-content:center;"><i class="fas fa-qrcode"></i> 仲間を招待</div>
+      <div id="qr-area"></div>
+      <div class="small text-muted mt-2">このQRコードを同僚に見せてください</div>
+    </div>
+
+    <div class="app-footer">健康プロジェクト v2.0 &copy; 2026</div>
+  </div>
+</div>
+
+<script src="/js/api.js"></script>
+<script>
+// ====== グローバル変数 ======
+var currentUser = null;
+var currentPage = 0;
+var isTimelineOpen = false;
+var selectedFoodData = null;
+var selectedFoodMime = null;
+var deployUrl = window.location.origin;
+var qrBaseUrl = window.location.origin + '/';
+var inviterId = new URLSearchParams(window.location.search).get('inviter') || '';
+
+// ====== 認証 ======
+var avatarList = ['😀','😎','🤓','😺','🐶','🐻','🦊','🐸','🌸','🌻','⭐','🌈','🎵','🎮','🏀','🍀','🦄','🐧','🐰','🐱','🍎','🍒'];
+
+// ★ ページ読み込み時に保存済みログイン情報をチェック
+(function() {
+  var savedNick = localStorage.getItem('co_heart_user_nick');
+  var savedPass = localStorage.getItem('co_heart_user_pass');
+  var savedData = localStorage.getItem('co_heart_user_data');
+  if (savedNick && savedPass && savedData) {
+    try {
+      currentUser = JSON.parse(savedData);
+      loginUser(savedNick, savedPass).then(function(res) {
+        if (res && res.success) {
+          setToken(res.token);
+          currentUser = { uid: res.uid, nickname: res.nickname, avatar: res.avatar, department: res.department, birthDate: res.birthDate };
+          localStorage.setItem('co_heart_user_data', JSON.stringify(currentUser));
+          onLoginSuccess();
+        } else {
+          localStorage.removeItem('co_heart_user_nick');
+          localStorage.removeItem('co_heart_user_pass');
+          localStorage.removeItem('co_heart_user_data');
+        }
+      }).catch(function() {
+        onLoginSuccess();
+      });
+    } catch(e) {}
+  }
+})();
+
+// ★ ログアウト
+function doUserLogout() {
+  if (!confirm("ログアウトしますか？")) return;
+  localStorage.removeItem('co_heart_user_nick');
+  localStorage.removeItem('co_heart_user_pass');
+  localStorage.removeItem('co_heart_user_data');
+  currentUser = null;
+  document.getElementById('main-app').style.display = 'none';
+  document.getElementById('auth-modal').style.display = 'flex';
+  showStep('menu');
+}
+
+function showStep(step) {
+  document.getElementById('auth-step-menu').style.display = step === 'menu' ? 'block' : 'none';
+  document.getElementById('auth-step-register').style.display = step === 'register' ? 'block' : 'none';
+  document.getElementById('auth-step-login').style.display = step === 'login' ? 'block' : 'none';
+  document.getElementById('auth-step-admin-login').style.display = step === 'admin-login' ? 'block' : 'none';
+  if (step === 'register') initAvatarGrid();
+  if (step === 'login') {
+    var savedNick = localStorage.getItem('co_heart_user_nick');
+    var savedPass = localStorage.getItem('co_heart_user_pass');
+    if (savedNick) { document.getElementById('login-nickname').value = savedNick; }
+    if (savedPass) { document.getElementById('login-password').value = savedPass; }
+    if (savedNick && savedPass) { document.getElementById('user-remember').checked = true; }
+  }
+  if (step === 'admin-login') {
+    var savedEmail = localStorage.getItem('co_heart_admin_email');
+    var savedAdminPass = localStorage.getItem('co_heart_admin_pass');
+    if (savedEmail) { document.getElementById('admin-email').value = savedEmail; }
+    if (savedAdminPass) { document.getElementById('admin-pass').value = savedAdminPass; }
+    if (savedEmail && savedAdminPass) { document.getElementById('admin-remember').checked = true; }
+  }
+}
+
+var selectedAvatar = '😀';
+function initAvatarGrid() {
+  var grid = document.getElementById('avatar-grid');
+  grid.innerHTML = avatarList.map(function(a) {
+    return '<div class="avatar-option' + (a === selectedAvatar ? ' selected' : '') + '" onclick="selectAvatar(this, \'' + a + '\')">' + a + '</div>';
+  }).join('');
+}
+
+function selectAvatar(el, av) {
+  document.querySelectorAll('.avatar-option').forEach(function(e) { e.classList.remove('selected'); });
+  el.classList.add('selected'); selectedAvatar = av;
+}
+
+function doRegister() {
+  var n = document.getElementById('reg-nickname').value.trim();
+  var p = document.getElementById('reg-password').value.trim();
+  var d = document.getElementById('reg-department').value;
+  var b = document.getElementById('reg-birthdate').value;
+  if (!n) return alert("ニックネームを入力してください");
+  if (!p || p.length < 4) return alert("パスワードは4文字以上");
+  if (!d) return alert("部署を選択してください");
+  showLoading("登録中...");
+  registerUser(n, p, selectedAvatar, inviterId, "", d, b).then(function(res) {
+    hideLoading();
+    if (res.success) {
+      setToken(res.token);
+      currentUser = { uid: res.uid, nickname: res.nickname, avatar: res.avatar, department: d, birthDate: b };
+      localStorage.setItem('co_heart_user_nick', n);
+      localStorage.setItem('co_heart_user_pass', p);
+      localStorage.setItem('co_heart_user_data', JSON.stringify(currentUser));
+      onLoginSuccess();
+    }
+    else alert(res.msg);
+  }).catch(function(e) { hideLoading(); alert("エラー: " + e.message); });
+}
+
+function doLogin() {
+  var n = document.getElementById('login-nickname').value.trim();
+  var p = document.getElementById('login-password').value.trim();
+  var remember = document.getElementById('user-remember').checked;
+  if (!n || !p) return alert("入力してください");
+  showLoading("ログイン中...");
+  loginUser(n, p).then(function(res) {
+    hideLoading();
+    if (res.success) {
+      setToken(res.token);
+      currentUser = { uid: res.uid, nickname: res.nickname, avatar: res.avatar, department: res.department, birthDate: res.birthDate };
+      if (remember) {
+        localStorage.setItem('co_heart_user_nick', n);
+        localStorage.setItem('co_heart_user_pass', p);
+        localStorage.setItem('co_heart_user_data', JSON.stringify(currentUser));
+      } else {
+        localStorage.removeItem('co_heart_user_nick');
+        localStorage.removeItem('co_heart_user_pass');
+        localStorage.removeItem('co_heart_user_data');
+      }
+      onLoginSuccess();
+    }
+    else alert(res.msg);
+  }).catch(function(e) { hideLoading(); alert("エラー: " + e.message); });
+}
+
+function doAdminLogin() {
+  var em = document.getElementById('admin-email').value.trim();
+  var pw = document.getElementById('admin-pass').value.trim();
+  var remember = document.getElementById('admin-remember').checked;
+  if (!em || !pw) return alert("入力してください");
+  showLoading("認証中...");
+  loginCoreMember(em, pw).then(function(res) {
+    hideLoading();
+    if (!res) { alert("サーバー応答がnullです。デプロイを更新してください。"); return; }
+    if (res.success) {
+      setAdminToken(res.token);
+      if (remember) {
+        localStorage.setItem('co_heart_admin_email', em);
+        localStorage.setItem('co_heart_admin_pass', pw);
+        localStorage.setItem('co_heart_admin_profile', JSON.stringify(res.profile));
+      } else {
+        localStorage.removeItem('co_heart_admin_email');
+        localStorage.removeItem('co_heart_admin_pass');
+        localStorage.removeItem('co_heart_admin_profile');
+      }
+      window.top.location.href = deployUrl + "?page=report";
+    } else alert(res.msg);
+  }).catch(function(e) { hideLoading(); alert("エラー: " + e.message); });
+}
+
+function onLoginSuccess() {
+  document.getElementById('auth-modal').style.display = 'none';
+  document.getElementById('main-app').style.display = 'block';
+  document.getElementById('stat-avatar').innerText = currentUser.avatar || '😀';
+  document.getElementById('stat-nickname').innerText = currentUser.nickname || '--';
+  updateHeaderStats();
+  generateQR();
+}
+
+// ====== ヘッダー更新 ======
+function updateHeaderStats() {
+  getLatestUserStats(currentUser.uid).then(function(res) {
+    if (!res || !res.success) return;
+    document.getElementById('stat-rank').innerHTML = '<i class="fas fa-medal"></i> ' + res.rank;
+    document.getElementById('stat-posts').innerHTML = '<i class="fas fa-pen"></i> ' + res.postCount;
+    document.getElementById('stat-invites').innerHTML = '<i class="fas fa-user-plus"></i> ' + (res.inviteCount || 0);
+  });
+}
+
+// ====== QR ======
+function generateQR() {
+  var link = qrBaseUrl + "?inviter=" + currentUser.uid;
+  var qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" + encodeURIComponent(link);
+  document.getElementById('qr-area').innerHTML = '<img src="' + qrUrl + '" style="width:150px; height:150px; border-radius:8px; border:1px solid #eee;">';
+}
+
+// ====== タイムライン ======
+function toggleTimeline() {
+  isTimelineOpen = !isTimelineOpen;
+  var wrapper = document.getElementById('timeline-wrapper');
+  var btn = document.getElementById('btn-toggle-tl');
+  if (isTimelineOpen) { wrapper.classList.add('active'); btn.classList.add('active'); btn.innerHTML = '<i class="fas fa-times"></i> 閉じる'; loadTimeline(0, true); }
+  else { wrapper.classList.remove('active'); btn.classList.remove('active'); btn.innerHTML = '<i class="fas fa-stream"></i> みんなの投稿を見る'; }
+}
+
+function loadTimeline(page, isReset) {
+  if (isReset) { currentPage = 0; document.getElementById('timeline-content').innerHTML = '<div class="text-center p-3"><div class="spinner-border text-secondary" role="status"></div></div>'; }
+  getPublicPosts(page, currentUser.uid).then(function(res) {
+    var el = document.getElementById('timeline-content');
+    if (isReset) el.innerHTML = "";
+    if (!res.posts || res.posts.length === 0) { if (isReset) el.innerHTML = '<div class="text-center text-muted py-4">まだ投稿はありません</div>'; else alert("これ以上投稿はありません"); return; }
+    var html = res.posts.map(function(p) { return renderPost(p); }).join('');
+    el.insertAdjacentHTML('beforeend', html);
+  });
+}
+
+function loadMore() { currentPage++; loadTimeline(currentPage, false); }
+
+function renderPost(p) {
+  var imgTag = "";
+  if (p.imageUrl && p.imageUrl.startsWith("http")) imgTag = '<img src="' + p.imageUrl + '" class="post-img" loading="lazy">';
+  var headerClass = "header-consult"; var icon = "far fa-comment-dots"; var catName = "相談・提案";
+  if (p.content.includes("【写真】") || (p.analysis && p.analysis.includes("栄養"))) { headerClass = "header-food"; icon = "fas fa-utensils"; catName = "食事チェック"; }
+  var analysisHtml = p.analysis ? '<div class="ai-reply"><i class="fas fa-robot text-primary"></i> ' + p.analysis.replace(/\n/g, '<br>') + '</div>' : "";
+  return '<div class="post-card" onclick="togglePost(this)"><div class="post-header-bar ' + headerClass + '"><span><i class="' + icon + '"></i> ' + catName + '</span><span>' + p.date + '</span></div><div class="post-content"><div class="user-info"><div class="avatar">' + p.avatar + '</div><div><div class="nick">' + p.nickname + ' <span class="rank">' + p.authorRank + '</span></div></div></div><div class="post-body">' + p.content + '</div><div class="post-details">' + imgTag + analysisHtml + '<div class="action-bar"><button type="button" class="btn-like ' + (p.isLiked ? 'active' : '') + '" onclick="like(\'' + p.row + '\', this, event)"><i class="' + (p.isLiked ? 'fas' : 'far') + ' fa-heart"></i> ' + p.likeCount + '</button></div></div></div></div>';
+}
+
+function togglePost(card) { card.classList.toggle('expanded'); }
+
+// ====== 投稿 ======
+function submitPost() {
+  var txt = document.getElementById('honne-input').value;
+  if (!txt) return alert("内容を入力してください");
+  showLoading("AIが分析中...");
+  processForm({ uid: currentUser.uid, nickname: currentUser.nickname, avatar: currentUser.avatar, honne: encodeURIComponent(txt), department: currentUser.department, birthDate: currentUser.birthDate }).then(function(res) {
+    hideLoading(); document.getElementById('honne-input').value = ""; updateHeaderStats();
+    if (!isTimelineOpen) toggleTimeline(); else loadTimeline(0, true);
+  }).catch(function(e) { hideLoading(); alert("送信エラー: " + e.message); });
+}
+
+function handleFileSelect(input) {
+  if (input.files && input.files[0]) {
+    var file = input.files[0];
+    showLoading("画像を圧縮中...");
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var img = new Image();
+      img.onload = function() {
+        var canvas = document.createElement('canvas');
+        var MAX_SIZE = 1024;
+        var width = img.width; var height = img.height;
+        if (width > height) { if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; } } else { if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; } }
+        canvas.width = width; canvas.height = height;
+        var ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        var dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+        selectedFoodData = dataUrl.split(',')[1];
+        selectedFoodMime = 'image/jpeg';
+        document.getElementById('food-preview-img').src = dataUrl;
+        document.getElementById('food-preview-area').style.display = 'block';
+        document.getElementById('food-confirm').checked = true;
+        toggleFoodSubmit();
+        hideLoading();
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+function toggleFoodSubmit() {
+  var isChecked = document.getElementById('food-confirm').checked;
+  var btn = document.getElementById('btn-food-submit');
+  if (isChecked && selectedFoodData) btn.classList.add('active'); else btn.classList.remove('active');
+}
+
+function submitFoodPost() {
+  if (!selectedFoodData) return alert("写真を選択してください");
+  if (!document.getElementById('food-confirm').checked) return alert("確認チェックを入れてください");
+  var comment = document.getElementById('food-comment').value;
+  showLoading("AIが食事を分析中...");
+  handleFoodPost({ uid: currentUser.uid, nickname: currentUser.nickname, avatar: currentUser.avatar, imageBase64: selectedFoodData, mimeType: selectedFoodMime, userComment: comment, department: currentUser.department, birthDate: currentUser.birthDate, isPublic: true }).then(function(res) {
+    hideLoading();
+    document.getElementById('food-comment').value = ""; document.getElementById('file-input').value = "";
+    document.getElementById('food-preview-area').style.display = 'none'; document.getElementById('food-confirm').checked = true;
+    toggleFoodSubmit(); selectedFoodData = null; updateHeaderStats();
+    if (!isTimelineOpen) toggleTimeline(); else loadTimeline(0, true);
+  }).catch(function(e) { hideLoading(); alert("送信エラー: " + e.message); });
+}
+
+function like(row, btn, event) {
+  event.stopPropagation();
+  var icon = btn.querySelector('i');
+  var isLiked = btn.classList.contains('active');
+  var count = parseInt(btn.innerText);
+  if (isLiked) { btn.classList.remove('active'); icon.classList.replace('fas', 'far'); btn.innerHTML = '<i class="far fa-heart"></i> ' + Math.max(0, count - 1); }
+  else { btn.classList.add('active'); icon.classList.replace('far', 'fas'); btn.innerHTML = '<i class="fas fa-heart"></i> ' + (count + 1); }
+  toggleLike(row, currentUser.uid);
+}
+
+// ====== ローディング ======
+function showLoading(msg) {
+  var ol = document.getElementById('loading-overlay');
+  document.getElementById('loading-text').innerText = msg || "処理中...";
+  ol.style.display = 'flex';
+}
+function hideLoading() { document.getElementById('loading-overlay').style.display = 'none'; }
+
+</script>
+
+<!-- ====== AI保健師チャットボット ====== -->
+<style>
+/* --- FABボタン --- */
+#nurse-fab {
+  position: fixed;
+  bottom: 20px;
+  right: 14px;
+  background: linear-gradient(135deg, #ec407a 0%, #f48fb1 100%);
+  border: none;
+  border-radius: 28px;
+  padding: 8px 16px 8px 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 20px rgba(236, 64, 122, 0.45);
+  z-index: 2500;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  animation: nFabPulse 3s ease-in-out infinite;
+  min-width: 170px;
+}
+#nurse-fab:active { transform: scale(0.95); }
+#nurse-fab .fab-img {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid white;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  flex-shrink: 0;
+}
+#nurse-fab .fab-label {
+  color: white;
+  font-weight: 700;
+  font-size: 0.8rem;
+  line-height: 1.25;
+  white-space: nowrap;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+#nurse-fab .fab-badge {
+  position: absolute; top: -2px; left: -2px;
+  width: 18px; height: 18px;
+  background: #ff1744; border-radius: 50%;
+  border: 2px solid white;
+  animation: nPulse 1.5s infinite;
+}
+@keyframes nFabPulse {
+  0%, 100% { box-shadow: 0 4px 20px rgba(236, 64, 122, 0.4); }
+  50% { box-shadow: 0 4px 30px rgba(236, 64, 122, 0.6); }
+}
+@keyframes nPulse { 0% { transform: scale(1); } 50% { transform: scale(1.15); } 100% { transform: scale(1); } }
+
+/* --- オーバーレイ --- */
+#nurse-chat-overlay {
+  position: fixed; top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.5);
+  z-index: 4000;
+  display: none;
+  backdrop-filter: blur(2px);
+}
+#nurse-chat-overlay.active { display: block; }
+
+/* --- チャットシート --- */
+#nurse-chat-sheet {
+  position: fixed;
+  bottom: 0; left: 0;
+  width: 100%; height: 85vh; height: 85dvh;
+  background: #f8f5f0;
+  border-radius: 20px 20px 0 0;
+  z-index: 4001;
+  transform: translateY(100%);
+  visibility: hidden;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), visibility 0s 0.35s;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 -8px 40px rgba(0,0,0,0.2);
+}
+#nurse-chat-sheet.active { transform: translateY(0); visibility: visible; transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), visibility 0s 0s; }
+
+/* --- ヘッダー --- */
+.nurse-chat-header {
+  background: linear-gradient(135deg, #ec407a 0%, #f48fb1 100%);
+  color: white; padding: 14px 18px;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0;
+}
+.nurse-chat-header-left { display: flex; align-items: center; gap: 10px; }
+.nurse-chat-avatar {
+  width: 40px; height: 40px; background: white; border-radius: 50%;
+  display: flex; justify-content: center; align-items: center;
+  font-size: 1.4rem; box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  overflow: hidden;
+}
+.nurse-chat-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.nurse-chat-name { font-weight: 700; font-size: 0.95rem; line-height: 1.2; }
+.nurse-chat-status { font-size: 0.7rem; opacity: 0.85; }
+.nurse-chat-close {
+  background: rgba(255,255,255,0.2); border: none; color: white;
+  width: 36px; height: 36px; border-radius: 50%;
+  font-size: 1.1rem; cursor: pointer;
+  display: flex; justify-content: center; align-items: center;
+}
+.nurse-chat-close:active { background: rgba(255,255,255,0.4); }
+
+/* --- メッセージエリア --- */
+.nurse-chat-messages {
+  flex: 1; overflow-y: auto;
+  padding: 15px 12px;
+  display: flex; flex-direction: column; gap: 12px;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+.nurse-chat-messages::after { content: ''; display: block; height: 4px; }
+
+/* --- バブル --- */
+.nurse-msg { display: flex; gap: 8px; max-width: 85%; animation: nMsgIn 0.3s ease-out; }
+.nurse-msg.ai { align-self: flex-start; }
+.nurse-msg.user { align-self: flex-end; flex-direction: row-reverse; }
+@keyframes nMsgIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.nurse-msg-avatar {
+  width: 32px; height: 32px; border-radius: 50%; background: white;
+  display: flex; justify-content: center; align-items: center;
+  font-size: 1rem; flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #eee;
+  overflow: hidden;
+}
+.nurse-msg-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.nurse-msg.user .nurse-msg-avatar { background: #fce4ec; border-color: #f8bbd0; }
+.nurse-msg-bubble {
+  padding: 10px 14px; border-radius: 16px;
+  font-size: 0.9rem; line-height: 1.6;
+  white-space: pre-wrap; word-break: break-word;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+.nurse-msg.ai .nurse-msg-bubble {
+  background: white; color: #333;
+  border-bottom-left-radius: 4px; border: 1px solid #f0e0d6;
+}
+.nurse-msg.user .nurse-msg-bubble {
+  background: linear-gradient(135deg, #ec407a, #f48fb1);
+  color: white; border-bottom-right-radius: 4px;
+}
+
+/* --- タイピング --- */
+.nurse-typing { display: flex; gap: 8px; align-self: flex-start; max-width: 85%; animation: nMsgIn 0.3s ease-out; }
+.nurse-typing-bubble {
+  background: white; border: 1px solid #f0e0d6;
+  padding: 12px 18px; border-radius: 16px; border-bottom-left-radius: 4px;
+  display: flex; gap: 5px; align-items: center;
+}
+.nurse-typing-dot {
+  width: 8px; height: 8px; background: #ccc; border-radius: 50%;
+  animation: nTypeBounce 1.4s infinite ease-in-out;
+}
+.nurse-typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.nurse-typing-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes nTypeBounce {
+  0%, 60%, 100% { transform: translateY(0); background: #ccc; }
+  30% { transform: translateY(-6px); background: #ec407a; }
+}
+
+/* --- 入力エリア --- */
+.nurse-chat-input-area {
+  padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0px)) 12px; background: white;
+  border-top: 1px solid #eee;
+  display: flex; gap: 8px; align-items: flex-end;
+  flex-shrink: 0;
+  box-shadow: 0 -2px 8px rgba(0,0,0,0.03);
+}
+#nurse-chat-input {
+  flex: 1;
+  border: 1px solid #e0d6cc !important;
+  border-radius: 22px !important;
+  padding: 10px 16px !important;
+  font-size: 0.9rem !important;
+  resize: none;
+  max-height: 100px;
+  min-height: 42px;
+  line-height: 1.4;
+  outline: none;
+  background: #faf8f5 !important;
+  font-family: 'Noto Sans JP', sans-serif;
+  margin-bottom: 0 !important;
+  width: auto !important;
+}
+#nurse-chat-input:focus {
+  border-color: #ec407a !important;
+  background: white !important;
+}
+.nurse-send-btn {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: linear-gradient(135deg, #ec407a, #f48fb1);
+  color: white; border: none; font-size: 1.1rem;
+  cursor: pointer; display: flex;
+  justify-content: center; align-items: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(236, 64, 122, 0.3);
+  transition: transform 0.1s, opacity 0.2s;
+}
+.nurse-send-btn:active { transform: scale(0.9); }
+.nurse-send-btn:disabled { opacity: 0.4; pointer-events: none; }
+
+/* --- クイックリプライ --- */
+.nurse-quick-replies {
+  padding: 8px 12px 4px;
+  display: flex; gap: 8px; flex-wrap: wrap; flex-shrink: 0;
+}
+
+/* --- 写真ボタン --- */
+.nurse-photo-btn {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: white; border: 2px solid #e0d6cc;
+  color: #888; font-size: 1.1rem;
+  cursor: pointer; display: flex;
+  justify-content: center; align-items: center;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+.nurse-photo-btn:active { transform: scale(0.9); border-color: #ec407a; color: #ec407a; }
+
+/* --- 写真プレビュー --- */
+.nurse-preview-strip {
+  padding: 8px 12px 0; flex-shrink: 0;
+  display: none;
+}
+.nurse-preview-strip.active { display: flex; align-items: center; gap: 8px; }
+.nurse-preview-thumb {
+  width: 64px; height: 64px; border-radius: 10px;
+  object-fit: cover; border: 2px solid #f0e0d6;
+}
+.nurse-preview-remove {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: #ff6b6b; color: white; border: none;
+  font-size: 0.75rem; cursor: pointer;
+  display: flex; justify-content: center; align-items: center;
+}
+.nurse-preview-hint {
+  font-size: 0.75rem; color: #999; flex: 1;
+}
+
+/* --- チャット内画像 --- */
+.nurse-msg-image {
+  max-width: 200px; border-radius: 12px;
+  margin-bottom: 6px; border: 1px solid rgba(0,0,0,0.08);
+  display: block;
+}
+.nurse-quick-btn {
+  background: white; border: 1.5px solid #ec407a;
+  color: #ec407a; border-radius: 20px;
+  padding: 6px 14px; font-size: 0.8rem; font-weight: 600;
+  cursor: pointer; transition: all 0.2s; white-space: nowrap;
+  font-family: 'Noto Sans JP', sans-serif;
+}
+.nurse-quick-btn:active { background: #ec407a; color: white; }
+</style>
+
+<button id="nurse-fab" style="display:none;" onclick="openNurseChat()"><img class="fab-img" src="https://drive.google.com/thumbnail?id=1xsXmk2unOYMDMxkhY5EemCtEwEXiVGZq&sz=w120&t=2" alt="AI保健師"><span class="fab-label">AI保健師に<br>相談する</span><div class="fab-badge" id="nurse-fab-badge" style="display:none;"></div></button>
+
+<div id="nurse-chat-overlay" onclick="closeNurseChat()" ontouchmove="event.preventDefault()"></div>
+
+<div id="nurse-chat-sheet">
+  <div class="nurse-chat-header">
+    <div class="nurse-chat-header-left">
+      <div class="nurse-chat-avatar"><img src="https://drive.google.com/thumbnail?id=1xsXmk2unOYMDMxkhY5EemCtEwEXiVGZq&sz=w80&t=2" alt="AI保健師"></div>
+      <div>
+        <div class="nurse-chat-name">AI保健師</div>
+        <div class="nurse-chat-status">いつでも相談できます</div>
+      </div>
+    </div>
+    <button class="nurse-chat-close" onclick="closeNurseChat()"><i class="fas fa-chevron-down"></i></button>
+  </div>
+  <div class="nurse-chat-messages" id="nurse-messages"></div>
+  <div class="nurse-quick-replies" id="nurse-quick" style="display:none;">
+    <button class="nurse-quick-btn" onclick="nurseSendQuick('最近ちょっと疲れ気味で...')">😮‍💨 疲れ気味</button>
+    <button class="nurse-quick-btn" onclick="nurseSendQuick('食事のことで相談したい')">🍽️ 食事の相談</button>
+    <button class="nurse-quick-btn" onclick="nurseSendQuick('健康診断の結果が気になる')">📋 健診の結果</button>
+    <button class="nurse-quick-btn" onclick="nurseSendQuick('よく眠れないんです')">😴 睡眠の悩み</button>
+  </div>
+  <div class="nurse-preview-strip" id="nurse-preview-strip">
+    <img class="nurse-preview-thumb" id="nurse-preview-thumb" src="">
+    <span class="nurse-preview-hint">📷 この写真について相談できます</span>
+    <button class="nurse-preview-remove" onclick="nurseRemovePhoto()"><i class="fas fa-times"></i></button>
+  </div>
+  <div class="nurse-chat-input-area">
+    <button class="nurse-photo-btn" onclick="document.getElementById('nurse-photo-input').click()"><i class="fas fa-camera"></i></button>
+    <input type="file" id="nurse-photo-input" accept="image/*" capture="environment" style="display:none;" onchange="nurseHandlePhoto(this)">
+    <textarea id="nurse-chat-input" rows="1" placeholder="気軽に話しかけてください..."
+      onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();nurseSend();}"
+      oninput="this.style.height='42px';this.style.height=Math.min(this.scrollHeight,100)+'px';"></textarea>
+    <button class="nurse-send-btn" id="nurse-send-btn" onclick="nurseSend()"><i class="fas fa-paper-plane"></i></button>
+  </div>
+</div>
+
+<script>
+// ====== AI保健師チャットボット JS ======
+var nurseHistory = [];
+var nurseReady = true;
+var nurseInited = false;
+var nursePhotoData = null;
+var nursePhotoMime = null;
+var nursePhotoPreview = null;
+
+// ====== スクロールロック ======
+var _scrollY = 0;
+function lockScroll() {
+  _scrollY = window.scrollY;
+  document.body.classList.add('sheet-open');
+  document.body.style.top = '-' + _scrollY + 'px';
+}
+function unlockScroll() {
+  document.body.classList.remove('sheet-open');
+  document.body.style.top = '';
+  window.scrollTo(0, _scrollY);
+}
+
+// ====== 効果音（Web Audio API）======
+var _audioCtx = null;
+function _getAudioCtx() {
+  if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return _audioCtx;
+}
+function playSendSound() {
+  try {
+    var ctx = _getAudioCtx();
+    var o = ctx.createOscillator();
+    var g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.type = 'sine'; o.frequency.setValueAtTime(880, ctx.currentTime);
+    o.frequency.exponentialRampToValueAtTime(1200, ctx.currentTime + 0.08);
+    g.gain.setValueAtTime(0.15, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+    o.start(ctx.currentTime); o.stop(ctx.currentTime + 0.15);
+  } catch(e) {}
+}
+function playReceiveSound() {
+  try {
+    var ctx = _getAudioCtx();
+    // 2音の「ピコン」
+    [660, 880].forEach(function(freq, i) {
+      var o = ctx.createOscillator();
+      var g = ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.type = 'sine';
+      var t = ctx.currentTime + i * 0.12;
+      o.frequency.setValueAtTime(freq, t);
+      g.gain.setValueAtTime(0.12, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+      o.start(t); o.stop(t + 0.18);
+    });
+  } catch(e) {}
+}
+
+function initNurseChat() {
+  if (!currentUser) return;
+  var fab = document.getElementById('nurse-fab');
+  if (!fab) return;
+  fab.style.display = 'flex';
+  var done = localStorage.getItem('nurse_done_' + currentUser.uid);
+  if (!done) {
+    var badge = document.getElementById('nurse-fab-badge');
+    if (badge) badge.style.display = 'block';
+  }
+}
+
+function openNurseChat() {
+  lockScroll();
+  document.getElementById('nurse-chat-overlay').classList.add('active');
+  document.getElementById('nurse-chat-sheet').classList.add('active');
+  document.getElementById('nurse-fab').style.display = 'none';
+  var ib = document.getElementById('inbox-fab'); if (ib) ib.style.display = 'none';
+  var badge = document.getElementById('nurse-fab-badge');
+  if (badge) badge.style.display = 'none';
+  if (!nurseInited) { nurseInited = true; loadNurseGreeting(); }
+  else { nurseScrollBottom(); }
+}
+
+function closeNurseChat() {
+  document.getElementById('nurse-chat-overlay').classList.remove('active');
+  document.getElementById('nurse-chat-sheet').classList.remove('active');
+  document.getElementById('nurse-fab').style.display = 'flex';
+  var ib = document.getElementById('inbox-fab'); if (ib) ib.style.display = 'flex';
+  unlockScroll();
+}
+
+function loadNurseGreeting() {
+  var area = document.getElementById('nurse-messages');
+  area.innerHTML = '';
+  showNurseTyping();
+  var name = currentUser ? currentUser.nickname : '';
+  getNurseGreeting(name).then(function(res) {
+    hideNurseTyping();
+    var txt = (res && res.success && res.reply) ? res.reply
+      : 'こんにちは' + (name ? '、' + name + 'さん' : '') + '😊 AI保健師です！\nお話しできて嬉しいです。最近、体調やお気持ちで気になっていることはありますか？';
+    playReceiveSound();
+    addNurseMsg('ai', txt);
+    nurseHistory.push({ role: 'assistant', content: txt });
+    document.getElementById('nurse-quick').style.display = 'flex';
+    nurseScrollBottom();
+  }).catch(function() {
+    hideNurseTyping();
+    var txt = 'こんにちは😊 AI保健師です！\n最近の体調はいかがですか？気になることがあれば何でもお聞かせくださいね。';
+    addNurseMsg('ai', txt);
+    nurseHistory.push({ role: 'assistant', content: txt });
+    document.getElementById('nurse-quick').style.display = 'flex';
+    nurseScrollBottom();
+  });
+}
+
+function nurseSend() {
+  if (!nurseReady) return;
+  var input = document.getElementById('nurse-chat-input');
+  var txt = input.value.trim();
+  var hasPhoto = !!nursePhotoData;
+  if (!txt && !hasPhoto) return;
+  input.value = ''; input.style.height = '42px';
+  document.getElementById('nurse-quick').style.display = 'none';
+
+  // 送信音
+  playSendSound();
+
+  // メッセージ表示（画像付き）
+  addNurseMsg('user', txt || '📷 写真で相談', hasPhoto ? nursePhotoPreview : null);
+  nurseHistory.push({ role: 'user', content: txt || '写真を送りました。内容を見て相談に乗ってください。' });
+  nurseScrollBottom();
+
+  nurseReady = false;
+  document.getElementById('nurse-send-btn').disabled = true;
+  showNurseTyping();
+  if (currentUser) localStorage.setItem('nurse_done_' + currentUser.uid, '1');
+
+  var sendHistory = nurseHistory.slice(0, -1);
+  if (sendHistory.length > 20) sendHistory = sendHistory.slice(-20);
+  var name = currentUser ? currentUser.nickname : '';
+
+  // 写真あり → chatWithNurseImage / なし → chatWithNurse
+  if (hasPhoto) {
+    var photoData = nursePhotoData;
+    var photoMime = nursePhotoMime;
+    nurseRemovePhoto();
+    chatWithNurseImage(txt || '', photoData, photoMime, sendHistory, name).then(function(res) {
+      hideNurseTyping(); nurseReady = true;
+      document.getElementById('nurse-send-btn').disabled = false;
+      var reply = (res && res.success && res.reply) ? res.reply : 'すみません、画像の分析がうまくいきませんでした。もう一度お試しください😊';
+      playReceiveSound();
+      addNurseMsg('ai', reply);
+      nurseHistory.push({ role: 'assistant', content: reply });
+      nurseScrollBottom();
+    }).catch(function() {
+      hideNurseTyping(); nurseReady = true;
+      document.getElementById('nurse-send-btn').disabled = false;
+      playReceiveSound();
+      addNurseMsg('ai', '通信がうまくいかなかったようです。もう一度お試しください。');
+      nurseScrollBottom();
+    });
+  } else {
+    chatWithNurse(txt, sendHistory, name).then(function(res) {
+      hideNurseTyping(); nurseReady = true;
+      document.getElementById('nurse-send-btn').disabled = false;
+      var reply = (res && res.success && res.reply) ? res.reply : 'すみません、うまく聞き取れませんでした。もう一度お聞かせいただけますか？😊';
+      playReceiveSound();
+      addNurseMsg('ai', reply);
+      nurseHistory.push({ role: 'assistant', content: reply });
+      nurseScrollBottom();
+    }).catch(function() {
+      hideNurseTyping(); nurseReady = true;
+      document.getElementById('nurse-send-btn').disabled = false;
+      playReceiveSound();
+      addNurseMsg('ai', '通信がうまくいかなかったようです。もう一度お試しください。');
+      nurseScrollBottom();
+    });
+  }
+}
+
+function nurseSendQuick(txt) {
+  document.getElementById('nurse-chat-input').value = txt;
+  nurseSend();
+}
+
+function addNurseMsg(type, text, imageDataUrl) {
+  var area = document.getElementById('nurse-messages');
+  var div = document.createElement('div');
+  div.className = 'nurse-msg ' + type;
+  var av = type === 'ai' ? '<img src="https://drive.google.com/thumbnail?id=1xsXmk2unOYMDMxkhY5EemCtEwEXiVGZq&sz=w64&t=2" alt="AI">' : (currentUser ? currentUser.avatar : '😀');
+  var safe = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  var imgHtml = imageDataUrl ? '<img class="nurse-msg-image" src="' + imageDataUrl + '">' : '';
+  div.innerHTML = '<div class="nurse-msg-avatar">' + av + '</div><div class="nurse-msg-bubble">' + imgHtml + safe + '</div>';
+  area.appendChild(div);
+}
+
+// ====== 写真相談機能 ======
+function nurseHandlePhoto(input) {
+  if (!input.files || !input.files[0]) return;
+  var file = input.files[0];
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var img = new Image();
+    img.onload = function() {
+      var canvas = document.createElement('canvas');
+      var MAX = 800;
+      var w = img.width, h = img.height;
+      if (w > h) { if (w > MAX) { h *= MAX / w; w = MAX; } }
+      else { if (h > MAX) { w *= MAX / h; h = MAX; } }
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      var dataUrl = canvas.toDataURL('image/jpeg', 0.75);
+      nursePhotoData = dataUrl.split(',')[1];
+      nursePhotoMime = 'image/jpeg';
+      nursePhotoPreview = dataUrl;
+      // プレビュー表示
+      document.getElementById('nurse-preview-thumb').src = dataUrl;
+      document.getElementById('nurse-preview-strip').classList.add('active');
+      // プレースホルダ変更
+      document.getElementById('nurse-chat-input').placeholder = '写真について質問を入力（空欄でもOK）';
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+  input.value = '';
+}
+
+function nurseRemovePhoto() {
+  nursePhotoData = null;
+  nursePhotoMime = null;
+  nursePhotoPreview = null;
+  document.getElementById('nurse-preview-strip').classList.remove('active');
+  document.getElementById('nurse-chat-input').placeholder = '気軽に話しかけてください...';
+  var fi = document.getElementById('nurse-photo-input');
+  if (fi) fi.value = '';
+}
+
+function showNurseTyping() {
+  var el = document.getElementById('nurse-typing-ind');
+  if (el) el.remove();
+  var area = document.getElementById('nurse-messages');
+  var div = document.createElement('div');
+  div.id = 'nurse-typing-ind'; div.className = 'nurse-typing';
+  div.innerHTML = '<div class="nurse-msg-avatar"><img src="https://drive.google.com/thumbnail?id=1xsXmk2unOYMDMxkhY5EemCtEwEXiVGZq&sz=w64&t=2" alt="AI"></div><div class="nurse-typing-bubble"><div class="nurse-typing-dot"></div><div class="nurse-typing-dot"></div><div class="nurse-typing-dot"></div></div>';
+  area.appendChild(div);
+  nurseScrollBottom();
+}
+
+function hideNurseTyping() {
+  var el = document.getElementById('nurse-typing-ind');
+  if (el) el.remove();
+}
+
+function nurseScrollBottom() {
+  setTimeout(function() {
+    var a = document.getElementById('nurse-messages');
+    if (a) a.scrollTop = a.scrollHeight;
+  }, 50);
+}
+
+// ★★★ 安全なフック: 既存の onLoginSuccess を拡張 ★★★
+(function() {
+  var _orig = onLoginSuccess;
+  onLoginSuccess = function() {
+    _orig.apply(this, arguments);
+    try { initNurseChat(); } catch(e) { console.log('nurse init error', e); }
+    try { initInbox(); } catch(e) { console.log('inbox init error', e); }
+  };
+})();
+</script>
+<!-- ====== /AI保健師チャットボット ====== -->
+
+<!-- ====== お知らせ Inbox ====== -->
+<style>
+/* --- Inbox FAB（お知らせピル型） --- */
+#inbox-fab {
+  position: fixed;
+  bottom: 84px;
+  right: 14px;
+  background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
+  border: none;
+  border-radius: 28px;
+  padding: 8px 16px 8px 8px;
+  display: none;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 20px rgba(108,92,231,0.4);
+  z-index: 2500;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  color: white;
+  min-width: 170px;
+}
+#inbox-fab:active { transform: scale(0.95); }
+#inbox-fab .fab-icon-circle {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.25);
+  display: flex; justify-content: center; align-items: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  border: 2px solid rgba(255,255,255,0.4);
+}
+#inbox-fab .fab-text {
+  font-weight: 700;
+  font-size: 0.8rem;
+  line-height: 1.25;
+  white-space: nowrap;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+#inbox-fab .inbox-badge {
+  position: absolute; top: -4px; left: -4px;
+  min-width: 20px; height: 20px;
+  background: #ff1744; border-radius: 10px;
+  border: 2px solid white;
+  color: white; font-size: 0.58rem; font-weight: 800;
+  display: none;
+  justify-content: center; align-items: center;
+  padding: 0 5px;
+  animation: nPulse 1.5s infinite;
+}
+
+/* --- Inbox オーバーレイ --- */
+#inbox-overlay {
+  position: fixed; top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.5);
+  z-index: 4000; display: none;
+  backdrop-filter: blur(2px);
+}
+#inbox-overlay.active { display: block; }
+
+/* --- Inbox シート --- */
+#inbox-sheet {
+  position: fixed; bottom: 0; left: 0;
+  width: 100%; max-height: 80vh; max-height: 80dvh;
+  background: #f8f9fa;
+  border-radius: 20px 20px 0 0;
+  z-index: 4001;
+  transform: translateY(100%);
+  visibility: hidden;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), visibility 0s 0.35s;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 -8px 40px rgba(0,0,0,0.2);
+}
+#inbox-sheet.active { transform: translateY(0); visibility: visible; transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), visibility 0s 0s; }
+
+/* --- Inbox ヘッダー --- */
+.inbox-header {
+  background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
+  color: white; padding: 16px 18px;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0;
+}
+.inbox-header-left { display: flex; align-items: center; gap: 10px; }
+.inbox-header-icon {
+  width: 36px; height: 36px; background: rgba(255,255,255,0.2);
+  border-radius: 50%; display: flex; justify-content: center; align-items: center;
+  font-size: 1.1rem;
+}
+.inbox-header-title { font-weight: 800; font-size: 1rem; }
+.inbox-header-sub { font-size: 0.7rem; opacity: 0.8; }
+.inbox-close {
+  background: rgba(255,255,255,0.2); border: none; color: white;
+  width: 36px; height: 36px; border-radius: 50%;
+  font-size: 1.1rem; cursor: pointer;
+  display: flex; justify-content: center; align-items: center;
+}
+.inbox-close:active { background: rgba(255,255,255,0.4); }
+
+/* --- Inbox 中身 --- */
+.inbox-body {
+  flex: 1; overflow-y: auto; padding: 14px;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* --- 通知カード --- */
+.inbox-card {
+  background: white; border-radius: 14px;
+  padding: 14px 16px; margin-bottom: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  border-left: 4px solid #6c5ce7;
+  animation: nMsgIn 0.3s ease-out;
+}
+.inbox-card.personal { border-left-color: #ec407a; }
+.inbox-card-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 8px;
+}
+.inbox-card-tag {
+  font-size: 0.68rem; font-weight: 700;
+  padding: 3px 10px; border-radius: 10px;
+  color: white;
+}
+.inbox-card-tag.general { background: #6c5ce7; }
+.inbox-card-tag.personal { background: #ec407a; }
+.inbox-card-date { font-size: 0.72rem; color: #999; }
+.inbox-card-body {
+  font-size: 0.9rem; line-height: 1.7; color: #333;
+  white-space: pre-wrap; word-break: break-word;
+}
+
+/* --- 返信エリア --- */
+.inbox-reply-area {
+  margin-top: 12px; padding-top: 12px;
+  border-top: 1px solid #f0f0f0;
+}
+.inbox-reply-area textarea {
+  width: 100%; border: 2px solid #eef0f3 !important;
+  border-radius: 12px !important; padding: 10px 14px !important;
+  font-size: 0.88rem !important; resize: none;
+  min-height: 50px; background: #fafbfc !important;
+  font-family: 'Noto Sans JP', sans-serif;
+  margin-bottom: 0 !important;
+}
+.inbox-reply-area textarea:focus {
+  border-color: #6c5ce7 !important;
+  outline: none; background: white !important;
+}
+.inbox-reply-btn {
+  width: 100%; margin-top: 8px;
+  background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+  color: white; border: none; border-radius: 12px;
+  padding: 11px; font-weight: 700; font-size: 0.88rem;
+  cursor: pointer; transition: all 0.15s;
+}
+.inbox-reply-btn:active { transform: scale(0.98); }
+
+/* --- 空状態 --- */
+.inbox-empty {
+  text-align: center; padding: 40px 20px; color: #bbb;
+}
+.inbox-empty i { font-size: 2.5rem; margin-bottom: 12px; display: block; }
+.inbox-empty-text { font-size: 0.9rem; font-weight: 600; }
+</style>
+
+<button id="inbox-fab" style="display:none;" onclick="openInbox()">
+  <span class="fab-icon-circle"><i class="fas fa-bell"></i></span>
+  <span class="fab-text">事務局からの<br>お知らせ</span>
+  <span class="inbox-badge" id="inbox-badge"></span>
+</button>
+
+<div id="inbox-overlay" onclick="closeInbox()" ontouchmove="event.preventDefault()"></div>
+
+<div id="inbox-sheet">
+  <div class="inbox-header">
+    <div class="inbox-header-left">
+      <div class="inbox-header-icon"><i class="fas fa-bell"></i></div>
+      <div>
+        <div class="inbox-header-title">お知らせ</div>
+        <div class="inbox-header-sub">事務局からの連絡</div>
+      </div>
+    </div>
+    <button class="inbox-close" onclick="closeInbox()"><i class="fas fa-chevron-down"></i></button>
+  </div>
+  <div class="inbox-body" id="inbox-body"></div>
+</div>
+
+<script>
+// ====== お知らせ Inbox JS ======
+function initInbox() {
+  if (!currentUser) return;
+  var fab = document.getElementById('inbox-fab');
+  if (fab) fab.style.display = 'flex';
+  checkInboxBadge();
+}
+
+function checkInboxBadge() {
+  if (!currentUser) return;
+  var badge = document.getElementById('inbox-badge');
+  if (!badge) return;
+  badge.style.display = 'none';
+  getUnreadPersonalNotice(currentUser.uid).then(function(res) {
+    if (res) {
+      badge.style.display = 'flex';
+      badge.innerText = '個別';
+    } else {
+      getLatestNotice('ALL').then(function(n) {
+        if (n) {
+          var lastRead = localStorage.getItem('co_heart_last_read_notice');
+          if (lastRead !== n.date) {
+            badge.style.display = 'flex';
+            badge.innerText = 'NEW';
+          }
+        }
+      });
+    }
+  });
+}
+
+function openInbox() {
+  lockScroll();
+  loadInboxContent();
+  document.getElementById('inbox-overlay').classList.add('active');
+  document.getElementById('inbox-sheet').classList.add('active');
+  document.getElementById('inbox-fab').style.display = 'none';
+  var nf = document.getElementById('nurse-fab'); if (nf) nf.style.display = 'none';
+}
+
+function closeInbox() {
+  document.getElementById('inbox-overlay').classList.remove('active');
+  document.getElementById('inbox-sheet').classList.remove('active');
+  document.getElementById('inbox-fab').style.display = 'flex';
+  var nf = document.getElementById('nurse-fab'); if (nf) nf.style.display = 'flex';
+  unlockScroll();
+}
+
+function loadInboxContent() {
+  var body = document.getElementById('inbox-body');
+  body.innerHTML = '<div style="text-align:center;padding:30px;"><div class="spinner-border text-primary" role="status"></div></div>';
+
+  getUnreadPersonalNotice(currentUser.uid).then(function(personal) {
+    if (personal) {
+      body.innerHTML =
+        '<div class="inbox-card personal">' +
+          '<div class="inbox-card-header">' +
+            '<span class="inbox-card-tag personal"><i class="fas fa-envelope"></i> 個別メッセージ</span>' +
+            '<span class="inbox-card-date"><i class="far fa-clock"></i> ' + personal.date + '</span>' +
+          '</div>' +
+          '<div class="inbox-card-body">' + escInbox(personal.message) + '</div>' +
+          '<div class="inbox-reply-area">' +
+            '<textarea id="inbox-reply-input" placeholder="返信があればこちらに..." rows="2"></textarea>' +
+            '<button class="inbox-reply-btn" onclick="inboxMarkRead(\'' + personal.id + '\')">' +
+              '<i class="fas fa-check-circle"></i> 確認して既読にする' +
+            '</button>' +
+          '</div>' +
+        '</div>';
+    } else {
+      getLatestNotice('ALL').then(function(n) {
+        if (n) {
+          body.innerHTML =
+            '<div class="inbox-card">' +
+              '<div class="inbox-card-header">' +
+                '<span class="inbox-card-tag general"><i class="fas fa-bullhorn"></i> お知らせ</span>' +
+                '<span class="inbox-card-date"><i class="far fa-clock"></i> ' + n.date + '</span>' +
+              '</div>' +
+              '<div class="inbox-card-body">' + escInbox(n.message) + '</div>' +
+            '</div>';
+          localStorage.setItem('co_heart_last_read_notice', n.date);
+          var badge = document.getElementById('inbox-badge');
+          if (badge) badge.style.display = 'none';
+        } else {
+          body.innerHTML =
+            '<div class="inbox-empty">' +
+              '<i class="far fa-bell-slash"></i>' +
+              '<div class="inbox-empty-text">新しいお知らせはありません</div>' +
+            '</div>';
+        }
+      });
+    }
+  });
+}
+
+function inboxMarkRead(noticeId) {
+  var replyEl = document.getElementById('inbox-reply-input');
+  var replyText = replyEl ? replyEl.value : '';
+  var body = document.getElementById('inbox-body');
+  body.innerHTML = '<div style="text-align:center;padding:30px;color:#6c5ce7;"><div class="spinner-border spinner-border-sm"></div> 処理中...</div>';
+
+  markNoticeAsRead(noticeId, replyText).then(function() {
+    closeInbox();
+    var badge = document.getElementById('inbox-badge');
+    if (badge) badge.style.display = 'none';
+  });
+}
+
+function escInbox(t) {
+  return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+<!-- ====== /お知らせ Inbox ====== -->
+
+</body>
+</html>

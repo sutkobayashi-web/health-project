@@ -234,9 +234,9 @@
       .sidebar { width: 52px; }
       .nav-item { width: 46px; }
       .nav-label { font-size: 0.45rem; }
-      .eval-body { flex-direction: column; }
-      .col-left-prio { width: 100%; border-right: none; border-bottom: 1px solid #eee; }
-      .col-right-prio { width: 100%; }
+      .eval-body { flex-direction: column; overflow-y: auto; }
+      .col-left-prio { width: 100%; border-right: none; border-bottom: 1px solid #eee; max-height: 35vh; overflow-y: auto; flex-shrink: 0; }
+      .col-right-prio { width: 100%; min-height: 50vh; }
       .theme-modal-body { flex-direction: column; }
       .theme-left-col, .theme-right-col { width: 100%; }
       .meeting-split { flex-direction: column; }

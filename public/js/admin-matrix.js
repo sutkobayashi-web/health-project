@@ -301,7 +301,8 @@ window.deleteMyComment = function(rowId, name, btnEl) {
 };
 
 window.handlePriorityAction = function(action) {
-    if(!window.mxCurrentPrioPid) return;
+    alert("DEBUG: action=" + action + " pid=" + window.mxCurrentPrioPid);
+    if(!window.mxCurrentPrioPid) { alert("DEBUG: pidがnull"); return; }
     var myName = (currentAdminProfile && currentAdminProfile.name) || "Admin";
     if(action==='like') {
         if(!confirm("合意しますか？")) return;

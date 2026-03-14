@@ -211,7 +211,11 @@ function loadHealthPlan26() {
             if(p.status === 'approved' || p.status === 'done') {
                 actionBtns = '<button type="button" class="btn btn-sm btn-success w-100 fw-bold" onclick="event.stopPropagation(); openExecutionPlanModal(\''+p.id+'\')"><i class="fas fa-rocket me-1"></i> 実行計画設定</button>';
             } else if(p.status === 'in_execution') {
-                actionBtns = '<button type="button" class="btn btn-sm btn-outline-primary w-100 fw-bold" onclick="event.stopPropagation(); promptKPIUpdate(\''+p.id+'\')"><i class="fas fa-chart-line me-1"></i> KPI更新</button>';
+                actionBtns = '<button type="button" class="btn btn-sm btn-outline-primary w-100 fw-bold" onclick="event.stopPropagation(); promptKPIUpdate(\''+p.id+'\')"><i class="fas fa-chart-line me-1"></i> KPI更新</button>' +
+                    '<div class="d-flex gap-1 mt-2">' +
+                      '<button class="btn btn-sm btn-outline-warning flex-grow-1" onclick="event.stopPropagation(); sendHearingNotification(\''+p.id+'\',\'related\')"><i class="fas fa-clipboard-check me-1"></i> 関連者にヒアリング</button>' +
+                      '<button class="btn btn-sm btn-outline-info flex-grow-1" onclick="event.stopPropagation(); sendHearingNotification(\''+p.id+'\',\'all\')"><i class="fas fa-bullhorn me-1"></i> 全社ヒアリング</button>' +
+                    '</div>';
             }
             return '<div class="col-md-6 col-lg-4"><div class="card h-100 shadow-sm border-0" style="border-top:5px solid #27ae60 !important;">' +
                 '<div class="card-body d-flex flex-column"><div class="d-flex justify-content-between mb-2">'+statusBadge+'<span class="small fw-bold text-secondary">Pt: '+p.score+'</span></div>' +
@@ -257,6 +261,19 @@ function promptKPIUpdate(planId) {
     var note = prompt("備考（任意）:", "");
     showLoading("更新中...");
     updateKPI(planId, kpiVal, note).then(function(res) { hideLoading(); alert(res.msg); loadHealthPlan26(); });
+}
+
+// ★効果ヒアリング
+function sendHearingNotification(planId, scope) {
+    if(!confirm("効果ヒアリングを送信しますか？")) return;
+    showLoading("送信中...");
+    sendHearing(planId, scope).then(function(res) {
+        hideLoading();
+        alert(res.msg);
+    }).catch(function(err) {
+        hideLoading();
+        alert("送信エラーが発生しました");
+    });
 }
 
 // テーマ機能

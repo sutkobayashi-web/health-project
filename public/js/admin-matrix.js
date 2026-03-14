@@ -164,6 +164,9 @@ window.openPriorityModal = function(pid) {
     var likeStr = String(r[MX_COLS.LIKE_COUNT]||""); var likeNum = likeStr ? likeStr.split(',').filter(function(x){return x;}).length : 0;
     document.getElementById('prio-like-count').innerHTML = '<i class="fas fa-thumbs-up me-1"></i> ' + likeNum;
     document.getElementById('prio-analysis').innerText = analysis;
+    // Clear similar posts area on modal open
+    var similarArea = document.getElementById('similar-posts-area');
+    if(similarArea) similarArea.innerHTML = '';
     var tl = document.getElementById('deep-dive-timeline');
     tl.innerHTML = '<div class="text-center py-4"><button class="btn btn-outline-primary btn-sm rounded-pill px-4 shadow-sm" onclick="forceStartAISimulation()"><i class="fas fa-robot me-2"></i>AIメンバーを招集する</button></div>';
     getDiscussionLog(pid).then(function(logs) {
@@ -174,6 +177,49 @@ window.openPriorityModal = function(pid) {
         } else { tl.innerHTML = ""; forceStartAISimulation(); }
     });
     document.getElementById('priority-modal').style.display = 'flex';
+    // Trigger similar posts search
+    findSimilarPosts();
+};
+
+window.findSimilarPosts = function() {
+    var pid = window.mxCurrentPrioPid;
+    if(!pid) return;
+    var r = null;
+    if(window.allPostData) {
+        r = window.allPostData.find(function(x){ return String(x[MX_COLS.PID]) === String(pid); });
+    }
+    if(!r) return;
+    var content = String(r[MX_COLS.CONTENT]||"");
+    if(content.includes("///SCORE///")) content = content.split("///SCORE///")[0];
+
+    var area = document.getElementById('similar-posts-area');
+    if(!area) return;
+    area.innerHTML = '<div class="text-center text-muted small py-2"><i class="fas fa-spinner fa-spin me-1"></i> 類似投稿を検索中...</div>';
+
+    getSimilarPosts(pid, content).then(function(res) {
+        if(!res || !res.posts || res.posts.length === 0) {
+            area.innerHTML = '<div class="text-muted small py-2">類似の投稿は見つかりませんでした</div>';
+            return;
+        }
+        var posts = res.posts;
+        var html = '<div class="small fw-bold text-primary mb-2">同じ悩みが他に' + posts.length + '件あります</div>';
+        html += '<div class="list-group list-group-flush">';
+        posts.forEach(function(p) {
+            var preview = String(p.content||"").substring(0, 60);
+            if(String(p.content||"").length > 60) preview += "...";
+            html += '<div class="list-group-item px-0 py-2 border-0" style="font-size:0.85rem;">'
+                + '<div class="d-flex justify-content-between align-items-center">'
+                + '<span class="fw-bold">' + escapeHtml(String(p.nickname||"")) + '</span>'
+                + '<span class="text-muted" style="font-size:0.75rem;">' + escapeHtml(String(p.date||"")) + '</span>'
+                + '</div>'
+                + '<div class="text-muted mt-1">' + escapeHtml(preview) + '</div>'
+                + '</div>';
+        });
+        html += '</div>';
+        area.innerHTML = html;
+    }).catch(function() {
+        area.innerHTML = '<div class="text-muted small py-2">類似の投稿は見つかりませんでした</div>';
+    });
 };
 
 window.forceStartAISimulation = function() {

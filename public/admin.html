@@ -10,60 +10,152 @@
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <!-- Admin_CSS content -->
   <style>
     body { font-family: 'Noto Sans JP', sans-serif; margin: 0; background: #f0f2f5; }
-    .admin-header { background: white; padding: 0 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; height: 50px; }
-    .brand-container { display: flex; align-items: center; gap: 8px; }
-    .logo-mark { font-size: 1.2rem; }
+
+    /* ====== Header ====== */
+    .admin-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 0 16px; display: flex; justify-content: space-between; align-items: center;
+      box-shadow: 0 4px 20px rgba(102,126,234,0.3); position: sticky; top: 0; z-index: 100; height: 54px;
+    }
+    .brand-container { display: flex; align-items: center; gap: 10px; }
+    .logo-mark { font-size: 1.3rem; color: #fff; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.15)); }
     .title-group { line-height: 1.1; }
-    .app-name-main { font-weight: 900; color: #2c3e50; font-size: 0.8rem; }
-    .app-name-sub { font-weight: 700; color: #888; font-size: 0.65rem; }
-    .header-right { display: flex; align-items: center; gap: 8px; }
-    .user-status-box { display: flex; align-items: center; gap: 6px; background: #f8f9fa; border-radius: 30px; padding: 4px 10px; font-size: 0.75rem; }
+    .app-name-main { font-weight: 900; color: #fff; font-size: 0.85rem; letter-spacing: 0.3px; }
+    .app-name-sub { font-weight: 600; color: rgba(255,255,255,0.75); font-size: 0.65rem; }
+    .header-right { display: flex; align-items: center; gap: 10px; }
+    .user-status-box {
+      display: flex; align-items: center; gap: 6px;
+      background: rgba(255,255,255,0.18); backdrop-filter: blur(8px);
+      border-radius: 30px; padding: 4px 12px; font-size: 0.75rem; color: #fff;
+    }
     .status-avatar { font-size: 1.1rem; }
-    .status-name { font-weight: 700; font-size: 0.7rem; }
-    .status-role { font-size: 0.6rem; color: #888; }
-    .btn-return { background: #e74c3c; color: white; border: none; border-radius: 20px; padding: 5px 12px; font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px; }
-    .main-container { display: flex; min-height: calc(100vh - 50px); }
-    .sidebar { width: 70px; background: #2c3e50; display: flex; flex-direction: column; align-items: center; padding: 10px 0; gap: 2px; flex-shrink: 0; }
-    .nav-item { width: 60px; padding: 8px 0; text-align: center; cursor: pointer; border-radius: 8px; transition: all 0.2s; color: rgba(255,255,255,0.6); }
-    .nav-item:hover { background: rgba(255,255,255,0.1); color: white; }
-    .nav-item.active { background: rgba(255,255,255,0.15); color: white; }
-    .nav-icon { font-size: 1.1rem; display: block; margin-bottom: 2px; }
+    .status-name { font-weight: 700; font-size: 0.7rem; color: #fff; }
+    .status-role { font-size: 0.6rem; color: rgba(255,255,255,0.7); }
+    .btn-return {
+      background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 20px; padding: 5px 14px; font-size: 0.75rem; font-weight: 700;
+      cursor: pointer; display: flex; align-items: center; gap: 5px;
+      transition: all 0.2s;
+    }
+    .btn-return:hover { background: rgba(255,255,255,0.35); }
+
+    /* ====== Sidebar ====== */
+    .main-container { display: flex; min-height: calc(100vh - 54px); }
+    .sidebar {
+      width: 72px; background: #1a1e2e; display: flex; flex-direction: column;
+      align-items: center; padding: 12px 0; gap: 2px; flex-shrink: 0;
+      box-shadow: 2px 0 15px rgba(0,0,0,0.15);
+    }
+    .nav-item {
+      width: 62px; padding: 10px 0; text-align: center; cursor: pointer;
+      border-radius: 10px; transition: all 0.25s cubic-bezier(.4,0,.2,1);
+      color: rgba(255,255,255,0.45); position: relative; border-left: 3px solid transparent;
+      margin-left: -3px;
+    }
+    .nav-item:hover {
+      background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.9);
+      transform: translateX(2px);
+    }
+    .nav-item.active {
+      background: rgba(102,126,234,0.2); color: #fff;
+      border-left: 3px solid #667eea;
+    }
+    .nav-icon { font-size: 1.15rem; display: block; margin-bottom: 3px; }
     .nav-label { font-size: 0.55rem; font-weight: 700; line-height: 1.2; }
-    .content-area { flex: 1; padding: 15px; overflow-y: auto; }
+
+    /* ====== Content Area ====== */
+    .content-area { flex: 1; padding: 20px; overflow-y: auto; }
     .tab-view { display: none; }
     .tab-view.active { display: block; }
-    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; display: flex; justify-content: center; align-items: center; }
-    .modal-box { background: white; border-radius: 12px; max-height: 90vh; overflow-y: auto; }
-    .plan-card { background: white; border-radius: 12px; padding: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid #eee; }
+
+    .section-header {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 18px;
+      padding-bottom: 12px; border-bottom: 2px solid #eee;
+    }
+    .section-header .section-icon {
+      width: 38px; height: 38px; border-radius: 10px; display: flex;
+      align-items: center; justify-content: center; font-size: 1rem; color: #fff;
+      flex-shrink: 0;
+    }
+    .section-header .section-title { font-weight: 800; font-size: 1.05rem; color: #2c3e50; }
+    .section-header .section-subtitle { font-size: 0.72rem; color: #999; }
+
+    /* ====== Auth Overlay ====== */
+    #admin-auth-overlay {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 30%, #f093fb 60%, #f5576c 100%);
+      background-size: 400% 400%; animation: authBgFlow 12s ease infinite;
+    }
+    @keyframes authBgFlow { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+    #admin-auth-overlay::before {
+      content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.08) 1px, transparent 1px);
+      background-size: 30px 30px; animation: authDots 20s linear infinite; pointer-events: none;
+    }
+    @keyframes authDots { 0% { transform: translate(0, 0); } 100% { transform: translate(30px, 30px); } }
+    .auth-modal-box {
+      background: rgba(255,255,255,0.97); max-width: 390px; width: 100%; padding: 30px 24px;
+      border-radius: 24px; box-shadow: 0 25px 60px rgba(0,0,0,0.25), 0 0 80px rgba(102,126,234,0.15);
+      backdrop-filter: blur(20px); position: relative; z-index: 1;
+    }
+
+    /* ====== Modals ====== */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5); z-index: 2000; display: flex;
+      justify-content: center; align-items: center;
+    }
+    .modal-box {
+      background: white; border-radius: 12px; max-height: 90vh; overflow-y: auto;
+    }
+
+    /* ====== Cards & Components ====== */
+    .plan-card {
+      background: white; border-radius: 14px; padding: 18px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.05); border: 1px solid #eee;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .plan-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
+
     .eval-body { display: flex; flex: 1; overflow: hidden; }
     .col-left-prio { width: 40%; padding: 20px; overflow-y: auto; border-right: 1px solid #eee; }
     .col-right-prio { width: 60%; display: flex; flex-direction: column; }
     .deep-dive-container { flex: 1; overflow-y: auto; padding: 15px; background: #f8f9fa; }
     .input-area-sticky { padding: 10px 15px; background: white; border-top: 1px solid #eee; }
+
     .council-member-row { display: flex; gap: 10px; margin-bottom: 12px; animation: fadeIn 0.3s; }
     .council-member-row.ai { }
     .council-member-row.human { flex-direction: row-reverse; }
-    .council-avatar { width: 32px; height: 32px; border-radius: 50%; background: #f1f3f5; display: flex; justify-content: center; align-items: center; font-size: 1rem; flex-shrink: 0; }
+    .council-avatar {
+      width: 32px; height: 32px; border-radius: 50%; background: #f1f3f5;
+      display: flex; justify-content: center; align-items: center; font-size: 1rem; flex-shrink: 0;
+    }
     .council-content { max-width: 80%; }
     .council-role { font-size: 0.7rem; font-weight: 700; color: #888; margin-bottom: 2px; }
-    .council-bubble { background: white; padding: 10px 14px; border-radius: 12px; font-size: 0.85rem; line-height: 1.6; box-shadow: 0 1px 3px rgba(0,0,0,0.06); border: 1px solid #eee; }
+    .council-bubble {
+      background: white; padding: 10px 14px; border-radius: 12px; font-size: 0.85rem;
+      line-height: 1.6; box-shadow: 0 1px 3px rgba(0,0,0,0.06); border: 1px solid #eee;
+    }
     .council-member-row.human .council-bubble { background: #e3f2fd; border-color: #bbdefb; }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
     .fs-compact { font-size: 0.85rem; }
     .fs-compact-title { font-size: 0.95rem; }
     .fs-compact-body { font-size: 0.9rem; }
+
+    /* ====== Theme Plan Modal ====== */
     .theme-modal-body { display: flex; flex: 1; overflow: hidden; }
     .theme-left-col { width: 55%; padding: 15px; overflow-y: auto; }
     .theme-right-col { width: 45%; padding: 15px; overflow-y: auto; border-left: 1px solid #eee; }
     .theme-label { font-weight: 700; font-size: 0.8rem; color: #555; display: block; margin-bottom: 4px; }
     .theme-input { width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 8px 12px; font-size: 0.85rem; }
+
     .score-row-compact { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
     .score-label-compact { width: 40px; font-weight: bold; font-size: 0.7rem; }
     .score-input-compact { flex: 1; }
     .score-val-compact { width: 20px; text-align: center; font-weight: bold; font-size: 0.8rem; }
+
     .prop-section-block { margin-bottom: 20px; border-radius: 12px; overflow: hidden; border: 1px solid #eee; }
     .section-title-bar { padding: 10px 15px; font-weight: 700; font-size: 0.9rem; background: #f8f9fa; border-bottom: 1px solid #eee; }
     .section-body { padding: 15px; }
@@ -74,17 +166,35 @@
     .section-color-4 { border-left: 4px solid #9b59b6; }
     .section-color-5 { border-left: 4px solid #1abc9c; }
     .existing-comment { font-size: 0.8rem; color: #555; margin-bottom: 4px; padding: 4px 0; }
-    .post-select-card { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border: 1px solid #eee; border-radius: 8px; margin-bottom: 6px; cursor: pointer; transition: all 0.15s; }
+
+    .post-select-card {
+      display: flex; align-items: center; gap: 10px; padding: 8px 12px;
+      border: 1px solid #eee; border-radius: 8px; margin-bottom: 6px;
+      cursor: pointer; transition: all 0.15s;
+    }
     .post-select-card.selected { background: #e3f2fd; border-color: #2196f3; }
     .post-select-check { font-size: 1rem; }
+
+    /* ====== Meeting Layout ====== */
+    .meeting-split { display: flex; gap: 16px; min-height: 500px; }
+    .meeting-left { width: 280px; flex-shrink: 0; overflow-y: auto; }
+    .meeting-right { flex: 1; display: flex; flex-direction: column; background: #fff; border-radius: 12px; border: 1px solid #eee; overflow: hidden; }
+
+    /* ====== Mail UI ====== */
+    .mail-box-switcher { display: flex; gap: 6px; margin-bottom: 12px; }
+    .mail-box-switcher .btn { border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
+
     @media (max-width: 768px) {
-      .sidebar { width: 50px; }
+      .sidebar { width: 52px; }
+      .nav-item { width: 46px; }
       .nav-label { font-size: 0.45rem; }
       .eval-body { flex-direction: column; }
       .col-left-prio { width: 100%; border-right: none; border-bottom: 1px solid #eee; }
       .col-right-prio { width: 100%; }
       .theme-modal-body { flex-direction: column; }
       .theme-left-col, .theme-right-col { width: 100%; }
+      .meeting-split { flex-direction: column; }
+      .meeting-left { width: 100%; }
     }
   </style>
 </head>
@@ -99,16 +209,19 @@
 
 <!-- 管理者認証モーダル -->
 <div id="admin-auth-overlay" class="modal-overlay" style="display:flex; z-index:5000;">
-  <div class="modal-box" style="max-width:380px; background:white; padding:25px; border-radius:16px;">
-    <div style="text-align:center; margin-bottom:20px;">
-      <i class="fas fa-shield-alt" style="font-size:2rem; color:#d63384;"></i>
-      <h5 class="fw-bold mt-2">管理者認証</h5>
+  <div class="auth-modal-box">
+    <div style="text-align:center; margin-bottom:24px;">
+      <div style="width:60px; height:60px; border-radius:50%; background:linear-gradient(135deg,#667eea,#764ba2); margin:0 auto 14px; display:flex; align-items:center; justify-content:center;">
+        <i class="fas fa-shield-alt" style="font-size:1.6rem; color:#fff;"></i>
+      </div>
+      <h5 class="fw-bold" style="color:#2c3e50; margin:0;">管理者認証</h5>
+      <p class="small text-muted mt-1 mb-0">Admin Portal Login</p>
     </div>
-    <div class="mb-3"><label class="small fw-bold text-muted">メールアドレス</label><input type="email" id="admin-login-email" class="form-control"></div>
-    <div class="mb-3"><label class="small fw-bold text-muted">パスワード</label><input type="password" id="admin-login-pass" class="form-control"></div>
-    <div class="mb-3"><label style="font-weight:normal; display:flex; align-items:center; cursor:pointer;"><input type="checkbox" id="admin-login-remember" style="width:auto; margin-right:8px; transform:scale(1.2);"> ログイン情報を保存する</label></div>
-    <button class="btn btn-primary w-100 fw-bold py-2" onclick="doAdminAuth()">ログイン</button>
-    <div class="text-center mt-3"><a href="/" class="small text-muted">ユーザー画面に戻る</a></div>
+    <div class="mb-3"><label class="small fw-bold text-muted">メールアドレス</label><input type="email" id="admin-login-email" class="form-control" style="border-radius:10px; padding:10px 14px;"></div>
+    <div class="mb-3"><label class="small fw-bold text-muted">パスワード</label><input type="password" id="admin-login-pass" class="form-control" style="border-radius:10px; padding:10px 14px;"></div>
+    <div class="mb-3"><label style="font-weight:normal; display:flex; align-items:center; cursor:pointer; font-size:0.85rem;"><input type="checkbox" id="admin-login-remember" style="width:auto; margin-right:8px; transform:scale(1.2);"> ログイン情報を保存する</label></div>
+    <button class="btn w-100 fw-bold py-2" style="background:linear-gradient(135deg,#667eea,#764ba2); color:#fff; border:none; border-radius:10px; font-size:0.95rem;" onclick="doAdminAuth()">ログイン</button>
+    <div class="text-center mt-3"><a href="/" class="small" style="color:rgba(255,255,255,0.7); text-decoration:none;">ユーザー画面に戻る</a></div>
   </div>
 </div>
 <script>
@@ -120,7 +233,7 @@ if(localStorage.getItem('co_heart_admin_email') && localStorage.getItem('co_hear
 
 <div class="admin-header">
   <div class="brand-container">
-    <i class="fas fa-heart-pulse logo-mark" style="color:#d63384;"></i>
+    <i class="fas fa-heart-pulse logo-mark"></i>
     <div class="title-group">
       <div class="app-name-main">健康プロジェクト</div>
       <div class="app-name-sub">管理画面 (Admin)</div>
@@ -162,43 +275,115 @@ if(localStorage.getItem('co_heart_admin_email') && localStorage.getItem('co_hear
   </div>
 
   <div class="content-area">
-    <!-- Admin_Tabs content -->
 
+    <!-- Tab: Inbox 評価 -->
     <div id="tab-evaluation" class="tab-view active">
+      <div class="section-header">
+        <div class="section-icon" style="background:linear-gradient(135deg,#667eea,#764ba2);"><i class="fas fa-check-double"></i></div>
+        <div><div class="section-title">Inbox 評価</div><div class="section-subtitle">投稿の確認と優先度評価</div></div>
+      </div>
+      <div id="report-count" class="small text-muted mb-2"></div>
       <div id="report-list-area"></div>
     </div>
 
+    <!-- Tab: 重点検討 -->
     <div id="tab-current" class="tab-view">
-      <canvas id="currentChart"></canvas>
+      <div class="section-header">
+        <div class="section-icon" style="background:linear-gradient(135deg,#f6d365,#fda085);"><i class="fas fa-star"></i></div>
+        <div><div class="section-title">重点検討マトリクス</div><div class="section-subtitle">優先度の高い課題を可視化</div></div>
+      </div>
+      <div style="height:400px; position:relative;"><canvas id="currentChart"></canvas></div>
+      <div class="mt-3 d-flex gap-2">
+        <button class="btn btn-outline-primary btn-sm fw-bold" onclick="openThemePlanFromMatrix()"><i class="fas fa-lightbulb me-1"></i> テーマから企画書を作成</button>
+      </div>
     </div>
 
+    <!-- Tab: 企画書 -->
     <div id="tab-candidates" class="tab-view">
+      <div class="section-header">
+        <div class="section-icon" style="background:linear-gradient(135deg,#a18cd1,#fbc2eb);"><i class="fas fa-file-alt"></i></div>
+        <div><div class="section-title">企画書一覧</div><div class="section-subtitle">作成済みの企画書を管理</div></div>
+      </div>
       <div id="candidates-list-area" class="row g-3"></div>
+      <div class="mt-3">
+        <button class="btn btn-outline-primary btn-sm fw-bold" onclick="openThemePlanModal()"><i class="fas fa-plus me-1"></i> テーマから企画書を作成</button>
+      </div>
     </div>
 
+    <!-- Tab: AI企画会議 -->
     <div id="tab-aimeeting" class="tab-view">
-      <div id="aimeeting-area"></div>
+      <div class="section-header">
+        <div class="section-icon" style="background:linear-gradient(135deg,#667eea,#4facfe);"><i class="fas fa-users-cog"></i></div>
+        <div><div class="section-title">AI企画会議</div><div class="section-subtitle">AI社員との戦略会議</div></div>
+      </div>
+      <div class="meeting-split">
+        <div class="meeting-left">
+          <div id="meeting-plan-list"></div>
+        </div>
+        <div class="meeting-right">
+          <div id="meeting-title" class="p-3 border-bottom fw-bold"></div>
+          <div id="meeting-chat-timeline" class="flex-grow-1 p-3" style="overflow-y:auto; background:#f8f9fa;"></div>
+          <div class="p-2 border-top">
+            <button id="btn-start-meeting" class="btn btn-primary w-100 fw-bold" style="display:none;"><i class="fas fa-play me-1"></i> 会議を開始</button>
+          </div>
+        </div>
+      </div>
     </div>
 
+    <!-- Tab: 役員決裁 -->
     <div id="tab-exec" class="tab-view">
+      <div class="section-header">
+        <div class="section-icon" style="background:linear-gradient(135deg,#e74c3c,#c0392b);"><i class="fas fa-gavel"></i></div>
+        <div><div class="section-title">役員決裁</div><div class="section-subtitle">上申された企画の承認・却下</div></div>
+      </div>
+      <div id="exec-role-info" style="display:none;" class="alert alert-info py-2 mb-3">
+        <i class="fas fa-user-tie me-1"></i> <span id="exec-role-text"></span>
+      </div>
       <div id="exec-pending-area" class="row g-3"></div>
     </div>
 
+    <!-- Tab: 全社展開 -->
     <div id="tab-bmi22" class="tab-view">
+      <div class="section-header">
+        <div class="section-icon" style="background:linear-gradient(135deg,#2ecc71,#27ae60);"><i class="fas fa-leaf"></i></div>
+        <div><div class="section-title">全社展開</div><div class="section-subtitle">実行中プランの管理と効果測定</div></div>
+      </div>
       <div id="healthplan26-list-area" class="row g-3"></div>
+      <div id="hearing-notification-area" class="mt-4 p-3 bg-light rounded border" style="display:none;">
+        <h6 class="fw-bold text-warning mb-3"><i class="fas fa-clipboard-check me-1"></i> 効果ヒアリング送信</h6>
+        <p class="small text-muted mb-2">実行中のプランに対して、効果ヒアリング通知を一括送信します。</p>
+        <div id="hearing-buttons-area"></div>
+      </div>
     </div>
 
+    <!-- Tab: 個別メール -->
     <div id="tab-personal" class="tab-view">
-      <div id="personal-mail-area"></div>
+      <div class="section-header">
+        <div class="section-icon" style="background:linear-gradient(135deg,#667eea,#764ba2);"><i class="fas fa-envelope-open-text"></i></div>
+        <div><div class="section-title">個別メール</div><div class="section-subtitle">ユーザーとの個別連絡</div></div>
+      </div>
+      <div class="mail-box-switcher">
+        <button id="btn-box-inbox" class="btn btn-sm btn-primary" onclick="switchMailBox('inbox')"><i class="fas fa-inbox me-1"></i> 受信箱 <span id="mail-unread-badge-inner" class="badge bg-danger ms-1" style="display:none;">0</span></button>
+        <button id="btn-box-sent" class="btn btn-sm btn-outline-secondary" onclick="switchMailBox('sent')"><i class="fas fa-paper-plane me-1"></i> 送信済み</button>
+        <div class="ms-auto">
+          <button class="btn btn-sm btn-outline-warning fw-bold" onclick="openBroadcastModal()"><i class="fas fa-bullhorn me-1"></i> 全員通知</button>
+        </div>
+      </div>
+      <div id="mail-box-title" class="fw-bold text-muted small mb-2"></div>
+      <div id="personal-list-area"></div>
     </div>
 
+    <!-- Tab: 解決済み -->
     <div id="tab-resolved" class="tab-view">
+      <div class="section-header">
+        <div class="section-icon" style="background:linear-gradient(135deg,#95a5a6,#7f8c8d);"><i class="fas fa-archive"></i></div>
+        <div><div class="section-title">解決済み</div><div class="section-subtitle">対応完了した投稿</div></div>
+      </div>
       <div id="resolved-list-area"></div>
     </div>
+
   </div>
 </div>
-
-<!-- Admin_Modals content -->
 
 <!-- broadcast modal -->
 <div id="broadcast-modal" class="modal-overlay" style="display:none; z-index:2050;">
@@ -301,6 +486,8 @@ if(localStorage.getItem('co_heart_admin_email') && localStorage.getItem('co_hear
         </div>
         <div class="mb-3"><label class="small fw-bold text-secondary mb-1">主訴・投稿内容</label><div id="prio-content" class="fs-compact-body" style="white-space:pre-wrap;"></div></div>
         <div class="bg-light p-3 rounded mb-3 border"><label class="small fw-bold text-danger mb-1"><i class="fas fa-user-nurse me-1"></i> 専門家の初期分析</label><div id="prio-analysis" class="small text-secondary fs-compact"></div></div>
+        <button class="btn btn-outline-info btn-sm w-100 mt-2" onclick="findSimilarPosts()"><i class="fas fa-search-plus me-1"></i> 類似の声を検索</button>
+        <div id="similar-posts-area" class="mt-2"></div>
         <hr class="my-3">
         <div class="d-grid gap-2">
           <label class="small fw-bold text-center text-muted">アクション</label>
@@ -309,7 +496,7 @@ if(localStorage.getItem('co_heart_admin_email') && localStorage.getItem('co_hear
         </div>
       </div>
       <div class="col-right-prio">
-        <div class="px-3 py-2 bg-white border-bottom d-flex justify-content-between align-items:center shadow-sm" style="z-index:10;">
+        <div class="px-3 py-2 bg-white border-bottom d-flex justify-content-between align-items-center shadow-sm" style="z-index:10;">
           <div class="fw-bold text-primary fs-compact-title"><i class="fas fa-comments me-2"></i> 深耕・戦略会議室</div>
           <div class="small text-muted">AI社員 + 推進チーム</div>
         </div>
@@ -356,13 +543,13 @@ if(localStorage.getItem('co_heart_admin_email') && localStorage.getItem('co_hear
   </div>
 </div>
 
-<script src="/js/api.js"></script>
-<script src="/js/admin-core.js"></script>
-<script src="/js/admin-inbox.js"></script>
-<script src="/js/admin-matrix.js"></script>
-<script src="/js/admin-proposal.js"></script>
-<script src="/js/admin-meeting.js"></script>
-<script src="/js/admin-mail.js"></script>
+<script src="/js/api.js?v=20260315"></script>
+<script src="/js/admin-core.js?v=20260315"></script>
+<script src="/js/admin-inbox.js?v=20260315"></script>
+<script src="/js/admin-matrix.js?v=20260315"></script>
+<script src="/js/admin-proposal.js?v=20260315"></script>
+<script src="/js/admin-meeting.js?v=20260315"></script>
+<script src="/js/admin-mail.js?v=20260315"></script>
 
 </body>
 </html>

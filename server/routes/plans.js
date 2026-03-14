@@ -4,6 +4,28 @@ const { callGroqApi } = require('../services/ai');
 
 const router = express.Router();
 
+// 投稿者へ結果通知を送る（フィードバックループ）
+function notifyOriginalPoster(db, planId, message) {
+  try {
+    const plan = db.prepare('SELECT source_post_id, title FROM action_plans WHERE plan_id = ?').get(planId);
+    if (!plan || !plan.source_post_id || plan.source_post_id === 'Theme_Based') return;
+    // source_post_idが複数ある場合もカバー（カンマ区切り想定）
+    const postIds = plan.source_post_id.split(',').map(s => s.trim());
+    const notified = new Set();
+    postIds.forEach(pid => {
+      const post = db.prepare('SELECT user_id, nickname FROM posts WHERE post_id = ?').get(pid);
+      if (post && post.user_id && !notified.has(post.user_id)) {
+        notified.add(post.user_id);
+        const noticeId = 'feedback_' + Date.now() + '_' + post.user_id.substring(0, 4);
+        const content = `${post.nickname || 'あなた'}さんの声が施策につながりました！\n\n【${plan.title}】\n${message}\n\nあなたの投稿が職場の健康づくりに貢献しています。ありがとうございます！`;
+        db.prepare('INSERT INTO notices (notice_id, content, sender, target_id) VALUES (?,?,?,?)').run(noticeId, content, '健康推進チーム', post.user_id);
+      }
+    });
+  } catch (e) {
+    console.error('notifyOriginalPoster error:', e.message);
+  }
+}
+
 const STATUS = {
   CANDIDATE: 'candidate', MEMBER_REVIEW: 'member_review', EXEC_PENDING: 'exec_pending',
   APPROVED: 'approved', REJECTED: 'rejected', IN_EXECUTION: 'in_execution',
@@ -79,6 +101,18 @@ router.post('/create-theme', async (req, res) => {
     db.prepare(`INSERT INTO action_plans (plan_id, title, category, score_legal, score_risk, score_freq, score_urgency, score_safety, score_value, score_needs, total_score, source_post_id, status, proposal_draft)
       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).run(planId, planTitle, '統合テーマ', s.legal, s.risk, s.freq, s.urgency, s.safety, s.value, s.needs, total, 'Theme_Based', STATUS.CANDIDATE, proposalText);
 
+    // 関連投稿の投稿者に通知
+    if (postIds && postIds.length > 0) {
+      postIds.forEach(pid => {
+        const post = db.prepare('SELECT user_id, nickname FROM posts WHERE post_id = ?').get(pid);
+        if (post && post.user_id) {
+          const nid = 'feedback_' + Date.now() + '_' + post.user_id.substring(0, 4);
+          db.prepare('INSERT INTO notices (notice_id, content, sender, target_id) VALUES (?,?,?,?)').run(nid,
+            `${post.nickname || 'あなた'}さんの声が企画候補に選ばれました！\n\n【${planTitle}】\n健康推進メンバーがあなたの投稿をもとに施策を検討しています。`,
+            '健康推進チーム', post.user_id);
+        }
+      });
+    }
     res.json({ success: true, msg: '企画書を生成し保存しました！', proposal: proposalText });
   } catch (e) { res.json({ success: false, msg: e.message }); }
 });
@@ -174,6 +208,10 @@ router.post('/exec-decision', (req, res) => {
     else return res.json({ success: false, msg: '不明な決裁区分' });
 
     db.prepare('UPDATE action_plans SET status = ? WHERE plan_id = ?').run(newStatus, planId);
+    // 承認時に投稿者へ通知
+    if (decision === 'approved') {
+      notifyOriginalPoster(db, planId, '役員決裁で承認されました！まもなく全社展開が始まります。');
+    }
     res.json({ success: true, msg });
   } catch (e) { res.json({ success: false, msg: e.message }); }
 });
@@ -189,6 +227,8 @@ router.post('/set-execution', (req, res) => {
     execLog.push({ action: 'started', date: new Date().toISOString(), note: `担当: ${owner}, 期限: ${deadline}` });
     db.prepare('UPDATE action_plans SET status = ?, owner = ?, deadline = ?, kpi_target = ?, execution_log = ? WHERE plan_id = ?')
       .run(STATUS.IN_EXECUTION, owner, deadline, kpiTarget, JSON.stringify(execLog), planId);
+    // 投稿者へ展開開始を通知
+    notifyOriginalPoster(db, planId, `全社展開が始まりました！\n担当: ${owner}\n期限: ${deadline}`);
     res.json({ success: true, msg: '全社展開を開始しました！' });
   } catch (e) { res.json({ success: false, msg: e.message }); }
 });
@@ -204,6 +244,42 @@ router.post('/update-kpi', (req, res) => {
     execLog.push({ action: 'kpi_update', date: new Date().toISOString(), value: kpiCurrent, note: note || '' });
     db.prepare('UPDATE action_plans SET kpi_current = ?, execution_log = ? WHERE plan_id = ?').run(kpiCurrent, JSON.stringify(execLog), planId);
     res.json({ success: true, msg: 'KPIを更新しました' });
+  } catch (e) { res.json({ success: false, msg: e.message }); }
+});
+
+// 効果ヒアリング送信（全ユーザーまたは関連投稿者に通知）
+router.post('/send-hearing', (req, res) => {
+  try {
+    const { planId, targetScope } = req.body; // targetScope: 'all' or 'related'
+    const db = getDb();
+    const plan = db.prepare('SELECT title, source_post_id FROM action_plans WHERE plan_id = ?').get(planId);
+    if (!plan) return res.json({ success: false, msg: 'プランが見つかりません' });
+
+    const hearingMsg = `【効果ヒアリング】\n「${plan.title}」が始まって変化はありましたか？\n\n良かった点・まだ足りない点・新たな気づきなど、あなたの声を聞かせてください。\n\n※投稿画面から自由にコメントできます`;
+
+    if (targetScope === 'all') {
+      // 全ユーザーに送信
+      const noticeId = 'hearing_' + Date.now();
+      db.prepare('INSERT INTO notices (notice_id, content, sender, target_id) VALUES (?,?,?,?)').run(noticeId, hearingMsg, '健康推進チーム', 'ALL');
+      res.json({ success: true, msg: '全社員にヒアリング通知を送信しました' });
+    } else {
+      // 関連投稿者のみ
+      let count = 0;
+      if (plan.source_post_id && plan.source_post_id !== 'Theme_Based') {
+        const postIds = plan.source_post_id.split(',').map(s => s.trim());
+        const notified = new Set();
+        postIds.forEach(pid => {
+          const post = db.prepare('SELECT user_id FROM posts WHERE post_id = ?').get(pid);
+          if (post && post.user_id && !notified.has(post.user_id)) {
+            notified.add(post.user_id);
+            const nid = 'hearing_' + Date.now() + '_' + count;
+            db.prepare('INSERT INTO notices (notice_id, content, sender, target_id) VALUES (?,?,?,?)').run(nid, hearingMsg, '健康推進チーム', post.user_id);
+            count++;
+          }
+        });
+      }
+      res.json({ success: true, msg: `${count}名の関連投稿者にヒアリング通知を送信しました` });
+    }
   } catch (e) { res.json({ success: false, msg: e.message }); }
 });
 

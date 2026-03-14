@@ -319,4 +319,37 @@ router.get('/matrix', (req, res) => {
   } catch (e) { res.json([]); }
 });
 
+// 類似投稿の集約検索
+router.post('/similar-posts', async (req, res) => {
+  try {
+    const { postId, content } = req.body;
+    const db = getDb();
+    const allPosts = db.prepare("SELECT post_id, content, nickname, created_at FROM posts WHERE post_id != ? AND status IN ('open','public','resolved') ORDER BY created_at DESC LIMIT 200").all(postId);
+    if (allPosts.length === 0) return res.json({ similar: [], count: 0 });
+
+    // AIで類似度を判定
+    const postList = allPosts.slice(0, 50).map((p, i) => `[${i}] ${p.content.substring(0, 80)}`).join('\n');
+    const sysPrompt = `あなたは投稿分析AIです。【対象の投稿】と似た悩み・テーマを持つ投稿の番号をJSON配列で返してください。
+類似の基準: 同じ健康課題、同じ職場環境の悩み、関連する症状や要望。
+出力形式: [0, 3, 7] のようにインデックス番号のみ。該当なしは [] を返す。`;
+    const userPrompt = `【対象の投稿】\n${content.substring(0, 200)}\n\n【他の投稿一覧】\n${postList}`;
+
+    const aiRes = await callGroqApi(sysPrompt, userPrompt);
+    let indices = [];
+    try {
+      const match = aiRes.match(/\[[\d,\s]*\]/);
+      if (match) indices = JSON.parse(match[0]);
+    } catch (e) {}
+
+    const similar = indices.filter(i => i < allPosts.length).map(i => ({
+      postId: allPosts[i].post_id,
+      content: allPosts[i].content.substring(0, 60),
+      nickname: allPosts[i].nickname,
+      date: new Date(allPosts[i].created_at).toLocaleDateString('ja-JP')
+    }));
+
+    res.json({ similar, count: similar.length });
+  } catch (e) { res.json({ similar: [], count: 0, error: e.message }); }
+});
+
 module.exports = router;

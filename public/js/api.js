@@ -153,6 +153,12 @@ function saveAIMeetingLog(planId, logStr) {
 function brainstormThemeActionPlans(data) {
   return api('/plans/brainstorm', data, getAdminToken());
 }
+function getSimilarPosts(postId, content) {
+  return api('/admin/similar-posts', { postId, content }, getAdminToken());
+}
+function sendHearing(planId, targetScope) {
+  return api('/plans/send-hearing', { planId, targetScope }, getAdminToken());
+}
 function refineActionPlanByAI(planId, currentDraft, feedbackData, currentTitle) {
   return api('/plans/refine', { planId, currentDraft, feedbackData, currentTitle }, getAdminToken());
 }

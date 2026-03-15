@@ -40,6 +40,20 @@ app.post('/api/admin/backup', (req, res) => {
   runBackup().then(r => res.json(r)).catch(e => res.json({ success: false, error: e.message }));
 });
 
+// Box Developer Token更新API
+app.post('/api/admin/box-token', (req, res) => {
+  const { token } = req.body;
+  if (!token) return res.json({ success: false, msg: 'トークンを入力してください' });
+  process.env.BOX_DEVELOPER_TOKEN = token;
+  // .envファイルも更新
+  const fs = require('fs');
+  const envPath = path.join(__dirname, '..', '.env');
+  let env = fs.readFileSync(envPath, 'utf8');
+  env = env.replace(/BOX_DEVELOPER_TOKEN=.*/, 'BOX_DEVELOPER_TOKEN=' + token);
+  fs.writeFileSync(envPath, env);
+  res.json({ success: true, msg: 'Boxトークンを更新しました' });
+});
+
 // 日次自動バックアップ（毎日深夜2:00）
 function scheduleBackup() {
   const now = new Date();

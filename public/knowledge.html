@@ -182,6 +182,20 @@ body.sheet-open { overflow: hidden !important; position: fixed !important; width
   border: 1px solid #e8e0f5; transition: transform 0.2s, box-shadow 0.2s;
 }
 .tech-item:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(118,75,162,0.12); }
+.tech-item { cursor: pointer; }
+#tech-detail-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:8000; display:none; justify-content:center; align-items:center; padding:16px; backdrop-filter:blur(3px); }
+#tech-detail-overlay.active { display:flex; }
+#tech-detail-box { background:white; border-radius:20px; max-width:500px; width:100%; max-height:85vh; overflow-y:auto; padding:0; box-shadow:0 20px 60px rgba(0,0,0,0.25); animation: fadeIn 0.25s ease-out; }
+.tech-detail-header { padding:18px 22px; background:linear-gradient(135deg,#667eea,#764ba2); color:white; border-radius:20px 20px 0 0; }
+.tech-detail-header h3 { margin:0; font-size:1.1rem; font-weight:800; }
+.tech-detail-header .tech-en { font-size:0.75rem; opacity:0.8; margin-top:2px; }
+.tech-detail-body { padding:20px 22px; }
+.tech-detail-section { margin-bottom:16px; }
+.tech-detail-label { font-size:0.72rem; font-weight:700; color:#667eea; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px; }
+.tech-detail-text { font-size:0.9rem; line-height:1.8; color:#333; }
+.tech-detail-example { background:#f5f0ff; padding:12px 14px; border-radius:10px; border-left:4px solid #667eea; font-size:0.88rem; line-height:1.7; color:#444; }
+.tech-detail-source { font-size:0.75rem; color:#999; font-style:italic; }
+.tech-detail-close { width:100%; padding:14px; background:linear-gradient(135deg,#2c3e50,#34495e); color:white; border:none; border-radius:0 0 20px 20px; font-weight:700; font-size:0.95rem; cursor:pointer; }
 .tech-num {
   width: 30px; height: 30px; border-radius: 50%;
   background: linear-gradient(135deg, #667eea, #764ba2);
@@ -682,63 +696,63 @@ body.sheet-open { overflow: hidden !important; position: fixed !important; width
       <p>帝京大学が提唱する<strong>行動変容のための15の技法</strong>をカタカナで整理したものです。対象者への介入時に「どの技法が使えるか？」のチェックリストとして活用できます。</p>
 
       <div class="tech-grid">
-        <div class="tech-item">
+        <div class="tech-item" onclick="showTechDetail(this)" data-title="リスクアセスメント" data-desc="健診結果（BMI・血圧・血糖など）や生活習慣から、現在の健康状態と将来の病気リスクを把握します。「このままだと5年後にどうなるか」を見える化することで、行動を変える動機が生まれます。" data-example="「健診でHbA1cが6.0でした。今なら生活習慣の見直しで改善できる段階ですよ」" data-source="15のカタカナ・テクニーク / 高血圧治療ガイドライン2019">
           <div class="tech-num">1</div>
           <div><div class="tech-name"><i class="fas fa-magnifying-glass-chart"></i> リスクアセスメント</div><div class="tech-name-en">Risk Assessment</div></div>
         </div>
-        <div class="tech-item">
+        <div class="tech-item" onclick="showTechDetail(this)" data-title="ヘルスリテラシー" data-desc="健康に関する正しい情報を入手し、理解して活用する力のこと。単なる知識ではなく、情報を集め・理解し・活用するまでを含みます。まず相手の知識レベルを質問で確認し、わかりやすい言葉で正しい情報を伝えます。" data-example="「コレステロールの薬について、お医者さんから詳しく聞いたことはありますか？」と聞いてから説明する" data-source="15のカタカナ・テクニーク / COM-Bモデル（Capability）">
           <div class="tech-num">2</div>
           <div><div class="tech-name"><i class="fas fa-book-open-reader"></i> ヘルスリテラシー</div><div class="tech-name-en">Health Literacy</div></div>
         </div>
-        <div class="tech-item">
+        <div class="tech-item" onclick="showTechDetail(this)" data-title="モチベーション" data-desc="外からの「やりなさい」ではなく、自分自身の中から湧き上がるやる気（内発的動機）を引き出します。内発的動機には3つの欲求があります：自律性（自分で決める）、有能性（できる実感）、関係性（人とのつながり）。" data-example="「体重を減らして、何がしたいですか？」「誰のために健康でいたいですか？」と質問する" data-source="15のカタカナ・テクニーク / 自己決定理論（Deci & Ryan）">
           <div class="tech-num">3</div>
           <div><div class="tech-name"><i class="fas fa-fire"></i> モチベーション</div><div class="tech-name-en">Motivation</div></div>
         </div>
-        <div class="tech-item">
+        <div class="tech-item" onclick="showTechDetail(this)" data-title="ゴール＆スモールステップ" data-desc="最終目標をそのまま掲げるのではなく、確実にクリアできる小さな階段（ステップ）に分解します。小目標の達成ごとに成功体験が生まれ、自己効力感（やればできる感覚）が高まります。" data-example="「毎日30分歩く」→「まずは今週、玄関で靴を履くところまでやってみましょう」。減量なら「まず1kg」「まず1週間」" data-source="15のカタカナ・テクニーク / 行動科学">
           <div class="tech-num">4</div>
           <div><div class="tech-name"><i class="fas fa-stairs"></i> ゴール＆スモールステップ</div><div class="tech-name-en">Goal & Small Step</div></div>
         </div>
-        <div class="tech-item">
+        <div class="tech-item" onclick="showTechDetail(this)" data-title="モデリング" data-desc="似た状況で成功した人の事例を手本として提示し、疑似体験をしてもらいます。「あの人にもできたなら、自分にもできるかも」と思える（自己効力感の向上）ことが狙いです。" data-example="「同じ年代で禁煙に成功した○○さんは、最初の1週間はガムで乗り切ったそうです」" data-source="15のカタカナ・テクニーク / バンデューラの社会的学習理論">
           <div class="tech-num">5</div>
           <div><div class="tech-name"><i class="fas fa-person-chalkboard"></i> モデリング</div><div class="tech-name-en">Modeling</div></div>
         </div>
-        <div class="tech-item">
+        <div class="tech-item" onclick="showTechDetail(this)" data-title="トレーニング" data-desc="知識だけでなく、実際にやってみる体験の場を提供します。料理教室、ストレッチ体験会、アプリの使い方レクチャーなど。「やり方がわからない」という障壁を取り除きます。" data-example="「YouTube動画を見ながら一緒にストレッチしてみませんか？」「社員食堂で栄養バランス体験ランチ会を開催」" data-source="15のカタカナ・テクニーク / COM-Bモデル（Capability）">
           <div class="tech-num">6</div>
           <div><div class="tech-name"><i class="fas fa-dumbbell"></i> トレーニング</div><div class="tech-name-en">Training</div></div>
         </div>
-        <div class="tech-item">
+        <div class="tech-item" onclick="showTechDetail(this)" data-title="チャンス＆キュー" data-desc="行動を始めるきっかけ（キュー）や機会（チャンス）を意図的に作ります。ライフイベント（誕生日、健診前、季節の変わり目）は行動変容の好機です。" data-example="「健診結果が届いた今がチャンスです」「春は新しいことを始めるのにぴったりの季節ですね」" data-source="15のカタカナ・テクニーク / ナッジ（Timely）">
           <div class="tech-num">7</div>
           <div><div class="tech-name"><i class="fas fa-bell"></i> チャンス＆キュー</div><div class="tech-name-en">Chance & Cue</div></div>
         </div>
-        <div class="tech-item">
+        <div class="tech-item" onclick="showTechDetail(this)" data-title="インセンティブ" data-desc="成功した場合のご褒美（金銭的・非金銭的）を設けます。脳の報酬系を活性化し「次もやろう」という気持ちを促します。逆に達成できなかった場合のペナルティ（逆インセンティブ）も有効です。" data-example="「歩数に応じてポイント付与」「禁煙貯金：タバコ代を貯めて欲しいものを買う」「減量1kgごとに家族から5,000円もらう」" data-source="15のカタカナ・テクニーク / 行動経済学">
           <div class="tech-num">8</div>
           <div><div class="tech-name"><i class="fas fa-gift"></i> インセンティブ</div><div class="tech-name-en">Incentive</div></div>
         </div>
-        <div class="tech-item">
+        <div class="tech-item" onclick="showTechDetail(this)" data-title="コミットメント" data-desc="目標を宣言したり、約束することで「やらなければ」というプレッシャーを生み出します。紙に書く、家族や同僚に宣言する、SNSで公開するなど、公的であるほど効果が高まります。" data-example="「禁煙宣言を紙に書いてデスクに貼る」「同僚と一緒に『毎朝階段で3階まで上がる』と約束する」" data-source="15のカタカナ・テクニーク / MINDSPACE（Commitments）">
           <div class="tech-num">9</div>
           <div><div class="tech-name"><i class="fas fa-handshake"></i> コミットメント</div><div class="tech-name-en">Commitment</div></div>
         </div>
-        <div class="tech-item">
+        <div class="tech-item" onclick="showTechDetail(this)" data-title="ルール" data-desc="組織や家庭で健康的な行動のための決まりを作ります。ルール化により健康な行動が「デフォルト（初期設定）」になり、意志力に頼らず自然に良い選択ができます。" data-example="「勤務時間内は禁煙」「毎朝の朝礼前に全員でラジオ体操」「会議にはお菓子ではなく果物を用意する」" data-source="15のカタカナ・テクニーク / ナッジ（Defaults）">
           <div class="tech-num">10</div>
           <div><div class="tech-name"><i class="fas fa-scale-balanced"></i> ルール</div><div class="tech-name-en">Rule</div></div>
         </div>
-        <div class="tech-item">
+        <div class="tech-item" onclick="showTechDetail(this)" data-title="モニタリング＆フィードバック" data-desc="体重・血圧・歩数・食事内容を記録し、定期的に振り返ります。記録（レコーディング）により自分の行動を客観視でき、専門家や仲間からのフィードバックが改善の気づきになります。" data-example="「毎朝体重を測って手帳に書く」「歩数アプリで1日の歩数を確認」「食事写真を撮って1週間振り返る」" data-source="15のカタカナ・テクニーク / 栄養改善パック2020">
           <div class="tech-num">11</div>
           <div><div class="tech-name"><i class="fas fa-chart-line"></i> モニタリング＆フィードバック</div><div class="tech-name-en">Monitoring & Feedback</div></div>
         </div>
-        <div class="tech-item">
+        <div class="tech-item" onclick="showTechDetail(this)" data-title="サポーティブ環境" data-desc="行動しやすい環境を整えることで、意志力に頼らず自然に健康的な選択ができるようにします。CANフレームワーク（Convenient・Attractive・Normative）とも重なります。" data-example="「社員食堂にサラダバーを設置」「階段に『あと50段で10kcal消費！』のステッカー」「自販機に水やお茶を多く配置」" data-source="15のカタカナ・テクニーク / ナッジ（CAN）">
           <div class="tech-num">12</div>
           <div><div class="tech-name"><i class="fas fa-house-chimney"></i> サポーティブ環境</div><div class="tech-name-en">Supportive Environment</div></div>
         </div>
-        <div class="tech-item">
+        <div class="tech-item" onclick="showTechDetail(this)" data-title="グループパワー" data-desc="集団の力を活用して行動変容を促します。「みんながやっている」という社会規範が安心感を生み、仲間がいることで継続のモチベーションが維持されます。" data-example="「チーム対抗ウォーキング大会」「禁煙チャレンジグループを作る」「食事改善の成果を毎月共有するランチ会」" data-source="15のカタカナ・テクニーク / ナッジ（Social）">
           <div class="tech-num">13</div>
           <div><div class="tech-name"><i class="fas fa-people-group"></i> グループパワー</div><div class="tech-name-en">Group Power</div></div>
         </div>
-        <div class="tech-item">
+        <div class="tech-item" onclick="showTechDetail(this)" data-title="ファン＆エンジョイ" data-desc="健康づくりに「楽しさ」を組み込みます。義務感や我慢ではなく、ワクワクする体験として設計することで、脳が「またやりたい」と感じて自然に継続できます。ゲーミフィケーションも有効です。" data-example="「歩数ランキングでバッジ獲得」「健康レシピコンテスト」「社内ウォーキングビンゴ」" data-source="15のカタカナ・テクニーク / ナッジ（Attractive）">
           <div class="tech-num">14</div>
           <div><div class="tech-name"><i class="fas fa-face-laugh-beam"></i> ファン＆エンジョイ</div><div class="tech-name-en">Fun & Enjoy</div></div>
         </div>
-        <div class="tech-item" style="grid-column: 1 / -1;">
+        <div class="tech-item" onclick="showTechDetail(this)" style="grid-column: 1 / -1;" data-title="コミュニケーション" data-desc="相手の話を傾聴し、否定せず承認する「コーチング」のスキルです。信頼関係（ラポール）を築くことが全てのテクニークの土台になります。ティーチング（教える）よりコーチング（引き出す）を重視します。" data-example="「それは大変でしたね（共感）」「よく頑張っていますね（承認）」「どうすれば続けられそうですか？（オープンクエスチョン）」" data-source="15のカタカナ・テクニーク / 動機づけ面接法">
           <div class="tech-num">15</div>
           <div><div class="tech-name"><i class="fas fa-comment-dots"></i> コミュニケーション</div><div class="tech-name-en">Communication</div></div>
         </div>
@@ -766,6 +780,31 @@ body.sheet-open { overflow: hidden !important; position: fixed !important; width
         <li><i class="fas fa-file-lines"></i> 帝京大学 ナッジ運動編 ーナッジを活用した運動促進ー</li>
         <li><i class="fas fa-file-lines"></i> 帝京大学「15のカタカナ・テクニーク」ー行動変容技法の整理と実践ー</li>
       </ul>
+    </div>
+  </div>
+
+  <!-- テクニーク詳細ポップアップ -->
+  <div id="tech-detail-overlay">
+    <div id="tech-detail-box">
+      <div class="tech-detail-header">
+        <h3 id="tech-detail-title"></h3>
+        <div class="tech-en" id="tech-detail-en"></div>
+      </div>
+      <div class="tech-detail-body">
+        <div class="tech-detail-section">
+          <div class="tech-detail-label"><i class="fas fa-info-circle me-1"></i>解説</div>
+          <div class="tech-detail-text" id="tech-detail-desc"></div>
+        </div>
+        <div class="tech-detail-section">
+          <div class="tech-detail-label"><i class="fas fa-lightbulb me-1"></i>使い方の例</div>
+          <div class="tech-detail-example" id="tech-detail-example"></div>
+        </div>
+        <div class="tech-detail-section">
+          <div class="tech-detail-label"><i class="fas fa-book me-1"></i>出典</div>
+          <div class="tech-detail-source" id="tech-detail-source"></div>
+        </div>
+      </div>
+      <button class="tech-detail-close" onclick="closeTechDetail()">閉じる</button>
     </div>
   </div>
 
@@ -830,6 +869,24 @@ body.sheet-open { overflow: hidden !important; position: fixed !important; width
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="/js/api.js?v=20260315f"></script>
 <script>
+// ====== テクニーク詳細ポップアップ ======
+function showTechDetail(el) {
+  var title = el.getAttribute('data-title');
+  var desc = el.getAttribute('data-desc');
+  var example = el.getAttribute('data-example');
+  var source = el.getAttribute('data-source');
+  var en = el.querySelector('.tech-name-en') ? el.querySelector('.tech-name-en').textContent : '';
+  document.getElementById('tech-detail-title').textContent = title;
+  document.getElementById('tech-detail-en').textContent = en;
+  document.getElementById('tech-detail-desc').textContent = desc;
+  document.getElementById('tech-detail-example').textContent = example;
+  document.getElementById('tech-detail-source').textContent = source;
+  document.getElementById('tech-detail-overlay').classList.add('active');
+}
+function closeTechDetail() {
+  document.getElementById('tech-detail-overlay').classList.remove('active');
+}
+
 // ====== Search Functionality ======
 const searchInput = document.getElementById('search-input');
 const searchClear = document.getElementById('search-clear');

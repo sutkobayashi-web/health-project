@@ -39,6 +39,7 @@
   .btn-vote .vote-count { background:rgba(255,255,255,0.25); padding:1px 8px; border-radius:10px; font-size:0.72rem; font-weight:800; min-width:18px; text-align:center; }
   .btn-vote:not(.voted) .vote-count { background:#f0f0ff; color:#667eea; }
   .like-badge { display:inline-flex; align-items:center; gap:3px; background:#fff0f0; color:#ff6b6b; border-radius:10px; padding:2px 8px; font-size:0.75rem; font-weight:bold; margin-left:8px; }
+  @keyframes pulseGlow { 0%,100% { box-shadow:0 2px 8px rgba(67,160,71,0.3); } 50% { box-shadow:0 4px 16px rgba(67,160,71,0.5); } }
   .btn-admin { font-size:0.75rem; padding:4px 12px; border-radius:20px; font-weight:bold; display:inline-flex; align-items:center; justify-content:center; }
 `; document.head.appendChild(s);})();
 
@@ -221,13 +222,22 @@ function updateVoteProgressBadges() {
             var text = el.innerText;
             var match = text.match(/(\d+)票/);
             var votes = match ? parseInt(match[1]) : 0;
+            var pct = Math.min(100, Math.round(votes / threshold * 100));
             if (votes >= threshold) {
-                el.style.background = '#e8f5e9';
-                el.style.color = '#2e7d32';
-                el.style.borderColor = '#81c784';
-                el.innerHTML = '<i class="fas fa-check-circle"></i> ' + votes + '/' + threshold + '票 昇格可能';
+                el.style.cssText = 'margin-left:auto; padding:6px 14px; border-radius:12px; display:inline-flex; align-items:center; gap:6px; background:linear-gradient(135deg,#43a047,#66bb6a); color:white; font-size:0.7rem; font-weight:700; box-shadow:0 2px 8px rgba(67,160,71,0.3); animation:pulseGlow 2s ease-in-out infinite;';
+                el.innerHTML = '<i class="fas fa-trophy"></i> ' + votes + '/' + threshold + '票 昇格可能！';
             } else {
-                el.innerHTML = '<i class="fas fa-hand-paper"></i> ' + votes + '/' + threshold + '票 あと' + (threshold - votes) + '票';
+                var barColor = pct >= 60 ? '#ff9800' : '#667eea';
+                el.style.cssText = 'margin-left:auto; padding:0; border-radius:12px; display:inline-flex; flex-direction:column; align-items:stretch; min-width:140px; background:white; border:2px solid #e0e0e0; overflow:hidden; font-size:0.65rem;';
+                el.innerHTML =
+                    '<div style="display:flex; justify-content:space-between; align-items:center; padding:3px 8px;">' +
+                        '<span style="font-weight:700; color:#555;"><i class="fas fa-hand-paper" style="color:'+barColor+';"></i> 賛同</span>' +
+                        '<span style="font-weight:800; color:'+barColor+';">' + votes + ' / ' + threshold + '</span>' +
+                    '</div>' +
+                    '<div style="height:6px; background:#f0f0f0;">' +
+                        '<div style="height:100%; width:'+pct+'%; background:linear-gradient(90deg,'+barColor+','+barColor+'aa); border-radius:0 3px 3px 0; transition:width 0.5s;"></div>' +
+                    '</div>' +
+                    '<div style="padding:2px 8px; text-align:center; color:#999; font-size:0.6rem;">あと<strong style="color:'+barColor+';">' + (threshold - votes) + '</strong>票で企画書へ</div>';
             }
         });
     });

@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>健康づくりナレッジベース</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html { background: #f0f2f5; }
+body {
+  font-family: 'Noto Sans JP', sans-serif;
+  background: linear-gradient(160deg, #f5f0ff 0%, #eef6ff 40%, #f0faf5 100%);
+  margin: 0; padding: 0; min-height: 100vh;
+  padding-bottom: 100px;
+  color: #333;
+}
+body.sheet-open { overflow: hidden !important; position: fixed !important; width: 100% !important; touch-action: none; }
+
+/* ====== Header ====== */
+.kb-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 0 16px;
+  display: flex; justify-content: space-between; align-items: center;
+  box-shadow: 0 4px 20px rgba(102,126,234,0.3);
+  position: sticky; top: 0; z-index: 100; height: 56px;
+}
+.kb-header-left { display: flex; align-items: center; gap: 12px; }
+.btn-back {
+  background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 20px; padding: 5px 14px; font-size: 0.75rem; font-weight: 700;
+  cursor: pointer; display: flex; align-items: center; gap: 5px;
+  transition: all 0.2s; text-decoration: none;
+}
+.btn-back:hover { background: rgba(255,255,255,0.35); color: white; }
+.kb-title-group { line-height: 1.2; }
+.kb-title-main { font-weight: 900; color: #fff; font-size: 0.9rem; letter-spacing: 0.3px; text-shadow: 0 1px 2px rgba(0,0,0,0.15); }
+.kb-title-sub { font-weight: 500; color: rgba(255,255,255,0.75); font-size: 0.6rem; }
+
+/* ====== Search Bar ====== */
+.search-container {
+  position: sticky; top: 56px; z-index: 90;
+  background: rgba(245, 240, 255, 0.95);
+  backdrop-filter: blur(12px);
+  padding: 12px 16px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+.search-wrapper {
+  max-width: 700px; margin: 0 auto;
+  position: relative;
+}
+.search-wrapper i {
+  position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
+  color: #999; font-size: 0.95rem;
+}
+#search-input {
+  width: 100%; border: 2px solid #e0d8f0; border-radius: 30px;
+  padding: 12px 16px 12px 44px; font-size: 0.9rem;
+  background: white; outline: none;
+  font-family: 'Noto Sans JP', sans-serif;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+#search-input:focus {
+  border-color: #764ba2;
+  box-shadow: 0 0 0 4px rgba(118, 75, 162, 0.1);
+}
+#search-input::placeholder { color: #bbb; }
+.search-clear {
+  position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; color: #aaa; font-size: 1rem; cursor: pointer;
+  display: none; padding: 4px;
+}
+.search-clear.show { display: block; }
+#search-count {
+  text-align: center; font-size: 0.75rem; color: #999;
+  margin-top: 6px; display: none;
+}
+#search-count.show { display: block; }
+
+/* ====== Main Content ====== */
+.main-content { max-width: 740px; margin: 0 auto; padding: 20px 16px; }
+
+/* ====== Intro Banner ====== */
+.intro-banner {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 20px; padding: 28px 24px; margin-bottom: 24px;
+  color: white; position: relative; overflow: hidden;
+}
+.intro-banner::before {
+  content: ''; position: absolute; top: -30px; right: -30px;
+  width: 120px; height: 120px;
+  background: rgba(255,255,255,0.1); border-radius: 50%;
+}
+.intro-banner::after {
+  content: ''; position: absolute; bottom: -20px; left: -20px;
+  width: 80px; height: 80px;
+  background: rgba(255,255,255,0.08); border-radius: 50%;
+}
+.intro-banner h2 { font-size: 1.1rem; font-weight: 900; margin-bottom: 8px; }
+.intro-banner p { font-size: 0.85rem; opacity: 0.9; line-height: 1.7; margin: 0; }
+
+/* ====== Knowledge Card ====== */
+.kb-card {
+  background: white; border-radius: 20px; padding: 0;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+  overflow: hidden;
+  transition: opacity 0.3s, transform 0.3s;
+}
+.kb-card.hidden { display: none; }
+.kb-card-header {
+  padding: 18px 20px 14px;
+  display: flex; align-items: center; gap: 12px;
+  border-bottom: 1px solid #f0f0f0;
+}
+.kb-card-icon {
+  width: 44px; height: 44px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.3rem; color: #fff; flex-shrink: 0;
+}
+.kb-card-title { font-weight: 800; font-size: 0.95rem; color: #2c3e50; line-height: 1.4; }
+.kb-card-body { padding: 18px 20px 22px; }
+.kb-card-body p {
+  font-size: 0.88rem; line-height: 1.8; color: #555; margin-bottom: 12px;
+}
+.kb-card-body p:last-child { margin-bottom: 0; }
+
+/* Color themes for cards */
+.theme-yellow .kb-card-icon { background: linear-gradient(135deg, #f7971e, #ffd200); }
+.theme-yellow { border-top: 4px solid #f7971e; }
+.theme-blue .kb-card-icon { background: linear-gradient(135deg, #667eea, #764ba2); }
+.theme-blue { border-top: 4px solid #667eea; }
+.theme-teal .kb-card-icon { background: linear-gradient(135deg, #11998e, #38ef7d); }
+.theme-teal { border-top: 4px solid #11998e; }
+.theme-orange .kb-card-icon { background: linear-gradient(135deg, #f2994a, #f2c94c); }
+.theme-orange { border-top: 4px solid #f2994a; }
+.theme-green .kb-card-icon { background: linear-gradient(135deg, #56ab2f, #a8e063); }
+.theme-green { border-top: 4px solid #56ab2f; }
+.theme-purple .kb-card-icon { background: linear-gradient(135deg, #8e2de2, #4a00e0); }
+.theme-purple { border-top: 4px solid #8e2de2; }
+.theme-gray .kb-card-icon { background: linear-gradient(135deg, #606c88, #3f4c6b); }
+.theme-gray { border-top: 4px solid #606c88; }
+
+/* ====== Highlight text ====== */
+.highlight-box {
+  background: #f8f5ff; border-left: 4px solid #764ba2;
+  border-radius: 0 12px 12px 0; padding: 14px 16px;
+  margin: 12px 0; font-size: 0.85rem; line-height: 1.7;
+}
+.highlight-box strong { color: #764ba2; }
+
+.tip-box {
+  background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);
+  border-left: 4px solid #4caf50;
+  border-radius: 0 12px 12px 0; padding: 14px 16px;
+  margin: 12px 0; font-size: 0.85rem; line-height: 1.7;
+}
+
+.warn-box {
+  background: #fff8e1; border-left: 4px solid #ffa000;
+  border-radius: 0 12px 12px 0; padding: 14px 16px;
+  margin: 12px 0; font-size: 0.85rem; line-height: 1.7;
+}
+
+/* ====== EAST Table ====== */
+.east-table { width: 100%; border-collapse: separate; border-spacing: 0; border-radius: 12px; overflow: hidden; margin: 14px 0; font-size: 0.84rem; }
+.east-table th { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 10px 12px; font-weight: 700; text-align: left; }
+.east-table td { padding: 12px; border-bottom: 1px solid #f0f0f0; line-height: 1.6; vertical-align: top; }
+.east-table tr:last-child td { border-bottom: none; }
+.east-table tr:nth-child(even) td { background: #faf8ff; }
+.east-letter { font-weight: 900; font-size: 1.1rem; color: #764ba2; display: block; margin-bottom: 2px; }
+.east-word { font-weight: 700; font-size: 0.78rem; color: #667eea; }
+
+/* ====== Technique List ====== */
+.tech-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 14px 0; }
+@media (max-width: 480px) { .tech-grid { grid-template-columns: 1fr; } }
+.tech-item {
+  display: flex; align-items: center; gap: 10px;
+  background: #f8f5ff; border-radius: 12px; padding: 12px 14px;
+  border: 1px solid #e8e0f5; transition: transform 0.2s, box-shadow 0.2s;
+}
+.tech-item:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(118,75,162,0.12); }
+.tech-num {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white; font-weight: 900; font-size: 0.75rem;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.tech-name { font-weight: 700; font-size: 0.82rem; color: #333; }
+.tech-name-en { font-size: 0.68rem; color: #999; display: block; }
+
+/* ====== Skill items ====== */
+.skill-item {
+  display: flex; gap: 12px; align-items: flex-start;
+  padding: 14px 0; border-bottom: 1px solid #f5f5f5;
+}
+.skill-item:last-child { border-bottom: none; }
+.skill-icon {
+  width: 36px; height: 36px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; color: white; flex-shrink: 0;
+}
+.skill-content { flex: 1; }
+.skill-label { font-weight: 700; font-size: 0.88rem; color: #333; margin-bottom: 3px; }
+.skill-desc { font-size: 0.82rem; color: #777; line-height: 1.6; }
+
+/* ====== Nutrition visual ====== */
+.nutrition-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 14px 0; }
+@media (max-width: 480px) { .nutrition-grid { grid-template-columns: 1fr; } }
+.nutrition-card {
+  background: #f8f9fa; border-radius: 14px; padding: 16px;
+  text-align: center; border: 1px solid #eee;
+}
+.nutrition-card .n-icon { font-size: 1.5rem; margin-bottom: 6px; }
+.nutrition-card .n-label { font-weight: 700; font-size: 0.82rem; color: #555; margin-bottom: 4px; }
+.nutrition-card .n-value { font-weight: 900; font-size: 1.1rem; color: #764ba2; }
+.nutrition-card .n-note { font-size: 0.72rem; color: #999; margin-top: 4px; }
+
+/* ====== References ====== */
+.ref-list { list-style: none; padding: 0; margin: 0; }
+.ref-list li {
+  padding: 10px 0; border-bottom: 1px solid #f0f0f0;
+  font-size: 0.84rem; color: #555; line-height: 1.6;
+  display: flex; align-items: flex-start; gap: 8px;
+}
+.ref-list li:last-child { border-bottom: none; }
+.ref-list li i { color: #764ba2; margin-top: 3px; flex-shrink: 0; }
+
+/* ====== No Results ====== */
+#no-results {
+  display: none; text-align: center; padding: 60px 20px;
+  color: #aaa;
+}
+#no-results.show { display: block; }
+#no-results i { font-size: 3rem; margin-bottom: 12px; display: block; color: #ddd; }
+
+/* ====== AI Chatbot FAB ====== */
+#kb-fab {
+  position: fixed; bottom: 20px; right: 14px;
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  border: none; border-radius: 28px;
+  padding: 10px 18px 10px 12px;
+  display: flex; align-items: center; gap: 8px;
+  box-shadow: 0 4px 20px rgba(17, 153, 142, 0.45);
+  z-index: 2500; cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  animation: fabPulse 3s ease-in-out infinite;
+}
+#kb-fab:active { transform: scale(0.95); }
+#kb-fab .fab-icon {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: rgba(255,255,255,0.25);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.2rem; flex-shrink: 0;
+}
+#kb-fab .fab-label {
+  color: white; font-weight: 700; font-size: 0.82rem;
+  white-space: nowrap; text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+@keyframes fabPulse {
+  0%, 100% { box-shadow: 0 4px 20px rgba(17, 153, 142, 0.4); }
+  50% { box-shadow: 0 4px 30px rgba(17, 153, 142, 0.65); }
+}
+
+/* ====== Chat Overlay ====== */
+#kb-chat-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.5); z-index: 4000;
+  display: none; backdrop-filter: blur(2px);
+}
+#kb-chat-overlay.active { display: block; }
+
+/* ====== Chat Sheet ====== */
+#kb-chat-sheet {
+  position: fixed; bottom: 0; left: 0;
+  width: 100%; height: 85vh; height: 85dvh;
+  background: #f5f8f5; border-radius: 20px 20px 0 0;
+  z-index: 4001;
+  transform: translateY(100%); visibility: hidden;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), visibility 0s 0.35s;
+  display: flex; flex-direction: column; overflow: hidden;
+  box-shadow: 0 -8px 40px rgba(0,0,0,0.2);
+}
+#kb-chat-sheet.active {
+  transform: translateY(0); visibility: visible;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), visibility 0s 0s;
+}
+.kb-chat-header {
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  color: white; padding: 14px 18px;
+  display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+}
+.kb-chat-header-left { display: flex; align-items: center; gap: 10px; }
+.kb-chat-avatar {
+  width: 40px; height: 40px; background: rgba(255,255,255,0.25); border-radius: 50%;
+  display: flex; justify-content: center; align-items: center; font-size: 1.3rem;
+}
+.kb-chat-name { font-weight: 700; font-size: 0.95rem; line-height: 1.2; }
+.kb-chat-status { font-size: 0.7rem; opacity: 0.85; }
+.kb-chat-close {
+  background: rgba(255,255,255,0.2); border: none; color: white;
+  width: 36px; height: 36px; border-radius: 50%;
+  font-size: 1.1rem; cursor: pointer;
+  display: flex; justify-content: center; align-items: center;
+}
+.kb-chat-close:active { background: rgba(255,255,255,0.4); }
+
+/* ====== Chat Messages ====== */
+.kb-chat-messages {
+  flex: 1; overflow-y: auto; padding: 15px 12px;
+  display: flex; flex-direction: column; gap: 12px;
+  scroll-behavior: smooth; -webkit-overflow-scrolling: touch;
+}
+.kb-msg { display: flex; gap: 8px; max-width: 85%; animation: kbMsgIn 0.3s ease-out; }
+.kb-msg.ai { align-self: flex-start; }
+.kb-msg.user { align-self: flex-end; flex-direction: row-reverse; }
+@keyframes kbMsgIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.kb-msg-avatar {
+  width: 32px; height: 32px; border-radius: 50%; background: white;
+  display: flex; justify-content: center; align-items: center;
+  font-size: 0.95rem; flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #eee;
+}
+.kb-msg.user .kb-msg-avatar { background: #e8f5e9; border-color: #c8e6c9; }
+.kb-msg-bubble {
+  padding: 10px 14px; border-radius: 16px;
+  font-size: 0.88rem; line-height: 1.7;
+  white-space: pre-wrap; word-break: break-word;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+.kb-msg.ai .kb-msg-bubble {
+  background: white; color: #333; border-bottom-left-radius: 4px; border: 1px solid #e0ece0;
+}
+.kb-msg.user .kb-msg-bubble {
+  background: linear-gradient(135deg, #11998e, #38ef7d);
+  color: white; border-bottom-right-radius: 4px;
+}
+
+/* ====== Typing indicator ====== */
+.kb-typing { display: flex; gap: 8px; align-self: flex-start; max-width: 85%; animation: kbMsgIn 0.3s ease-out; }
+.kb-typing-bubble {
+  background: white; border: 1px solid #e0ece0;
+  padding: 12px 18px; border-radius: 16px; border-bottom-left-radius: 4px;
+  display: flex; gap: 5px; align-items: center;
+}
+.kb-typing-dot {
+  width: 8px; height: 8px; background: #ccc; border-radius: 50%;
+  animation: kbTypeBounce 1.4s infinite ease-in-out;
+}
+.kb-typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.kb-typing-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes kbTypeBounce {
+  0%, 60%, 100% { transform: translateY(0); background: #ccc; }
+  30% { transform: translateY(-6px); background: #11998e; }
+}
+
+/* ====== Chat Input ====== */
+.kb-chat-input-area {
+  padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0px)) 12px;
+  background: white; border-top: 1px solid #eee;
+  display: flex; gap: 8px; align-items: flex-end; flex-shrink: 0;
+  box-shadow: 0 -2px 8px rgba(0,0,0,0.03);
+}
+#kb-chat-input {
+  flex: 1; border: 1px solid #d0e0d0; border-radius: 22px;
+  padding: 10px 16px; font-size: 0.88rem; resize: none;
+  max-height: 100px; min-height: 42px; line-height: 1.4;
+  outline: none; background: #f5faf5;
+  font-family: 'Noto Sans JP', sans-serif;
+}
+#kb-chat-input:focus { border-color: #11998e; background: white; }
+.kb-send-btn {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: linear-gradient(135deg, #11998e, #38ef7d);
+  color: white; border: none; font-size: 1.1rem; cursor: pointer;
+  display: flex; justify-content: center; align-items: center; flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(17, 153, 142, 0.3);
+  transition: transform 0.1s, opacity 0.2s;
+}
+.kb-send-btn:active { transform: scale(0.9); }
+.kb-send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ====== Quick questions ====== */
+.quick-questions { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 4px; margin-bottom: 8px; }
+.quick-q {
+  background: #e8f5e9; border: 1px solid #c8e6c9;
+  border-radius: 20px; padding: 6px 14px; font-size: 0.76rem;
+  color: #2e7d32; cursor: pointer; transition: all 0.2s; font-weight: 600;
+}
+.quick-q:hover { background: #c8e6c9; }
+</style>
+</head>
+<body>
+
+<!-- ====== Header ====== -->
+<header class="kb-header">
+  <div class="kb-header-left">
+    <a href="/admin" class="btn-back"><i class="fas fa-arrow-left"></i> 管理画面</a>
+    <div class="kb-title-group">
+      <div class="kb-title-main"><i class="fas fa-book-open"></i> 健康づくりナレッジベース</div>
+      <div class="kb-title-sub">健康推進メンバー向け 学習ガイド</div>
+    </div>
+  </div>
+</header>
+
+<!-- ====== Search Bar ====== -->
+<div class="search-container">
+  <div class="search-wrapper">
+    <i class="fas fa-search"></i>
+    <input type="text" id="search-input" placeholder="キーワードで検索...（例：ナッジ、野菜、習慣）">
+    <button class="search-clear" id="search-clear" onclick="clearSearch()"><i class="fas fa-times"></i></button>
+  </div>
+  <div id="search-count"></div>
+</div>
+
+<!-- ====== Main Content ====== -->
+<div class="main-content">
+
+  <!-- Intro Banner -->
+  <div class="intro-banner">
+    <h2><i class="fas fa-heart-pulse"></i> ようこそ！健康づくりの「伝え方」を学ぼう</h2>
+    <p>このページでは、健康推進メンバーとして知っておきたい知識やテクニックを、わかりやすくまとめています。専門用語はできるだけ避け、すぐに使える実践的な内容を中心にしています。</p>
+  </div>
+
+  <!-- ====== Section 1: はじめに ====== -->
+  <div class="kb-card theme-yellow" data-keywords="はじめに 行動変容 意志力 心理学 知っている できない なぜ 変えられない 習慣 psychology behavior">
+    <div class="kb-card-header">
+      <div class="kb-card-icon"><i class="fas fa-lightbulb"></i></div>
+      <div class="kb-card-title">はじめに：なぜ「知っている」のに「できない」のか？</div>
+    </div>
+    <div class="kb-card-body">
+      <p>「甘いものは控えた方がいい」「もっと歩いた方がいい」ーー 頭ではわかっているのに、なかなか行動に移せない。これは<strong>あなた（や対象者）の意志が弱いからではありません</strong>。</p>
+
+      <div class="highlight-box">
+        <strong><i class="fas fa-brain"></i> ポイント</strong><br>
+        人間の脳は「今の快適さ」を優先するようにできています。これは進化の過程で身についた自然な仕組みです。だから「わかっているのにできない」のは、ごく普通のことなのです。
+      </div>
+
+      <p>大切なのは、<strong>「がんばれ！」と根性論で押すのではなく、自然に行動したくなる仕組みを作ること</strong>。このナレッジベースでは、そのための具体的なテクニックを学んでいきます。</p>
+
+      <div class="tip-box">
+        <strong><i class="fas fa-hand-point-right"></i> 覚えておこう</strong><br>
+        行動変容は「意志力の問題」ではなく「環境デザインの問題」です。仕組みを変えれば、人は自然と動きます。
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== Section 2: ナッジとEAST ====== -->
+  <div class="kb-card theme-blue" data-keywords="ナッジ nudge EAST Easy Attractive Social Timely 行動経済学 肘 仕組み フレームワーク 靴 玄関 食器 健診">
+    <div class="kb-card-header">
+      <div class="kb-card-icon"><i class="fas fa-bullseye"></i></div>
+      <div class="kb-card-title">ナッジとEAST：自然に動きたくなる仕組み</div>
+    </div>
+    <div class="kb-card-body">
+      <p><strong>ナッジ（Nudge）</strong>とは英語で「肘でそっと突く」という意味。強制するのではなく、<strong>選択の自由を残しながら、より良い行動に自然と向かわせる工夫</strong>のことです。</p>
+
+      <div class="highlight-box">
+        <strong><i class="fas fa-quote-left"></i> イメージ</strong><br>
+        「走れ！」と命令するのではなく、思わず走りたくなるコースを作る。それがナッジの考え方です。
+      </div>
+
+      <p>ナッジを実践するためのフレームワークが<strong>「EAST」</strong>です。4つの頭文字を覚えましょう。</p>
+
+      <table class="east-table">
+        <thead>
+          <tr><th style="width:30%">原則</th><th>意味と具体例</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <span class="east-letter">E</span>
+              <span class="east-word">Easy（簡単に）</span>
+            </td>
+            <td>
+              <strong>ハードルを下げる</strong><br>
+              例：前日に運動靴を玄関に置いておく<br>
+              例：野菜を冷蔵庫の手前に配置する
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <span class="east-letter">A</span>
+              <span class="east-word">Attractive（魅力的に）</span>
+            </td>
+            <td>
+              <strong>やりたくなる演出</strong><br>
+              例：お気に入りの食器で健康食を豪華に盛り付ける<br>
+              例：ウォーキングコースを花がきれいな道に設定する
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <span class="east-letter">S</span>
+              <span class="east-word">Social（社会的に）</span>
+            </td>
+            <td>
+              <strong>みんなの力を借りる</strong><br>
+              例：「同世代の多くの方が始めています」と伝える<br>
+              例：グループで一緒にウォーキングする
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <span class="east-letter">T</span>
+              <span class="east-word">Timely（タイミングよく）</span>
+            </td>
+            <td>
+              <strong>最適なタイミングを狙う</strong><br>
+              例：健診結果が届いた日に声をかける<br>
+              例：誕生日や年始など「区切り」のタイミング
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ====== Section 3: 伝え方テクニック ====== -->
+  <div class="kb-card theme-teal" data-keywords="伝え方 テクニック コミュニケーション スモールステップ ソーシャルプルーフ フィードバック CAN アプローチ 褒める 声かけ 野菜 靴">
+    <div class="kb-card-header">
+      <div class="kb-card-icon"><i class="fas fa-comments"></i></div>
+      <div class="kb-card-title">相手の心に届く「伝え方」のテクニック</div>
+    </div>
+    <div class="kb-card-body">
+      <p>健康の知識を持っていても、<strong>伝え方次第で相手の反応はまったく変わります</strong>。ここでは、すぐに使える4つのテクニックを紹介します。</p>
+
+      <div class="skill-item">
+        <div class="skill-icon" style="background: linear-gradient(135deg, #667eea, #764ba2);"><i class="fas fa-shoe-prints"></i></div>
+        <div class="skill-content">
+          <div class="skill-label"><i class="fas fa-1"></i> スモールステップ</div>
+          <div class="skill-desc">
+            大きな目標を、<strong>びっくりするほど小さな一歩</strong>に分解します。<br>
+            <span style="color:#999;">NG:</span> 「30分歩きましょう」<br>
+            <span style="color:#11998e; font-weight:700;">OK:</span> <strong>「まず靴を履いて外に出てみましょう」</strong><br>
+            最初の一歩のハードルを極限まで下げるのがコツです。
+          </div>
+        </div>
+      </div>
+
+      <div class="skill-item">
+        <div class="skill-icon" style="background: linear-gradient(135deg, #f2994a, #f2c94c);"><i class="fas fa-users"></i></div>
+        <div class="skill-content">
+          <div class="skill-label"><i class="fas fa-2"></i> ソーシャルプルーフ（社会的証明）</div>
+          <div class="skill-desc">
+            「みんなやっている」という情報は、人を動かす強力な力になります。<br>
+            <span style="color:#11998e; font-weight:700;">例:</span> <strong>「周りの方も1日1品野菜を増やしています」</strong><br>
+            <span style="color:#11998e; font-weight:700;">例:</span> 「この地域では○○%の方が朝食を食べています」
+          </div>
+        </div>
+      </div>
+
+      <div class="skill-item">
+        <div class="skill-icon" style="background: linear-gradient(135deg, #56ab2f, #a8e063);"><i class="fas fa-star"></i></div>
+        <div class="skill-content">
+          <div class="skill-label"><i class="fas fa-3"></i> ポジティブフィードバック</div>
+          <div class="skill-desc">
+            できたことを<strong>即座に、具体的に褒める</strong>。これが継続の最大のエネルギー源です。<br>
+            <span style="color:#999;">NG:</span> 「がんばってますね」（あいまい）<br>
+            <span style="color:#11998e; font-weight:700;">OK:</span> <strong>「今週3日も歩けたんですね！すごい！」</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="skill-item">
+        <div class="skill-icon" style="background: linear-gradient(135deg, #e91e63, #f48fb1);"><i class="fas fa-sun"></i></div>
+        <div class="skill-content">
+          <div class="skill-label"><i class="fas fa-4"></i> CANアプローチ</div>
+          <div class="skill-desc">
+            「できないこと（Can't）」ではなく、<strong>「できること（Can）」に光を当てる</strong>考え方です。<br>
+            <span style="color:#999;">NG:</span> 「お酒を減らさないとダメですよ」<br>
+            <span style="color:#11998e; font-weight:700;">OK:</span> <strong>「週に2日、お酒を飲まない日を作れていますね！」</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== Section 4: 栄養と数値 ====== -->
+  <div class="kb-card theme-orange" data-keywords="栄養 数値 炭水化物 BMI たんぱく質 野菜 350g フレイル 食事 カロリー 65歳 高齢者 ベジファースト 食べる順番 緑黄色 淡色">
+    <div class="kb-card-header">
+      <div class="kb-card-icon"><i class="fas fa-utensils"></i></div>
+      <div class="kb-card-title">栄養と数値の基本</div>
+    </div>
+    <div class="kb-card-body">
+      <p>対象者に具体的なアドバイスをする際に役立つ、<strong>基本的な栄養の数値</strong>をまとめました。</p>
+
+      <div class="nutrition-grid">
+        <div class="nutrition-card">
+          <div class="n-icon"><i class="fas fa-bread-slice" style="color:#f2994a;"></i></div>
+          <div class="n-label">炭水化物の目安</div>
+          <div class="n-value">約60%</div>
+          <div class="n-note">時計イメージ: 12時〜7時の範囲</div>
+        </div>
+        <div class="nutrition-card">
+          <div class="n-icon"><i class="fas fa-weight-scale" style="color:#764ba2;"></i></div>
+          <div class="n-label">BMI目標（65歳以上）</div>
+          <div class="n-value">21.5〜24.9</div>
+          <div class="n-note">低すぎも高すぎもリスク</div>
+        </div>
+        <div class="nutrition-card">
+          <div class="n-icon"><i class="fas fa-drumstick-bite" style="color:#e91e63;"></i></div>
+          <div class="n-label">たんぱく質</div>
+          <div class="n-value">1.0g/kg/日</div>
+          <div class="n-note">体重1kgあたり1g以上</div>
+        </div>
+        <div class="nutrition-card">
+          <div class="n-icon"><i class="fas fa-carrot" style="color:#4caf50;"></i></div>
+          <div class="n-label">野菜の目安</div>
+          <div class="n-value">350g/日</div>
+          <div class="n-note">緑黄色:淡色 = 1:2</div>
+        </div>
+      </div>
+
+      <div class="highlight-box">
+        <strong><i class="fas fa-sort-amount-down"></i> 食べる順番：ベジファースト</strong><br>
+        野菜 → たんぱく質（肉・魚） → 炭水化物（ご飯・パン）の順に食べると、血糖値の急上昇を抑えることができます。「まず野菜から」を合言葉に！
+      </div>
+
+      <div class="warn-box">
+        <strong><i class="fas fa-exclamation-triangle"></i> フレイル予防の3要素</strong><br>
+        高齢者の健康維持に欠かせない3本柱：<br>
+        <strong>1. 栄養</strong>（特にたんぱく質をしっかり）<br>
+        <strong>2. 運動</strong>（筋力＋バランス＋持久力）<br>
+        <strong>3. 社会参加</strong>（人とのつながりを絶やさない）<br>
+        この3つが揃ってはじめてフレイルを予防できます。
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== Section 5: 習慣化のコツ ====== -->
+  <div class="kb-card theme-green" data-keywords="習慣 今日から コツ ベジファースト ながら運動 歯磨き かかと上げ スクワット CM 食べる順番 運動 簡単">
+    <div class="kb-card-header">
+      <div class="kb-card-icon"><i class="fas fa-person-running"></i></div>
+      <div class="kb-card-title">今日からできる！習慣化のコツ</div>
+    </div>
+    <div class="kb-card-body">
+      <p>対象者にアドバイスする際、<strong>「今日からすぐにできること」</strong>を提案できると、行動につながりやすくなります。</p>
+
+      <div class="skill-item">
+        <div class="skill-icon" style="background: linear-gradient(135deg, #4caf50, #8bc34a);"><i class="fas fa-carrot"></i></div>
+        <div class="skill-content">
+          <div class="skill-label"><i class="fas fa-magic"></i> ベジファースト（食べる順番の魔法）</div>
+          <div class="skill-desc">
+            食事の最初に<strong>野菜を食べるだけ</strong>。これだけで血糖値の上昇がゆるやかに。<br>
+            「まず一口、サラダやお味噌汁の野菜から始めましょう」と伝えてください。特別な食材も調理も不要。今日の昼食から始められます。
+          </div>
+        </div>
+      </div>
+
+      <div class="skill-item">
+        <div class="skill-icon" style="background: linear-gradient(135deg, #2196f3, #64b5f6);"><i class="fas fa-dumbbell"></i></div>
+        <div class="skill-content">
+          <div class="skill-label"><i class="fas fa-couch"></i> ながら運動（日常に運動を溶け込ませる）</div>
+          <div class="skill-desc">
+            「運動の時間を作る」のではなく、<strong>既にある習慣にくっつける</strong>のがコツです。<br><br>
+            <strong>具体例：</strong><br>
+            <i class="fas fa-check" style="color:#4caf50;"></i> 歯磨き中にかかと上げ（10回）<br>
+            <i class="fas fa-check" style="color:#4caf50;"></i> テレビCM中にスクワット（5回）<br>
+            <i class="fas fa-check" style="color:#4caf50;"></i> 信号待ちでつま先立ち<br>
+            <i class="fas fa-check" style="color:#4caf50;"></i> 料理中にかかとの上げ下げ
+          </div>
+        </div>
+      </div>
+
+      <div class="tip-box">
+        <strong><i class="fas fa-lightbulb"></i> 習慣化の秘訣</strong><br>
+        「いつ」「どこで」「何をする」を具体的に決めると成功率が2〜3倍に。<br>
+        例：「毎朝、歯を磨きながら（いつ・どこで）、かかと上げ10回（何をする）」
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== Section 6: 15のカタカナ・テクニーク ====== -->
+  <div class="kb-card theme-purple" data-keywords="15 カタカナ テクニーク テクニック リスクアセスメント ヘルスリテラシー モチベーション ゴール スモールステップ モデリング トレーニング チャンス キュー インセンティブ コミットメント ルール モニタリング フィードバック サポーティブ環境 グループパワー ファン エンジョイ コミュニケーション 帝京大学 一覧 早見表">
+    <div class="kb-card-header">
+      <div class="kb-card-icon"><i class="fas fa-clipboard-list"></i></div>
+      <div class="kb-card-title">15のカタカナ・テクニーク早見表</div>
+    </div>
+    <div class="kb-card-body">
+      <p>帝京大学が提唱する<strong>行動変容のための15の技法</strong>をカタカナで整理したものです。対象者への介入時に「どの技法が使えるか？」のチェックリストとして活用できます。</p>
+
+      <div class="tech-grid">
+        <div class="tech-item">
+          <div class="tech-num">1</div>
+          <div><div class="tech-name"><i class="fas fa-magnifying-glass-chart"></i> リスクアセスメント</div><div class="tech-name-en">Risk Assessment</div></div>
+        </div>
+        <div class="tech-item">
+          <div class="tech-num">2</div>
+          <div><div class="tech-name"><i class="fas fa-book-open-reader"></i> ヘルスリテラシー</div><div class="tech-name-en">Health Literacy</div></div>
+        </div>
+        <div class="tech-item">
+          <div class="tech-num">3</div>
+          <div><div class="tech-name"><i class="fas fa-fire"></i> モチベーション</div><div class="tech-name-en">Motivation</div></div>
+        </div>
+        <div class="tech-item">
+          <div class="tech-num">4</div>
+          <div><div class="tech-name"><i class="fas fa-stairs"></i> ゴール＆スモールステップ</div><div class="tech-name-en">Goal & Small Step</div></div>
+        </div>
+        <div class="tech-item">
+          <div class="tech-num">5</div>
+          <div><div class="tech-name"><i class="fas fa-person-chalkboard"></i> モデリング</div><div class="tech-name-en">Modeling</div></div>
+        </div>
+        <div class="tech-item">
+          <div class="tech-num">6</div>
+          <div><div class="tech-name"><i class="fas fa-dumbbell"></i> トレーニング</div><div class="tech-name-en">Training</div></div>
+        </div>
+        <div class="tech-item">
+          <div class="tech-num">7</div>
+          <div><div class="tech-name"><i class="fas fa-bell"></i> チャンス＆キュー</div><div class="tech-name-en">Chance & Cue</div></div>
+        </div>
+        <div class="tech-item">
+          <div class="tech-num">8</div>
+          <div><div class="tech-name"><i class="fas fa-gift"></i> インセンティブ</div><div class="tech-name-en">Incentive</div></div>
+        </div>
+        <div class="tech-item">
+          <div class="tech-num">9</div>
+          <div><div class="tech-name"><i class="fas fa-handshake"></i> コミットメント</div><div class="tech-name-en">Commitment</div></div>
+        </div>
+        <div class="tech-item">
+          <div class="tech-num">10</div>
+          <div><div class="tech-name"><i class="fas fa-scale-balanced"></i> ルール</div><div class="tech-name-en">Rule</div></div>
+        </div>
+        <div class="tech-item">
+          <div class="tech-num">11</div>
+          <div><div class="tech-name"><i class="fas fa-chart-line"></i> モニタリング＆フィードバック</div><div class="tech-name-en">Monitoring & Feedback</div></div>
+        </div>
+        <div class="tech-item">
+          <div class="tech-num">12</div>
+          <div><div class="tech-name"><i class="fas fa-house-chimney"></i> サポーティブ環境</div><div class="tech-name-en">Supportive Environment</div></div>
+        </div>
+        <div class="tech-item">
+          <div class="tech-num">13</div>
+          <div><div class="tech-name"><i class="fas fa-people-group"></i> グループパワー</div><div class="tech-name-en">Group Power</div></div>
+        </div>
+        <div class="tech-item">
+          <div class="tech-num">14</div>
+          <div><div class="tech-name"><i class="fas fa-face-laugh-beam"></i> ファン＆エンジョイ</div><div class="tech-name-en">Fun & Enjoy</div></div>
+        </div>
+        <div class="tech-item" style="grid-column: 1 / -1;">
+          <div class="tech-num">15</div>
+          <div><div class="tech-name"><i class="fas fa-comment-dots"></i> コミュニケーション</div><div class="tech-name-en">Communication</div></div>
+        </div>
+      </div>
+
+      <div class="tip-box">
+        <strong><i class="fas fa-lightbulb"></i> 活用のヒント</strong><br>
+        対象者と話す前に、この15のリストを眺めて「今回はどのテクニークが使えそうか？」と考える習慣をつけると、アプローチの幅がぐっと広がります。
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== Section 7: 参考資料 ====== -->
+  <div class="kb-card theme-gray" data-keywords="参考 資料 出典 エビデンス 文献 国立長寿医療研究センター 帝京大学 栄養改善パック ナッジ 禁煙 運動 食事">
+    <div class="kb-card-header">
+      <div class="kb-card-icon"><i class="fas fa-book"></i></div>
+      <div class="kb-card-title">参考資料・出典</div>
+    </div>
+    <div class="kb-card-body">
+      <p>このナレッジベースの内容は、以下の資料をもとに作成しています。</p>
+      <ul class="ref-list">
+        <li><i class="fas fa-file-lines"></i> 国立長寿医療研究センター「栄養改善パック」（2020年）</li>
+        <li><i class="fas fa-file-lines"></i> 帝京大学 ナッジ食事編 ーナッジを活用した食生活改善ー</li>
+        <li><i class="fas fa-file-lines"></i> 帝京大学 ナッジ禁煙編 ーナッジを活用した禁煙支援ー</li>
+        <li><i class="fas fa-file-lines"></i> 帝京大学 ナッジ運動編 ーナッジを活用した運動促進ー</li>
+        <li><i class="fas fa-file-lines"></i> 帝京大学「15のカタカナ・テクニーク」ー行動変容技法の整理と実践ー</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- No Results Message -->
+  <div id="no-results">
+    <i class="fas fa-search"></i>
+    <div style="font-size:1.1rem; font-weight:700; margin-bottom:6px;">該当するコンテンツが見つかりません</div>
+    <div style="font-size:0.85rem;">別のキーワードで検索してみてください</div>
+  </div>
+
+</div><!-- /main-content -->
+
+<!-- ====== AI Chat FAB ====== -->
+<button id="kb-fab" onclick="openKbChat()">
+  <div class="fab-icon"><i class="fas fa-robot"></i></div>
+  <div class="fab-label">質問する</div>
+</button>
+
+<!-- ====== Chat Overlay ====== -->
+<div id="kb-chat-overlay" onclick="closeKbChat()"></div>
+
+<!-- ====== Chat Sheet ====== -->
+<div id="kb-chat-sheet">
+  <div class="kb-chat-header">
+    <div class="kb-chat-header-left">
+      <div class="kb-chat-avatar"><i class="fas fa-robot"></i></div>
+      <div>
+        <div class="kb-chat-name">ナレッジ AI アシスタント</div>
+        <div class="kb-chat-status">教材の内容について質問できます</div>
+      </div>
+    </div>
+    <button class="kb-chat-close" onclick="closeKbChat()"><i class="fas fa-times"></i></button>
+  </div>
+
+  <div class="kb-chat-messages" id="kb-chat-messages">
+    <!-- Welcome message -->
+    <div class="kb-msg ai">
+      <div class="kb-msg-avatar"><i class="fas fa-robot"></i></div>
+      <div class="kb-msg-bubble">こんにちは！ナレッジベースの内容について、何でも質問してください。
+
+例えば：
+・ナッジってどう使えばいい？
+・野菜350gの目安は？
+・スモールステップの具体例は？</div>
+    </div>
+
+    <!-- Quick questions -->
+    <div class="quick-questions">
+      <div class="quick-q" onclick="askQuick('EASTフレームワークを簡単に説明して')">EASTとは？</div>
+      <div class="quick-q" onclick="askQuick('ベジファーストのやり方を教えて')">ベジファースト</div>
+      <div class="quick-q" onclick="askQuick('ながら運動の具体例を教えて')">ながら運動</div>
+      <div class="quick-q" onclick="askQuick('15のテクニークで特に使いやすいものは？')">おすすめテクニーク</div>
+    </div>
+  </div>
+
+  <div class="kb-chat-input-area">
+    <textarea id="kb-chat-input" rows="1" placeholder="質問を入力..." onkeydown="handleKbChatKey(event)"></textarea>
+    <button class="kb-send-btn" id="kb-send-btn" onclick="sendKbChat()"><i class="fas fa-paper-plane"></i></button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/js/api.js?v=20260315f"></script>
+<script>
+// ====== Search Functionality ======
+const searchInput = document.getElementById('search-input');
+const searchClear = document.getElementById('search-clear');
+const searchCount = document.getElementById('search-count');
+const noResults = document.getElementById('no-results');
+const cards = document.querySelectorAll('.kb-card');
+const introBanner = document.querySelector('.intro-banner');
+
+searchInput.addEventListener('input', function() {
+  const query = this.value.trim().toLowerCase();
+  searchClear.classList.toggle('show', query.length > 0);
+
+  if (!query) {
+    cards.forEach(c => c.classList.remove('hidden'));
+    introBanner.style.display = '';
+    noResults.classList.remove('show');
+    searchCount.classList.remove('show');
+    return;
+  }
+
+  introBanner.style.display = 'none';
+  const terms = query.split(/\s+/);
+  let visibleCount = 0;
+
+  cards.forEach(card => {
+    const keywords = (card.dataset.keywords || '').toLowerCase();
+    const text = card.textContent.toLowerCase();
+    const haystack = keywords + ' ' + text;
+    const match = terms.every(t => haystack.includes(t));
+    card.classList.toggle('hidden', !match);
+    if (match) visibleCount++;
+  });
+
+  noResults.classList.toggle('show', visibleCount === 0);
+  searchCount.textContent = visibleCount + ' 件のセクションが見つかりました';
+  searchCount.classList.add('show');
+});
+
+function clearSearch() {
+  searchInput.value = '';
+  searchInput.dispatchEvent(new Event('input'));
+  searchInput.focus();
+}
+
+// ====== AI Chatbot ======
+let kbChatBusy = false;
+
+function openKbChat() {
+  document.getElementById('kb-chat-overlay').classList.add('active');
+  document.getElementById('kb-chat-sheet').classList.add('active');
+  document.body.classList.add('sheet-open');
+  document.getElementById('kb-fab').style.display = 'none';
+}
+
+function closeKbChat() {
+  document.getElementById('kb-chat-overlay').classList.remove('active');
+  document.getElementById('kb-chat-sheet').classList.remove('active');
+  document.body.classList.remove('sheet-open');
+  document.getElementById('kb-fab').style.display = 'flex';
+}
+
+function handleKbChatKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendKbChat();
+  }
+}
+
+function askQuick(question) {
+  document.getElementById('kb-chat-input').value = question;
+  sendKbChat();
+  // Remove quick questions after first use
+  const qq = document.querySelector('.quick-questions');
+  if (qq) qq.remove();
+}
+
+function appendKbMsg(role, text) {
+  const msgs = document.getElementById('kb-chat-messages');
+  const div = document.createElement('div');
+  div.className = 'kb-msg ' + role;
+
+  const avatar = document.createElement('div');
+  avatar.className = 'kb-msg-avatar';
+  avatar.innerHTML = role === 'ai' ? '<i class="fas fa-robot"></i>' : '<i class="fas fa-user"></i>';
+
+  const bubble = document.createElement('div');
+  bubble.className = 'kb-msg-bubble';
+  bubble.textContent = text;
+
+  div.appendChild(avatar);
+  div.appendChild(bubble);
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function showKbTyping() {
+  const msgs = document.getElementById('kb-chat-messages');
+  const div = document.createElement('div');
+  div.className = 'kb-typing';
+  div.id = 'kb-typing-indicator';
+  div.innerHTML = `
+    <div class="kb-msg-avatar"><i class="fas fa-robot"></i></div>
+    <div class="kb-typing-bubble">
+      <div class="kb-typing-dot"></div>
+      <div class="kb-typing-dot"></div>
+      <div class="kb-typing-dot"></div>
+    </div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function hideKbTyping() {
+  const el = document.getElementById('kb-typing-indicator');
+  if (el) el.remove();
+}
+
+// Gather page content as context for the AI
+function getPageContext() {
+  const sections = [];
+  cards.forEach(card => {
+    const title = card.querySelector('.kb-card-title')?.textContent || '';
+    const body = card.querySelector('.kb-card-body')?.textContent?.substring(0, 500) || '';
+    sections.push(title + ': ' + body.trim());
+  });
+  return sections.join('\n\n');
+}
+
+async function sendKbChat() {
+  if (kbChatBusy) return;
+  const input = document.getElementById('kb-chat-input');
+  const question = input.value.trim();
+  if (!question) return;
+
+  input.value = '';
+  input.style.height = 'auto';
+  appendKbMsg('user', question);
+  kbChatBusy = true;
+  document.getElementById('kb-send-btn').disabled = true;
+  showKbTyping();
+
+  try {
+    const context = getPageContext();
+    const res = await fetch('/api/chat/knowledge', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question, context })
+    });
+
+    hideKbTyping();
+
+    if (!res.ok) throw new Error('サーバーエラー');
+
+    const data = await res.json();
+    appendKbMsg('ai', data.answer || data.reply || 'すみません、回答を生成できませんでした。');
+  } catch (err) {
+    hideKbTyping();
+    appendKbMsg('ai', '申し訳ありません。通信エラーが発生しました。しばらくしてからもう一度お試しください。');
+    console.error('KB Chat error:', err);
+  } finally {
+    kbChatBusy = false;
+    document.getElementById('kb-send-btn').disabled = false;
+  }
+}
+
+// Auto-resize textarea
+document.getElementById('kb-chat-input').addEventListener('input', function() {
+  this.style.height = 'auto';
+  this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+});
+</script>
+</body>
+</html>

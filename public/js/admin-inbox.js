@@ -159,8 +159,7 @@ function renderReportList(data) {
             '<div style="display:flex; min-height:80px;">' +
                 // 左: 投稿内容
                 '<div style="flex:1; padding:12px 14px; border-right:1px solid #f0f0f0;">' +
-                    '<div class="user-info" style="margin-bottom:6px;"><div class="avatar">'+avatar+'</div><div class="nick">'+escapeHtml(r[INBOX_COLS.USER_NAME])+'</div>' +
-                    '<button class="btn-vote'+(likeCount > 0 ? ' voted' : '')+'" id="like-btn-'+pid+'" onclick="likePost(\''+pid+'\', '+sheetRow+')" style="margin-left:auto;"><i class="fas fa-hand-paper"></i> 賛同 <span class="vote-count" id="like-count-'+pid+'">'+likeCount+'</span></button></div>' +
+                    '<div class="user-info" style="margin-bottom:6px;"><div class="avatar">'+avatar+'</div><div class="nick">'+escapeHtml(r[INBOX_COLS.USER_NAME])+'</div></div>' +
                     (thumbTag ? '<div style="margin-bottom:8px;">'+thumbTag+'</div>' : '') +
                     '<div style="font-size:0.88rem;line-height:1.6;color:#444;white-space:pre-wrap;">'+escapeHtml(rawContent)+'</div>' +
                 '</div>' +

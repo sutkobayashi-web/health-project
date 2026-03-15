@@ -174,8 +174,8 @@ function getFoodUsers() {
 function generateFoodReport(userId) {
   return api('/admin/food-report', { userId, sendNow: false }, getAdminToken());
 }
-function sendFoodReportNow(userId) {
-  return api('/admin/food-report', { userId, sendNow: true }, getAdminToken());
+function sendFoodReportNow(userId, memberComment) {
+  return api('/admin/food-report', { userId, sendNow: true, memberComment: memberComment || '' }, getAdminToken());
 }
 function getSimilarPosts(postId, content) {
   return api('/admin/similar-posts', { postId, content }, getAdminToken());

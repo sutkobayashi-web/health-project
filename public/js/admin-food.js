@@ -91,6 +91,12 @@ function showFoodReportPreview(data) {
             // レポート本文
             '<div style="flex:1;overflow-y:auto;padding:22px;">' +
                 '<div style="background:linear-gradient(135deg,#f0faf4,#edf4ff);padding:18px;border-radius:14px;font-size:0.92rem;line-height:1.9;color:#333;white-space:pre-wrap;border-left:4px solid #20c997;">' + safeReport + '</div>' +
+                // 推進メンバーのコメント入力
+                '<div style="margin-top:16px;padding:16px;background:#fff;border:2px solid #e0e0e0;border-radius:14px;">' +
+                    '<div style="font-size:0.78rem;font-weight:700;color:#6c5ce7;margin-bottom:8px;"><i class="fas fa-comment-medical me-1"></i>推進メンバーからのひとこと（任意）</div>' +
+                    '<textarea id="food-report-comment" rows="3" placeholder="例: いつも食事投稿ありがとうございます！野菜が増えてきましたね。この調子で続けましょう！" style="width:100%;border:1px solid #ddd;border-radius:10px;padding:10px 14px;font-size:0.88rem;resize:none;font-family:Noto Sans JP,sans-serif;line-height:1.6;"></textarea>' +
+                    '<div style="font-size:0.68rem;color:#aaa;margin-top:4px;">※レポートの最後に追記されます</div>' +
+                '</div>' +
             '</div>' +
             // フッター（送信ボタン）
             '<div style="padding:14px 22px;border-top:1px solid #eee;display:flex;gap:10px;flex-shrink:0;background:#fafafa;">' +
@@ -105,12 +111,14 @@ function showFoodReportPreview(data) {
 // 送信確定
 function confirmSendFoodReport(userId, nickname) {
     var modal = document.getElementById('food-report-modal');
+    var commentEl = document.getElementById('food-report-comment');
+    var memberComment = commentEl ? commentEl.value : '';
     var buttons = modal.querySelectorAll('button');
     buttons.forEach(function(b) { b.disabled = true; });
     var sendBtn = buttons[buttons.length - 1];
     sendBtn.innerHTML = '<div class="spinner-border spinner-border-sm me-2"></div>送信中...';
 
-    sendFoodReportNow(userId).then(function(res) {
+    sendFoodReportNow(userId, memberComment).then(function(res) {
         if (modal) modal.remove();
         if (res && res.success) {
             alert(res.msg);

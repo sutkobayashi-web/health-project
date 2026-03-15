@@ -365,9 +365,13 @@ router.post('/food-report', async (req, res) => {
 
     // sendNow=trueの場合のみ通知送信、それ以外はプレビューのみ
     if (req.body.sendNow) {
+      const memberComment = req.body.memberComment || '';
       const noticeId = 'food_report_' + Date.now();
-      const noticeContent = `🥗 食事傾向レポート\n\n${user.nickname}さん、日頃の食事投稿ありがとうございます！\n${foodPosts.length}件の食事記録をもとに、AI栄養士があなたの食事傾向を分析しました。\n\n${report}`;
-      db.prepare('INSERT INTO notices (notice_id, content, sender, target_id) VALUES (?,?,?,?)').run(noticeId, noticeContent, 'AI栄養士', userId);
+      let noticeContent = `🥗 食事傾向レポート\n\n${user.nickname}さん、日頃の食事投稿ありがとうございます！\n${foodPosts.length}件の食事記録をもとに、AI栄養士があなたの食事傾向を分析しました。\n\n${report}`;
+      if (memberComment.trim()) {
+        noticeContent += `\n\n━━━━━━━━━━━━━━━━\n💬 健康推進メンバーより\n${memberComment.trim()}`;
+      }
+      db.prepare('INSERT INTO notices (notice_id, content, sender, target_id) VALUES (?,?,?,?)').run(noticeId, noticeContent, 'AI栄養士 + 健康推進チーム', userId);
       res.json({ success: true, sent: true, msg: `${user.nickname}さんに食事傾向レポートを送信しました（${foodPosts.length}件分析）`, report });
     } else {
       res.json({ success: true, sent: false, msg: 'プレビュー生成完了', report, nickname: user.nickname, foodCount: foodPosts.length, userId });

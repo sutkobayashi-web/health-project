@@ -92,7 +92,7 @@ document.addEventListener('click', function(e) {
   }
 
   // 詳細モーダル内のクリックは何もしない（閉じない）
-  if (e.target.closest('#post-detail-sheet')) {
+  if (e.target.closest('#post-detail-modal')) {
     return;
   }
 
@@ -106,10 +106,10 @@ document.addEventListener('click', function(e) {
     return;
   }
 
-  // カード本文タップ → 詳細モーダル
-  var body = e.target.closest('.post-body');
-  if (body) {
-    var row2 = parseInt(body.getAttribute('data-row'));
+  // カード全体タップ → 詳細モーダル（ハート以外の場所）
+  var card = e.target.closest('.post-card');
+  if (card) {
+    var row2 = parseInt(card.getAttribute('data-row'));
     if (row2) openPostDetail(row2);
     return;
   }

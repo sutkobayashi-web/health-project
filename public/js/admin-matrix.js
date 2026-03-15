@@ -337,7 +337,7 @@ window.handlePriorityAction = function(action) {
     if(!window.mxCurrentPrioPid) { alert("案件が選択されていません"); return; }
     var myName = (currentAdminProfile && currentAdminProfile.name) || "Admin";
     var label = (action === 'like') ? '合意' : '戻す';
-    if(!confirm(label + "しますか？")) return;
+    if(!confirm(label + "しますか？\n\npid: " + window.mxCurrentPrioPid + "\nname: " + myName)) return;
     votePriorityPost(window.mxCurrentPrioPid, myName, action).then(function(res) {
         if(res && res.success) {
             alert(res.msg);

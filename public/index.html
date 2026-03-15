@@ -241,7 +241,31 @@
       <div style="margin-bottom:15px;"><label style="font-weight:normal; display:flex; align-items:center; cursor:pointer; font-size:0.85rem; color:#555;"><input type="checkbox" id="admin-remember" style="width:auto; margin-right:8px; transform:scale(1.3); accent-color:#d63384;"> ログイン情報を保存する</label></div>
       <button class="auth-submit-btn" style="background:linear-gradient(135deg,#e74c3c,#ff6b6b); box-shadow:0 4px 14px rgba(231,76,60,0.3);" onclick="doAdminLogin()"><i class="fas fa-shield-alt" style="margin-right:6px;"></i> 管理画面へ</button>
       <div style="text-align:center; margin-top:12px;"><a style="font-size:0.82rem; color:#e74c3c; cursor:pointer; text-decoration:underline;" onclick="goToAdminReset()"><i class="fas fa-key" style="margin-right:3px;"></i> パスワードを忘れた方はこちら</a></div>
+      <div style="text-align:center; margin-top:8px;"><a style="font-size:0.82rem; color:#6c5ce7; cursor:pointer; text-decoration:underline;" onclick="showStep('admin-register')"><i class="fas fa-user-plus" style="margin-right:3px;"></i> 新規メンバー登録</a></div>
       <div class="back-btn" onclick="showStep('menu')">← 戻る</div>
+    </div>
+
+    <div id="auth-step-admin-register" style="display:none;">
+      <div style="text-align:center; margin-bottom:14px;">
+        <div style="font-size:2.5rem; animation: authHeroBounce 2.5s ease-in-out infinite;">📋</div>
+        <div class="modal-title" style="border:none; margin-bottom:4px; padding-bottom:0; color:#6c5ce7;">管理メンバー新規登録</div>
+        <div style="font-size:0.8rem; color:#888;">健康推進チームへの参加登録</div>
+      </div>
+      <div class="form-group"><label><i class="fas fa-user" style="color:#3478f6; margin-right:4px;"></i> 氏名</label><input type="text" id="admin-reg-name" placeholder="例: 山田 花子"></div>
+      <div class="form-group"><label><i class="fas fa-envelope" style="color:#20c997; margin-right:4px;"></i> メールアドレス</label><input type="email" id="admin-reg-email" placeholder="メールアドレス"></div>
+      <div class="form-group"><label><i class="fas fa-lock" style="color:#e74c3c; margin-right:4px;"></i> パスワード</label><input type="password" id="admin-reg-pass" placeholder="パスワード"></div>
+      <div class="form-group"><label><i class="fas fa-building" style="color:#f39c12; margin-right:4px;"></i> 所属</label><input type="text" id="admin-reg-dept" placeholder="例: 管理部、○○大学 など"></div>
+      <div style="margin-bottom:12px; padding:12px; background:linear-gradient(135deg,#f5f0ff,#edf4ff); border-radius:12px; border:2px solid #d0c8ff;">
+        <label style="font-weight:normal; display:flex; align-items:center; cursor:pointer; font-size:0.88rem; color:#555;">
+          <input type="checkbox" id="admin-reg-university" style="width:auto; margin-right:10px; transform:scale(1.4); accent-color:#6c5ce7;" onchange="toggleUniversityOrg()">
+          <span><i class="fas fa-graduation-cap" style="color:#6c5ce7; margin-right:4px;"></i> <strong>大学関係者の方</strong></span>
+        </label>
+        <div id="admin-reg-univ-org-area" style="display:none; margin-top:10px;">
+          <input type="text" id="admin-reg-univ-org" placeholder="例: 帝京大学 経営学部" style="font-size:0.88rem;">
+        </div>
+      </div>
+      <button class="auth-submit-btn" style="background:linear-gradient(135deg,#6c5ce7,#a29bfe); box-shadow:0 4px 14px rgba(108,92,231,0.3);" onclick="doAdminRegister()"><i class="fas fa-user-plus" style="margin-right:6px;"></i> 登録する</button>
+      <div class="back-btn" onclick="showStep('admin-login')">← 管理者ログインに戻る</div>
     </div>
 
     <div id="auth-step-admin-reset" style="display:none;">
@@ -409,6 +433,7 @@ function showStep(step) {
   document.getElementById('auth-step-admin-login').style.display = step === 'admin-login' ? 'block' : 'none';
   document.getElementById('auth-step-reset').style.display = step === 'reset' ? 'block' : 'none';
   document.getElementById('auth-step-admin-reset').style.display = step === 'admin-reset' ? 'block' : 'none';
+  document.getElementById('auth-step-admin-register').style.display = step === 'admin-register' ? 'block' : 'none';
   if (step === 'register') initAvatarGrid();
   if (step === 'login') {
     var savedNick = localStorage.getItem('co_heart_user_nick');
@@ -541,6 +566,36 @@ function doAdminResetPassword() {
     hideLoading();
     if (res.success) { alert(res.msg); showStep('admin-login'); }
     else alert(res.msg);
+  }).catch(function(e) { hideLoading(); alert("エラー: " + e.message); });
+}
+
+function toggleUniversityOrg() {
+  var checked = document.getElementById('admin-reg-university').checked;
+  document.getElementById('admin-reg-univ-org-area').style.display = checked ? 'block' : 'none';
+}
+
+function doAdminRegister() {
+  var name = document.getElementById('admin-reg-name').value.trim();
+  var email = document.getElementById('admin-reg-email').value.trim();
+  var pass = document.getElementById('admin-reg-pass').value.trim();
+  var dept = document.getElementById('admin-reg-dept').value.trim();
+  var isUniversity = document.getElementById('admin-reg-university').checked;
+  var universityOrg = document.getElementById('admin-reg-univ-org').value.trim();
+  if (!name) return alert("氏名を入力してください");
+  if (!email) return alert("メールアドレスを入力してください");
+  if (!pass) return alert("パスワードを入力してください");
+  if (isUniversity && !universityOrg) return alert("大学名・学部を入力してください");
+  showLoading("登録中...");
+  registerAdmin({ name: name, email: email, password: pass, dept: dept, isUniversity: isUniversity, universityOrg: universityOrg }).then(function(res) {
+    hideLoading();
+    if (res.success) {
+      alert(res.msg + (isUniversity ? '\n\n大学関係者（オブザーバー）として登録されました。' : ''));
+      setAdminToken(res.token);
+      localStorage.setItem('co_heart_admin_email', email);
+      localStorage.setItem('co_heart_admin_pass', pass);
+      localStorage.setItem('co_heart_admin_profile', JSON.stringify(res.profile));
+      window.location.href = "/admin";
+    } else alert(res.msg);
   }).catch(function(e) { hideLoading(); alert("エラー: " + e.message); });
 }
 

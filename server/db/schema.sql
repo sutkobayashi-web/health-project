@@ -26,7 +26,9 @@ CREATE TABLE IF NOT EXISTS core_members (
   phone TEXT,
   avatar TEXT DEFAULT '🛡️',
   role TEXT DEFAULT 'member',
-  is_exec INTEGER DEFAULT 0
+  is_exec INTEGER DEFAULT 0,
+  is_university INTEGER DEFAULT 0,
+  university_org TEXT DEFAULT ''
 );
 
 -- Posts シート → posts テーブル

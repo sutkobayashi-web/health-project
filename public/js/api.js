@@ -36,6 +36,12 @@ function registerUser(n, p, a, i, r, d, b) {
 function loginUser(n, p) {
   return api('/auth/login', { nickname: n, password: p });
 }
+function registerAdmin(data) {
+  return api('/auth/admin-register', data);
+}
+function getUniversityMembers() {
+  return api('/auth/university-members', undefined, getAdminToken());
+}
 function loginCoreMember(email, pass) {
   return api('/auth/admin-login', { email, password: pass });
 }

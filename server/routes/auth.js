@@ -56,6 +56,38 @@ router.post('/login', (req, res) => {
   }
 });
 
+// 管理者（大学関係者含む）新規登録
+router.post('/admin-register', (req, res) => {
+  try {
+    const { name, email, password, dept, isUniversity, universityOrg } = req.body;
+    if (!name || !email || !password) return res.json({ success: false, msg: '氏名・メール・パスワードを入力してください' });
+    const db = getDb();
+    const existing = db.prepare('SELECT id FROM core_members WHERE email = ?').get(email.trim().toLowerCase());
+    if (existing) return res.json({ success: false, msg: '既に登録されているメールアドレスです' });
+    const passwordHash = hashPasswordSHA256(password.trim());
+    const role = isUniversity ? 'observer' : 'member';
+    db.prepare(`INSERT INTO core_members (name, dept, email, password_hash, avatar, role, is_exec, is_university, university_org)
+      VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?)`).run(name.trim(), dept || '', email.trim().toLowerCase(), passwordHash, '🛡️', role, isUniversity ? 1 : 0, universityOrg || '');
+    const token = generateToken({ email: email.trim().toLowerCase(), name: name.trim(), type: 'admin', role, isExec: false, isUniversity: !!isUniversity });
+    res.json({
+      success: true, msg: '登録が完了しました',
+      profile: { name: name.trim(), dept: dept || '', email: email.trim().toLowerCase(), avatar: '🛡️', role, isExec: false, isUniversity: !!isUniversity },
+      token
+    });
+  } catch (e) {
+    res.json({ success: false, msg: 'エラー: ' + e.message });
+  }
+});
+
+// 大学関係者一覧取得
+router.get('/university-members', (req, res) => {
+  try {
+    const db = getDb();
+    const members = db.prepare('SELECT id, name, email, dept, university_org, role FROM core_members WHERE is_university = 1 ORDER BY id DESC').all();
+    res.json(members);
+  } catch (e) { res.json([]); }
+});
+
 // 管理者ログイン
 router.post('/admin-login', (req, res) => {
   try {
@@ -78,10 +110,11 @@ router.post('/admin-login', (req, res) => {
     // avatarが日付等の不正値の場合はデフォルトに
     let avatar = member.avatar || '🛡️';
     if (avatar.length > 4 || avatar.match(/\d{4}/)) avatar = '🛡️';
-    const token = generateToken({ email: member.email, name: member.name, type: 'admin', role, isExec });
+    const isUniversity = member.is_university === 1;
+    const token = generateToken({ email: member.email, name: member.name, type: 'admin', role, isExec, isUniversity });
     res.json({
       success: true,
-      profile: { name: member.name, dept: member.dept, email: member.email, avatar, role, isExec },
+      profile: { name: member.name, dept: member.dept, email: member.email, avatar, role, isExec, isUniversity },
       token
     });
   } catch (e) {

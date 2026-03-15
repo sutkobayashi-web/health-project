@@ -269,17 +269,28 @@ function likePost(pid, rowId) {
     var adminUid = (currentAdminProfile && currentAdminProfile.email) ? currentAdminProfile.email : 'admin';
     var btn = document.getElementById('like-btn-' + pid);
     var countEl = document.getElementById('like-count-' + pid);
-    if(btn) { btn.disabled = true; btn.style.opacity = '0.6'; }
+    // 即時UI更新（楽観的）
+    var wasVoted = btn && btn.classList.contains('voted');
+    if(btn) {
+        btn.disabled = true;
+        if(wasVoted) { btn.classList.remove('voted'); }
+        else { btn.classList.add('voted'); }
+    }
+    if(countEl) {
+        var currentCount = parseInt(countEl.innerText) || 0;
+        countEl.innerText = wasVoted ? Math.max(0, currentCount - 1) : currentCount + 1;
+    }
+    // API呼び出し → サーバー値で補正
     toggleLike(rowId, adminUid).then(function(res) {
-        if(btn) { btn.disabled = false; btn.style.opacity = '1'; }
+        if(btn) { btn.disabled = false; }
         if(!res || !res.success) { alert("投票エラー: " + (res ? res.msg : "応答なし")); return; }
         if(countEl) countEl.innerText = res.count;
         if(btn) {
-            if(res.isLiked) { btn.classList.add('voted'); btn.classList.remove('not-voted'); }
-            else { btn.classList.remove('voted'); btn.classList.add('not-voted'); }
+            if(res.isLiked) { btn.classList.add('voted'); }
+            else { btn.classList.remove('voted'); }
         }
     }).catch(function(err) {
-        if(btn) { btn.disabled = false; btn.style.opacity = '1'; }
+        if(btn) { btn.disabled = false; }
         alert("通信エラー: " + err.message);
     });
 }

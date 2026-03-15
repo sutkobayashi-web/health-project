@@ -156,7 +156,7 @@ window.openPriorityModal = function(pid) {
     if(content.includes("///SCORE///")) content = content.split("///SCORE///")[0];
     if(analysis.includes("///SCORE///")) analysis = analysis.split("///SCORE///")[0];
     var avatar = getMatrixAvatar(r[MX_COLS.USER_NAME], "", r[MX_COLS.AVATAR]);
-    document.getElementById('prio-title').innerText = "案件: " + content.substring(0,15) + "...";
+    document.getElementById('prio-title').innerText = content;
     document.getElementById('prio-avatar').innerText = avatar;
     document.getElementById('prio-user').innerText = r[MX_COLS.USER_NAME];
     document.getElementById('prio-date').innerText = r[MX_COLS.DATE];
@@ -336,7 +336,7 @@ window.deleteMyComment = function(rowId, name, btnEl) {
 window.handlePriorityAction = function(action) {
     if(!window.mxCurrentPrioPid) { alert("案件が選択されていません"); return; }
     var myName = (currentAdminProfile && currentAdminProfile.name) || "Admin";
-    var label = (action === 'like') ? '合意' : '戻す';
+    var label = (action === 'like') ? '賛同' : '戻す';
     if(!confirm(label + "しますか？")) return;
     votePriorityPost(window.mxCurrentPrioPid, myName, action).then(function(res) {
         if(res && res.success) {

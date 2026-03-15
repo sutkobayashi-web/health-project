@@ -363,12 +363,15 @@ router.post('/food-report', async (req, res) => {
     const report = await callGroqApi(sysPrompt, `【${user.nickname}さんの食事記録】\n${meals}`);
     if (!report) return res.json({ success: false, msg: 'AIレポート生成に失敗しました' });
 
-    // 通知として送信
-    const noticeId = 'food_report_' + Date.now();
-    const noticeContent = `🥗 食事傾向レポート\n\n${user.nickname}さん、日頃の食事投稿ありがとうございます！\n${foodPosts.length}件の食事記録をもとに、AI栄養士があなたの食事傾向を分析しました。\n\n${report}`;
-    db.prepare('INSERT INTO notices (notice_id, content, sender, target_id) VALUES (?,?,?,?)').run(noticeId, noticeContent, 'AI栄養士', userId);
-
-    res.json({ success: true, msg: `${user.nickname}さんに食事傾向レポートを送信しました（${foodPosts.length}件分析）`, report });
+    // sendNow=trueの場合のみ通知送信、それ以外はプレビューのみ
+    if (req.body.sendNow) {
+      const noticeId = 'food_report_' + Date.now();
+      const noticeContent = `🥗 食事傾向レポート\n\n${user.nickname}さん、日頃の食事投稿ありがとうございます！\n${foodPosts.length}件の食事記録をもとに、AI栄養士があなたの食事傾向を分析しました。\n\n${report}`;
+      db.prepare('INSERT INTO notices (notice_id, content, sender, target_id) VALUES (?,?,?,?)').run(noticeId, noticeContent, 'AI栄養士', userId);
+      res.json({ success: true, sent: true, msg: `${user.nickname}さんに食事傾向レポートを送信しました（${foodPosts.length}件分析）`, report });
+    } else {
+      res.json({ success: true, sent: false, msg: 'プレビュー生成完了', report, nickname: user.nickname, foodCount: foodPosts.length, userId });
+    }
   } catch (e) {
     res.json({ success: false, msg: 'エラー: ' + e.message });
   }

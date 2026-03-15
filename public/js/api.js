@@ -172,7 +172,10 @@ function getFoodUsers() {
   return api('/admin/food-users', undefined, getAdminToken());
 }
 function generateFoodReport(userId) {
-  return api('/admin/food-report', { userId }, getAdminToken());
+  return api('/admin/food-report', { userId, sendNow: false }, getAdminToken());
+}
+function sendFoodReportNow(userId) {
+  return api('/admin/food-report', { userId, sendNow: true }, getAdminToken());
 }
 function getSimilarPosts(postId, content) {
   return api('/admin/similar-posts', { postId, content }, getAdminToken());

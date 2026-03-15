@@ -119,14 +119,7 @@
     }
     .plan-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
 
-    /* ====== Sidebar Members ====== */
-    .member-dot { width:36px; height:36px; border-radius:50%; display:flex; justify-content:center; align-items:center; font-size:0.9rem; margin:3px auto; position:relative; cursor:default; transition: all 0.2s; }
-    .member-dot:hover { transform:scale(1.15); }
-    .member-dot .heartbeat { position:absolute; bottom:-1px; right:-1px; width:10px; height:10px; border-radius:50%; border:2px solid #1a1e2e; }
-    .member-dot .heartbeat.online { background:#4caf50; animation: heartbeat 1.5s ease-in-out infinite; }
-    .member-dot .heartbeat.offline { background:#999; }
-    .member-dot .member-tooltip { display:none; position:absolute; left:110%; top:50%; transform:translateY(-50%); background:#333; color:white; padding:4px 10px; border-radius:6px; font-size:0.65rem; white-space:nowrap; z-index:200; font-weight:600; }
-    .member-dot:hover .member-tooltip { display:block; }
+    /* ====== Heartbeat animation ====== */
     @keyframes heartbeat { 0%,100% { transform:scale(1); box-shadow:0 0 0 0 rgba(76,175,80,0.4); } 50% { transform:scale(1.2); box-shadow:0 0 6px 2px rgba(76,175,80,0.3); } }
 
     .prio-tab { padding:10px 16px; border:none; background:transparent; font-size:0.8rem; font-weight:700; color:#888; cursor:pointer; border-bottom:3px solid transparent; transition:all 0.2s; flex:1; text-align:center; }
@@ -335,10 +328,11 @@ if(localStorage.getItem('co_heart_admin_email') && localStorage.getItem('co_hear
     <div class="nav-item" onclick="switchTab('resolved')" id="nav-res">
       <i class="fas fa-archive nav-icon"></i><div class="nav-label">解決済み</div>
     </div>
-    <!-- メンバーリスト -->
-    <div style="border-top:1px solid rgba(255,255,255,0.1); margin-top:auto; padding:8px 6px; width:100%;">
-      <div style="font-size:0.5rem; color:rgba(255,255,255,0.4); text-align:center; margin-bottom:4px; font-weight:700;">MEMBERS</div>
-      <div id="sidebar-members"></div>
+    <!-- メンバーメニュー -->
+    <div class="nav-item" onclick="openMembersPopup()" id="nav-members" style="border-top:1px solid rgba(255,255,255,0.1); margin-top:auto; padding-top:10px; position:relative;">
+      <i class="fas fa-users nav-icon" style="color:#4caf50;"></i>
+      <div class="nav-label" style="font-size:0.55rem; line-height:1.2;">推進<br>メンバー</div>
+      <span id="online-count-badge" style="position:absolute; top:4px; right:8px; background:#4caf50; color:white; font-size:0.5rem; font-weight:800; width:16px; height:16px; border-radius:50%; display:none; justify-content:center; align-items:center; border:2px solid #1a1e2e;"></span>
     </div>
   </div>
 
@@ -545,6 +539,15 @@ if(localStorage.getItem('co_heart_admin_email') && localStorage.getItem('co_hear
 </div>
 
 <!-- priority modal (fullscreen) -->
+<!-- メンバーポップアップ -->
+<div id="members-popup" style="display:none; position:fixed; bottom:10px; left:80px; width:320px; max-height:70vh; background:white; border-radius:16px; box-shadow:0 8px 40px rgba(0,0,0,0.2); z-index:3000; overflow:hidden; animation:fadeIn 0.2s;">
+  <div style="padding:14px 18px; background:linear-gradient(135deg,#667eea,#764ba2); color:white; display:flex; justify-content:space-between; align-items:center;">
+    <div><div style="font-weight:800; font-size:0.95rem;"><i class="fas fa-users me-2"></i>推進メンバー</div><div style="font-size:0.7rem; opacity:0.8;" id="members-popup-subtitle"></div></div>
+    <button onclick="closeMembersPopup()" style="background:rgba(255,255,255,0.2); border:none; color:white; width:30px; height:30px; border-radius:50%; cursor:pointer; display:flex; justify-content:center; align-items:center;"><i class="fas fa-times"></i></button>
+  </div>
+  <div id="members-popup-list" style="padding:10px; overflow-y:auto; max-height:calc(70vh - 60px);"></div>
+</div>
+
 <div id="priority-modal" class="modal-overlay" style="display:none; z-index:3500;">
   <div class="modal-box" style="width:100%; height:100%; max-width:none; border-radius:0; background:#fff; padding:0; display:flex; flex-direction:column; overflow:hidden;">
     <!-- Header -->

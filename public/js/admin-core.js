@@ -154,24 +154,61 @@ function startHeartbeat() {
     setInterval(loadSidebarMembers, 60000);
 }
 
-// サイドバーメンバーリスト
+// メンバーリスト（キャッシュ）
+var _membersCache = [];
+
 function loadSidebarMembers() {
     api('/admin/members-status', undefined, getAdminToken()).then(function(members) {
-        var area = document.getElementById('sidebar-members');
-        if (!area || !members || !members.length) return;
-        // オンラインを上に
-        members.sort(function(a, b) { return (b.online ? 1 : 0) - (a.online ? 1 : 0); });
-        area.innerHTML = members.map(function(m) {
-            var avatar = m.avatar || '🛡️';
-            var statusClass = m.online ? 'online' : 'offline';
-            var univBadge = m.isUniversity ? '<span style="font-size:0.5rem;">🎓</span>' : '';
-            return '<div class="member-dot" style="background:' + (m.online ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.05)') + ';" title="' + escapeHtml(m.name) + '">' +
-                avatar + univBadge +
-                '<div class="heartbeat ' + statusClass + '"></div>' +
-                '<div class="member-tooltip">' + escapeHtml(m.name) + (m.online ? ' (オンライン)' : '') + '</div>' +
-            '</div>';
-        }).join('');
+        if (!members || !members.length) return;
+        _membersCache = members;
+        // オンラインカウントバッジ更新
+        var onlineCount = members.filter(function(m){ return m.online; }).length;
+        var badge = document.getElementById('online-count-badge');
+        if (badge) {
+            if (onlineCount > 0) { badge.style.display = 'flex'; badge.innerText = onlineCount; }
+            else { badge.style.display = 'none'; }
+        }
+        // ポップアップが開いていれば更新
+        var popup = document.getElementById('members-popup');
+        if (popup && popup.style.display !== 'none') renderMembersPopup();
     });
+}
+
+function openMembersPopup() {
+    var popup = document.getElementById('members-popup');
+    if (popup.style.display !== 'none') { closeMembersPopup(); return; }
+    popup.style.display = 'block';
+    loadSidebarMembers();
+    renderMembersPopup();
+}
+
+function closeMembersPopup() {
+    document.getElementById('members-popup').style.display = 'none';
+}
+
+function renderMembersPopup() {
+    var list = document.getElementById('members-popup-list');
+    var subtitle = document.getElementById('members-popup-subtitle');
+    if (!list) return;
+    var members = _membersCache;
+    members.sort(function(a, b) { return (b.online ? 1 : 0) - (a.online ? 1 : 0); });
+    var onlineCount = members.filter(function(m){ return m.online; }).length;
+    if (subtitle) subtitle.innerText = onlineCount + '人がオンライン / 全' + members.length + '人';
+    list.innerHTML = members.map(function(m) {
+        var avatar = m.avatar || '🛡️';
+        var online = m.online;
+        return '<div style="display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:10px; margin-bottom:4px; background:' + (online ? '#f0fff4' : '#fafafa') + '; border:1px solid ' + (online ? '#c8e6c9' : '#f0f0f0') + '; transition:all 0.2s;">' +
+            '<div style="position:relative; flex-shrink:0;">' +
+                '<div style="width:38px; height:38px; border-radius:50%; background:' + (online ? '#e8f5e9' : '#f5f5f5') + '; display:flex; justify-content:center; align-items:center; font-size:1.2rem;">' + avatar + '</div>' +
+                '<div style="position:absolute; bottom:0; right:0; width:12px; height:12px; border-radius:50%; border:2px solid white; background:' + (online ? '#4caf50' : '#bbb') + ';' + (online ? ' animation:heartbeat 1.5s ease-in-out infinite;' : '') + '"></div>' +
+            '</div>' +
+            '<div style="flex:1; min-width:0;">' +
+                '<div style="font-weight:700; font-size:0.85rem; color:#333; display:flex; align-items:center; gap:4px;">' + escapeHtml(m.name) + (m.isUniversity ? ' <span style="font-size:0.6rem; background:#6c5ce7; color:white; padding:1px 6px; border-radius:8px;">大学</span>' : '') + '</div>' +
+                '<div style="font-size:0.7rem; color:#999; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">' + escapeHtml(m.email) + '</div>' +
+            '</div>' +
+            '<div style="font-size:0.65rem; font-weight:700; color:' + (online ? '#4caf50' : '#ccc') + ';">' + (online ? '● オンライン' : '○ オフライン') + '</div>' +
+        '</div>';
+    }).join('');
 }
 
 function switchTab(t) {

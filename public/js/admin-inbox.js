@@ -154,7 +154,7 @@ function renderReportList(data) {
                 '<div class="post-content-inner">' + thumbTag +
                     '<div class="post-text-area">' +
                         '<div class="user-info"><div class="avatar">'+avatar+'</div><div class="nick">'+escapeHtml(r[INBOX_COLS.USER_NAME])+'</div></div>' +
-                        '<div class="post-body" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:0.88rem;line-height:1.6;color:#444;">'+escapeHtml(rawContent)+'</div>' +
+                        '<div class="post-body" style="font-size:0.88rem;line-height:1.6;color:#444;white-space:pre-wrap;">'+escapeHtml(rawContent)+'</div>' +
                     '</div>' +
                 '</div>' +
                 '<div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; border-top:1px solid #f0f0f0; margin-top:8px;">' +

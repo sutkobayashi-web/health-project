@@ -63,7 +63,7 @@ router.get('/discussion/:voiceId', (req, res) => {
     const voiceId = req.params.voiceId;
     const memberMap = {};
     db.prepare('SELECT name, avatar FROM core_members').all().forEach(m => { memberMap[m.name.trim()] = m.avatar; });
-    const logs = db.prepare('SELECT * FROM admin_discussions WHERE voice_id = ? ORDER BY created_at').all(voiceId);
+    const logs = db.prepare("SELECT * FROM admin_discussions WHERE voice_id = ? AND role != 'member_comment' ORDER BY created_at").all(voiceId);
     const result = logs.map(d => {
       let av = memberMap[d.member_name.trim()];
       if (!av && d.avatar) av = d.avatar;

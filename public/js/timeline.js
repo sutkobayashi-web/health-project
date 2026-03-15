@@ -54,7 +54,7 @@ function like(row, likeId) {
   });
 }
 
-// 詳細モーダル（閉じるボタンのみで閉じる、背景クリック無効）
+// 詳細モーダル
 function openPostDetail(row) {
   var p = _postCache[row];
   if (!p) return;
@@ -62,16 +62,16 @@ function openPostDetail(row) {
   var analysisHtml = p.analysis ? '<div class="ai-reply"><i class="fas fa-robot text-primary"></i> ' + p.analysis.replace(/\n/g, '<br>') + '</div>' : '';
   var sheet = document.getElementById('post-detail-sheet');
   sheet.innerHTML =
-    '<div style="padding:10px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #eee;position:sticky;top:0;background:white;z-index:1;border-radius:20px 20px 0 0;">' +
-      '<div style="display:flex;align-items:center;gap:10px;">' +
-        '<div class="avatar" style="width:30px;height:30px;font-size:1rem;">' + p.avatar + '</div>' +
-        '<div><span class="nick" style="font-size:0.82rem;">' + p.nickname + '</span> <span class="rank">' + p.authorRank + '</span><div style="font-size:0.65rem;color:#999;">' + p.date + '</div></div>' +
-      '</div>' +
-      '<button id="post-detail-close-btn" style="padding:8px 20px;background:#2c3e50;color:white;border:none;border-radius:20px;font-weight:700;font-size:0.8rem;cursor:pointer;">閉じる</button>' +
+    '<div style="padding:12px 18px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #eee;flex-shrink:0;">' +
+      '<div class="avatar" style="width:32px;height:32px;font-size:1rem;">' + p.avatar + '</div>' +
+      '<div style="flex:1;"><div class="nick" style="font-size:0.85rem;">' + p.nickname + ' <span class="rank">' + p.authorRank + '</span></div><div style="font-size:0.65rem;color:#999;">' + p.date + '</div></div>' +
     '</div>' +
-    '<div style="padding:16px 18px 24px;">' +
+    '<div id="post-detail-body">' +
       '<div style="font-size:0.92rem;line-height:1.8;color:#333;white-space:pre-wrap;margin-bottom:14px;">' + p.content + '</div>' +
       imgHtml + analysisHtml +
+    '</div>' +
+    '<div id="post-detail-footer">' +
+      '<button id="post-detail-close-btn" style="width:100%;padding:14px;background:linear-gradient(135deg,#2c3e50,#34495e);color:white;border:none;border-radius:14px;font-weight:700;font-size:0.95rem;cursor:pointer;">閉じる</button>' +
     '</div>';
   document.getElementById('post-detail-modal').classList.add('active');
   lockScroll();

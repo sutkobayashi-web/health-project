@@ -162,7 +162,8 @@ window.openPriorityModal = function(pid) {
     document.getElementById('prio-date').innerText = r[MX_COLS.DATE];
     document.getElementById('prio-content').innerText = content;
     var likeStr = String(r[MX_COLS.LIKE_COUNT]||""); var likeNum = likeStr ? likeStr.split(',').filter(function(x){return x;}).length : 0;
-    document.getElementById('prio-like-count').innerHTML = '<i class="fas fa-thumbs-up me-1"></i> ' + likeNum;
+    var voteCountEl = document.getElementById('prio-vote-count');
+    if(voteCountEl) voteCountEl.innerText = likeNum;
     document.getElementById('prio-analysis').innerText = analysis;
 
     // 画像表示
@@ -341,8 +342,8 @@ window.handlePriorityAction = function(action) {
     votePriorityPost(window.mxCurrentPrioPid, myName, action).then(function(res) {
         if(res && res.success) {
             alert(res.msg);
-            var el = document.getElementById('prio-like-count');
-            if(el) el.innerHTML = '<i class="fas fa-thumbs-up me-1"></i> ' + (res.likeCount || 0);
+            var voteEl = document.getElementById('prio-vote-count');
+            if(voteEl) voteEl.innerText = res.likeCount || 0;
             if(res.transitioned) {
                 document.getElementById('priority-modal').style.display = 'none';
                 loadCurrentAnalysis();

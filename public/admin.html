@@ -590,9 +590,9 @@ if(localStorage.getItem('co_heart_admin_email') && localStorage.getItem('co_hear
             <button class="btn btn-primary" onclick="postPrioComment()" style="border-radius:50%; width:40px; height:40px; display:flex; justify-content:center; align-items:center; flex-shrink:0;"><i class="fas fa-paper-plane"></i></button>
           </div>
         </div>
-        <div style="padding:6px 12px; background:#f0f0f5; border-top:1px solid #ddd; display:flex; gap:6px; flex-shrink:0;">
-          <button type="button" class="btn btn-primary btn-sm flex-grow-1 fw-bold" style="font-size:0.72rem;" onclick="handlePriorityAction('like')"><i class="fas fa-hand-paper me-1"></i>賛同</button>
-          <button type="button" class="btn btn-outline-secondary btn-sm flex-grow-1" style="font-size:0.72rem;" onclick="handlePriorityAction('demote')"><i class="fas fa-undo me-1"></i>戻す</button>
+        <div style="padding:8px 12px; background:#f0f0f5; border-top:1px solid #ddd; display:flex; gap:6px; flex-shrink:0; align-items:center;">
+          <button type="button" class="btn btn-primary btn-sm fw-bold" style="font-size:0.78rem; flex:2; padding:8px;" onclick="handlePriorityAction('like')"><i class="fas fa-hand-paper me-1"></i>賛同 <span id="prio-vote-count" class="badge bg-light text-primary ms-1">0</span></button>
+          <button type="button" class="btn btn-outline-secondary btn-sm" style="font-size:0.72rem; flex:1;" onclick="handlePriorityAction('demote')"><i class="fas fa-undo me-1"></i>戻す</button>
         </div>
       </div>
     </div>

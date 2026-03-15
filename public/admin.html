@@ -546,7 +546,7 @@ if(localStorage.getItem('co_heart_admin_email') && localStorage.getItem('co_hear
       <button class="prio-tab active" onclick="switchPrioTab('content')"><i class="fas fa-file-alt me-1"></i>内容</button>
       <button class="prio-tab" onclick="switchPrioTab('eval')"><i class="fas fa-chart-bar me-1"></i>7軸評価</button>
       <button class="prio-tab" onclick="switchPrioTab('discuss')"><i class="fas fa-comments me-1"></i>議論</button>
-      <button class="prio-tab" onclick="switchPrioTab('promote')"><i class="fas fa-arrow-up me-1"></i>昇格</button>
+      <!-- 昇格タブ削除: 過半数賛同で自動昇格のため不要 -->
     </div>
 
     <!-- Tab content area -->
@@ -603,23 +603,16 @@ if(localStorage.getItem('co_heart_admin_email') && localStorage.getItem('co_hear
         </div>
       </div>
 
-      <!-- Promote tab -->
-      <div id="prio-panel-promote" class="prio-panel" style="padding:20px;">
-        <div style="text-align:center; padding:30px 20px;">
-          <div style="font-size:3rem; margin-bottom:16px;">&#x1F4CB;</div>
-          <div style="font-weight:800; font-size:1.1rem; color:#2c3e50; margin-bottom:8px;">企画書に昇格</div>
-          <div style="font-size:0.85rem; color:#888; margin-bottom:12px; line-height:1.7;">この案件の投稿内容・AI分析・メンバーの議論を踏まえて<br>AIが企画書ドラフトを自動生成します。</div>
-          <div id="promote-status" style="margin-bottom:20px;"></div>
-          <button id="promote-btn" class="btn btn-success btn-lg fw-bold rounded-pill px-5 shadow" onclick="promoteToProposal()" disabled style="opacity:0.5;"><i class="fas fa-magic me-2"></i>企画書を自動生成</button>
-          <div id="promote-note" style="font-size:0.78rem; color:#999; margin-top:12px;"></div>
-        </div>
-      </div>
+      <!-- 昇格タブ削除: 過半数賛同で自動昇格 -->
     </div>
 
     <!-- Footer -->
-    <div style="padding:8px 12px; background:#f0f0f5; border-top:1px solid #ddd; display:flex; gap:6px; flex-shrink:0; align-items:center;">
-      <button type="button" class="btn btn-primary btn-sm fw-bold" style="font-size:0.78rem; flex:2; padding:8px;" onclick="handlePriorityAction('like')"><i class="fas fa-hand-paper me-1"></i>賛同 <span id="prio-vote-count" class="badge bg-light text-primary ms-1">0</span></button>
-      <button type="button" class="btn btn-outline-secondary btn-sm" style="font-size:0.72rem; flex:1;" onclick="handlePriorityAction('demote')"><i class="fas fa-undo me-1"></i>戻す</button>
+    <div style="padding:8px 12px; background:#f0f0f5; border-top:1px solid #ddd; flex-shrink:0;">
+      <div id="prio-vote-progress" style="text-align:center; margin-bottom:6px; font-size:0.78rem;"></div>
+      <div style="display:flex; gap:6px; align-items:center;">
+        <button type="button" class="btn btn-primary btn-sm fw-bold" style="font-size:0.78rem; flex:2; padding:8px;" onclick="handlePriorityAction('like')"><i class="fas fa-hand-paper me-1"></i>賛同 <span id="prio-vote-count" class="badge bg-light text-primary ms-1">0</span></button>
+        <button type="button" class="btn btn-outline-secondary btn-sm" style="font-size:0.72rem; flex:1;" onclick="handlePriorityAction('demote')"><i class="fas fa-undo me-1"></i>戻す</button>
+      </div>
     </div>
 
     <!-- Hidden elements for compatibility -->

@@ -208,6 +208,9 @@ window.openPriorityModal = function(pid) {
     switchPrioTab('content');
 
     document.getElementById('priority-modal').style.display = 'flex';
+
+    // フッターに賛同進捗を表示
+    updatePrioVoteProgress();
 };
 
 window.findSimilarPosts = function() {
@@ -257,7 +260,7 @@ window.switchPrioTab = function(tab) {
     document.querySelectorAll('.prio-panel').forEach(function(p){ p.classList.remove('active'); p.style.display='none'; });
     // Activate clicked tab
     var tabs = document.querySelectorAll('.prio-tab');
-    var tabNames = ['content','eval','discuss','promote'];
+    var tabNames = ['content','eval','discuss'];
     var idx = tabNames.indexOf(tab);
     if(idx >= 0 && tabs[idx]) tabs[idx].classList.add('active');
     var panel = document.getElementById('prio-panel-' + tab);
@@ -265,7 +268,6 @@ window.switchPrioTab = function(tab) {
     // Load data for specific tabs
     if(tab === 'eval') loadPrioEvalTab();
     if(tab === 'discuss') { /* chat already loaded on modal open */ }
-    if(tab === 'promote') loadPromoteTab();
 };
 
 function loadPrioEvalTab() {
@@ -312,6 +314,31 @@ function loadPrioEvalTab() {
     }
 }
 
+function updatePrioVoteProgress(overrideLikeCount) {
+    var pid = window.mxCurrentPrioPid;
+    if(!pid) return;
+    var progressEl = document.getElementById('prio-vote-progress');
+    if(!progressEl) return;
+
+    var r = null;
+    if(window.allPostData) { r = window.allPostData.find(function(x){ return String(x[MX_COLS.PID]) === String(pid); }); }
+    var likeStr = r ? String(r[MX_COLS.LIKE_COUNT]||"") : "";
+    var likeCount = typeof overrideLikeCount === 'number' ? overrideLikeCount : (likeStr ? likeStr.split(',').filter(function(x){return x;}).length : 0);
+
+    getCoreMemberCount().then(function(res) {
+        var memberCount = (res && res.count) ? res.count : 1;
+        var threshold = Math.ceil(memberCount / 2);
+        var canPromote = likeCount >= threshold;
+
+        if(canPromote) {
+            progressEl.innerHTML = '<span style="display:inline-flex; align-items:center; gap:6px; padding:4px 14px; background:#e8f5e9; border:1px solid #81c784; border-radius:8px; color:#2e7d32;"><i class="fas fa-check-circle"></i> <strong>' + likeCount + '/' + threshold + '票</strong> 昇格条件達成！過半数の賛同を得ました</span>';
+        } else {
+            progressEl.innerHTML = '<span style="display:inline-flex; align-items:center; gap:6px; padding:4px 14px; background:#fff3e0; border:1px solid #ffcc80; border-radius:8px; color:#e65100;"><i class="fas fa-hand-paper"></i> <strong>' + likeCount + '/' + threshold + '票</strong> あと' + (threshold - likeCount) + '票の賛同で企画書に自動昇格</span>';
+        }
+    });
+}
+
+// loadPromoteTab は削除（自動昇格のため不要）
 function loadPromoteTab() {
     var pid = window.mxCurrentPrioPid;
     if(!pid) return;
@@ -453,6 +480,8 @@ window.handlePriorityAction = function(action) {
             alert(res.msg);
             var voteEl = document.getElementById('prio-vote-count');
             if(voteEl) voteEl.innerText = res.likeCount || 0;
+            // 進捗バッジを更新
+            updatePrioVoteProgress(res.likeCount);
             if(res.transitioned) {
                 document.getElementById('priority-modal').style.display = 'none';
                 loadCurrentAnalysis();

@@ -436,4 +436,33 @@ router.post('/similar-posts', async (req, res) => {
   } catch (e) { res.json({ similar: [], count: 0, error: e.message }); }
 });
 
+// Inboxコメント投稿
+router.post('/inbox-comment', (req, res) => {
+  try {
+    const { postId, memberName, comment } = req.body;
+    if (!postId || !comment) return res.json({ success: false, msg: 'コメントを入力してください' });
+    const db = getDb();
+    db.prepare('INSERT INTO admin_discussions (voice_id, member_name, role, comment, avatar) VALUES (?,?,?,?,?)').run(postId, memberName || 'Admin', 'member_comment', comment, '');
+    const comments = db.prepare("SELECT member_name, comment, created_at FROM admin_discussions WHERE voice_id = ? AND role = 'member_comment' ORDER BY created_at DESC").all(postId);
+    res.json({ success: true, comments: comments.map(c => ({
+      name: c.member_name,
+      comment: c.comment,
+      date: new Date(c.created_at).toLocaleString('ja-JP', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', timeZone:'Asia/Tokyo' })
+    }))});
+  } catch(e) { res.json({ success: false, msg: e.message }); }
+});
+
+// Inboxコメント取得
+router.get('/inbox-comments/:postId', (req, res) => {
+  try {
+    const db = getDb();
+    const comments = db.prepare("SELECT member_name, comment, created_at FROM admin_discussions WHERE voice_id = ? AND role = 'member_comment' ORDER BY created_at DESC").all(req.params.postId);
+    res.json(comments.map(c => ({
+      name: c.member_name,
+      comment: c.comment,
+      date: new Date(c.created_at).toLocaleString('ja-JP', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', timeZone:'Asia/Tokyo' })
+    })));
+  } catch(e) { res.json([]); }
+});
+
 module.exports = router;

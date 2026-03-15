@@ -150,24 +150,73 @@ function renderReportList(data) {
         div.setAttribute('data-cat', cardCat);
         div.innerHTML =
             '<div class="post-header-bar '+headerClass+'"><span><i class="'+icon+'"></i> '+catName+likeBadge+'</span><span>'+dateStr+'</span></div>' +
-            '<div class="post-content">' +
-                '<div class="post-content-inner">' + thumbTag +
-                    '<div class="post-text-area">' +
-                        '<div class="user-info"><div class="avatar">'+avatar+'</div><div class="nick">'+escapeHtml(r[INBOX_COLS.USER_NAME])+'</div></div>' +
-                        '<div class="post-body" style="font-size:0.88rem;line-height:1.6;color:#444;white-space:pre-wrap;">'+escapeHtml(rawContent)+'</div>' +
-                    '</div>' +
+            '<div style="display:flex; min-height:80px;">' +
+                // 左: 投稿内容
+                '<div style="flex:1; padding:12px 14px; border-right:1px solid #f0f0f0;">' +
+                    '<div class="user-info" style="margin-bottom:6px;"><div class="avatar">'+avatar+'</div><div class="nick">'+escapeHtml(r[INBOX_COLS.USER_NAME])+'</div>' +
+                    '<button class="btn-like'+(likeCount > 0 ? ' liked' : '')+'" id="like-btn-'+pid+'" onclick="likePost(\''+pid+'\', '+sheetRow+')" style="margin-left:auto;"><i class="fas fa-heart"></i> <span id="like-count-'+pid+'">'+likeCount+'</span></button></div>' +
+                    (thumbTag ? '<div style="margin-bottom:8px;">'+thumbTag+'</div>' : '') +
+                    '<div style="font-size:0.88rem;line-height:1.6;color:#444;white-space:pre-wrap;">'+escapeHtml(rawContent)+'</div>' +
                 '</div>' +
-                '<div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; border-top:1px solid #f0f0f0; margin-top:8px;">' +
-                    '<button class="btn-like'+(likeCount > 0 ? ' liked' : '')+'" id="like-btn-'+pid+'" onclick="likePost(\''+pid+'\', '+sheetRow+')"><i class="fas fa-heart"></i> <span id="like-count-'+pid+'">'+likeCount+'</span></button>' +
+                // 右: コメント欄 + ボタン
+                '<div style="width:280px; flex-shrink:0; background:#faf8ff; padding:10px 12px; display:flex; flex-direction:column;">' +
+                    '<div style="font-size:0.68rem; font-weight:700; color:#6c5ce7; margin-bottom:4px;"><i class="fas fa-comments me-1"></i>推進メンバーのコメント</div>' +
+                    '<div id="inbox-comments-'+pid+'" style="flex:1; overflow-y:auto; margin-bottom:8px; font-size:0.78rem; color:#555; min-height:30px;"></div>' +
+                    '<div style="display:flex; gap:4px; margin-bottom:8px;">' +
+                        '<input type="text" id="inbox-comment-input-'+pid+'" placeholder="この投稿に一言..." style="flex:1; border:1px solid #ddd; border-radius:8px; padding:5px 8px; font-size:0.78rem; outline:none;">' +
+                        '<button class="btn btn-sm btn-outline-primary" style="font-size:0.7rem; white-space:nowrap; padding:4px 10px;" onclick="submitInboxComment(\''+pid+'\')"><i class="fas fa-paper-plane"></i></button>' +
+                    '</div>' +
                     '<div style="display:flex; gap:5px;">' +
-                        '<button class="btn btn-outline-secondary btn-admin" onclick="openEvalModal(\''+pid+'\')"><i class="fas fa-search me-1"></i>詳細</button>' +
-                        (!isTarget ? '<button class="btn btn-outline-danger btn-admin" onclick="toggleTriage(\''+pid+'\', true)"><i class="fas fa-star me-1"></i>重点へ</button>' : '<button class="btn btn-outline-success btn-admin" onclick="toggleTriage(\''+pid+'\', false)"><i class="fas fa-undo me-1"></i>解除</button>') +
+                        '<button class="btn btn-outline-secondary btn-admin" style="flex:1;" onclick="openEvalModal(\''+pid+'\')"><i class="fas fa-search me-1"></i>詳細</button>' +
+                        (!isTarget ? '<button class="btn btn-outline-danger btn-admin" style="flex:1;" onclick="toggleTriage(\''+pid+'\', true)"><i class="fas fa-star me-1"></i>重点へ</button>' : '<button class="btn btn-outline-success btn-admin" style="flex:1;" onclick="toggleTriage(\''+pid+'\', false)"><i class="fas fa-undo me-1"></i>解除</button>') +
                     '</div>' +
                 '</div>' +
             '</div>';
         list.appendChild(div);
+        // コメント読み込み
+        loadInboxComments(pid);
     });
     var countEl = document.getElementById('report-count'); if(countEl) countEl.innerText = visibleCount + " 件";
+}
+
+/* ── Inbox comments ── */
+function loadInboxComments(pid) {
+    var area = document.getElementById('inbox-comments-' + pid);
+    if (!area) return;
+    getInboxComments(pid).then(function(comments) {
+        if (comments && comments.length > 0) {
+            area.innerHTML = comments.map(function(c) {
+                return '<div style="padding:4px 0; border-bottom:1px solid #f0ecff;">' +
+                    '<span style="font-weight:700; color:#6c5ce7; font-size:0.72rem;">' + escapeHtml(c.name) + '</span>' +
+                    '<span style="color:#bbb; font-size:0.6rem; margin-left:4px;">' + c.date + '</span>' +
+                    '<div style="color:#444;">' + escapeHtml(c.comment) + '</div></div>';
+            }).join('');
+        } else {
+            area.innerHTML = '<div style="color:#ccc; font-size:0.75rem;">まだコメントはありません</div>';
+        }
+    });
+}
+
+function submitInboxComment(pid) {
+    var input = document.getElementById('inbox-comment-input-' + pid);
+    if (!input) return;
+    var text = input.value.trim();
+    if (!text) return;
+    var myName = (currentAdminProfile && currentAdminProfile.name) || 'Admin';
+    input.value = '';
+    postInboxComment(pid, myName, text).then(function(res) {
+        if (res && res.success) {
+            var area = document.getElementById('inbox-comments-' + pid);
+            if (area && res.comments) {
+                area.innerHTML = res.comments.map(function(c) {
+                    return '<div style="padding:4px 0; border-bottom:1px solid #f0ecff;">' +
+                        '<span style="font-weight:700; color:#6c5ce7; font-size:0.72rem;">' + escapeHtml(c.name) + '</span>' +
+                        '<span style="color:#bbb; font-size:0.6rem; margin-left:4px;">' + c.date + '</span>' +
+                        '<div style="color:#444;">' + escapeHtml(c.comment) + '</div></div>';
+                }).join('');
+            }
+        }
+    });
 }
 
 /* ── Open evaluation modal ── */

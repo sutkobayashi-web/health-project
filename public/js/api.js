@@ -183,6 +183,12 @@ function generateFoodReport(userId) {
 function sendFoodReportNow(userId, memberComment) {
   return api('/admin/food-report', { userId, sendNow: true, memberComment: memberComment || '' }, getAdminToken());
 }
+function postInboxComment(postId, memberName, comment) {
+  return api('/admin/inbox-comment', { postId, memberName, comment }, getAdminToken());
+}
+function getInboxComments(postId) {
+  return api('/admin/inbox-comments/' + postId, undefined, getAdminToken());
+}
 function getSimilarPosts(postId, content) {
   return api('/admin/similar-posts', { postId, content }, getAdminToken());
 }

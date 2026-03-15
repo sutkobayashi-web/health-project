@@ -164,9 +164,42 @@ window.openPriorityModal = function(pid) {
     var likeStr = String(r[MX_COLS.LIKE_COUNT]||""); var likeNum = likeStr ? likeStr.split(',').filter(function(x){return x;}).length : 0;
     document.getElementById('prio-like-count').innerHTML = '<i class="fas fa-thumbs-up me-1"></i> ' + likeNum;
     document.getElementById('prio-analysis').innerText = analysis;
-    // Clear similar posts area on modal open
+
+    // 画像表示
+    var imgArea = document.getElementById('prio-image-area');
+    var imgEl = document.getElementById('prio-image');
+    var imgUrl = r[MX_COLS.IMG] || '';
+    if (imgUrl && String(imgUrl).startsWith('http')) {
+        imgEl.src = imgUrl;
+        imgArea.style.display = 'block';
+    } else {
+        imgArea.style.display = 'none';
+    }
+
+    // メンバー評価を読み込み
+    var evalArea = document.getElementById('prio-evaluations');
+    if (evalArea) {
+        evalArea.innerHTML = '<div style="color:#aaa; font-size:0.8rem;">読み込み中...</div>';
+        getPostEvaluations(pid).then(function(evals) {
+            if (evals && evals.length > 0) {
+                evalArea.innerHTML = evals.map(function(ev) {
+                    var axes = ['法令:'+ev.scores.legal, 'リスク:'+ev.scores.risk, '頻度:'+ev.scores.freq, '緊急:'+ev.scores.urgency, '安全:'+ev.scores.safety, '価値:'+ev.scores.value, 'ニーズ:'+ev.scores.needs];
+                    return '<div style="margin-bottom:8px; padding:8px; background:white; border-radius:8px; border:1px solid #e0f0e8;">' +
+                        '<div style="font-weight:700; font-size:0.8rem; color:#333;">' + escapeHtml(ev.memberName) + ' <span style="font-size:0.65rem; color:#999;">' + ev.date + '</span></div>' +
+                        '<div style="font-size:0.7rem; color:#666; margin-top:2px;">' + axes.join(' / ') + '</div>' +
+                        (ev.comment ? '<div style="font-size:0.78rem; color:#555; margin-top:4px; font-style:italic;">"' + escapeHtml(ev.comment) + '"</div>' : '') +
+                    '</div>';
+                }).join('');
+            } else {
+                evalArea.innerHTML = '<div style="color:#aaa; font-size:0.8rem;">まだ評価がありません</div>';
+            }
+        });
+    }
+
+    // 類似の声を自動検索
     var similarArea = document.getElementById('similar-posts-area');
-    if(similarArea) similarArea.innerHTML = '';
+    if(similarArea) similarArea.innerHTML = '<div style="color:#aaa; font-size:0.8rem;">検索中...</div>';
+    findSimilarPosts();
     // AIチャットは初期非表示、ボタンで開く
     var chatWrapper = document.getElementById('chat-wrapper');
     if(chatWrapper) chatWrapper.style.display = 'none';

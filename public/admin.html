@@ -544,15 +544,36 @@ if(localStorage.getItem('co_heart_admin_email') && localStorage.getItem('co_hear
           <div><div class="fw-bold" style="font-size:0.9rem;" id="prio-user">Name</div><div class="text-muted" style="font-size:0.7rem;" id="prio-date">Date</div></div>
           <span class="badge bg-primary rounded-pill ms-auto" id="prio-like-count-side" style="font-size:0.7rem;"></span>
         </div>
-        <div class="mb-2">
-          <div style="font-size:0.65rem; font-weight:700; color:#999; letter-spacing:0.5px; margin-bottom:3px;"><i class="fas fa-quote-left me-1"></i>主訴</div>
-          <div id="prio-content" style="white-space:pre-wrap; font-size:0.83rem; line-height:1.6; color:#333; background:#f8f9fa; padding:10px; border-radius:10px; max-height:120px; overflow-y:auto;"></div>
+
+        <!-- 主訴 -->
+        <div class="mb-3">
+          <div style="font-size:0.7rem; font-weight:700; color:#999; letter-spacing:0.5px; margin-bottom:4px;"><i class="fas fa-quote-left me-1"></i>主訴・投稿内容</div>
+          <div id="prio-content" style="white-space:pre-wrap; font-size:0.9rem; line-height:1.7; color:#333; background:#f8f9fa; padding:12px; border-radius:10px;"></div>
         </div>
-        <div class="mb-2">
-          <div style="font-size:0.7rem; font-weight:700; color:#d63384; letter-spacing:0.5px; margin-bottom:3px;"><i class="fas fa-user-nurse me-1"></i>AI初期分析</div>
-          <div id="prio-analysis" style="font-size:0.88rem; color:#444; line-height:1.7; background:linear-gradient(135deg,#fff5f7,#f0f4ff); padding:12px; border-radius:10px; max-height:none; overflow-y:auto;"></div>
+
+        <!-- AI初期分析 -->
+        <div class="mb-3">
+          <div style="font-size:0.7rem; font-weight:700; color:#d63384; letter-spacing:0.5px; margin-bottom:4px;"><i class="fas fa-user-nurse me-1"></i>AI保健師の初期分析</div>
+          <div id="prio-analysis" style="font-size:0.88rem; color:#444; line-height:1.7; background:linear-gradient(135deg,#fff5f7,#f0f4ff); padding:12px; border-radius:10px;"></div>
         </div>
-        <div id="similar-posts-area"></div>
+
+        <!-- 類似の声 -->
+        <div class="mb-3">
+          <div style="font-size:0.7rem; font-weight:700; color:#3478f6; letter-spacing:0.5px; margin-bottom:4px;"><i class="fas fa-search-plus me-1"></i>類似の声</div>
+          <div id="similar-posts-area" style="background:#f0f7ff; padding:10px; border-radius:10px; min-height:40px;"><div style="color:#aaa; font-size:0.8rem;">検索中...</div></div>
+        </div>
+
+        <!-- チーム評価 -->
+        <div class="mb-3">
+          <div style="font-size:0.7rem; font-weight:700; color:#20c997; letter-spacing:0.5px; margin-bottom:4px;"><i class="fas fa-chart-bar me-1"></i>メンバー評価</div>
+          <div id="prio-evaluations" style="background:#f0faf4; padding:10px; border-radius:10px; min-height:40px;"><div style="color:#aaa; font-size:0.8rem;">評価データなし</div></div>
+        </div>
+
+        <!-- 投稿画像 -->
+        <div id="prio-image-area" style="display:none;" class="mb-3">
+          <div style="font-size:0.7rem; font-weight:700; color:#f39c12; letter-spacing:0.5px; margin-bottom:4px;"><i class="fas fa-image me-1"></i>添付画像</div>
+          <img id="prio-image" style="width:100%; border-radius:10px; border:1px solid #eee;" src="">
+        </div>
       </div>
       <div class="col-right-prio">
         <div style="text-align:center; padding:20px;" id="btn-open-chat">

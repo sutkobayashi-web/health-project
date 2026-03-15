@@ -198,6 +198,9 @@ function deleteInboxComment(id) {
 function getInboxComments(postId) {
   return api('/admin/inbox-comments/' + postId, undefined, getAdminToken());
 }
+function deleteEvaluation(id) {
+  return api('/admin/evaluation/delete', { id }, getAdminToken());
+}
 function getSimilarPosts(postId, content) {
   return api('/admin/similar-posts', { postId, content }, getAdminToken());
 }

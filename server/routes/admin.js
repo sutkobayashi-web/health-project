@@ -200,12 +200,23 @@ router.get('/evaluation/:postId', (req, res) => {
     const db = getDb();
     const evals = db.prepare('SELECT * FROM team_evaluations WHERE post_id = ?').all(req.params.postId);
     res.json(evals.map(e => ({
+      id: e.id,
       memberName: e.member_name,
       scores: { legal: e.legal, risk: e.risk, freq: e.freq, urgency: e.urgency, safety: e.safety, value: e.value, needs: e.needs },
       comment: e.comment,
       date: new Date(e.created_at).toLocaleString('ja-JP', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Tokyo' })
     })));
   } catch (e) { res.json([]); }
+});
+
+// 評価取消
+router.post('/evaluation/delete', (req, res) => {
+  try {
+    const { id } = req.body;
+    const db = getDb();
+    db.prepare('DELETE FROM team_evaluations WHERE id = ?').run(id);
+    res.json({ success: true, msg: '評価を取り消しました' });
+  } catch (e) { res.json({ success: false, msg: e.message }); }
 });
 
 // AIシミュレーション会議

@@ -297,12 +297,15 @@ function loadPrioEvalTab() {
     var listArea = document.getElementById('prio-eval-list');
     if(listArea) {
         listArea.innerHTML = '<div style="color:#aaa; font-size:0.8rem;">読み込み中...</div>';
+        var myName = (currentAdminProfile && currentAdminProfile.name) || 'Admin';
         getPostEvaluations(pid).then(function(evals) {
             if(evals && evals.length > 0) {
                 listArea.innerHTML = evals.map(function(ev) {
                     var total = ev.scores.legal + ev.scores.risk + ev.scores.freq + ev.scores.urgency + ev.scores.safety + ev.scores.value + ev.scores.needs;
-                    return '<div style="padding:8px 12px; background:white; border-radius:8px; border:1px solid #eee; margin-bottom:6px;">' +
-                        '<div style="display:flex; justify-content:space-between;"><span style="font-weight:700; font-size:0.82rem;">'+escapeHtml(ev.memberName)+'</span><span style="font-size:0.7rem; color:#999;">'+ev.date+'</span></div>' +
+                    var isOwn = ev.memberName === myName;
+                    var deleteBtn = isOwn ? '<span style="cursor:pointer; font-size:0.65rem; opacity:0.5; margin-left:auto;" onclick="cancelEvaluation('+ev.id+')" title="取消"><i class="fas fa-trash-alt"></i> 取消</span>' : '';
+                    return '<div style="padding:8px 12px; background:' + (isOwn ? '#f0f0ff' : 'white') + '; border-radius:8px; border:1px solid ' + (isOwn ? '#d0c8ff' : '#eee') + '; margin-bottom:6px;">' +
+                        '<div style="display:flex; align-items:center;"><span style="font-weight:700; font-size:0.82rem;">' + (isOwn ? '⭐ ' : '') + escapeHtml(ev.memberName)+'</span><span style="font-size:0.7rem; color:#999; margin-left:8px;">'+ev.date+'</span>' + deleteBtn + '</div>' +
                         '<div style="font-size:0.72rem; color:#555; margin-top:2px;">法'+ev.scores.legal+' 危'+ev.scores.risk+' 頻'+ev.scores.freq+' 急'+ev.scores.urgency+' 安'+ev.scores.safety+' 値'+ev.scores.value+' 需'+ev.scores.needs+' <span style="font-weight:700; color:#667eea;">= '+total+'/35</span></div>' +
                         (ev.comment ? '<div style="font-size:0.75rem; color:#666; margin-top:2px; font-style:italic;">"'+escapeHtml(ev.comment)+'"</div>' : '') +
                     '</div>';
@@ -380,6 +383,18 @@ function loadPromoteTab() {
         }
     });
 }
+
+window.cancelEvaluation = function(evalId) {
+    if(!confirm('この評価を取り消しますか？')) return;
+    deleteEvaluation(evalId).then(function(res) {
+        if(res && res.success) {
+            alert(res.msg);
+            loadPrioEvalTab();
+        } else {
+            alert('エラー: ' + (res ? res.msg : '不明'));
+        }
+    });
+};
 
 window.submitPrioEval = function() {
     var pid = window.mxCurrentPrioPid;

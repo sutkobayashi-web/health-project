@@ -1,7 +1,7 @@
 // ====================================================
 //  Matrix: 重点検討マトリクス & 詳細モーダル制御
 // ====================================================
-var MX_COLS = { DATE:0, ROW_ID:1, CONTENT:2, ANALYSIS:3, USER_NAME:4, AVATAR:5, REPLY:6, PID:7, AGE:10, JOB:11, IMG:12, LIKE_COUNT:13, DEMOTE_COUNT:14 };
+var MX_COLS = { DATE:14, ROW_ID:0, CONTENT:2, ANALYSIS:3, USER_NAME:4, AVATAR:5, REPLY:6, PID:7, CAT:8, STATUS:9, UID:10, IMG:11, NURSE:12, NUTRI:13, LIKE_COUNT:6, DEMOTE_COUNT:18 };
 window.mxCurrentPrioPid = null;
 var MX_AVATAR_MAP = { "産業医":"🩺","医":"🩺","保健師":"💉","看護":"💉","栄養士":"🥗","管理":"📝","課長":"📝","事務":"📝","専務":"👨‍⚖️","経営":"👨‍⚖️","佐藤":"💁‍♀️","山本":"👨‍💼","高橋":"👩‍💼","中村":"👨‍💻","伊藤":"👦","林":"👩‍🍳" };
 var allPointsData = [];

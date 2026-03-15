@@ -141,7 +141,9 @@ function renderReportList(data) {
         var likeBadge = likeCount > 0 ? '<span class="like-badge"><i class="fas fa-heart"></i> ' + likeCount + '</span>' : '';
         var dateStr = String(r[INBOX_COLS.DATE]||"");
         var headerClass, icon, catName, cardCat;
-        if(isTarget) { headerClass="header-target"; icon="fas fa-star"; catName="重点検討案件"; cardCat="target"; }
+        if(isTarget) { headerClass="header-target"; icon="fas fa-star"; catName="重点検討案件"; cardCat="target";
+            // 重点案件の賛同進捗バッジを後で設定するためのフラグ
+        }
         else if(rawContent.includes("食事") || analysisText.includes("栄養")) { headerClass="header-food"; icon="fas fa-utensils"; catName="食事チェック"; cardCat="food"; }
         else { headerClass="header-consult"; icon="far fa-comment-dots"; catName="相談・提案"; cardCat="consult"; }
         var imgUrl = r[INBOX_COLS.IMG]; var displayUrl = getPostImageUrl(imgUrl);
@@ -159,7 +161,11 @@ function renderReportList(data) {
             '<div style="display:flex; min-height:80px;">' +
                 // 左: 投稿内容
                 '<div style="flex:1; padding:12px 14px; border-right:1px solid #f0f0f0;">' +
-                    '<div class="user-info" style="margin-bottom:6px;"><div class="avatar">'+avatar+'</div><div class="nick">'+escapeHtml(r[INBOX_COLS.USER_NAME])+'</div>'+(likeCount > 0 ? '<span style="margin-left:auto; background:linear-gradient(135deg,#667eea,#764ba2); color:white; font-size:0.65rem; font-weight:700; padding:2px 8px; border-radius:10px; display:inline-flex; align-items:center; gap:3px;"><i class="fas fa-hand-paper"></i> '+likeCount+'票</span>' : '')+'</div>' +
+                    '<div class="user-info" style="margin-bottom:6px;"><div class="avatar">'+avatar+'</div><div class="nick">'+escapeHtml(r[INBOX_COLS.USER_NAME])+'</div>' +
+                    (isTarget ?
+                        '<span id="vote-progress-'+pid+'" style="margin-left:auto; font-size:0.65rem; font-weight:700; padding:3px 10px; border-radius:10px; display:inline-flex; align-items:center; gap:4px; background:#fff3e0; color:#e65100; border:1px solid #ffcc80;"><i class="fas fa-hand-paper"></i> '+likeCount+'票 / <span class="vote-threshold">?</span>票必要</span>' :
+                        (likeCount > 0 ? '<span style="margin-left:auto; background:linear-gradient(135deg,#667eea,#764ba2); color:white; font-size:0.65rem; font-weight:700; padding:2px 8px; border-radius:10px; display:inline-flex; align-items:center; gap:3px;"><i class="fas fa-hand-paper"></i> '+likeCount+'票</span>' : '')
+                    ) + '</div>' +
                     (thumbTag ? '<div style="margin-bottom:8px;">'+thumbTag+'</div>' : '') +
                     '<div style="font-size:0.88rem;line-height:1.6;color:#444;white-space:pre-wrap;">'+escapeHtml(rawContent)+'</div>' +
                 '</div>' +
@@ -197,6 +203,29 @@ function renderReportList(data) {
         loadInlineEvalDisplay(pid);
     });
     var countEl = document.getElementById('report-count'); if(countEl) countEl.innerText = visibleCount + " 件";
+    // 重点案件の賛同進捗バッジを更新
+    updateVoteProgressBadges();
+}
+
+function updateVoteProgressBadges() {
+    getCoreMemberCount().then(function(res) {
+        var memberCount = (res && res.count) ? res.count : 1;
+        var threshold = Math.ceil(memberCount / 2);
+        document.querySelectorAll('.vote-threshold').forEach(function(el) { el.innerText = threshold; });
+        document.querySelectorAll('[id^="vote-progress-"]').forEach(function(el) {
+            var text = el.innerText;
+            var match = text.match(/(\d+)票/);
+            var votes = match ? parseInt(match[1]) : 0;
+            if (votes >= threshold) {
+                el.style.background = '#e8f5e9';
+                el.style.color = '#2e7d32';
+                el.style.borderColor = '#81c784';
+                el.innerHTML = '<i class="fas fa-check-circle"></i> ' + votes + '/' + threshold + '票 昇格可能';
+            } else {
+                el.innerHTML = '<i class="fas fa-hand-paper"></i> ' + votes + '/' + threshold + '票 あと' + (threshold - votes) + '票';
+            }
+        });
+    });
 }
 
 /* ── 7軸評価 ── */

@@ -684,8 +684,8 @@ function renderPost(p) {
   var likeId = 'like-' + p.row;
   var heartIcon = p.isLiked ? 'fas' : 'far';
   var heartClass = p.isLiked ? ' liked' : '';
-  var likeBtn = '<span class="post-like-btn' + heartClass + '" id="' + likeId + '" data-row="' + p.row + '" data-likeid="' + likeId + '"><i class="' + heartIcon + ' fa-heart"></i> <span class="like-num">' + p.likeCount + '</span></span>';
-  return '<div class="post-card" onclick="togglePost(this,event)">' +
+  var likeBtn = '<span class="post-like-btn' + heartClass + '" id="' + likeId + '" data-row="' + p.row + '"><i class="' + heartIcon + ' fa-heart"></i> <span class="like-num">' + p.likeCount + '</span></span>';
+  return '<div class="post-card">' +
     '<div class="post-header-bar ' + headerClass + '"><span><i class="' + icon + '"></i> ' + catName + '</span><span>' + p.date + '</span></div>' +
     '<div class="post-content">' +
       '<div class="user-info"><div class="avatar">' + p.avatar + '</div><div class="nick">' + p.nickname + ' <span class="rank">' + p.authorRank + '</span></div>' + likeBtn + '</div>' +
@@ -694,22 +694,24 @@ function renderPost(p) {
     '</div></div>';
 }
 
-function togglePost(card, e) {
-  // ハートボタンをタップした場合はカード開閉しない
-  if (e && e.target.closest('.post-like-btn')) return;
-  card.classList.toggle('expanded');
-}
-
-// ハートボタンのイベントデリゲーション
+// タイムライン全体のクリックをイベントデリゲーションで処理
 document.addEventListener('click', function(e) {
+  // ハートボタンが押された場合
   var likeEl = e.target.closest('.post-like-btn');
-  if (!likeEl) return;
-  e.stopPropagation();
-  e.preventDefault();
-  var row = parseInt(likeEl.getAttribute('data-row'));
-  var likeId = likeEl.getAttribute('data-likeid');
-  if (row && likeId) like(row, likeId);
-}, true);
+  if (likeEl) {
+    e.stopPropagation();
+    e.preventDefault();
+    var row = parseInt(likeEl.getAttribute('data-row'));
+    var likeId = likeEl.id;
+    if (row && likeId) like(row, likeId);
+    return;
+  }
+  // カードが押された場合（ハート以外）
+  var card = e.target.closest('.post-card');
+  if (card) {
+    card.classList.toggle('expanded');
+  }
+});
 
 // ====== 投稿 ======
 function submitPost() {

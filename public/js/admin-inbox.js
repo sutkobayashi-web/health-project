@@ -190,9 +190,14 @@ function renderReportList(data) {
                     '</div>' +
                     // ボタン
                     '<div style="display:flex; gap:4px; flex-shrink:0;">' +
-                        '<button class="btn btn-outline-secondary btn-admin" style="flex:1; font-size:0.68rem;" onclick="openEvalModal(\''+pid+'\')"><i class="fas fa-search me-1"></i>詳細</button>' +
-                        '<button class="btn btn-outline-danger btn-admin" style="flex:1; font-size:0.68rem;" onclick="openEvalModalWithTab(\''+pid+'\',\'eval\')"><i class="fas fa-chart-bar me-1"></i>7軸評価</button>' +
-                        (!isTarget ? '<button class="btn btn-outline-warning btn-admin" style="flex:1; font-size:0.68rem;" onclick="toggleTriage(\''+pid+'\', true)"><i class="fas fa-star me-1"></i>重点へ</button>' : '<button class="btn btn-outline-success btn-admin" style="flex:1; font-size:0.68rem;" onclick="toggleTriage(\''+pid+'\', false)"><i class="fas fa-undo me-1"></i>解除</button>') +
+                        (isTarget ?
+                            '<button class="btn btn-primary btn-admin fw-bold" style="flex:1; font-size:0.68rem;" onclick="openEvalModal(\''+pid+'\')"><i class="fas fa-search me-1"></i>詳細・評価・議論</button>' +
+                            '<button class="btn btn-outline-secondary btn-admin" style="flex-shrink:0; font-size:0.68rem;" onclick="toggleTriage(\''+pid+'\', false)"><i class="fas fa-undo me-1"></i>解除</button>'
+                        :
+                            '<button class="btn btn-outline-secondary btn-admin" style="flex:1; font-size:0.68rem;" onclick="openEvalModal(\''+pid+'\')"><i class="fas fa-search me-1"></i>詳細</button>' +
+                            '<button class="btn btn-outline-danger btn-admin" style="flex:1; font-size:0.68rem;" onclick="openEvalModalWithTab(\''+pid+'\',\'eval\')"><i class="fas fa-chart-bar me-1"></i>7軸評価</button>' +
+                            '<button class="btn btn-outline-warning btn-admin" style="flex:1; font-size:0.68rem;" onclick="toggleTriage(\''+pid+'\', true)"><i class="fas fa-star me-1"></i>重点へ</button>'
+                        ) +
                     '</div>' +
                 '</div>' +
             '</div>';

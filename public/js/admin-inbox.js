@@ -150,15 +150,20 @@ function renderReportList(data) {
         div.setAttribute('data-cat', cardCat);
         div.innerHTML =
             '<div class="post-header-bar '+headerClass+'"><span><i class="'+icon+'"></i> '+catName+likeBadge+'</span><span>'+dateStr+'</span></div>' +
-            '<div class="post-content"><div class="post-content-inner">' + thumbTag +
-                '<div class="post-text-area"><div class="user-info"><div class="avatar">'+avatar+'</div><div class="nick">'+escapeHtml(r[INBOX_COLS.USER_NAME])+'</div></div><div class="post-body" style="-webkit-line-clamp:3;">'+escapeHtml(rawContent)+'</div></div>' +
-            '</div>' + aiHtml +
-                '<div class="action-bar" style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; border-top:1px solid #f0f0f0;">' +
+            '<div class="post-content">' +
+                '<div class="post-content-inner">' + thumbTag +
+                    '<div class="post-text-area">' +
+                        '<div class="user-info"><div class="avatar">'+avatar+'</div><div class="nick">'+escapeHtml(r[INBOX_COLS.USER_NAME])+'</div></div>' +
+                        '<div class="post-body" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:0.88rem;line-height:1.6;color:#444;">'+escapeHtml(rawContent)+'</div>' +
+                    '</div>' +
+                '</div>' +
+                '<div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; border-top:1px solid #f0f0f0; margin-top:8px;">' +
                     '<button class="btn-like'+(likeCount > 0 ? ' liked' : '')+'" id="like-btn-'+pid+'" onclick="likePost(\''+pid+'\', '+sheetRow+')"><i class="fas fa-heart"></i> <span id="like-count-'+pid+'">'+likeCount+'</span></button>' +
                     '<div style="display:flex; gap:5px;">' +
-                    '<button class="btn btn-outline-secondary btn-admin" onclick="openEvalModal(\''+pid+'\')">詳細・評価</button>' +
-                    (!isTarget ? '<button class="btn btn-outline-danger btn-admin" onclick="toggleTriage(\''+pid+'\', true)">重点へ</button>' : '<button class="btn btn-outline-success btn-admin" onclick="toggleTriage(\''+pid+'\', false)">解除</button>') +
-                '</div></div>' +
+                        '<button class="btn btn-outline-secondary btn-admin" onclick="openEvalModal(\''+pid+'\')"><i class="fas fa-search me-1"></i>詳細</button>' +
+                        (!isTarget ? '<button class="btn btn-outline-danger btn-admin" onclick="toggleTriage(\''+pid+'\', true)"><i class="fas fa-star me-1"></i>重点へ</button>' : '<button class="btn btn-outline-success btn-admin" onclick="toggleTriage(\''+pid+'\', false)"><i class="fas fa-undo me-1"></i>解除</button>') +
+                    '</div>' +
+                '</div>' +
             '</div>';
         list.appendChild(div);
     });

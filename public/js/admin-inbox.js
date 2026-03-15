@@ -32,6 +32,12 @@
   .btn-like { background:white; border:1px solid #ff6b6b; color:#ff6b6b; border-radius:20px; padding:4px 12px; font-size:0.8rem; display:flex; align-items:center; gap:5px; cursor:pointer; transition:all 0.2s; }
   .btn-like:hover { background:#fff0f0; }
   .btn-like.liked { background:#ff6b6b; color:white; }
+  .btn-vote { background:white; border:2px solid #667eea; color:#667eea; border-radius:8px; padding:5px 14px; font-size:0.78rem; font-weight:700; display:inline-flex; align-items:center; gap:6px; cursor:pointer; transition:all 0.2s; }
+  .btn-vote:hover { background:#f0f0ff; transform:translateY(-1px); box-shadow:0 2px 8px rgba(102,126,234,0.15); }
+  .btn-vote:active { transform:scale(0.97); }
+  .btn-vote.voted { background:linear-gradient(135deg,#667eea,#764ba2); color:white; border-color:transparent; box-shadow:0 2px 8px rgba(102,126,234,0.3); }
+  .btn-vote .vote-count { background:rgba(255,255,255,0.25); padding:1px 8px; border-radius:10px; font-size:0.72rem; font-weight:800; min-width:18px; text-align:center; }
+  .btn-vote:not(.voted) .vote-count { background:#f0f0ff; color:#667eea; }
   .like-badge { display:inline-flex; align-items:center; gap:3px; background:#fff0f0; color:#ff6b6b; border-radius:10px; padding:2px 8px; font-size:0.75rem; font-weight:bold; margin-left:8px; }
   .btn-admin { font-size:0.75rem; padding:4px 12px; border-radius:20px; font-weight:bold; display:inline-flex; align-items:center; justify-content:center; }
 `; document.head.appendChild(s);})();
@@ -154,7 +160,7 @@ function renderReportList(data) {
                 // 左: 投稿内容
                 '<div style="flex:1; padding:12px 14px; border-right:1px solid #f0f0f0;">' +
                     '<div class="user-info" style="margin-bottom:6px;"><div class="avatar">'+avatar+'</div><div class="nick">'+escapeHtml(r[INBOX_COLS.USER_NAME])+'</div>' +
-                    '<button class="btn-like'+(likeCount > 0 ? ' liked' : '')+'" id="like-btn-'+pid+'" onclick="likePost(\''+pid+'\', '+sheetRow+')" style="margin-left:auto;"><i class="fas fa-heart"></i> <span id="like-count-'+pid+'">'+likeCount+'</span></button></div>' +
+                    '<button class="btn-vote'+(likeCount > 0 ? ' voted' : '')+'" id="like-btn-'+pid+'" onclick="likePost(\''+pid+'\', '+sheetRow+')" style="margin-left:auto;"><i class="fas fa-hand-paper"></i> 賛同 <span class="vote-count" id="like-count-'+pid+'">'+likeCount+'</span></button></div>' +
                     (thumbTag ? '<div style="margin-bottom:8px;">'+thumbTag+'</div>' : '') +
                     '<div style="font-size:0.88rem;line-height:1.6;color:#444;white-space:pre-wrap;">'+escapeHtml(rawContent)+'</div>' +
                 '</div>' +
@@ -263,14 +269,14 @@ function likePost(pid, rowId) {
     var adminUid = (currentAdminProfile && currentAdminProfile.email) ? currentAdminProfile.email : 'admin';
     var btn = document.getElementById('like-btn-' + pid);
     var countEl = document.getElementById('like-count-' + pid);
-    if(btn) { btn.disabled = true; btn.style.opacity = '0.5'; }
+    if(btn) { btn.disabled = true; btn.style.opacity = '0.6'; }
     toggleLike(rowId, adminUid).then(function(res) {
         if(btn) { btn.disabled = false; btn.style.opacity = '1'; }
-        if(!res || !res.success) { alert("いいねエラー: " + (res ? res.msg : "応答なし")); return; }
+        if(!res || !res.success) { alert("投票エラー: " + (res ? res.msg : "応答なし")); return; }
         if(countEl) countEl.innerText = res.count;
         if(btn) {
-            if(res.isLiked) { btn.classList.add('liked'); }
-            else { btn.classList.remove('liked'); }
+            if(res.isLiked) { btn.classList.add('voted'); btn.classList.remove('not-voted'); }
+            else { btn.classList.remove('voted'); btn.classList.add('not-voted'); }
         }
     }).catch(function(err) {
         if(btn) { btn.disabled = false; btn.style.opacity = '1'; }

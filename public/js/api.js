@@ -77,6 +77,9 @@ function toggleLike(postRow, viewerUid) {
 function deletePost(postID, userUid) {
   return api('/posts/delete', { postID, userUid });
 }
+function editPost(postID, userUid, newContent) {
+  return api('/posts/edit', { postID, userUid, newContent });
+}
 
 // ===== Admin =====
 function getReportData() {
@@ -185,6 +188,12 @@ function sendFoodReportNow(userId, memberComment) {
 }
 function postInboxComment(postId, memberName, comment) {
   return api('/admin/inbox-comment', { postId, memberName, comment }, getAdminToken());
+}
+function editInboxComment(id, newComment) {
+  return api('/admin/inbox-comment-edit', { id, newComment }, getAdminToken());
+}
+function deleteInboxComment(id) {
+  return api('/admin/inbox-comment-delete', { id }, getAdminToken());
 }
 function getInboxComments(postId) {
   return api('/admin/inbox-comments/' + postId, undefined, getAdminToken());

@@ -180,17 +180,29 @@ function renderReportList(data) {
 }
 
 /* ── Inbox comments ── */
+function renderInboxCommentList(comments, pid) {
+    var myName = (currentAdminProfile && currentAdminProfile.name) || 'Admin';
+    return comments.map(function(c) {
+        var isOwn = c.name === myName;
+        var btns = isOwn ? '<span style="margin-left:auto; display:flex; gap:2px;">' +
+            '<span class="inbox-comment-edit" data-cid="'+c.id+'" data-pid="'+pid+'" style="cursor:pointer; font-size:0.65rem; opacity:0.5;" title="修正">✏️</span>' +
+            '<span class="inbox-comment-del" data-cid="'+c.id+'" data-pid="'+pid+'" style="cursor:pointer; font-size:0.65rem; opacity:0.5;" title="削除">🗑️</span></span>' : '';
+        return '<div style="padding:4px 0; border-bottom:1px solid #f0ecff;">' +
+            '<div style="display:flex; align-items:center;">' +
+                '<span style="font-weight:700; color:#6c5ce7; font-size:0.72rem;">' + escapeHtml(c.name) + '</span>' +
+                '<span style="color:#bbb; font-size:0.6rem; margin-left:4px;">' + c.date + '</span>' +
+                btns +
+            '</div>' +
+            '<div style="color:#444;">' + escapeHtml(c.comment) + '</div></div>';
+    }).join('');
+}
+
 function loadInboxComments(pid) {
     var area = document.getElementById('inbox-comments-' + pid);
     if (!area) return;
     getInboxComments(pid).then(function(comments) {
         if (comments && comments.length > 0) {
-            area.innerHTML = comments.map(function(c) {
-                return '<div style="padding:4px 0; border-bottom:1px solid #f0ecff;">' +
-                    '<span style="font-weight:700; color:#6c5ce7; font-size:0.72rem;">' + escapeHtml(c.name) + '</span>' +
-                    '<span style="color:#bbb; font-size:0.6rem; margin-left:4px;">' + c.date + '</span>' +
-                    '<div style="color:#444;">' + escapeHtml(c.comment) + '</div></div>';
-            }).join('');
+            area.innerHTML = renderInboxCommentList(comments, pid);
         } else {
             area.innerHTML = '<div style="color:#ccc; font-size:0.75rem;">まだコメントはありません</div>';
         }
@@ -205,19 +217,37 @@ function submitInboxComment(pid) {
     var myName = (currentAdminProfile && currentAdminProfile.name) || 'Admin';
     input.value = '';
     postInboxComment(pid, myName, text).then(function(res) {
-        if (res && res.success) {
+        if (res && res.success && res.comments) {
             var area = document.getElementById('inbox-comments-' + pid);
-            if (area && res.comments) {
-                area.innerHTML = res.comments.map(function(c) {
-                    return '<div style="padding:4px 0; border-bottom:1px solid #f0ecff;">' +
-                        '<span style="font-weight:700; color:#6c5ce7; font-size:0.72rem;">' + escapeHtml(c.name) + '</span>' +
-                        '<span style="color:#bbb; font-size:0.6rem; margin-left:4px;">' + c.date + '</span>' +
-                        '<div style="color:#444;">' + escapeHtml(c.comment) + '</div></div>';
-                }).join('');
-            }
+            if (area) area.innerHTML = renderInboxCommentList(res.comments, pid);
         }
     });
 }
+
+// コメント修正・削除のイベントデリゲーション
+document.addEventListener('click', function(e) {
+    var editEl = e.target.closest('.inbox-comment-edit');
+    if (editEl) {
+        e.stopPropagation();
+        var cid = parseInt(editEl.getAttribute('data-cid'));
+        var pid = editEl.getAttribute('data-pid');
+        var currentText = editEl.closest('div').nextElementSibling ? editEl.closest('div').nextElementSibling.textContent : '';
+        var newText = prompt('コメントを修正:', currentText);
+        if (newText !== null && newText.trim()) {
+            editInboxComment(cid, newText).then(function(res) { if (res.success) loadInboxComments(pid); });
+        }
+        return;
+    }
+    var delEl = e.target.closest('.inbox-comment-del');
+    if (delEl) {
+        e.stopPropagation();
+        if (!confirm('このコメントを削除しますか？')) return;
+        var cid2 = parseInt(delEl.getAttribute('data-cid'));
+        var pid2 = delEl.getAttribute('data-pid');
+        deleteInboxComment(cid2).then(function(res) { if (res.success) loadInboxComments(pid2); });
+        return;
+    }
+});
 
 /* ── Open evaluation modal ── */
 function openEvalModal(pid) { if(typeof openPriorityModal === 'function') openPriorityModal(pid); else alert("詳細画面を開けません。リロードしてください。"); }

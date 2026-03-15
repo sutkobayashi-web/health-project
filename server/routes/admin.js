@@ -443,8 +443,9 @@ router.post('/inbox-comment', (req, res) => {
     if (!postId || !comment) return res.json({ success: false, msg: 'コメントを入力してください' });
     const db = getDb();
     db.prepare('INSERT INTO admin_discussions (voice_id, member_name, role, comment, avatar) VALUES (?,?,?,?,?)').run(postId, memberName || 'Admin', 'member_comment', comment, '');
-    const comments = db.prepare("SELECT member_name, comment, created_at FROM admin_discussions WHERE voice_id = ? AND role = 'member_comment' ORDER BY created_at DESC").all(postId);
+    const comments = db.prepare("SELECT id, member_name, comment, created_at FROM admin_discussions WHERE voice_id = ? AND role = 'member_comment' ORDER BY created_at DESC").all(postId);
     res.json({ success: true, comments: comments.map(c => ({
+      id: c.id,
       name: c.member_name,
       comment: c.comment,
       date: new Date(c.created_at).toLocaleString('ja-JP', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', timeZone:'Asia/Tokyo' })
@@ -456,13 +457,35 @@ router.post('/inbox-comment', (req, res) => {
 router.get('/inbox-comments/:postId', (req, res) => {
   try {
     const db = getDb();
-    const comments = db.prepare("SELECT member_name, comment, created_at FROM admin_discussions WHERE voice_id = ? AND role = 'member_comment' ORDER BY created_at DESC").all(req.params.postId);
+    const comments = db.prepare("SELECT id, member_name, comment, created_at FROM admin_discussions WHERE voice_id = ? AND role = 'member_comment' ORDER BY created_at DESC").all(req.params.postId);
     res.json(comments.map(c => ({
+      id: c.id,
       name: c.member_name,
       comment: c.comment,
       date: new Date(c.created_at).toLocaleString('ja-JP', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', timeZone:'Asia/Tokyo' })
     })));
   } catch(e) { res.json([]); }
+});
+
+// Inboxコメント修正
+router.post('/inbox-comment-edit', (req, res) => {
+  try {
+    const { id, newComment } = req.body;
+    if (!newComment || !newComment.trim()) return res.json({ success: false, msg: '内容を入力してください' });
+    const db = getDb();
+    db.prepare('UPDATE admin_discussions SET comment = ? WHERE id = ?').run(newComment.trim(), id);
+    res.json({ success: true });
+  } catch(e) { res.json({ success: false, msg: e.message }); }
+});
+
+// Inboxコメント削除
+router.post('/inbox-comment-delete', (req, res) => {
+  try {
+    const { id } = req.body;
+    const db = getDb();
+    db.prepare('DELETE FROM admin_discussions WHERE id = ?').run(id);
+    res.json({ success: true });
+  } catch(e) { res.json({ success: false, msg: e.message }); }
 });
 
 module.exports = router;

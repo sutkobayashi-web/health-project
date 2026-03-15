@@ -78,7 +78,10 @@
   .post-body { font-size: 0.88rem; line-height: 1.6; color: #444; white-space: pre-wrap; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; cursor: pointer; }
   .post-img { width: 100%; border-radius: 10px; margin-top: 10px; border: 1px solid #eee; }
   .ai-reply { background: linear-gradient(135deg, #f0f7ff 0%, #f5f0ff 100%); border-left: 4px solid #6c5ce7; padding: 12px 14px; border-radius: 0 12px 12px 0; font-size: 0.88rem; color: #2c3e50; margin-top: 12px; line-height: 1.6; }
-  .post-like-btn { margin-left: auto; cursor: pointer; display: flex; align-items: center; gap: 3px; padding: 4px 10px; border-radius: 16px; user-select: none; -webkit-tap-highlight-color: transparent; }
+  .post-own-btns { display: flex; gap: 2px; margin-left: auto; }
+  .post-edit-btn, .post-del-btn { cursor: pointer; font-size: 0.8rem; padding: 2px 4px; border-radius: 6px; opacity: 0.5; transition: opacity 0.2s; }
+  .post-edit-btn:hover, .post-del-btn:hover { opacity: 1; }
+  .post-like-btn { cursor: pointer; display: flex; align-items: center; gap: 3px; padding: 4px 10px; border-radius: 16px; user-select: none; -webkit-tap-highlight-color: transparent; }
   .post-like-btn .like-heart { font-style: normal; font-size: 1rem; line-height: 1; }
   .post-like-btn .like-num { font-weight: 700; font-size: 0.75rem; min-width: 8px; color: #999; }
   .post-like-btn.liked .like-num { color: #ff6b6b; }
@@ -683,12 +686,15 @@ function renderPost(p) {
   if (p.content.includes("【写真】") || (p.analysis && p.analysis.includes("栄養"))) { headerClass = "header-food"; icon = "fas fa-utensils"; catName = "食事チェック"; }
   var likeId = 'like-' + p.row;
   var liked = p.isLiked;
+  var isOwn = currentUser && p.authorUid === currentUser.uid;
+  var ownBtns = isOwn ? '<span class="post-own-btns" data-postid="' + p.id + '"><span class="post-edit-btn" title="修正">✏️</span><span class="post-del-btn" title="削除">🗑️</span></span>' : '';
   return '<div class="post-card" data-row="' + p.row + '">' +
     '<div class="post-header-bar ' + headerClass + '"><span><i class="' + icon + '"></i> ' + catName + '</span><span>' + p.date + '</span></div>' +
     '<div class="post-content">' +
       '<div class="user-info">' +
         '<div class="avatar">' + p.avatar + '</div>' +
         '<div class="nick">' + p.nickname + ' <span class="rank">' + p.authorRank + '</span></div>' +
+        ownBtns +
         '<span class="post-like-btn" id="' + likeId + '" data-row="' + p.row + '" data-liked="' + (liked ? '1' : '0') + '">' +
           (liked ? '❤️' : '🤍') + ' <span class="like-num">' + p.likeCount + '</span>' +
         '</span>' +
@@ -749,8 +755,39 @@ function closePostDetail() {
 document.addEventListener('click', function(e) {
   if (e.target.id === 'post-detail-close-btn') { e.stopPropagation(); closePostDetail(); return; }
   if (e.target.closest('#post-detail-modal')) { return; }
+  // 修正ボタン
+  var editBtn = e.target.closest('.post-edit-btn');
+  if (editBtn) {
+    e.stopPropagation();
+    var postId = editBtn.closest('.post-own-btns').getAttribute('data-postid');
+    var p = Object.values(_postCache).find(function(x){ return x.id === postId; });
+    if (p) {
+      var newText = prompt('投稿を修正:', p.content);
+      if (newText !== null && newText.trim()) {
+        editPost(postId, currentUser.uid, newText).then(function(res) {
+          if (res && res.success) { loadTimeline(0, true); }
+          else { alert(res ? res.msg : 'エラー'); }
+        });
+      }
+    }
+    return;
+  }
+  // 削除ボタン
+  var delBtn = e.target.closest('.post-del-btn');
+  if (delBtn) {
+    e.stopPropagation();
+    if (!confirm('この投稿を削除しますか？')) return;
+    var postId2 = delBtn.closest('.post-own-btns').getAttribute('data-postid');
+    deletePost(postId2, currentUser.uid).then(function(res) {
+      if (res && res.success) { loadTimeline(0, true); updateHeaderStats(); }
+      else { alert(res ? res.msg : 'エラー'); }
+    });
+    return;
+  }
+  // いいね
   var likeEl = e.target.closest('.post-like-btn');
   if (likeEl) { e.stopPropagation(); e.preventDefault(); var row = parseInt(likeEl.getAttribute('data-row')); if (row) like(row, likeEl.id); return; }
+  // カードタップ → 詳細
   var card = e.target.closest('.post-card');
   if (card) { var row2 = parseInt(card.getAttribute('data-row')); if (row2) openPostDetail(row2); return; }
 });

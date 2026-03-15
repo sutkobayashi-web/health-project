@@ -156,4 +156,18 @@ router.post('/delete', (req, res) => {
   }
 });
 
+// 投稿修正
+router.post('/edit', (req, res) => {
+  try {
+    const { postID, userUid, newContent } = req.body;
+    if (!newContent || !newContent.trim()) return res.json({ success: false, msg: '内容を入力してください' });
+    const db = getDb();
+    const result = db.prepare('UPDATE posts SET content = ? WHERE post_id = ? AND user_id = ?').run(newContent.trim(), postID, userUid);
+    if (result.changes > 0) res.json({ success: true, msg: '修正しました' });
+    else res.json({ success: false, msg: '修正対象なし' });
+  } catch (e) {
+    res.json({ success: false, msg: e.message });
+  }
+});
+
 module.exports = router;

@@ -811,30 +811,30 @@ function showFoodResponse(text) {
   document.body.appendChild(overlay);
 }
 
+function updateLikeUI(el, liked, count) {
+  if (liked) {
+    el.classList.add('liked');
+    el.innerHTML = '<i class="fas fa-heart"></i> <span class="like-num">' + count + '</span>';
+  } else {
+    el.classList.remove('liked');
+    el.innerHTML = '<i class="far fa-heart"></i> <span class="like-num">' + count + '</span>';
+  }
+}
+
 function like(row, likeId) {
   var el = document.getElementById(likeId);
   if (!el) return;
-  var icon = el.querySelector('i');
   var numEl = el.querySelector('.like-num');
+  var currentCount = parseInt(numEl.innerText) || 0;
   var isLiked = el.classList.contains('liked');
 
   // 即時UI更新（楽観的）
-  if (isLiked) {
-    el.classList.remove('liked');
-    icon.classList.replace('fas', 'far');
-    numEl.innerText = Math.max(0, parseInt(numEl.innerText) - 1);
-  } else {
-    el.classList.add('liked');
-    icon.classList.replace('far', 'fas');
-    numEl.innerText = parseInt(numEl.innerText) + 1;
-  }
+  updateLikeUI(el, !isLiked, isLiked ? Math.max(0, currentCount - 1) : currentCount + 1);
 
   // API呼び出し→サーバーの正確な値で補正
   toggleLike(row, currentUser.uid).then(function(res) {
     if (res && res.success) {
-      numEl.innerText = res.count;
-      if (res.isLiked) { el.classList.add('liked'); icon.classList.replace('far', 'fas'); }
-      else { el.classList.remove('liked'); icon.classList.replace('fas', 'far'); }
+      updateLikeUI(el, res.isLiked, res.count);
     }
   });
 }

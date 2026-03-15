@@ -355,3 +355,69 @@ window.handlePriorityAction = function(action) {
         alert("通信エラー: " + err.message);
     });
 };
+
+// 重点検討 → 企画書に昇格
+window.promoteToProposal = function() {
+    if(!window.mxCurrentPrioPid) { alert("案件が選択されていません"); return; }
+    var pid = window.mxCurrentPrioPid;
+    var r = null;
+    if(window.allPostData) { r = window.allPostData.find(function(x){ return String(x[MX_COLS.PID]) === String(pid); }); }
+    if(!r) { alert("データ参照エラー"); return; }
+
+    var content = String(r[MX_COLS.CONTENT]||"");
+    if(content.includes("///SCORE///")) content = content.split("///SCORE///")[0];
+    var analysis = String(r[MX_COLS.ANALYSIS]||"");
+    if(analysis.includes("///SCORE///")) analysis = analysis.split("///SCORE///")[0];
+
+    // スコアを取得
+    var scoreData = {};
+    var rawAnalysis = String(r[MX_COLS.ANALYSIS]||"");
+    if(rawAnalysis.includes("///SCORE///")) {
+        try { scoreData = JSON.parse(rawAnalysis.split("///SCORE///")[1]); } catch(e) {}
+    }
+    var scores = {
+        legal: Number(scoreData.legal) || 3,
+        risk: Number(scoreData.risk) || 3,
+        freq: Number(scoreData.freq) || 3,
+        urgency: Number(scoreData.urgency) || 3,
+        safety: Number(scoreData.safety) || 3,
+        value: Number(scoreData.value) || 3,
+        needs: Number(scoreData.needs) || 3
+    };
+
+    // 議論ログを取得して背景に含める
+    var tl = document.getElementById('deep-dive-timeline');
+    var discussionSummary = '';
+    if(tl) {
+        var bubbles = tl.querySelectorAll('.council-bubble');
+        var msgs = [];
+        bubbles.forEach(function(b) { msgs.push(b.textContent.trim().substring(0, 100)); });
+        if(msgs.length > 0) discussionSummary = '\n\n【推進メンバーの議論】\n' + msgs.join('\n');
+    }
+
+    var planTitle = content.substring(0, 30);
+    var background = '【社員の声】\n' + content + '\n\n【AI初期分析】\n' + analysis + discussionSummary;
+
+    if(!confirm('この案件を企画書に昇格させますか？\n\n「' + planTitle + '」\n\nAIが議論内容を踏まえた企画書を自動生成します。')) return;
+
+    showLoading("企画書を生成中...");
+    createThemeProposal({
+        planTitle: planTitle,
+        theme: content.substring(0, 50),
+        background: background,
+        scores: scores,
+        postIds: [pid]
+    }).then(function(res) {
+        hideLoading();
+        if(res && res.success) {
+            alert("企画書を生成しました！\n企画書タブで確認できます。");
+            document.getElementById('priority-modal').style.display = 'none';
+            switchTab('candidates');
+        } else {
+            alert("エラー: " + (res ? res.msg : "不明"));
+        }
+    }).catch(function(err) {
+        hideLoading();
+        alert("通信エラー: " + err.message);
+    });
+};

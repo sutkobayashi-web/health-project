@@ -608,8 +608,10 @@ if(localStorage.getItem('co_heart_admin_email') && localStorage.getItem('co_hear
         <div style="text-align:center; padding:30px 20px;">
           <div style="font-size:3rem; margin-bottom:16px;">&#x1F4CB;</div>
           <div style="font-weight:800; font-size:1.1rem; color:#2c3e50; margin-bottom:8px;">企画書に昇格</div>
-          <div style="font-size:0.85rem; color:#888; margin-bottom:24px; line-height:1.7;">この案件の投稿内容・AI分析・メンバーの議論を踏まえて<br>AIが企画書ドラフトを自動生成します。</div>
-          <button class="btn btn-success btn-lg fw-bold rounded-pill px-5 shadow" onclick="promoteToProposal()"><i class="fas fa-magic me-2"></i>企画書を自動生成</button>
+          <div style="font-size:0.85rem; color:#888; margin-bottom:12px; line-height:1.7;">この案件の投稿内容・AI分析・メンバーの議論を踏まえて<br>AIが企画書ドラフトを自動生成します。</div>
+          <div id="promote-status" style="margin-bottom:20px;"></div>
+          <button id="promote-btn" class="btn btn-success btn-lg fw-bold rounded-pill px-5 shadow" onclick="promoteToProposal()" disabled style="opacity:0.5;"><i class="fas fa-magic me-2"></i>企画書を自動生成</button>
+          <div id="promote-note" style="font-size:0.78rem; color:#999; margin-top:12px;"></div>
         </div>
       </div>
     </div>

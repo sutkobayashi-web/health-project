@@ -265,6 +265,7 @@ window.switchPrioTab = function(tab) {
     // Load data for specific tabs
     if(tab === 'eval') loadPrioEvalTab();
     if(tab === 'discuss') { /* chat already loaded on modal open */ }
+    if(tab === 'promote') loadPromoteTab();
 };
 
 function loadPrioEvalTab() {
@@ -309,6 +310,48 @@ function loadPrioEvalTab() {
             }
         });
     }
+}
+
+function loadPromoteTab() {
+    var pid = window.mxCurrentPrioPid;
+    if(!pid) return;
+    var statusEl = document.getElementById('promote-status');
+    var btn = document.getElementById('promote-btn');
+    var noteEl = document.getElementById('promote-note');
+    if(!statusEl || !btn) return;
+
+    // 賛同数を取得
+    var r = null;
+    if(window.allPostData) { r = window.allPostData.find(function(x){ return String(x[MX_COLS.PID]) === String(pid); }); }
+    var likeStr = r ? String(r[MX_COLS.LIKE_COUNT]||"") : "";
+    var likes = likeStr ? likeStr.split(',').filter(function(x){return x;}) : [];
+    var likeCount = likes.length;
+
+    // 推進メンバー数を取得
+    getCoreMemberCount().then(function(res) {
+        var memberCount = (res && res.count) ? res.count : 1;
+        var threshold = Math.ceil(memberCount / 2);
+        var canPromote = likeCount >= threshold;
+
+        statusEl.innerHTML =
+            '<div style="display:inline-flex; align-items:center; gap:12px; padding:12px 24px; background:' + (canPromote ? '#e8f5e9' : '#fff3e0') + '; border-radius:12px; border:2px solid ' + (canPromote ? '#4caf50' : '#ff9800') + ';">' +
+                '<div style="font-size:2rem;">' + (canPromote ? '✅' : '⏳') + '</div>' +
+                '<div style="text-align:left;">' +
+                    '<div style="font-weight:700; font-size:0.9rem; color:' + (canPromote ? '#2e7d32' : '#e65100') + ';">' + (canPromote ? '昇格条件を満たしています' : '賛同が不足しています') + '</div>' +
+                    '<div style="font-size:0.82rem; color:#666;">賛同: <strong>' + likeCount + '/' + threshold + '票</strong>（推進メンバー' + memberCount + '名の過半数）</div>' +
+                '</div>' +
+            '</div>';
+
+        if(canPromote) {
+            btn.disabled = false;
+            btn.style.opacity = '1';
+            noteEl.innerText = '';
+        } else {
+            btn.disabled = true;
+            btn.style.opacity = '0.5';
+            noteEl.innerText = 'あと' + (threshold - likeCount) + '票の賛同が必要です。下部の「賛同」ボタンから投票できます。';
+        }
+    });
 }
 
 window.submitPrioEval = function() {

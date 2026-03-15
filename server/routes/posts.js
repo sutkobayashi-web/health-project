@@ -3,7 +3,7 @@ const { v4: uuidv4 } = require('uuid');
 const fs = require('fs');
 const path = require('path');
 const { getDb } = require('../services/db');
-const { callGroqApi, callGeminiVision, parsePostScore } = require('../services/ai');
+const { callGroqApi, callGeminiVision, parsePostScore, EVIDENCE_BASE } = require('../services/ai');
 
 const router = express.Router();
 
@@ -63,7 +63,20 @@ router.post('/submit', async (req, res) => {
     const dName = decodeURIComponent(nickname);
     const content = decodeURIComponent(honne);
 
-    const sys = `あなたはAI保健師兼アナリストです。相手:${dName}。1. 「${dName}さんへ」から始まる200文字以内のケアコメント。2. ///SCORE/// という区切り文字の後ろに、この投稿の7軸評価と「要評価判定」をJSONで出力。Format: [ケアコメント] ///SCORE/// { "is_target": true, "legal": 1, "risk": 1, "freq": 1, "urgency": 1, "safety": 1, "value": 1, "needs": 1 }`;
+    const sys = `あなたはエビデンスに基づく健康支援を行うAI保健師兼アナリストです。相手:${dName}。
+
+# エビデンス基盤
+${EVIDENCE_BASE}
+
+# タスク
+1. 「${dName}さんへ」から始まる200文字以内のケアコメントを書く。
+   - 行動変容技法（COM-Bモデル: Capability・Opportunity・Motivation）の観点で分析
+   - 内発的動機（自律性・有能性・関係性）を引き出す声かけ
+   - スモールステップで実践可能な提案があれば1つだけ
+   - 助言には根拠を括弧で簡潔に付記（例:「栄養改善パック2020」）
+   - エビデンスのない助言はしない
+2. ///SCORE/// という区切り文字の後ろに、この投稿の7軸評価と「要評価判定」をJSONで出力。
+   Format: [ケアコメント] ///SCORE/// { "is_target": true, "legal": 1, "risk": 1, "freq": 1, "urgency": 1, "safety": 1, "value": 1, "needs": 1 }`;
     let aiFullRes = await callGroqApi(sys, content);
     if (!aiFullRes || !aiFullRes.includes('///SCORE///')) {
       aiFullRes = `【AI保健師】\n${dName}さん、投稿ありがとうございます！\n///SCORE///\n{"is_target":true, "legal": 1, "risk": 1, "freq": 1, "urgency": 1, "safety": 1, "value": 1, "needs": 1}`;
@@ -97,12 +110,22 @@ router.post('/food', async (req, res) => {
     } catch (e) { imageUrl = '(保存失敗)'; }
 
     // Gemini Vision で栄養分析
-    const nutSys = 'あなたはベテラン管理栄養士です。投稿された食事画像を見て、分析してください。';
+    const nutSys = `あなたはベテラン管理栄養士です。国立長寿医療研究センター「栄養改善パック」（2020）に基づき、投稿された食事画像を分析してください。
+
+【分析の観点】
+- 主菜: たんぱく質源の有無と推定量（目標: 1.0g/kg体重/日、毎食均等が理想）
+- 副菜: 野菜量の推定（目標: 1日350g、緑黄色:淡色=1:2）
+- 主食・主菜・副菜の3品構成になっているか
+- ビタミン・ミネラル源（特にビタミンD）の有無
+- 1日3食のうちこの食事の位置づけ
+- CANフレームワーク（Convenient・Attractive・Normative）の観点で改善提案があれば簡潔に`;
     let nutRes = await callGeminiVision(nutSys, imageBase64, mimeType);
     if (!nutRes || nutRes === '通信エラー') nutRes = '解析できませんでした。';
 
     // Groq で保健師コメント
-    const nurseSys = `あなたはAI保健師です。相手:${dName}。つぶやき:「${comment}」食事分析:「${nutRes}」。労いの言葉を。`;
+    const nurseSys = `あなたはエビデンスに基づく健康支援を行うAI保健師です。相手:${dName}。つぶやき:「${comment}」食事分析:「${nutRes}」。
+栄養改善パック（2020）の基準に照らし、良い点を具体的に褒め、改善点があれば1つだけスモールステップで提案してください。
+行動変容技法「モニタリング&フィードバック」として、食事記録の継続を励ましてください。エビデンスのない助言はしないこと。`;
     let nurseRes = await callGroqApi(nurseSys, '声かけ');
     if (!nurseRes) nurseRes = `${dName}さん、食事の投稿ありがとうございます！`;
 

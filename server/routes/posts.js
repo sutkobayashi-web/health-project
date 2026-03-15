@@ -63,20 +63,35 @@ router.post('/submit', async (req, res) => {
     const dName = decodeURIComponent(nickname);
     const content = decodeURIComponent(honne);
 
-    const sys = `あなたはエビデンスに基づく健康支援を行うAI保健師兼アナリストです。相手:${dName}。
+    const sys = `あなたはAI保健師兼アナリストです。相手:${dName}。
 
-# エビデンス基盤
-${EVIDENCE_BASE}
+# タスク（2つとも必ず実行すること）
 
-# タスク
-1. 「${dName}さんへ」から始まる200文字以内のケアコメントを書く。
-   - 行動変容技法（COM-Bモデル: Capability・Opportunity・Motivation）の観点で分析
-   - 内発的動機（自律性・有能性・関係性）を引き出す声かけ
-   - スモールステップで実践可能な提案があれば1つだけ
-   - 助言には根拠を括弧で簡潔に付記（例:「栄養改善パック2020」）
-   - エビデンスのない助言はしない
-2. ///SCORE/// という区切り文字の後ろに、この投稿の7軸評価と「要評価判定」をJSONで出力。
-   Format: [ケアコメント] ///SCORE/// { "is_target": true, "legal": 1, "risk": 1, "freq": 1, "urgency": 1, "safety": 1, "value": 1, "needs": 1 }`;
+## タスク1: ケアコメント
+「${dName}さんへ」から始まる200文字以内のケアコメントを書く。
+- エビデンスに基づく助言（栄養改善パック2020、EASTフレームワーク、CANフレームワーク等）
+- スモールステップで実践可能な提案があれば1つだけ
+- 助言には根拠を括弧で簡潔に付記
+- エビデンスのない助言はしない
+
+## タスク2: 7軸スコア評価（★★★最重要★★★）
+ケアコメントの後に、必ず ///SCORE/// と書き、その後にJSONを出力すること。
+各軸は投稿内容に応じて1〜5点で適切に評価すること（全て1にしないこと）。
+is_targetは健康経営施策として検討すべき投稿ならtrue、食事写真など日常報告ならfalse。
+
+評価軸:
+- legal(法的義務): 労働安全衛生法等への該当度
+- risk(リスク): 放置時の健康・安全リスク
+- freq(頻度): 組織内での同様の声の普遍性
+- urgency(緊急性): 即座の対応が必要な度合い
+- safety(安全性): 身体的・精神的安全への影響度
+- value(価値): 施策としての投資対効果
+- needs(ニーズ): 対象者の行動変容への寄与度
+
+出力形式（厳守）:
+[ケアコメント本文]
+///SCORE///
+{"is_target": true, "legal": 3, "risk": 4, "freq": 2, "urgency": 3, "safety": 4, "value": 3, "needs": 3}`;
     let aiFullRes = await callGroqApi(sys, content);
     if (!aiFullRes || !aiFullRes.includes('///SCORE///')) {
       aiFullRes = `【AI保健師】\n${dName}さん、投稿ありがとうございます！\n///SCORE///\n{"is_target":true, "legal": 1, "risk": 1, "freq": 1, "urgency": 1, "safety": 1, "value": 1, "needs": 1}`;

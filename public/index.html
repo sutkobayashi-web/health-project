@@ -86,6 +86,14 @@
   .action-bar { padding: 10px 14px; border-top: 1px solid #f5f5f5; display: flex; justify-content: flex-end; }
   .btn-like { background: white; border: 1.5px solid #ff6b6b; color: #ff6b6b; border-radius: 20px; padding: 5px 14px; font-size: 0.78rem; display: flex; align-items: center; gap: 5px; transition: all 0.2s; font-weight: 600; }
   .btn-like.active { background: #ff6b6b; color: white; border-color: #ff6b6b; }
+  .post-like-btn { margin-left: auto; cursor: pointer; font-size: 0.82rem; color: #ccc; display: flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 16px; transition: all 0.2s; user-select: none; -webkit-tap-highlight-color: transparent; }
+  .post-like-btn:active { transform: scale(1.2); }
+  .post-like-btn .fa-heart { transition: all 0.2s; }
+  .post-like-btn.liked { color: #ff6b6b; }
+  .post-like-btn.liked .fa-heart { animation: heartPop 0.3s ease-out; }
+  .post-like-btn .like-num { font-weight: 700; font-size: 0.75rem; min-width: 8px; }
+  @keyframes heartPop { 0% { transform: scale(1); } 50% { transform: scale(1.4); } 100% { transform: scale(1); } }
+  .user-info { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
   .paging-area { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
   .btn-more { background: white; color: #555; border: 1px solid #e0e0e0; padding: 12px; border-radius: 12px; width: 100%; font-weight: 700; font-size: 0.9rem; }
   .btn-close-timeline { background: #2c3e50; color: white; border: none; padding: 12px; border-radius: 12px; width: 100%; font-weight: 700; font-size: 0.9rem; }
@@ -673,7 +681,17 @@ function renderPost(p) {
   var headerClass = "header-consult"; var icon = "far fa-comment-dots"; var catName = "相談・提案";
   if (p.content.includes("【写真】") || (p.analysis && p.analysis.includes("栄養"))) { headerClass = "header-food"; icon = "fas fa-utensils"; catName = "食事チェック"; }
   var analysisHtml = p.analysis ? '<div class="ai-reply"><i class="fas fa-robot text-primary"></i> ' + p.analysis.replace(/\n/g, '<br>') + '</div>' : "";
-  return '<div class="post-card" onclick="togglePost(this)"><div class="post-header-bar ' + headerClass + '"><span><i class="' + icon + '"></i> ' + catName + '</span><span>' + p.date + '</span></div><div class="post-content"><div class="user-info"><div class="avatar">' + p.avatar + '</div><div><div class="nick">' + p.nickname + ' <span class="rank">' + p.authorRank + '</span></div></div></div><div class="post-body">' + p.content + '</div><div class="post-details">' + imgTag + analysisHtml + '<div class="action-bar"><button type="button" class="btn-like ' + (p.isLiked ? 'active' : '') + '" onclick="like(\'' + p.row + '\', this, event)"><i class="' + (p.isLiked ? 'fas' : 'far') + ' fa-heart"></i> ' + p.likeCount + '</button></div></div></div></div>';
+  var likeId = 'like-' + p.row;
+  var heartIcon = p.isLiked ? 'fas' : 'far';
+  var heartClass = p.isLiked ? ' liked' : '';
+  var likeBtn = '<span class="post-like-btn' + heartClass + '" id="' + likeId + '" onclick="like(\'' + p.row + '\',\'' + likeId + '\',event)"><i class="' + heartIcon + ' fa-heart"></i> <span class="like-num">' + p.likeCount + '</span></span>';
+  return '<div class="post-card" onclick="togglePost(this)">' +
+    '<div class="post-header-bar ' + headerClass + '"><span><i class="' + icon + '"></i> ' + catName + '</span><span>' + p.date + '</span></div>' +
+    '<div class="post-content">' +
+      '<div class="user-info"><div class="avatar">' + p.avatar + '</div><div class="nick">' + p.nickname + ' <span class="rank">' + p.authorRank + '</span></div>' + likeBtn + '</div>' +
+      '<div class="post-body">' + p.content + '</div>' +
+      '<div class="post-details">' + imgTag + analysisHtml + '</div>' +
+    '</div></div>';
 }
 
 function togglePost(card) { card.classList.toggle('expanded'); }
@@ -793,14 +811,33 @@ function showFoodResponse(text) {
   document.body.appendChild(overlay);
 }
 
-function like(row, btn, event) {
+function like(row, likeId, event) {
   event.stopPropagation();
-  var icon = btn.querySelector('i');
-  var isLiked = btn.classList.contains('active');
-  var count = parseInt(btn.innerText);
-  if (isLiked) { btn.classList.remove('active'); icon.classList.replace('fas', 'far'); btn.innerHTML = '<i class="far fa-heart"></i> ' + Math.max(0, count - 1); }
-  else { btn.classList.add('active'); icon.classList.replace('far', 'fas'); btn.innerHTML = '<i class="fas fa-heart"></i> ' + (count + 1); }
-  toggleLike(row, currentUser.uid);
+  var el = document.getElementById(likeId);
+  if (!el) return;
+  var icon = el.querySelector('i');
+  var numEl = el.querySelector('.like-num');
+  var isLiked = el.classList.contains('liked');
+
+  // 即時UI更新（楽観的）
+  if (isLiked) {
+    el.classList.remove('liked');
+    icon.classList.replace('fas', 'far');
+    numEl.innerText = Math.max(0, parseInt(numEl.innerText) - 1);
+  } else {
+    el.classList.add('liked');
+    icon.classList.replace('far', 'fas');
+    numEl.innerText = parseInt(numEl.innerText) + 1;
+  }
+
+  // API呼び出し→サーバーの正確な値で補正
+  toggleLike(row, currentUser.uid).then(function(res) {
+    if (res && res.success) {
+      numEl.innerText = res.count;
+      if (res.isLiked) { el.classList.add('liked'); icon.classList.replace('far', 'fas'); }
+      else { el.classList.remove('liked'); icon.classList.replace('fas', 'far'); }
+    }
+  });
 }
 
 // ====== ローディング ======

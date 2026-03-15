@@ -78,7 +78,7 @@ function loadReportData() {
 }
 
 /* ── Toggle card expand / collapse ── */
-window.togglePost = function(card) { card.classList.toggle('expanded'); };
+// togglePost廃止 — カードは常にコンパクト表示、ボタンは常に見える
 
 /* ── Category filter switching ── */
 window.switchInboxCat = function(cat) {
@@ -148,17 +148,18 @@ function renderReportList(data) {
         var div = document.createElement('div');
         div.className = "post-card" + (isHidden ? " hidden" : "");
         div.setAttribute('data-cat', cardCat);
-        div.setAttribute("onclick", "togglePost(this)");
         div.innerHTML =
             '<div class="post-header-bar '+headerClass+'"><span><i class="'+icon+'"></i> '+catName+likeBadge+'</span><span>'+dateStr+'</span></div>' +
             '<div class="post-content"><div class="post-content-inner">' + thumbTag +
-                '<div class="post-text-area"><div class="user-info"><div class="avatar">'+avatar+'</div><div class="nick">'+escapeHtml(r[INBOX_COLS.USER_NAME])+'</div></div><div class="post-body">'+escapeHtml(rawContent)+'</div></div>' +
-            '</div><div class="post-details">' + imgTag + aiHtml +
-                '<div class="action-bar"><button class="btn-like'+(likeCount > 0 ? ' liked' : '')+'" id="like-btn-'+pid+'" onclick="event.stopPropagation(); likePost(\''+pid+'\', '+sheetRow+')"><i class="fas fa-heart"></i> <span id="like-count-'+pid+'">'+likeCount+'</span></button><div style="margin-left:auto; display:flex; gap:5px;">' +
-                    '<button class="btn btn-outline-secondary btn-admin" onclick="event.stopPropagation(); openEvalModal(\''+pid+'\')">詳細・評価</button>' +
-                    (!isTarget ? '<button class="btn btn-outline-danger btn-admin" onclick="event.stopPropagation(); toggleTriage(\''+pid+'\', true)">重点へ</button>' : '<button class="btn btn-outline-success btn-admin" onclick="event.stopPropagation(); toggleTriage(\''+pid+'\', false)">解除</button>') +
+                '<div class="post-text-area"><div class="user-info"><div class="avatar">'+avatar+'</div><div class="nick">'+escapeHtml(r[INBOX_COLS.USER_NAME])+'</div></div><div class="post-body" style="-webkit-line-clamp:3;">'+escapeHtml(rawContent)+'</div></div>' +
+            '</div>' + aiHtml +
+                '<div class="action-bar" style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; border-top:1px solid #f0f0f0;">' +
+                    '<button class="btn-like'+(likeCount > 0 ? ' liked' : '')+'" id="like-btn-'+pid+'" onclick="likePost(\''+pid+'\', '+sheetRow+')"><i class="fas fa-heart"></i> <span id="like-count-'+pid+'">'+likeCount+'</span></button>' +
+                    '<div style="display:flex; gap:5px;">' +
+                    '<button class="btn btn-outline-secondary btn-admin" onclick="openEvalModal(\''+pid+'\')">詳細・評価</button>' +
+                    (!isTarget ? '<button class="btn btn-outline-danger btn-admin" onclick="toggleTriage(\''+pid+'\', true)">重点へ</button>' : '<button class="btn btn-outline-success btn-admin" onclick="toggleTriage(\''+pid+'\', false)">解除</button>') +
                 '</div></div>' +
-            '</div></div>';
+            '</div>';
         list.appendChild(div);
     });
     var countEl = document.getElementById('report-count'); if(countEl) countEl.innerText = visibleCount + " 件";

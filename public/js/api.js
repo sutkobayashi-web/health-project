@@ -204,6 +204,32 @@ function deleteInboxComment(id) {
 function getInboxComments(postId) {
   return api('/admin/inbox-comments/' + postId, undefined, getAdminToken());
 }
+
+// ===== メンバー管理 =====
+function getAllCoreMembers() {
+  return api('/admin/members-all', undefined, getAdminToken());
+}
+function getAllGeneralUsers() {
+  return api('/admin/users-all', undefined, getAdminToken());
+}
+function addCoreMember(data) {
+  return api('/admin/member-add', data, getAdminToken());
+}
+function updateCoreMember(data) {
+  return api('/admin/member-update', data, getAdminToken());
+}
+function deleteCoreMember(id) {
+  return api('/admin/member-delete', { id }, getAdminToken());
+}
+function addGeneralUser(data) {
+  return api('/admin/user-add', data, getAdminToken());
+}
+function updateGeneralUser(data) {
+  return api('/admin/user-update', data, getAdminToken());
+}
+function deleteGeneralUser(id) {
+  return api('/admin/user-delete', { id }, getAdminToken());
+}
 function deleteEvaluation(id) {
   return api('/admin/evaluation/delete', { id }, getAdminToken());
 }

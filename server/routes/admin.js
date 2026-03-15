@@ -599,4 +599,124 @@ router.post('/inbox-comment-delete', (req, res) => {
   } catch(e) { res.json({ success: false, msg: e.message }); }
 });
 
+// =============================================
+// メンバー管理 CRUD
+// =============================================
+
+// コアメンバー全件取得
+router.get('/members-all', (req, res) => {
+  try {
+    const db = getDb();
+    const members = db.prepare('SELECT id, name, dept, email, phone, avatar, role, is_exec, is_university, university_org, status FROM core_members ORDER BY id').all();
+    res.json(members);
+  } catch (e) { res.json([]); }
+});
+
+// 一般ユーザー全件取得
+router.get('/users-all', (req, res) => {
+  try {
+    const db = getDb();
+    const users = db.prepare('SELECT id, nickname, avatar, department, real_name, birth_date, created_at FROM users ORDER BY created_at DESC').all();
+    const postCounts = {};
+    db.prepare('SELECT user_id, COUNT(*) as cnt FROM posts GROUP BY user_id').all()
+      .forEach(r => { postCounts[r.user_id] = r.cnt; });
+    res.json(users.map(u => ({ ...u, post_count: postCounts[u.id] || 0 })));
+  } catch (e) { res.json([]); }
+});
+
+// コアメンバー追加
+router.post('/member-add', (req, res) => {
+  try {
+    const { name, email, dept, phone, avatar, role, is_exec, is_university, university_org, password } = req.body;
+    if (!name || !email) return res.json({ success: false, msg: '氏名とメールアドレスは必須です' });
+    const db = getDb();
+    const existing = db.prepare('SELECT id FROM core_members WHERE email = ?').get(email.trim().toLowerCase());
+    if (existing) return res.json({ success: false, msg: '既に登録済みのメールアドレスです' });
+    const crypto = require('crypto');
+    const passwordHash = password ? crypto.createHash('sha256').update(password.trim()).digest('hex') : '';
+    db.prepare(`INSERT INTO core_members (name, dept, email, password_hash, phone, avatar, role, is_exec, is_university, university_org, status) VALUES (?,?,?,?,?,?,?,?,?,?,'approved')`)
+      .run(name.trim(), dept || '', email.trim().toLowerCase(), passwordHash, phone || '', avatar || '🛡️', role || 'member', is_exec ? 1 : 0, is_university ? 1 : 0, university_org || '');
+    res.json({ success: true, msg: name.trim() + 'さんを追加しました' });
+  } catch (e) { res.json({ success: false, msg: e.message }); }
+});
+
+// コアメンバー更新
+router.post('/member-update', (req, res) => {
+  try {
+    const { id, name, email, dept, phone, avatar, role, is_exec, is_university, university_org, password } = req.body;
+    if (!id) return res.json({ success: false, msg: 'IDが必要です' });
+    const db = getDb();
+    let sql = 'UPDATE core_members SET name=?, dept=?, email=?, phone=?, avatar=?, role=?, is_exec=?, is_university=?, university_org=?';
+    const params = [name || '', dept || '', (email || '').trim().toLowerCase(), phone || '', avatar || '🛡️', role || 'member', is_exec ? 1 : 0, is_university ? 1 : 0, university_org || ''];
+    if (password) {
+      const crypto = require('crypto');
+      sql += ', password_hash=?';
+      params.push(crypto.createHash('sha256').update(password.trim()).digest('hex'));
+    }
+    sql += ' WHERE id=?';
+    params.push(id);
+    db.prepare(sql).run(...params);
+    res.json({ success: true, msg: '更新しました' });
+  } catch (e) { res.json({ success: false, msg: e.message }); }
+});
+
+// コアメンバー削除
+router.post('/member-delete', (req, res) => {
+  try {
+    const { id } = req.body;
+    const db = getDb();
+    const member = db.prepare('SELECT name FROM core_members WHERE id = ?').get(id);
+    db.prepare('DELETE FROM core_members WHERE id = ?').run(id);
+    res.json({ success: true, msg: (member ? member.name : '') + 'さんを削除しました' });
+  } catch (e) { res.json({ success: false, msg: e.message }); }
+});
+
+// 一般ユーザー追加
+router.post('/user-add', (req, res) => {
+  try {
+    const { nickname, password, avatar, department, real_name, birth_date } = req.body;
+    if (!nickname || !password) return res.json({ success: false, msg: 'ニックネームとパスワードは必須です' });
+    const db = getDb();
+    const existing = db.prepare('SELECT id FROM users WHERE nickname = ?').get(nickname.trim());
+    if (existing) return res.json({ success: false, msg: '既に使用されているニックネームです' });
+    const crypto = require('crypto');
+    const uid = uuidv4();
+    const passwordHash = crypto.createHash('sha256').update(password.trim()).digest('hex');
+    db.prepare('INSERT INTO users (id, nickname, password_hash, avatar, department, real_name, birth_date) VALUES (?,?,?,?,?,?,?)')
+      .run(uid, nickname.trim(), passwordHash, avatar || '😀', department || '', real_name || '', birth_date || '');
+    res.json({ success: true, msg: nickname.trim() + 'さんを追加しました' });
+  } catch (e) { res.json({ success: false, msg: e.message }); }
+});
+
+// 一般ユーザー更新
+router.post('/user-update', (req, res) => {
+  try {
+    const { id, nickname, avatar, department, real_name, birth_date, password } = req.body;
+    if (!id) return res.json({ success: false, msg: 'IDが必要です' });
+    const db = getDb();
+    let sql = 'UPDATE users SET nickname=?, avatar=?, department=?, real_name=?, birth_date=?';
+    const params = [nickname || '', avatar || '😀', department || '', real_name || '', birth_date || ''];
+    if (password) {
+      const crypto = require('crypto');
+      sql += ', password_hash=?';
+      params.push(crypto.createHash('sha256').update(password.trim()).digest('hex'));
+    }
+    sql += ' WHERE id=?';
+    params.push(id);
+    db.prepare(sql).run(...params);
+    res.json({ success: true, msg: '更新しました' });
+  } catch (e) { res.json({ success: false, msg: e.message }); }
+});
+
+// 一般ユーザー削除
+router.post('/user-delete', (req, res) => {
+  try {
+    const { id } = req.body;
+    const db = getDb();
+    const user = db.prepare('SELECT nickname FROM users WHERE id = ?').get(id);
+    db.prepare('DELETE FROM users WHERE id = ?').run(id);
+    res.json({ success: true, msg: (user ? user.nickname : '') + 'さんを削除しました' });
+  } catch (e) { res.json({ success: false, msg: e.message }); }
+});
+
 module.exports = router;

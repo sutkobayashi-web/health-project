@@ -265,12 +265,221 @@ function handleRejectMember(id) {
     });
 }
 
+// =============================================
+// メンバー管理
+// =============================================
+function loadMemberManagement() {
+    Promise.all([getAllCoreMembers(), getAllGeneralUsers()]).then(function(results) {
+        renderCoreMembers(results[0]);
+        renderGeneralUsers(results[1]);
+    });
+}
+
+function renderCoreMembers(members) {
+    var area = document.getElementById('core-members-list');
+    if (!area) return;
+    if (!members || members.length === 0) {
+        area.innerHTML = '<div class="text-muted text-center p-4">コアメンバーがいません</div>';
+        return;
+    }
+    area.innerHTML = '<table class="table table-hover mb-0" style="font-size:0.85rem;">' +
+        '<thead style="background:#f8f9fa;"><tr><th style="width:50px;"></th><th>氏名</th><th>部署</th><th>メール</th><th>役割</th><th style="width:100px;">操作</th></tr></thead>' +
+        '<tbody>' + members.map(function(m) {
+            var avatar = m.avatar || '🛡️';
+            if (avatar.length > 4) avatar = '🛡️';
+            var roleLabel = m.is_exec ? '<span class="badge bg-danger">Exec</span>' : (m.is_university ? '<span class="badge bg-info">大学</span>' : '<span class="badge bg-secondary">Member</span>');
+            var statusLabel = m.status === 'pending' ? ' <span class="badge bg-warning text-dark">承認待ち</span>' : '';
+            return '<tr>' +
+                '<td class="text-center" style="font-size:1.3rem;">' + avatar + '</td>' +
+                '<td class="fw-bold">' + escapeHtml(m.name) + statusLabel + '</td>' +
+                '<td>' + escapeHtml(m.dept || m.university_org || '') + '</td>' +
+                '<td class="text-muted small">' + escapeHtml(m.email) + '</td>' +
+                '<td>' + roleLabel + '</td>' +
+                '<td><button class="btn btn-outline-primary btn-sm me-1" style="font-size:0.7rem;" onclick=\'openEditCoreMemberModal(' + JSON.stringify(m).replace(/'/g, "&#39;") + ')\'><i class="fas fa-edit"></i></button>' +
+                '<button class="btn btn-outline-danger btn-sm" style="font-size:0.7rem;" onclick="handleDeleteCoreMember(' + m.id + ',\'' + escapeHtml(m.name) + '\')"><i class="fas fa-trash"></i></button></td>' +
+                '</tr>';
+        }).join('') + '</tbody></table>';
+}
+
+function renderGeneralUsers(users) {
+    var area = document.getElementById('general-users-list');
+    if (!area) return;
+    if (!users || users.length === 0) {
+        area.innerHTML = '<div class="text-muted text-center p-4">一般ユーザーがいません</div>';
+        return;
+    }
+    area.innerHTML = '<table class="table table-hover mb-0" style="font-size:0.85rem;">' +
+        '<thead style="background:#f8f9fa;"><tr><th style="width:50px;"></th><th>ニックネーム</th><th>本名</th><th>部署</th><th>投稿数</th><th>登録日</th><th style="width:100px;">操作</th></tr></thead>' +
+        '<tbody>' + users.map(function(u) {
+            var avatar = u.avatar || '😀';
+            var dateStr = u.created_at ? new Date(u.created_at).toLocaleDateString('ja-JP') : '';
+            return '<tr>' +
+                '<td class="text-center" style="font-size:1.3rem;">' + avatar + '</td>' +
+                '<td class="fw-bold">' + escapeHtml(u.nickname) + '</td>' +
+                '<td>' + escapeHtml(u.real_name || '') + '</td>' +
+                '<td>' + escapeHtml(u.department || '') + '</td>' +
+                '<td class="text-center"><span class="badge bg-primary rounded-pill">' + (u.post_count || 0) + '</span></td>' +
+                '<td class="text-muted small">' + dateStr + '</td>' +
+                '<td><button class="btn btn-outline-primary btn-sm me-1" style="font-size:0.7rem;" onclick=\'openEditUserModal(' + JSON.stringify(u).replace(/'/g, "&#39;") + ')\'><i class="fas fa-edit"></i></button>' +
+                '<button class="btn btn-outline-danger btn-sm" style="font-size:0.7rem;" onclick="handleDeleteUser(\'' + u.id + '\',\'' + escapeHtml(u.nickname) + '\')"><i class="fas fa-trash"></i></button></td>' +
+                '</tr>';
+        }).join('') + '</tbody></table>';
+}
+
+function showMemberModal(title, fields, onSave) {
+    var existing = document.getElementById('member-mgmt-modal');
+    if (existing) existing.remove();
+    var html = '<div id="member-mgmt-modal" class="modal-overlay" style="display:flex; z-index:2100;">' +
+        '<div class="modal-box" style="width:90%; max-width:500px; background:white; padding:25px; border-radius:12px;">' +
+        '<div class="fw-bold mb-3 fs-5 border-bottom pb-2">' + title + '</div>';
+    fields.forEach(function(f) {
+        if (f.type === 'select') {
+            html += '<div class="mb-2"><label class="small fw-bold text-muted">' + f.label + '</label><select id="mm-' + f.key + '" class="form-select form-select-sm">' +
+                f.options.map(function(o) { return '<option value="' + o.value + '"' + (o.value === f.value ? ' selected' : '') + '>' + o.label + '</option>'; }).join('') + '</select></div>';
+        } else if (f.type === 'checkbox') {
+            html += '<div class="mb-2 form-check"><input type="checkbox" class="form-check-input" id="mm-' + f.key + '"' + (f.value ? ' checked' : '') + '><label class="form-check-label small fw-bold text-muted">' + f.label + '</label></div>';
+        } else {
+            html += '<div class="mb-2"><label class="small fw-bold text-muted">' + f.label + '</label><input type="' + (f.type || 'text') + '" id="mm-' + f.key + '" class="form-control form-control-sm" value="' + escapeHtml(f.value || '') + '" placeholder="' + (f.placeholder || '') + '"></div>';
+        }
+    });
+    html += '<div class="d-flex gap-2 mt-3"><button class="btn btn-primary flex-grow-1 fw-bold" id="mm-save-btn">保存</button>' +
+        '<button class="btn btn-secondary" style="width:100px;" onclick="document.getElementById(\'member-mgmt-modal\').remove()">キャンセル</button></div></div></div>';
+    document.body.insertAdjacentHTML('beforeend', html);
+    document.getElementById('mm-save-btn').onclick = onSave;
+}
+
+function openAddCoreMemberModal() {
+    showMemberModal('<i class="fas fa-shield-alt text-primary me-2"></i>コアメンバー追加', [
+        { key: 'name', label: '氏名', placeholder: '例：山田太郎' },
+        { key: 'email', label: 'メールアドレス', type: 'email', placeholder: 'example@company.co.jp' },
+        { key: 'dept', label: '部署', placeholder: '例：総務部' },
+        { key: 'phone', label: '電話番号', placeholder: '例：090-1234-5678' },
+        { key: 'avatar', label: 'アバター絵文字', placeholder: '🛡️', value: '🛡️' },
+        { key: 'password', label: 'パスワード', type: 'password', placeholder: '初期パスワード' },
+        { key: 'role', label: '役割', type: 'select', value: 'member', options: [{ value: 'member', label: 'メンバー' }, { value: 'exec', label: '役員(Exec)' }, { value: 'observer', label: 'オブザーバー' }] },
+        { key: 'is_university', label: '大学関係者', type: 'checkbox', value: false }
+    ], function() {
+        var data = {
+            name: document.getElementById('mm-name').value.trim(),
+            email: document.getElementById('mm-email').value.trim(),
+            dept: document.getElementById('mm-dept').value.trim(),
+            phone: document.getElementById('mm-phone').value.trim(),
+            avatar: document.getElementById('mm-avatar').value.trim() || '🛡️',
+            password: document.getElementById('mm-password').value,
+            role: document.getElementById('mm-role').value,
+            is_exec: document.getElementById('mm-role').value === 'exec',
+            is_university: document.getElementById('mm-is_university').checked
+        };
+        if (!data.name || !data.email) { alert('氏名とメールアドレスは必須です'); return; }
+        addCoreMember(data).then(function(res) {
+            alert(res.msg);
+            if (res.success) { document.getElementById('member-mgmt-modal').remove(); loadMemberManagement(); }
+        });
+    });
+}
+
+function openEditCoreMemberModal(m) {
+    showMemberModal('<i class="fas fa-edit text-primary me-2"></i>コアメンバー編集', [
+        { key: 'name', label: '氏名', value: m.name },
+        { key: 'email', label: 'メールアドレス', type: 'email', value: m.email },
+        { key: 'dept', label: '部署', value: m.dept },
+        { key: 'phone', label: '電話番号', value: m.phone },
+        { key: 'avatar', label: 'アバター絵文字', value: m.avatar || '🛡️' },
+        { key: 'password', label: 'パスワード（変更時のみ）', type: 'password', placeholder: '未入力なら変更なし' },
+        { key: 'role', label: '役割', type: 'select', value: m.is_exec ? 'exec' : (m.role || 'member'), options: [{ value: 'member', label: 'メンバー' }, { value: 'exec', label: '役員(Exec)' }, { value: 'observer', label: 'オブザーバー' }] },
+        { key: 'is_university', label: '大学関係者', type: 'checkbox', value: m.is_university === 1 }
+    ], function() {
+        var data = {
+            id: m.id,
+            name: document.getElementById('mm-name').value.trim(),
+            email: document.getElementById('mm-email').value.trim(),
+            dept: document.getElementById('mm-dept').value.trim(),
+            phone: document.getElementById('mm-phone').value.trim(),
+            avatar: document.getElementById('mm-avatar').value.trim() || '🛡️',
+            password: document.getElementById('mm-password').value || undefined,
+            role: document.getElementById('mm-role').value,
+            is_exec: document.getElementById('mm-role').value === 'exec',
+            is_university: document.getElementById('mm-is_university').checked
+        };
+        updateCoreMember(data).then(function(res) {
+            alert(res.msg);
+            if (res.success) { document.getElementById('member-mgmt-modal').remove(); loadMemberManagement(); }
+        });
+    });
+}
+
+function handleDeleteCoreMember(id, name) {
+    if (!confirm(name + 'さんを削除しますか？')) return;
+    deleteCoreMember(id).then(function(res) {
+        alert(res.msg);
+        if (res.success) loadMemberManagement();
+    });
+}
+
+function openAddUserModal() {
+    showMemberModal('<i class="fas fa-user-plus text-success me-2"></i>一般ユーザー追加', [
+        { key: 'nickname', label: 'ニックネーム', placeholder: '例：健康太郎' },
+        { key: 'password', label: 'パスワード', type: 'password', placeholder: '4文字以上' },
+        { key: 'avatar', label: 'アバター絵文字', placeholder: '😀', value: '😀' },
+        { key: 'real_name', label: '本名', placeholder: '任意' },
+        { key: 'department', label: '部署', type: 'select', value: 'その他', options: [{ value: 'その他', label: 'その他' }, { value: '管理者', label: '管理者' }, { value: '事務', label: '事務' }, { value: '倉庫作業', label: '倉庫作業' }, { value: '営業', label: '営業' }, { value: '配送', label: '配送' }] },
+        { key: 'birth_date', label: '生年月日', type: 'date' }
+    ], function() {
+        var data = {
+            nickname: document.getElementById('mm-nickname').value.trim(),
+            password: document.getElementById('mm-password').value,
+            avatar: document.getElementById('mm-avatar').value.trim() || '😀',
+            real_name: document.getElementById('mm-real_name').value.trim(),
+            department: document.getElementById('mm-department').value,
+            birth_date: document.getElementById('mm-birth_date').value
+        };
+        if (!data.nickname || !data.password) { alert('ニックネームとパスワードは必須です'); return; }
+        addGeneralUser(data).then(function(res) {
+            alert(res.msg);
+            if (res.success) { document.getElementById('member-mgmt-modal').remove(); loadMemberManagement(); }
+        });
+    });
+}
+
+function openEditUserModal(u) {
+    showMemberModal('<i class="fas fa-user-edit text-success me-2"></i>一般ユーザー編集', [
+        { key: 'nickname', label: 'ニックネーム', value: u.nickname },
+        { key: 'password', label: 'パスワード（変更時のみ）', type: 'password', placeholder: '未入力なら変更なし' },
+        { key: 'avatar', label: 'アバター絵文字', value: u.avatar || '😀' },
+        { key: 'real_name', label: '本名', value: u.real_name || '' },
+        { key: 'department', label: '部署', type: 'select', value: u.department || 'その他', options: [{ value: 'その他', label: 'その他' }, { value: '管理者', label: '管理者' }, { value: '事務', label: '事務' }, { value: '倉庫作業', label: '倉庫作業' }, { value: '営業', label: '営業' }, { value: '配送', label: '配送' }] },
+        { key: 'birth_date', label: '生年月日', type: 'date', value: u.birth_date || '' }
+    ], function() {
+        var data = {
+            id: u.id,
+            nickname: document.getElementById('mm-nickname').value.trim(),
+            password: document.getElementById('mm-password').value || undefined,
+            avatar: document.getElementById('mm-avatar').value.trim() || '😀',
+            real_name: document.getElementById('mm-real_name').value.trim(),
+            department: document.getElementById('mm-department').value,
+            birth_date: document.getElementById('mm-birth_date').value
+        };
+        updateGeneralUser(data).then(function(res) {
+            alert(res.msg);
+            if (res.success) { document.getElementById('member-mgmt-modal').remove(); loadMemberManagement(); }
+        });
+    });
+}
+
+function handleDeleteUser(id, name) {
+    if (!confirm(name + 'さんを削除しますか？この操作は取り消せません。')) return;
+    deleteGeneralUser(id).then(function(res) {
+        alert(res.msg);
+        if (res.success) loadMemberManagement();
+    });
+}
+
 function switchTab(t) {
     document.querySelectorAll('.tab-view').forEach(function(e) { e.classList.remove('active'); });
     var target = document.getElementById('tab-'+t); if(target) target.classList.add('active');
     document.querySelectorAll('.nav-item').forEach(function(e) { e.classList.remove('active'); });
 
-    var navMap = { evaluation:'nav-eval', current:'nav-curr', candidates:'nav-cand', resolved:'nav-res', personal:'nav-personal', bmi22:'nav-bmi22', aimeeting:'nav-aimeeting', exec:'nav-exec', food:'nav-food' };
+    var navMap = { evaluation:'nav-eval', current:'nav-curr', candidates:'nav-cand', resolved:'nav-res', personal:'nav-personal', bmi22:'nav-bmi22', aimeeting:'nav-aimeeting', exec:'nav-exec', food:'nav-food', members:'nav-members' };
     var navEl = document.getElementById(navMap[t] || 'nav-eval');
     if(navEl) navEl.classList.add('active');
 
@@ -283,6 +492,7 @@ function switchTab(t) {
     if(t==='bmi22') loadHealthPlan26();
     if(t==='exec') loadExecPending();
     if(t==='food') loadFoodUsers();
+    if(t==='members') loadMemberManagement();
 }
 
 function loadResolved() {

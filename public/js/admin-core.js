@@ -20,6 +20,7 @@ var mailDataCache = { inbox: [], sent: [] };
 var currentMailBox = 'inbox';
 var selectedThemePostIds = [];
 var selectedMeetingPlan = null;
+var currentActiveTab = 'evaluation';
 
 const COLORS = { RED: '#ff6384', BLUE: '#36a2eb', YELLOW: '#ffce56', GREEN: '#4bc0c0' };
 
@@ -152,6 +153,28 @@ function startHeartbeat() {
     setInterval(sendBeat, 30000);
     // メンバーリストも60秒ごとに更新
     setInterval(loadSidebarMembers, 60000);
+    // アクティブタブの自動更新（60秒ごと）
+    setInterval(function() {
+        if (!currentAdminProfile) return;
+        var modal = document.getElementById('member-mgmt-modal');
+        if (modal) return; // モーダル操作中はスキップ
+        refreshActiveTab();
+    }, 60000);
+}
+
+function refreshActiveTab() {
+    switch (currentActiveTab) {
+        case 'evaluation': renderInbox(currentInboxFilter); break;
+        case 'current': loadCurrentAnalysis(); break;
+        case 'candidates': loadCandidates(); break;
+        case 'resolved': loadResolved(); break;
+        case 'personal': loadPersonalNotices(); break;
+        case 'aimeeting': loadPlansForMeeting(); break;
+        case 'bmi22': loadHealthPlan26(); break;
+        case 'exec': loadExecPending(); break;
+        case 'food': loadFoodUsers(); break;
+        case 'members': loadMemberManagement(); break;
+    }
 }
 
 // メンバーリスト（キャッシュ）
@@ -516,6 +539,7 @@ function handleDeleteUser(id, name) {
 }
 
 function switchTab(t) {
+    currentActiveTab = t;
     document.querySelectorAll('.tab-view').forEach(function(e) { e.classList.remove('active'); });
     var target = document.getElementById('tab-'+t); if(target) target.classList.add('active');
     document.querySelectorAll('.nav-item').forEach(function(e) { e.classList.remove('active'); });

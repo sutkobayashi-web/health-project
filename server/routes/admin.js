@@ -118,7 +118,8 @@ router.post('/toggle-target', (req, res) => {
   try {
     const { pid, currentStatus } = req.body;
     const db = getDb();
-    const post = db.prepare('SELECT analysis FROM posts WHERE post_id = ?').get(pid);
+    let post = db.prepare('SELECT analysis FROM posts WHERE post_id = ?').get(pid);
+    if (!post) post = db.prepare('SELECT analysis FROM posts WHERE post_id = ?').get('post_' + pid);
     if (!post) return res.json({ success: false });
     let analysis = post.analysis;
     if (analysis && analysis.includes('///SCORE///')) {
@@ -266,7 +267,8 @@ router.post('/vote', (req, res) => {
   try {
     const { pid, uid, type } = req.body;
     const db = getDb();
-    const post = db.prepare('SELECT * FROM posts WHERE post_id = ?').get(pid);
+    let post = db.prepare('SELECT * FROM posts WHERE post_id = ?').get(pid);
+    if (!post) post = db.prepare('SELECT * FROM posts WHERE post_id = ?').get('post_' + pid);
     if (!post) return res.json({ success: false, msg: '投稿が見つかりません' });
 
     let likes = post.likes ? post.likes.split(',').filter(s => s) : [];

@@ -157,6 +157,39 @@ router.post('/evaluation/save', (req, res) => {
       db.prepare('INSERT INTO team_evaluations (post_id, member_name, legal, risk, freq, urgency, safety, value, needs, comment) VALUES (?,?,?,?,?,?,?,?,?,?)')
         .run(postId, memberName, scores.legal, scores.risk, scores.freq, scores.urgency, scores.safety, scores.value, scores.needs, comment || '');
     }
+    // 平均スコアをチェックし閾値超えで自動格上げ
+    const THRESHOLD = 21; // 35点満点の60%
+    const evals = db.prepare('SELECT legal, risk, freq, urgency, safety, value, needs FROM team_evaluations WHERE post_id = ?').all(postId);
+    if (evals.length > 0) {
+      let totalAvg = 0;
+      ['legal','risk','freq','urgency','safety','value','needs'].forEach(k => {
+        const sum = evals.reduce((s, e) => s + (Number(e[k]) || 0), 0);
+        totalAvg += sum / evals.length;
+      });
+      if (totalAvg >= THRESHOLD) {
+        // is_targetをtrueに設定（重点検討に格上げ）
+        const post = db.prepare('SELECT analysis, post_id FROM posts WHERE post_id = ?').get(postId);
+        if (!post) {
+          // post_プレフィックスなしで再検索
+          const post2 = db.prepare('SELECT analysis, post_id FROM posts WHERE post_id = ?').get('post_' + postId);
+          if (post2) {
+            let analysis = post2.analysis || '';
+            if (analysis.includes('///SCORE///')) {
+              const parts = analysis.split('///SCORE///');
+              try { const s = JSON.parse(parts[1].trim()); s.is_target = true; db.prepare('UPDATE posts SET analysis = ? WHERE post_id = ?').run(parts[0] + '\n///SCORE///\n' + JSON.stringify(s), post2.post_id); } catch(e) {}
+            }
+          }
+        } else {
+          let analysis = post.analysis || '';
+          if (analysis.includes('///SCORE///')) {
+            const parts = analysis.split('///SCORE///');
+            try { const s = JSON.parse(parts[1].trim()); s.is_target = true; db.prepare('UPDATE posts SET analysis = ? WHERE post_id = ?').run(parts[0] + '\n///SCORE///\n' + JSON.stringify(s), post.post_id); } catch(e) {}
+          }
+        }
+        res.json({ success: true, msg: '評価を送信しました！平均スコアが閾値（' + THRESHOLD + '点）を超えたため、重点検討に自動格上げされました！', autoPromoted: true, avgScore: Math.round(totalAvg * 10) / 10 });
+        return;
+      }
+    }
     res.json({ success: true, msg: '評価をチームに共有しました！' });
   } catch (e) { res.json({ success: false, msg: '保存エラー: ' + e.message }); }
 });

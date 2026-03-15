@@ -163,25 +163,121 @@ function renderReportList(data) {
                     (thumbTag ? '<div style="margin-bottom:8px;">'+thumbTag+'</div>' : '') +
                     '<div style="font-size:0.88rem;line-height:1.6;color:#444;white-space:pre-wrap;">'+escapeHtml(rawContent)+'</div>' +
                 '</div>' +
-                // 右: コメント欄 + ボタン
-                '<div style="width:280px; flex-shrink:0; background:#faf8ff; padding:10px 12px; display:flex; flex-direction:column;">' +
-                    '<div style="font-size:0.68rem; font-weight:700; color:#6c5ce7; margin-bottom:4px;"><i class="fas fa-comments me-1"></i>推進メンバーのコメント</div>' +
-                    '<div id="inbox-comments-'+pid+'" style="flex:1; overflow-y:auto; margin-bottom:8px; font-size:0.78rem; color:#555; min-height:30px;"></div>' +
-                    '<div style="display:flex; gap:4px; margin-bottom:8px;">' +
-                        '<input type="text" id="inbox-comment-input-'+pid+'" placeholder="この投稿に一言..." style="flex:1; border:1px solid #ddd; border-radius:8px; padding:5px 8px; font-size:0.78rem; outline:none;">' +
-                        '<button class="btn btn-sm btn-outline-primary" style="font-size:0.7rem; white-space:nowrap; padding:4px 10px;" onclick="submitInboxComment(\''+pid+'\')"><i class="fas fa-paper-plane"></i></button>' +
+                // 右: 評価 + コメント + ボタン
+                '<div style="width:320px; flex-shrink:0; background:#faf8ff; padding:10px 12px; display:flex; flex-direction:column; gap:6px;">' +
+                    // 7軸評価エリア
+                    '<div style="background:white; border-radius:8px; padding:8px 10px; border:1px solid #e8e0ff;">' +
+                        '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">' +
+                            '<span style="font-size:0.68rem; font-weight:700; color:#e74c3c;"><i class="fas fa-chart-bar me-1"></i>7軸評価</span>' +
+                            '<span id="eval-avg-'+pid+'" style="font-size:0.65rem; color:#999;"></span>' +
+                        '</div>' +
+                        '<div id="eval-display-'+pid+'" style="font-size:0.72rem; min-height:20px;"></div>' +
+                        '<button class="btn btn-sm btn-outline-danger w-100 mt-1" style="font-size:0.7rem; padding:3px;" onclick="openInlineEval(\''+pid+'\')"><i class="fas fa-pen me-1"></i>評価する</button>' +
                     '</div>' +
-                    '<div style="display:flex; gap:5px;">' +
-                        '<button class="btn btn-outline-secondary btn-admin" style="flex:1;" onclick="openEvalModal(\''+pid+'\')"><i class="fas fa-search me-1"></i>詳細</button>' +
-                        (!isTarget ? '<button class="btn btn-outline-danger btn-admin" style="flex:1;" onclick="toggleTriage(\''+pid+'\', true)"><i class="fas fa-star me-1"></i>重点へ</button>' : '<button class="btn btn-outline-success btn-admin" style="flex:1;" onclick="toggleTriage(\''+pid+'\', false)"><i class="fas fa-undo me-1"></i>解除</button>') +
+                    // 評価入力フォーム（初期非表示）
+                    '<div id="eval-form-'+pid+'" style="display:none; background:#fff5f5; border-radius:8px; padding:8px 10px; border:1px solid #ffcdd2;">' +
+                        '<div style="font-size:0.65rem; font-weight:700; color:#e74c3c; margin-bottom:4px;">各項目を1〜5で評価</div>' +
+                        ['法令:legal','リスク:risk','頻度:freq','緊急:urgency','安全:safety','価値:value','ニーズ:needs'].map(function(item) {
+                            var parts = item.split(':');
+                            return '<div style="display:flex; align-items:center; gap:4px; margin-bottom:2px;"><span style="font-size:0.65rem; width:40px; font-weight:600;">'+parts[0]+'</span><input type="range" min="1" max="5" value="3" id="eval-'+parts[1]+'-'+pid+'" style="flex:1; height:14px;" oninput="this.nextElementSibling.innerText=this.value"><span style="font-size:0.7rem; font-weight:700; width:12px; text-align:center;">3</span></div>';
+                        }).join('') +
+                        '<textarea id="eval-comment-'+pid+'" placeholder="コメント（任意）" rows="1" style="width:100%; border:1px solid #ddd; border-radius:6px; padding:4px 6px; font-size:0.72rem; resize:none; margin-top:4px;"></textarea>' +
+                        '<button class="btn btn-sm btn-danger w-100 mt-1 fw-bold" style="font-size:0.72rem; padding:4px;" onclick="submitInlineEval(\''+pid+'\')"><i class="fas fa-check me-1"></i>評価を送信</button>' +
+                    '</div>' +
+                    // コメント欄
+                    '<div style="flex:1; min-height:0;">' +
+                        '<div style="font-size:0.68rem; font-weight:700; color:#6c5ce7; margin-bottom:2px;"><i class="fas fa-comments me-1"></i>コメント</div>' +
+                        '<div id="inbox-comments-'+pid+'" style="overflow-y:auto; max-height:60px; font-size:0.78rem; color:#555;"></div>' +
+                        '<div style="display:flex; gap:4px; margin-top:4px;">' +
+                            '<input type="text" id="inbox-comment-input-'+pid+'" placeholder="一言..." style="flex:1; border:1px solid #ddd; border-radius:8px; padding:4px 8px; font-size:0.72rem; outline:none;">' +
+                            '<button class="btn btn-sm btn-outline-primary" style="font-size:0.65rem; padding:3px 8px;" onclick="submitInboxComment(\''+pid+'\')"><i class="fas fa-paper-plane"></i></button>' +
+                        '</div>' +
+                    '</div>' +
+                    // ボタン
+                    '<div style="display:flex; gap:4px; flex-shrink:0;">' +
+                        '<button class="btn btn-outline-secondary btn-admin" style="flex:1; font-size:0.68rem;" onclick="openEvalModal(\''+pid+'\')"><i class="fas fa-search me-1"></i>詳細</button>' +
+                        (!isTarget ? '<button class="btn btn-outline-danger btn-admin" style="flex:1; font-size:0.68rem;" onclick="toggleTriage(\''+pid+'\', true)"><i class="fas fa-star me-1"></i>重点へ</button>' : '<button class="btn btn-outline-success btn-admin" style="flex:1; font-size:0.68rem;" onclick="toggleTriage(\''+pid+'\', false)"><i class="fas fa-undo me-1"></i>解除</button>') +
                     '</div>' +
                 '</div>' +
             '</div>';
         list.appendChild(div);
         // コメント読み込み
         loadInboxComments(pid);
+        // 評価データ読み込み
+        loadInlineEvalDisplay(pid);
     });
     var countEl = document.getElementById('report-count'); if(countEl) countEl.innerText = visibleCount + " 件";
+}
+
+/* ── 7軸評価 ── */
+var EVAL_THRESHOLD = 21; // 合計21点以上で自動格上げ（35点満点の60%）
+
+function openInlineEval(pid) {
+    var form = document.getElementById('eval-form-' + pid);
+    if (form) form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
+
+function loadInlineEvalDisplay(pid) {
+    var area = document.getElementById('eval-display-' + pid);
+    var avgArea = document.getElementById('eval-avg-' + pid);
+    if (!area) return;
+    getPostEvaluations(pid).then(function(evals) {
+        if (!evals || evals.length === 0) {
+            area.innerHTML = '<span style="color:#ccc;">未評価</span>';
+            if (avgArea) avgArea.innerText = '';
+            return;
+        }
+        // 平均スコア計算
+        var totals = { legal:0, risk:0, freq:0, urgency:0, safety:0, value:0, needs:0 };
+        evals.forEach(function(ev) {
+            ['legal','risk','freq','urgency','safety','value','needs'].forEach(function(k) { totals[k] += Number(ev.scores[k]) || 0; });
+        });
+        var n = evals.length;
+        var avgTotal = 0;
+        var labels = { legal:'法', risk:'危', freq:'頻', urgency:'急', safety:'安', value:'値', needs:'需' };
+        var html = '';
+        ['legal','risk','freq','urgency','safety','value','needs'].forEach(function(k) {
+            var avg = Math.round(totals[k] / n * 10) / 10;
+            avgTotal += avg;
+            var color = avg >= 4 ? '#e74c3c' : avg >= 3 ? '#f39c12' : '#999';
+            html += '<span style="display:inline-block; margin:1px 2px; padding:1px 5px; border-radius:4px; font-size:0.62rem; font-weight:700; background:#f8f8f8; border:1px solid #eee;">' + labels[k] + '<span style="color:'+color+'; margin-left:2px;">'+avg+'</span></span>';
+        });
+        area.innerHTML = html;
+        if (avgArea) {
+            avgArea.innerHTML = '<span style="font-weight:700; color:' + (avgTotal >= EVAL_THRESHOLD ? '#e74c3c' : '#999') + ';">合計 ' + Math.round(avgTotal*10)/10 + '/35</span> (' + n + '人)';
+        }
+        // 閾値超えの場合、重点格上げボタンを強調
+        if (avgTotal >= EVAL_THRESHOLD) {
+            var triageBtn = area.closest('.post-card');
+            if (triageBtn) {
+                var btn = triageBtn.querySelector('.btn-outline-danger');
+                if (btn) { btn.className = 'btn btn-danger btn-admin fw-bold'; btn.style.flex = '1'; btn.innerHTML = '<i class="fas fa-star me-1"></i>重点へ！'; }
+            }
+        }
+    });
+}
+
+function submitInlineEval(pid) {
+    var myName = (currentAdminProfile && currentAdminProfile.name) || 'Admin';
+    var scores = {};
+    ['legal','risk','freq','urgency','safety','value','needs'].forEach(function(k) {
+        var el = document.getElementById('eval-' + k + '-' + pid);
+        scores[k] = el ? parseInt(el.value) : 3;
+    });
+    var commentEl = document.getElementById('eval-comment-' + pid);
+    var comment = commentEl ? commentEl.value.trim() : '';
+
+    saveMemberEvaluation({ postId: pid, memberName: myName, scores: scores, comment: comment }).then(function(res) {
+        if (res && res.success) {
+            // フォームを閉じて表示を更新
+            var form = document.getElementById('eval-form-' + pid);
+            if (form) form.style.display = 'none';
+            loadInlineEvalDisplay(pid);
+            alert('評価を送信しました！');
+        } else {
+            alert('エラー: ' + (res ? res.msg : '不明'));
+        }
+    });
 }
 
 /* ── Inbox comments ── */

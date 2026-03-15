@@ -282,16 +282,40 @@ function renderCoreMembers(members) {
         area.innerHTML = '<div class="text-muted text-center p-4">コアメンバーがいません</div>';
         return;
     }
-    area.innerHTML = '<table class="table table-hover mb-0" style="font-size:0.85rem;">' +
+    var pending = members.filter(function(m) { return m.status === 'pending'; });
+    var approved = members.filter(function(m) { return m.status !== 'pending'; });
+    var html = '';
+
+    // 承認待ちセクション
+    if (pending.length > 0) {
+        html += '<div style="background:linear-gradient(135deg,#fff3e0,#ffe0b2); border-bottom:2px solid #ff9800; padding:12px 16px;">' +
+            '<div style="font-size:0.8rem; font-weight:800; color:#e65100; margin-bottom:10px;"><i class="fas fa-exclamation-circle me-1"></i>承認待ち（' + pending.length + '件）</div>';
+        pending.forEach(function(m) {
+            var avatar = m.avatar || '🛡️';
+            if (avatar.length > 4) avatar = '🛡️';
+            html += '<div style="display:flex; align-items:center; gap:10px; padding:10px; background:white; border-radius:8px; margin-bottom:6px; border:1px solid #ffe0b2;">' +
+                '<div style="font-size:1.3rem;">' + avatar + '</div>' +
+                '<div style="flex:1; min-width:0;">' +
+                    '<div class="fw-bold" style="font-size:0.85rem;">' + escapeHtml(m.name) + (m.is_university ? ' <span class="badge bg-info" style="font-size:0.55rem;">大学</span>' : '') + '</div>' +
+                    '<div class="text-muted" style="font-size:0.7rem;">' + escapeHtml(m.email) + ' / ' + escapeHtml(m.dept || m.university_org || '') + '</div>' +
+                '</div>' +
+                '<button class="btn btn-sm btn-success fw-bold" style="font-size:0.7rem;" onclick="handleApproveMemberFromTab(' + m.id + ')"><i class="fas fa-check me-1"></i>承認</button>' +
+                '<button class="btn btn-sm btn-outline-danger" style="font-size:0.7rem;" onclick="handleRejectMemberFromTab(' + m.id + ')"><i class="fas fa-times"></i></button>' +
+            '</div>';
+        });
+        html += '</div>';
+    }
+
+    // 承認済みメンバーテーブル
+    html += '<table class="table table-hover mb-0" style="font-size:0.85rem;">' +
         '<thead style="background:#f8f9fa;"><tr><th style="width:50px;"></th><th>氏名</th><th>部署</th><th>メール</th><th>役割</th><th style="width:100px;">操作</th></tr></thead>' +
-        '<tbody>' + members.map(function(m) {
+        '<tbody>' + approved.map(function(m) {
             var avatar = m.avatar || '🛡️';
             if (avatar.length > 4) avatar = '🛡️';
             var roleLabel = m.is_exec ? '<span class="badge bg-danger">Exec</span>' : (m.is_university ? '<span class="badge bg-info">大学</span>' : '<span class="badge bg-secondary">Member</span>');
-            var statusLabel = m.status === 'pending' ? ' <span class="badge bg-warning text-dark">承認待ち</span>' : '';
             return '<tr>' +
                 '<td class="text-center" style="font-size:1.3rem;">' + avatar + '</td>' +
-                '<td class="fw-bold">' + escapeHtml(m.name) + statusLabel + '</td>' +
+                '<td class="fw-bold">' + escapeHtml(m.name) + '</td>' +
                 '<td>' + escapeHtml(m.dept || m.university_org || '') + '</td>' +
                 '<td class="text-muted small">' + escapeHtml(m.email) + '</td>' +
                 '<td>' + roleLabel + '</td>' +
@@ -299,6 +323,7 @@ function renderCoreMembers(members) {
                 '<button class="btn btn-outline-danger btn-sm" style="font-size:0.7rem;" onclick="handleDeleteCoreMember(' + m.id + ',\'' + escapeHtml(m.name) + '\')"><i class="fas fa-trash"></i></button></td>' +
                 '</tr>';
         }).join('') + '</tbody></table>';
+    area.innerHTML = html;
 }
 
 function renderGeneralUsers(users) {
@@ -405,6 +430,22 @@ function openEditCoreMemberModal(m) {
             alert(res.msg);
             if (res.success) { document.getElementById('member-mgmt-modal').remove(); loadMemberManagement(); }
         });
+    });
+}
+
+function handleApproveMemberFromTab(id) {
+    if (!confirm('このメンバーを承認しますか？')) return;
+    approveMember(id).then(function(res) {
+        if (res && res.success) { alert(res.msg); loadMemberManagement(); }
+        else alert('エラー: ' + (res ? res.msg : '不明'));
+    });
+}
+
+function handleRejectMemberFromTab(id) {
+    if (!confirm('この申請を却下しますか？（データは削除されます）')) return;
+    rejectMember(id).then(function(res) {
+        if (res && res.success) { alert(res.msg); loadMemberManagement(); }
+        else alert('エラー: ' + (res ? res.msg : '不明'));
     });
 }
 

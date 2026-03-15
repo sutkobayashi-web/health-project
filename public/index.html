@@ -684,7 +684,7 @@ function renderPost(p) {
   var likeId = 'like-' + p.row;
   var heartIcon = p.isLiked ? 'fas' : 'far';
   var heartClass = p.isLiked ? ' liked' : '';
-  var likeBtn = '<span class="post-like-btn' + heartClass + '" id="' + likeId + '" onclick="like(\'' + p.row + '\',\'' + likeId + '\',event)"><i class="' + heartIcon + ' fa-heart"></i> <span class="like-num">' + p.likeCount + '</span></span>';
+  var likeBtn = '<span class="post-like-btn' + heartClass + '" id="' + likeId + '" onclick="event.stopPropagation();like(' + p.row + ',\'' + likeId + '\')"><i class="' + heartIcon + ' fa-heart"></i> <span class="like-num">' + p.likeCount + '</span></span>';
   return '<div class="post-card" onclick="togglePost(this)">' +
     '<div class="post-header-bar ' + headerClass + '"><span><i class="' + icon + '"></i> ' + catName + '</span><span>' + p.date + '</span></div>' +
     '<div class="post-content">' +
@@ -811,8 +811,7 @@ function showFoodResponse(text) {
   document.body.appendChild(overlay);
 }
 
-function like(row, likeId, event) {
-  event.stopPropagation();
+function like(row, likeId) {
   var el = document.getElementById(likeId);
   if (!el) return;
   var icon = el.querySelector('i');

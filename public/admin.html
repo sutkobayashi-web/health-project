@@ -315,6 +315,9 @@ if(localStorage.getItem('co_heart_admin_email') && localStorage.getItem('co_hear
       <i class="fas fa-envelope-open-text nav-icon"></i><div class="nav-label">個別メール</div>
       <span id="personal-badge" class="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-danger border border-light" style="display:none; font-size:0.6rem;">!</span>
     </div>
+    <div class="nav-item" onclick="switchTab('food')" id="nav-food">
+      <i class="fas fa-utensils nav-icon" style="color:#20c997;"></i><div class="nav-label" style="font-size:0.55rem; line-height:1.2;">食事<br>分析</div>
+    </div>
     <div class="nav-item" onclick="switchTab('resolved')" id="nav-res">
       <i class="fas fa-archive nav-icon"></i><div class="nav-label">解決済み</div>
     </div>
@@ -417,6 +420,15 @@ if(localStorage.getItem('co_heart_admin_email') && localStorage.getItem('co_hear
       </div>
       <div id="mail-box-title" class="fw-bold text-muted small mb-2"></div>
       <div id="personal-list-area"></div>
+    </div>
+
+    <!-- Tab: 食事分析 -->
+    <div id="tab-food" class="tab-view">
+      <div class="section-header">
+        <div class="section-icon" style="background:linear-gradient(135deg,#20c997,#38d9a9);"><i class="fas fa-utensils"></i></div>
+        <div><div class="section-title">食事傾向分析</div><div class="section-subtitle">ユーザーの食事記録をAI栄養士が分析しレポートを送信</div></div>
+      </div>
+      <div id="food-users-area" class="row g-3"></div>
     </div>
 
     <!-- Tab: 解決済み -->
@@ -603,6 +615,7 @@ if(localStorage.getItem('co_heart_admin_email') && localStorage.getItem('co_hear
 <script src="/js/admin-proposal.js?v=20260315b"></script>
 <script src="/js/admin-meeting.js?v=20260315b"></script>
 <script src="/js/admin-mail.js?v=20260315b"></script>
+<script src="/js/admin-food.js?v=20260315b"></script>
 
 </body>
 </html>

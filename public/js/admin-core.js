@@ -140,7 +140,7 @@ function switchTab(t) {
     var target = document.getElementById('tab-'+t); if(target) target.classList.add('active');
     document.querySelectorAll('.nav-item').forEach(function(e) { e.classList.remove('active'); });
 
-    var navMap = { evaluation:'nav-eval', current:'nav-curr', candidates:'nav-cand', resolved:'nav-res', personal:'nav-personal', bmi22:'nav-bmi22', aimeeting:'nav-aimeeting', exec:'nav-exec' };
+    var navMap = { evaluation:'nav-eval', current:'nav-curr', candidates:'nav-cand', resolved:'nav-res', personal:'nav-personal', bmi22:'nav-bmi22', aimeeting:'nav-aimeeting', exec:'nav-exec', food:'nav-food' };
     var navEl = document.getElementById(navMap[t] || 'nav-eval');
     if(navEl) navEl.classList.add('active');
 
@@ -152,6 +152,7 @@ function switchTab(t) {
     if(t==='aimeeting') loadPlansForMeeting();
     if(t==='bmi22') loadHealthPlan26();
     if(t==='exec') loadExecPending();
+    if(t==='food') loadFoodUsers();
 }
 
 function loadResolved() {

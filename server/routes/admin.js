@@ -319,6 +319,83 @@ router.get('/matrix', (req, res) => {
   } catch (e) { res.json([]); }
 });
 
+// 食事傾向分析レポート生成
+router.post('/food-report', async (req, res) => {
+  try {
+    const { userId } = req.body;
+    const db = getDb();
+
+    // ユーザー情報取得
+    const user = db.prepare('SELECT nickname, department FROM users WHERE id = ?').get(userId);
+    if (!user) return res.json({ success: false, msg: 'ユーザーが見つかりません' });
+
+    // 食事投稿を全件取得（新しい順）
+    const foodPosts = db.prepare("SELECT content, analysis, created_at FROM posts WHERE user_id = ? AND (content LIKE '%写真%' OR category LIKE '%食事%') ORDER BY created_at DESC LIMIT 30").all(userId);
+    if (foodPosts.length < 2) return res.json({ success: false, msg: '食事投稿が2件未満のため分析できません' });
+
+    // 食事データを整理
+    const meals = foodPosts.map(p => {
+      let nutrition = '';
+      if (p.analysis && p.analysis.includes('【AI栄養士】')) {
+        const parts = p.analysis.split('【AI栄養士】');
+        nutrition = parts[1] ? parts[1].split('【AI保健師】')[0].trim() : '';
+      }
+      const date = new Date(p.created_at).toLocaleDateString('ja-JP');
+      const comment = (p.content || '').replace(/^【写真】/, '').trim();
+      return `[${date}] ${comment} → 分析: ${nutrition.substring(0, 150)}`;
+    }).join('\n');
+
+    // AI分析
+    const sysPrompt = `あなたはベテラン管理栄養士です。以下のユーザーの食事記録を分析し、レポートを作成してください。
+
+対象: ${user.nickname}さん（${user.department}）
+記録期間の食事数: ${foodPosts.length}件
+
+【レポート構成】
+1. 📊 食事の全体傾向（3行程度）
+2. ✅ 良い点（箇条書き2-3個）
+3. ⚠️ 気になる点・改善提案（箇条書き2-3個）
+4. 🎯 おすすめの目標（1つだけ、具体的で実践しやすいもの）
+5. 💬 励ましのメッセージ（2行程度）
+
+語り口は温かく、否定せず、スモールステップを提案。200-400字程度。`;
+
+    const report = await callGroqApi(sysPrompt, `【${user.nickname}さんの食事記録】\n${meals}`);
+    if (!report) return res.json({ success: false, msg: 'AIレポート生成に失敗しました' });
+
+    // 通知として送信
+    const noticeId = 'food_report_' + Date.now();
+    const noticeContent = `🥗 食事傾向レポート\n\n${user.nickname}さん、日頃の食事投稿ありがとうございます！\n${foodPosts.length}件の食事記録をもとに、AI栄養士があなたの食事傾向を分析しました。\n\n${report}`;
+    db.prepare('INSERT INTO notices (notice_id, content, sender, target_id) VALUES (?,?,?,?)').run(noticeId, noticeContent, 'AI栄養士', userId);
+
+    res.json({ success: true, msg: `${user.nickname}さんに食事傾向レポートを送信しました（${foodPosts.length}件分析）`, report });
+  } catch (e) {
+    res.json({ success: false, msg: 'エラー: ' + e.message });
+  }
+});
+
+// ユーザー別食事投稿数取得
+router.get('/food-users', (req, res) => {
+  try {
+    const db = getDb();
+    const users = db.prepare(`
+      SELECT u.id, u.nickname, u.avatar, u.department, COUNT(p.id) as food_count,
+        MAX(p.created_at) as last_post
+      FROM users u
+      JOIN posts p ON u.id = p.user_id
+      WHERE p.content LIKE '%写真%' OR p.category LIKE '%食事%'
+      GROUP BY u.id
+      HAVING food_count >= 2
+      ORDER BY food_count DESC
+    `).all();
+    res.json(users.map(u => ({
+      id: u.id, nickname: u.nickname, avatar: u.avatar, department: u.department,
+      foodCount: u.food_count,
+      lastPost: new Date(u.last_post).toLocaleDateString('ja-JP')
+    })));
+  } catch (e) { res.json([]); }
+});
+
 // 類似投稿の集約検索
 router.post('/similar-posts', async (req, res) => {
   try {

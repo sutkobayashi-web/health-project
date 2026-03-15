@@ -168,6 +168,12 @@ function saveAIMeetingLog(planId, logStr) {
 function brainstormThemeActionPlans(data) {
   return api('/plans/brainstorm', data, getAdminToken());
 }
+function getFoodUsers() {
+  return api('/admin/food-users', undefined, getAdminToken());
+}
+function generateFoodReport(userId) {
+  return api('/admin/food-report', { userId }, getAdminToken());
+}
 function getSimilarPosts(postId, content) {
   return api('/admin/similar-posts', { postId, content }, getAdminToken());
 }

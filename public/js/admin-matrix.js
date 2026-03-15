@@ -157,6 +157,7 @@ window.openPriorityModal = function(pid) {
     if(analysis.includes("///SCORE///")) analysis = analysis.split("///SCORE///")[0];
     var avatar = getMatrixAvatar(r[MX_COLS.USER_NAME], "", r[MX_COLS.AVATAR]);
     document.getElementById('prio-title').innerText = content;
+    document.getElementById('prio-subtitle').innerText = avatar + ' ' + r[MX_COLS.USER_NAME] + ' | ' + r[MX_COLS.DATE];
     document.getElementById('prio-avatar').innerText = avatar;
     document.getElementById('prio-user').innerText = r[MX_COLS.USER_NAME];
     document.getElementById('prio-date').innerText = r[MX_COLS.DATE];
@@ -177,25 +178,9 @@ window.openPriorityModal = function(pid) {
         imgArea.style.display = 'none';
     }
 
-    // メンバー評価を読み込み
-    var evalArea = document.getElementById('prio-evaluations');
-    if (evalArea) {
-        evalArea.innerHTML = '<div style="color:#aaa; font-size:0.8rem;">読み込み中...</div>';
-        getPostEvaluations(pid).then(function(evals) {
-            if (evals && evals.length > 0) {
-                evalArea.innerHTML = evals.map(function(ev) {
-                    var axes = ['法令:'+ev.scores.legal, 'リスク:'+ev.scores.risk, '頻度:'+ev.scores.freq, '緊急:'+ev.scores.urgency, '安全:'+ev.scores.safety, '価値:'+ev.scores.value, 'ニーズ:'+ev.scores.needs];
-                    return '<div style="margin-bottom:8px; padding:8px; background:white; border-radius:8px; border:1px solid #e0f0e8;">' +
-                        '<div style="font-weight:700; font-size:0.8rem; color:#333;">' + escapeHtml(ev.memberName) + ' <span style="font-size:0.65rem; color:#999;">' + ev.date + '</span></div>' +
-                        '<div style="font-size:0.7rem; color:#666; margin-top:2px;">' + axes.join(' / ') + '</div>' +
-                        (ev.comment ? '<div style="font-size:0.78rem; color:#555; margin-top:4px; font-style:italic;">"' + escapeHtml(ev.comment) + '"</div>' : '') +
-                    '</div>';
-                }).join('');
-            } else {
-                evalArea.innerHTML = '<div style="color:#aaa; font-size:0.8rem;">まだ評価がありません</div>';
-            }
-        });
-    }
+    // Reset eval sliders for fresh load
+    var sliderArea = document.getElementById('prio-eval-sliders');
+    if(sliderArea) sliderArea.innerHTML = '';
 
     // 類似の声を自動検索
     var similarArea = document.getElementById('similar-posts-area');
@@ -218,11 +203,11 @@ window.openPriorityModal = function(pid) {
             setTimeout(function(){ tl.scrollTop=tl.scrollHeight; }, 100);
         }
     });
+
+    // Always start on content tab
+    switchPrioTab('content');
+
     document.getElementById('priority-modal').style.display = 'flex';
-    var leftPane = document.querySelector('.col-left-prio');
-    if(leftPane) leftPane.scrollTop = 0;
-    // 類似の声を自動検索
-    findSimilarPosts();
 };
 
 window.findSimilarPosts = function() {
@@ -263,6 +248,87 @@ window.findSimilarPosts = function() {
         area.innerHTML = html;
     }).catch(function() {
         area.innerHTML = '<div class="text-muted small py-2">類似の投稿は見つかりませんでした</div>';
+    });
+};
+
+// タブ切り替え
+window.switchPrioTab = function(tab) {
+    document.querySelectorAll('.prio-tab').forEach(function(t){ t.classList.remove('active'); });
+    document.querySelectorAll('.prio-panel').forEach(function(p){ p.classList.remove('active'); p.style.display='none'; });
+    // Activate clicked tab
+    var tabs = document.querySelectorAll('.prio-tab');
+    var tabNames = ['content','eval','discuss','promote'];
+    var idx = tabNames.indexOf(tab);
+    if(idx >= 0 && tabs[idx]) tabs[idx].classList.add('active');
+    var panel = document.getElementById('prio-panel-' + tab);
+    if(panel) { panel.classList.add('active'); panel.style.display = (tab === 'discuss') ? 'flex' : 'block'; }
+    // Load data for specific tabs
+    if(tab === 'eval') loadPrioEvalTab();
+    if(tab === 'discuss') { /* chat already loaded on modal open */ }
+};
+
+function loadPrioEvalTab() {
+    var pid = window.mxCurrentPrioPid;
+    if(!pid) return;
+    // Build sliders
+    var sliderArea = document.getElementById('prio-eval-sliders');
+    if(sliderArea && !sliderArea.hasChildNodes()) {
+        var axes = [
+            {key:'legal', label:'法令', desc:'法的義務への該当度'},
+            {key:'risk', label:'リスク', desc:'放置時の健康リスク'},
+            {key:'freq', label:'頻度', desc:'組織内での普遍性'},
+            {key:'urgency', label:'緊急', desc:'即座の対応必要度'},
+            {key:'safety', label:'安全', desc:'身体・精神への影響'},
+            {key:'value', label:'価値', desc:'施策の投資対効果'},
+            {key:'needs', label:'ニーズ', desc:'行動変容への寄与'}
+        ];
+        sliderArea.innerHTML = axes.map(function(a) {
+            return '<div style="display:flex; align-items:center; gap:8px; margin-bottom:10px; padding:8px 12px; background:#f8f9fa; border-radius:8px;">' +
+                '<div style="width:60px;"><div style="font-weight:700; font-size:0.85rem;">'+a.label+'</div><div style="font-size:0.6rem; color:#999;">'+a.desc+'</div></div>' +
+                '<input type="range" min="1" max="5" value="3" id="prio-eval-'+a.key+'" style="flex:1;" oninput="this.nextElementSibling.innerText=this.value">' +
+                '<span style="font-size:1rem; font-weight:800; width:20px; text-align:center; color:#667eea;">3</span>' +
+            '</div>';
+        }).join('');
+    }
+    // Load existing evaluations
+    var listArea = document.getElementById('prio-eval-list');
+    if(listArea) {
+        listArea.innerHTML = '<div style="color:#aaa; font-size:0.8rem;">読み込み中...</div>';
+        getPostEvaluations(pid).then(function(evals) {
+            if(evals && evals.length > 0) {
+                listArea.innerHTML = evals.map(function(ev) {
+                    var total = ev.scores.legal + ev.scores.risk + ev.scores.freq + ev.scores.urgency + ev.scores.safety + ev.scores.value + ev.scores.needs;
+                    return '<div style="padding:8px 12px; background:white; border-radius:8px; border:1px solid #eee; margin-bottom:6px;">' +
+                        '<div style="display:flex; justify-content:space-between;"><span style="font-weight:700; font-size:0.82rem;">'+escapeHtml(ev.memberName)+'</span><span style="font-size:0.7rem; color:#999;">'+ev.date+'</span></div>' +
+                        '<div style="font-size:0.72rem; color:#555; margin-top:2px;">法'+ev.scores.legal+' 危'+ev.scores.risk+' 頻'+ev.scores.freq+' 急'+ev.scores.urgency+' 安'+ev.scores.safety+' 値'+ev.scores.value+' 需'+ev.scores.needs+' <span style="font-weight:700; color:#667eea;">= '+total+'/35</span></div>' +
+                        (ev.comment ? '<div style="font-size:0.75rem; color:#666; margin-top:2px; font-style:italic;">"'+escapeHtml(ev.comment)+'"</div>' : '') +
+                    '</div>';
+                }).join('');
+            } else {
+                listArea.innerHTML = '<div style="color:#aaa; font-size:0.8rem;">まだ評価がありません</div>';
+            }
+        });
+    }
+}
+
+window.submitPrioEval = function() {
+    var pid = window.mxCurrentPrioPid;
+    if(!pid) return;
+    var myName = (currentAdminProfile && currentAdminProfile.name) || 'Admin';
+    var scores = {};
+    ['legal','risk','freq','urgency','safety','value','needs'].forEach(function(k) {
+        var el = document.getElementById('prio-eval-' + k);
+        scores[k] = el ? parseInt(el.value) : 3;
+    });
+    var comment = (document.getElementById('prio-eval-comment') || {}).value || '';
+    saveMemberEvaluation({ postId: pid, memberName: myName, scores: scores, comment: comment.trim() }).then(function(res) {
+        if(res && res.success) {
+            alert(res.msg);
+            loadPrioEvalTab();
+            if(document.getElementById('prio-eval-comment')) document.getElementById('prio-eval-comment').value = '';
+        } else {
+            alert('エラー: ' + (res ? res.msg : '不明'));
+        }
     });
 };
 

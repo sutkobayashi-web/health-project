@@ -164,25 +164,14 @@ function renderReportList(data) {
                     '<div style="font-size:0.88rem;line-height:1.6;color:#444;white-space:pre-wrap;">'+escapeHtml(rawContent)+'</div>' +
                 '</div>' +
                 // 右: 評価 + コメント + ボタン
-                '<div style="width:320px; flex-shrink:0; background:#faf8ff; padding:10px 12px; display:flex; flex-direction:column; gap:6px;">' +
-                    // 7軸評価エリア
+                '<div style="width:280px; flex-shrink:0; background:#faf8ff; padding:10px 12px; display:flex; flex-direction:column; gap:6px;">' +
+                    // 7軸評価結果（表示のみ）
                     '<div style="background:white; border-radius:8px; padding:8px 10px; border:1px solid #e8e0ff;">' +
                         '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">' +
                             '<span style="font-size:0.68rem; font-weight:700; color:#e74c3c;"><i class="fas fa-chart-bar me-1"></i>7軸評価</span>' +
                             '<span id="eval-avg-'+pid+'" style="font-size:0.65rem; color:#999;"></span>' +
                         '</div>' +
                         '<div id="eval-display-'+pid+'" style="font-size:0.72rem; min-height:20px;"></div>' +
-                        '<button class="btn btn-sm btn-outline-danger w-100 mt-1" style="font-size:0.7rem; padding:3px;" onclick="openInlineEval(\''+pid+'\')"><i class="fas fa-pen me-1"></i>評価する</button>' +
-                    '</div>' +
-                    // 評価入力フォーム（初期非表示）
-                    '<div id="eval-form-'+pid+'" style="display:none; background:#fff5f5; border-radius:8px; padding:8px 10px; border:1px solid #ffcdd2;">' +
-                        '<div style="font-size:0.65rem; font-weight:700; color:#e74c3c; margin-bottom:4px;">各項目を1〜5で評価</div>' +
-                        ['法令:legal','リスク:risk','頻度:freq','緊急:urgency','安全:safety','価値:value','ニーズ:needs'].map(function(item) {
-                            var parts = item.split(':');
-                            return '<div style="display:flex; align-items:center; gap:4px; margin-bottom:2px;"><span style="font-size:0.65rem; width:40px; font-weight:600;">'+parts[0]+'</span><input type="range" min="1" max="5" value="3" id="eval-'+parts[1]+'-'+pid+'" style="flex:1; height:14px;" oninput="this.nextElementSibling.innerText=this.value"><span style="font-size:0.7rem; font-weight:700; width:12px; text-align:center;">3</span></div>';
-                        }).join('') +
-                        '<textarea id="eval-comment-'+pid+'" placeholder="コメント（任意）" rows="1" style="width:100%; border:1px solid #ddd; border-radius:6px; padding:4px 6px; font-size:0.72rem; resize:none; margin-top:4px;"></textarea>' +
-                        '<button class="btn btn-sm btn-danger w-100 mt-1 fw-bold" style="font-size:0.72rem; padding:4px;" onclick="submitInlineEval(\''+pid+'\')"><i class="fas fa-check me-1"></i>評価を送信</button>' +
                     '</div>' +
                     // コメント欄
                     '<div style="flex:1; min-height:0;">' +

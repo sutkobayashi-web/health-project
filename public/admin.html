@@ -119,9 +119,11 @@
     }
     .plan-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
 
-    .eval-body { display: flex; flex: 1; overflow: hidden; }
-    .col-left-prio { width: 30%; min-width: 280px; padding: 16px; overflow-y: auto; border-right: 1px solid #eee; font-size: 0.88rem; }
-    .col-right-prio { width: 70%; display: flex; flex-direction: column; }
+    .prio-tab { padding:10px 16px; border:none; background:transparent; font-size:0.8rem; font-weight:700; color:#888; cursor:pointer; border-bottom:3px solid transparent; transition:all 0.2s; flex:1; text-align:center; }
+    .prio-tab:hover { color:#667eea; background:#f0f0ff; }
+    .prio-tab.active { color:#667eea; border-bottom-color:#667eea; }
+    .prio-panel { display:none; }
+    .prio-panel.active { display:block; }
     /* ====== LINE風チャット ====== */
     .deep-dive-container {
       flex: 1; overflow-y: auto; padding: 16px 12px;
@@ -235,9 +237,7 @@
       .sidebar { width: 52px; }
       .nav-item { width: 46px; }
       .nav-label { font-size: 0.45rem; }
-      .eval-body { flex-direction: column; overflow-y: auto; }
-      .col-left-prio { width: 100%; border-right: none; border-bottom: 1px solid #eee; max-height: 35vh; overflow-y: auto; flex-shrink: 0; }
-      .col-right-prio { width: 100%; min-height: 50vh; }
+      /* prio-tab responsive - no special overrides needed for tab layout */
       .theme-modal-body { flex-direction: column; }
       .theme-left-col, .theme-right-col { width: 100%; }
       .meeting-split { flex-direction: column; }
@@ -532,49 +532,60 @@ if(localStorage.getItem('co_heart_admin_email') && localStorage.getItem('co_hear
 <!-- priority modal (fullscreen) -->
 <div id="priority-modal" class="modal-overlay" style="display:none; z-index:3500;">
   <div class="modal-box" style="width:100%; height:100%; max-width:none; border-radius:0; background:#fff; padding:0; display:flex; flex-direction:column; overflow:hidden;">
-    <div style="background:#fff; padding:12px 25px; border-bottom:1px solid #ddd; display:flex; justify-content:space-between; align-items:center;">
-      <div class="d-flex align-items-center gap-3">
-        <span class="badge bg-warning text-dark fs-6 shadow-sm"><i class="fas fa-star me-1"></i> 重点検討・深耕</span>
-        <div class="text-dark fw-bold fs-5" id="prio-title">案件詳細</div>
-        <span id="prio-like-count" style="display:none;"></span>
+    <!-- Header -->
+    <div style="padding:10px 20px; background:linear-gradient(135deg,#667eea,#764ba2); display:flex; justify-content:space-between; align-items:center;">
+      <div style="color:white;">
+        <div style="font-weight:800; font-size:0.95rem;" id="prio-title">案件</div>
+        <div style="font-size:0.7rem; opacity:0.8;" id="prio-subtitle"></div>
       </div>
-      <button type="button" class="btn btn-outline-secondary btn-sm px-3 fw-bold" onclick="document.getElementById('priority-modal').style.display='none'"><i class="fas fa-times me-1"></i> 閉じる</button>
+      <button type="button" class="btn btn-light btn-sm" onclick="document.getElementById('priority-modal').style.display='none'"><i class="fas fa-times me-1"></i>閉じる</button>
     </div>
-    <div class="eval-body">
-      <div class="col-left-prio">
-        <!-- ヘッダー -->
-        <div class="d-flex align-items-center mb-2 pb-2 border-bottom">
-          <div style="font-size:1.6rem; margin-right:8px;" id="prio-avatar">&#x1F464;</div>
-          <div style="flex:1;"><div class="fw-bold" style="font-size:0.85rem;" id="prio-user">Name</div><div class="text-muted" style="font-size:0.68rem;" id="prio-date">Date</div></div>
-          <span id="prio-like-count-side" style="display:none;"></span>
+
+    <!-- Tab buttons -->
+    <div style="display:flex; border-bottom:2px solid #eee; background:#f8f9fa; flex-shrink:0;" id="prio-tabs">
+      <button class="prio-tab active" onclick="switchPrioTab('content')"><i class="fas fa-file-alt me-1"></i>内容</button>
+      <button class="prio-tab" onclick="switchPrioTab('eval')"><i class="fas fa-chart-bar me-1"></i>7軸評価</button>
+      <button class="prio-tab" onclick="switchPrioTab('discuss')"><i class="fas fa-comments me-1"></i>議論</button>
+      <button class="prio-tab" onclick="switchPrioTab('promote')"><i class="fas fa-arrow-up me-1"></i>昇格</button>
+    </div>
+
+    <!-- Tab content area -->
+    <div style="flex:1; overflow-y:auto;" id="prio-tab-area">
+      <!-- Content tab -->
+      <div id="prio-panel-content" class="prio-panel active" style="padding:20px;">
+        <div class="d-flex align-items-center mb-3">
+          <div style="font-size:2rem; margin-right:12px;" id="prio-avatar">&#x1F464;</div>
+          <div><div class="fw-bold" id="prio-user">Name</div><div class="text-muted small" id="prio-date">Date</div></div>
         </div>
-
-        <!-- 画像（上部に大きく） -->
-        <div id="prio-image-area" style="display:none; margin-bottom:10px;">
-          <img id="prio-image" style="width:100%; border-radius:10px; border:1px solid #eee; max-height:200px; object-fit:cover;" src="">
+        <div style="font-size:0.7rem; font-weight:700; color:#999; margin-bottom:4px;"><i class="fas fa-quote-left me-1"></i>投稿内容</div>
+        <div id="prio-content" style="white-space:pre-wrap; font-size:0.95rem; line-height:1.8; color:#333; background:#f8f9fa; padding:14px; border-radius:10px; margin-bottom:16px;"></div>
+        <div id="prio-image-area" style="display:none; margin-bottom:16px;">
+          <img id="prio-image" style="width:100%; max-height:300px; object-fit:cover; border-radius:10px; border:1px solid #eee;">
         </div>
-
-        <!-- 主訴 -->
-        <div style="font-size:0.65rem; font-weight:700; color:#999; margin-bottom:2px;"><i class="fas fa-quote-left me-1"></i>投稿内容</div>
-        <div id="prio-content" style="white-space:pre-wrap; font-size:0.85rem; line-height:1.6; color:#333; background:#f8f9fa; padding:10px; border-radius:8px; margin-bottom:10px;"></div>
-
-        <!-- AI分析 -->
-        <div style="font-size:0.65rem; font-weight:700; color:#d63384; margin-bottom:2px;"><i class="fas fa-user-nurse me-1"></i>AI分析</div>
-        <div id="prio-analysis" style="font-size:0.82rem; color:#444; line-height:1.6; background:linear-gradient(135deg,#fff5f7,#f0f4ff); padding:10px; border-radius:8px; margin-bottom:10px;"></div>
-
-        <!-- 類似の声 + メンバー評価を横並び -->
-        <div style="display:flex; gap:8px; margin-bottom:8px;">
-          <div style="flex:1;">
-            <div style="font-size:0.65rem; font-weight:700; color:#3478f6; margin-bottom:2px;"><i class="fas fa-search-plus me-1"></i>類似の声</div>
-            <div id="similar-posts-area" style="background:#f0f7ff; padding:8px; border-radius:8px; font-size:0.78rem; min-height:50px;"><span style="color:#aaa;">検索中...</span></div>
-          </div>
-          <div style="flex:1;">
-            <div style="font-size:0.65rem; font-weight:700; color:#20c997; margin-bottom:2px;"><i class="fas fa-chart-bar me-1"></i>評価</div>
-            <div id="prio-evaluations" style="background:#f0faf4; padding:8px; border-radius:8px; font-size:0.78rem; min-height:50px;"><span style="color:#aaa;">なし</span></div>
-          </div>
-        </div>
+        <div style="font-size:0.7rem; font-weight:700; color:#d63384; margin-bottom:4px;"><i class="fas fa-user-nurse me-1"></i>AI初期分析</div>
+        <div id="prio-analysis" style="font-size:0.9rem; color:#444; line-height:1.8; background:linear-gradient(135deg,#fff5f7,#f0f4ff); padding:14px; border-radius:10px; margin-bottom:16px;"></div>
+        <div style="font-size:0.7rem; font-weight:700; color:#3478f6; margin-bottom:4px;"><i class="fas fa-search-plus me-1"></i>類似の声</div>
+        <div id="similar-posts-area" style="background:#f0f7ff; padding:10px; border-radius:10px; min-height:40px;"><span style="color:#aaa;">検索中...</span></div>
       </div>
-      <div class="col-right-prio">
+
+      <!-- Evaluation tab -->
+      <div id="prio-panel-eval" class="prio-panel" style="padding:20px;">
+        <div style="font-size:0.85rem; font-weight:700; color:#e74c3c; margin-bottom:12px;"><i class="fas fa-chart-bar me-1"></i>7軸評価</div>
+        <div style="font-size:0.8rem; color:#888; margin-bottom:16px;">各軸を1〜5点で評価してください。メンバーの平均スコアが21点/35点を超えると重点検討に自動格上げされます。</div>
+        <!-- 7 sliders -->
+        <div id="prio-eval-sliders" style="max-width:500px;">
+          <!-- Will contain slider rows for each axis -->
+        </div>
+        <textarea id="prio-eval-comment" placeholder="評価コメント（任意）" rows="2" class="form-control mt-3" style="font-size:0.88rem;"></textarea>
+        <button class="btn btn-danger fw-bold w-100 mt-3" onclick="submitPrioEval()"><i class="fas fa-check me-1"></i>評価を送信</button>
+
+        <hr class="my-4">
+        <div style="font-size:0.85rem; font-weight:700; color:#20c997; margin-bottom:8px;"><i class="fas fa-users me-1"></i>メンバーの評価一覧</div>
+        <div id="prio-eval-list" style="min-height:40px;"></div>
+      </div>
+
+      <!-- Discussion tab -->
+      <div id="prio-panel-discuss" class="prio-panel" style="display:flex; flex-direction:column; height:100%;">
         <div style="text-align:center; padding:20px;" id="btn-open-chat">
           <div style="color:#999; font-size:0.85rem; margin-bottom:12px;">推進メンバーで議論を始めましょう</div>
           <button class="btn btn-primary rounded-pill px-4 shadow-sm" onclick="openChatAndStartAI()"><i class="fas fa-robot me-2"></i>AIメンバーを招集して議論開始</button>
@@ -590,13 +601,28 @@ if(localStorage.getItem('co_heart_admin_email') && localStorage.getItem('co_hear
             <button class="btn btn-primary" onclick="postPrioComment()" style="border-radius:50%; width:40px; height:40px; display:flex; justify-content:center; align-items:center; flex-shrink:0;"><i class="fas fa-paper-plane"></i></button>
           </div>
         </div>
-        <div style="padding:8px 12px; background:#f0f0f5; border-top:1px solid #ddd; display:flex; gap:6px; flex-shrink:0; align-items:center;">
-          <button type="button" class="btn btn-primary btn-sm fw-bold" style="font-size:0.78rem; flex:2; padding:8px;" onclick="handlePriorityAction('like')"><i class="fas fa-hand-paper me-1"></i>賛同 <span id="prio-vote-count" class="badge bg-light text-primary ms-1">0</span></button>
-          <button type="button" class="btn btn-success btn-sm fw-bold" style="font-size:0.72rem; flex:2; padding:8px;" onclick="promoteToProposal()"><i class="fas fa-arrow-up me-1"></i>企画書に昇格</button>
-          <button type="button" class="btn btn-outline-secondary btn-sm" style="font-size:0.72rem; flex:1;" onclick="handlePriorityAction('demote')"><i class="fas fa-undo me-1"></i>戻す</button>
+      </div>
+
+      <!-- Promote tab -->
+      <div id="prio-panel-promote" class="prio-panel" style="padding:20px;">
+        <div style="text-align:center; padding:30px 20px;">
+          <div style="font-size:3rem; margin-bottom:16px;">&#x1F4CB;</div>
+          <div style="font-weight:800; font-size:1.1rem; color:#2c3e50; margin-bottom:8px;">企画書に昇格</div>
+          <div style="font-size:0.85rem; color:#888; margin-bottom:24px; line-height:1.7;">この案件の投稿内容・AI分析・メンバーの議論を踏まえて<br>AIが企画書ドラフトを自動生成します。</div>
+          <button class="btn btn-success btn-lg fw-bold rounded-pill px-5 shadow" onclick="promoteToProposal()"><i class="fas fa-magic me-2"></i>企画書を自動生成</button>
         </div>
       </div>
     </div>
+
+    <!-- Footer -->
+    <div style="padding:8px 12px; background:#f0f0f5; border-top:1px solid #ddd; display:flex; gap:6px; flex-shrink:0; align-items:center;">
+      <button type="button" class="btn btn-primary btn-sm fw-bold" style="font-size:0.78rem; flex:2; padding:8px;" onclick="handlePriorityAction('like')"><i class="fas fa-hand-paper me-1"></i>賛同 <span id="prio-vote-count" class="badge bg-light text-primary ms-1">0</span></button>
+      <button type="button" class="btn btn-outline-secondary btn-sm" style="font-size:0.72rem; flex:1;" onclick="handlePriorityAction('demote')"><i class="fas fa-undo me-1"></i>戻す</button>
+    </div>
+
+    <!-- Hidden elements for compatibility -->
+    <span id="prio-like-count" style="display:none;"></span>
+    <span id="prio-like-count-side" style="display:none;"></span>
   </div>
 </div>
 

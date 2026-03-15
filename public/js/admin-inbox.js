@@ -159,7 +159,7 @@ function renderReportList(data) {
             '<div style="display:flex; min-height:80px;">' +
                 // 左: 投稿内容
                 '<div style="flex:1; padding:12px 14px; border-right:1px solid #f0f0f0;">' +
-                    '<div class="user-info" style="margin-bottom:6px;"><div class="avatar">'+avatar+'</div><div class="nick">'+escapeHtml(r[INBOX_COLS.USER_NAME])+'</div></div>' +
+                    '<div class="user-info" style="margin-bottom:6px;"><div class="avatar">'+avatar+'</div><div class="nick">'+escapeHtml(r[INBOX_COLS.USER_NAME])+'</div>'+(likeCount > 0 ? '<span style="margin-left:auto; background:linear-gradient(135deg,#667eea,#764ba2); color:white; font-size:0.65rem; font-weight:700; padding:2px 8px; border-radius:10px; display:inline-flex; align-items:center; gap:3px;"><i class="fas fa-hand-paper"></i> '+likeCount+'票</span>' : '')+'</div>' +
                     (thumbTag ? '<div style="margin-bottom:8px;">'+thumbTag+'</div>' : '') +
                     '<div style="font-size:0.88rem;line-height:1.6;color:#444;white-space:pre-wrap;">'+escapeHtml(rawContent)+'</div>' +
                 '</div>' +

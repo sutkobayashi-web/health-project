@@ -131,11 +131,11 @@ async function callGeminiVision(systemPrompt, base64Data, mimeType) {
   }
 }
 
-// AI保健師チャット用
+// AIヘルスアドバイザーチャット用
 async function chatWithNurse(userMessage, history, userName) {
   try {
     const systemPrompt = `# 役割
-あなたは、エビデンスに基づく健康支援を行う「AI保健師」です。
+あなたは、エビデンスに基づく健康支援を行う「AIヘルスアドバイザー」です。
 最新のガイドラインと行動科学理論に基づき、対象者の行動変容を支援します。
 
 # エビデンス基盤（必ずこれらに基づいて助言すること）
@@ -179,27 +179,27 @@ ${EVIDENCE_BASE}
   }
 }
 
-// AI保健師の初回挨拶
+// AIヘルスアドバイザーの初回挨拶
 async function getNurseGreeting(userName) {
   try {
-    const sys = `あなたはエビデンスに基づく健康支援を行うAI保健師です。ユーザー「${userName || 'さん'}」がチャットを開きました。
+    const sys = `あなたはエビデンスに基づく健康支援を行うAIヘルスアドバイザーです。ユーザー「${userName || 'さん'}」がチャットを開きました。
 初回の挨拶として、以下を含む温かい挨拶を3文以内で返してください：
-- 自己紹介（エビデンスに基づく健康支援を行うAI保健師であること）
+- 自己紹介（エビデンスに基づく健康支援を行うAIヘルスアドバイザーであること）
 - 来てくれたことへの感謝
 - 体調や気になることを聞くオープンクエスチョン（食事・運動・睡眠など）
 語り口は「です・ます」調で温かく。絵文字は1〜2個まで。`;
     const reply = await callGroqApi(sys, '挨拶してください');
     if (reply) return { success: true, reply };
-    return { success: true, reply: `こんにちは、${userName || ''}さん😊 エビデンスに基づく健康支援を行うAI保健師です！\nお話しできて嬉しいです。最近の食事や運動、体調で気になっていることはありますか？` };
+    return { success: true, reply: `こんにちは、${userName || ''}さん😊 エビデンスに基づく健康支援を行うAIヘルスアドバイザーです！\nお話しできて嬉しいです。最近の食事や運動、体調で気になっていることはありますか？` };
   } catch (e) {
-    return { success: true, reply: `こんにちは、${userName || ''}さん😊 エビデンスに基づく健康支援を行うAI保健師です！\nお話しできて嬉しいです。最近の食事や運動、体調で気になっていることはありますか？` };
+    return { success: true, reply: `こんにちは、${userName || ''}さん😊 エビデンスに基づく健康支援を行うAIヘルスアドバイザーです！\nお話しできて嬉しいです。最近の食事や運動、体調で気になっていることはありますか？` };
   }
 }
 
 // 画像付きチャット
 async function chatWithNurseImage(userMessage, imageBase64, mimeType, history, userName) {
   try {
-    const visionSys = `あなたは熟練の保健師・管理栄養士です。送られた画像（健康診断結果、薬、体の症状、食事写真など）の内容を正確に読み取り、簡潔に要約してください。
+    const visionSys = `あなたは熟練のヘルスアドバイザー・食事アドバイザーです。送られた画像（健康診断結果、薬、体の症状、食事写真など）の内容を正確に読み取り、簡潔に要約してください。
 
 食事画像の場合は以下の観点で分析すること（国立長寿医療研究センター「栄養改善パック」2020準拠）：
 - 主菜のたんぱく質源（肉・魚・卵・大豆）の有無と推定量（目標: 1.0g/kg体重/日）
@@ -213,7 +213,7 @@ async function chatWithNurseImage(userMessage, imageBase64, mimeType, history, u
 
     const combinedMessage = `【${userName || 'ユーザー'}さんから画像が送られました】\n＜画像の読み取り結果＞\n${visionResult}\n\n＜本人のコメント＞\n${userMessage || 'この画像について相談したいです。'}`;
 
-    const imageSystemPrompt = `あなたはエビデンスに基づく健康支援を行うAI保健師です。親身で温かい対応を心がけてください。
+    const imageSystemPrompt = `あなたはエビデンスに基づく健康支援を行うAIヘルスアドバイザーです。親身で温かい対応を心がけてください。
 
 # エビデンス基盤
 ${EVIDENCE_BASE}

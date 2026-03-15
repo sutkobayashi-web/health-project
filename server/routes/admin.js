@@ -29,9 +29,9 @@ router.get('/inbox', (req, res) => {
         if (parsed.score.hasOwnProperty('is_planned')) isPlanned = parsed.score.is_planned;
       }
       let nurse = '', nutri = '';
-      if (parsed.text.includes('【AI保健師】')) {
-        const p = parsed.text.split('【AI保健師】');
-        if (p[0].includes('【AI栄養士】')) nutri = p[0].replace('【AI栄養士】', '').trim();
+      if (parsed.text.includes('【AIヘルスアドバイザー】')) {
+        const p = parsed.text.split('【AIヘルスアドバイザー】');
+        if (p[0].includes('【AI食事アドバイザー】')) nutri = p[0].replace('【AI食事アドバイザー】', '').trim();
         nurse = p[1] ? p[1].trim() : '';
       } else { nurse = parsed.text; }
       const likesArr = r.likes ? r.likes.split(',').filter(x => x) : [];
@@ -225,12 +225,12 @@ router.post('/simulate-meeting', async (req, res) => {
     const { pid, planData } = req.body;
     const sysPrompt = `あなたは企業の社内世論シミュレーターです。
 【議題】に対して、以下のメンバーから数名を選んで議論してください。
-メンバー: 佐藤さん(20代/ドライ), 山本部長(50代/熱血), 高橋リーダー(30代/調整), 中村さん(40代/批判), 伊藤くん(20代/意識高い), 権藤専務(60代/経営), 林さん(パート/現場), AI産業医, AI保健師, AI栄養士, AI管理課長
+メンバー: 佐藤さん(20代/ドライ), 山本部長(50代/熱血), 高橋リーダー(30代/調整), 中村さん(40代/批判), 伊藤くん(20代/意識高い), 権藤専務(60代/経営), 林さん(パート/現場), AIメディカルアドバイザー, AIヘルスアドバイザー, AI食事アドバイザー, AI管理課長
 
 【議題】${planData.title} ${planData.draft}
 【出力形式】
 必ずJSON配列のみを出力。前後に説明文を付けないこと。avatarは必ず「絵文字1文字」。
-[{"role": "AI産業医", "avatar": "🩺", "message": "..."}]`;
+[{"role": "AIメディカルアドバイザー", "avatar": "🩺", "message": "..."}]`;
 
     const resText = await callGroqApi(sysPrompt, '議論開始');
     if (!resText) return res.json({ success: false, msg: 'AI無応答' });
@@ -291,7 +291,7 @@ router.post('/ai-evaluate', async (req, res) => {
 router.post('/ai-advisor', async (req, res) => {
   try {
     const { content, question } = req.body;
-    const sys = `あなたは健康経営の専門家であり、労働安全衛生の知識を持つAI保健師です。ユーザーの【質問】に対し、専門的な知見から評価の参考になるアドバイスを簡潔に回答してください。\n\n【声】\n${content}`;
+    const sys = `あなたは健康経営の専門家であり、労働安全衛生の知識を持つAIヘルスアドバイザーです。ユーザーの【質問】に対し、専門的な知見から評価の参考になるアドバイスを簡潔に回答してください。\n\n【声】\n${content}`;
     const result = await callGroqApi(sys, question);
     res.json({ success: true, reply: result || '申し訳ありません。AIの応答がありませんでした。' });
   } catch (e) { res.json({ success: false, reply: 'エラーが発生しました。' }); }
@@ -382,9 +382,9 @@ router.post('/food-report', async (req, res) => {
     // 食事データを整理
     const meals = foodPosts.map(p => {
       let nutrition = '';
-      if (p.analysis && p.analysis.includes('【AI栄養士】')) {
-        const parts = p.analysis.split('【AI栄養士】');
-        nutrition = parts[1] ? parts[1].split('【AI保健師】')[0].trim() : '';
+      if (p.analysis && p.analysis.includes('【AI食事アドバイザー】')) {
+        const parts = p.analysis.split('【AI食事アドバイザー】');
+        nutrition = parts[1] ? parts[1].split('【AIヘルスアドバイザー】')[0].trim() : '';
       }
       const date = new Date(p.created_at).toLocaleDateString('ja-JP');
       const comment = (p.content || '').replace(/^【写真】/, '').trim();
@@ -392,7 +392,7 @@ router.post('/food-report', async (req, res) => {
     }).join('\n');
 
     // AI分析
-    const sysPrompt = `あなたはエビデンスに基づく分析を行うベテラン管理栄養士です。以下のユーザーの食事記録を、国立長寿医療研究センター「栄養改善パック」（2020）のガイドラインに基づいて分析し、レポートを作成してください。
+    const sysPrompt = `あなたはエビデンスに基づく分析を行うベテラン食事アドバイザーです。以下のユーザーの食事記録を、国立長寿医療研究センター「栄養改善パック」（2020）のガイドラインに基づいて分析し、レポートを作成してください。
 
 対象: ${user.nickname}さん（${user.department}）
 記録期間の食事数: ${foodPosts.length}件
@@ -421,11 +421,11 @@ router.post('/food-report', async (req, res) => {
     if (req.body.sendNow) {
       const memberComment = req.body.memberComment || '';
       const noticeId = 'food_report_' + Date.now();
-      let noticeContent = `🥗 食事傾向レポート\n\n${user.nickname}さん、日頃の食事投稿ありがとうございます！\n${foodPosts.length}件の食事記録をもとに、AI栄養士があなたの食事傾向を分析しました。\n\n${report}`;
+      let noticeContent = `🥗 食事傾向レポート\n\n${user.nickname}さん、日頃の食事投稿ありがとうございます！\n${foodPosts.length}件の食事記録をもとに、AI食事アドバイザーがあなたの食事傾向を分析しました。\n\n${report}`;
       if (memberComment.trim()) {
         noticeContent += `\n\n━━━━━━━━━━━━━━━━\n💬 健康推進メンバーより\n${memberComment.trim()}`;
       }
-      db.prepare('INSERT INTO notices (notice_id, content, sender, target_id) VALUES (?,?,?,?)').run(noticeId, noticeContent, 'AI栄養士 + 健康推進チーム', userId);
+      db.prepare('INSERT INTO notices (notice_id, content, sender, target_id) VALUES (?,?,?,?)').run(noticeId, noticeContent, 'AI食事アドバイザー + 健康推進チーム', userId);
       res.json({ success: true, sent: true, msg: `${user.nickname}さんに食事傾向レポートを送信しました（${foodPosts.length}件分析）`, report });
     } else {
       res.json({ success: true, sent: false, msg: 'プレビュー生成完了', report, nickname: user.nickname, foodCount: foodPosts.length, userId });

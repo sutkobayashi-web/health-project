@@ -46,7 +46,7 @@
 /* ── Constants ── */
 var INBOX_COLS = { ROW_ID:1, CONTENT:2, ANALYSIS:3, USER_NAME:4, AVATAR:5, LIKE_COUNT:6, PID:7, CAT:8, STATUS:9, UID:10, IMG:11, DATE:14 };
 var currentInboxCatFilter = 'all';
-var INBOX_AVATAR_MAP = { "産業医":"🩺","医":"🩺","保健師":"💉","看護":"💉","栄養士":"🥗","管理":"📝","課長":"📝","事務":"📝","専務":"👨‍⚖️","経営":"👨‍⚖️","佐藤":"💁‍♀️","山本":"👨‍💼","高橋":"👩‍💼","中村":"👨‍💻","伊藤":"👦","林":"👩‍🍳" };
+var INBOX_AVATAR_MAP = { "メディカル":"🩺","医":"🩺","ヘルス":"💉","看護":"💉","食事":"🥗","管理":"📝","課長":"📝","事務":"📝","専務":"👨‍⚖️","経営":"👨‍⚖️","佐藤":"💁‍♀️","山本":"👨‍💼","高橋":"👩‍💼","中村":"👨‍💻","伊藤":"👦","林":"👩‍🍳" };
 
 /* ── Helper: avatar resolution ── */
 function getInboxAvatar(name, role, currentAvatar) {

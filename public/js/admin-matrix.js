@@ -3,15 +3,15 @@
 // ====================================================
 var MX_COLS = { DATE:14, ROW_ID:0, CONTENT:2, ANALYSIS:3, USER_NAME:4, AVATAR:5, REPLY:6, PID:7, CAT:8, STATUS:9, UID:10, IMG:11, NURSE:12, NUTRI:13, LIKE_COUNT:6, DEMOTE_COUNT:18 };
 window.mxCurrentPrioPid = null;
-var MX_AVATAR_MAP = { "産業医":"🩺","医":"🩺","保健師":"💉","看護":"💉","栄養士":"🥗","管理":"📝","課長":"📝","事務":"📝","専務":"👨‍⚖️","経営":"👨‍⚖️","佐藤":"💁‍♀️","山本":"👨‍💼","高橋":"👩‍💼","中村":"👨‍💻","伊藤":"👦","林":"👩‍🍳" };
+var MX_AVATAR_MAP = { "メディカル":"🩺","医":"🩺","ヘルス":"💉","看護":"💉","食事":"🥗","管理":"📝","課長":"📝","事務":"📝","専務":"👨‍⚖️","経営":"👨‍⚖️","佐藤":"💁‍♀️","山本":"👨‍💼","高橋":"👩‍💼","中村":"👨‍💻","伊藤":"👦","林":"👩‍🍳" };
 var allPointsData = [];
 
 function getMatrixAvatar(name, role, currentAvatar) {
     var targetStr = (String(currentAvatar) + String(name) + String(role));
     if(targetStr.includes("管理") || targetStr.includes("課長")) return "📝";
-    if(targetStr.includes("産業医") || targetStr.includes("医")) return "🩺";
-    if(targetStr.includes("保健師")) return "💉";
-    if(targetStr.includes("栄養士")) return "🥗";
+    if(targetStr.includes("メディカル") || targetStr.includes("医")) return "🩺";
+    if(targetStr.includes("ヘルス")) return "💉";
+    if(targetStr.includes("食事")) return "🥗";
     if(currentAvatar && currentAvatar.length <= 4 && !currentAvatar.match(/[亜-熙ぁ-んァ-ヶ]/)) return currentAvatar;
     for(var key in MX_AVATAR_MAP) { if(targetStr.includes(key)) return MX_AVATAR_MAP[key]; }
     return "🤖";

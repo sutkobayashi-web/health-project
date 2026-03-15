@@ -158,11 +158,11 @@
     <div id="auth-step-menu">
       <div class="auth-hero">
         <div style="display:flex; justify-content:center; gap:10px; margin-bottom:10px;">
-          <img src="https://drive.google.com/thumbnail?id=16yng5mofQMoyvSbdHT4WfaVNQH6n29pp&sz=w200" alt="AI保健師" style="height:120px; filter:drop-shadow(2px 4px 8px rgba(0,0,0,0.15)); animation: authCharFloat 3s ease-in-out infinite;">
-          <img src="https://drive.google.com/thumbnail?id=1e025vJfgmEcqy9eDDN19QGuZkYLowDeZ&sz=w200" alt="AI栄養士" style="height:120px; filter:drop-shadow(2px 4px 8px rgba(0,0,0,0.15)); animation: authCharFloat 3s ease-in-out 0.5s infinite;">
+          <div style="display:inline-flex;align-items:center;justify-content:center;width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#e0f7fa,#b2ebf2);animation:authCharFloat 3s ease-in-out infinite;"><i class="fas fa-heartbeat" style="font-size:36px;color:#e91e63;"></i></div>
+          <div style="display:inline-flex;align-items:center;justify-content:center;width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#f1f8e9,#dcedc8);animation:authCharFloat 3s ease-in-out 0.5s infinite;"><i class="fas fa-utensils" style="font-size:36px;color:#4caf50;"></i></div>
         </div>
         <div style="font-size:1.6rem; font-weight:900; color:#2c3e50; margin-bottom:4px;">健康プロジェクト</div>
-        <div class="auth-hero-catch">みんなの声で職場を元気に。<br><strong>AI保健師</strong>と<strong>AI栄養士</strong>があなたの健康をサポートします</div>
+        <div class="auth-hero-catch">みんなの声で職場を元気に。<br><strong>AIヘルスアドバイザー</strong>と<strong>AI食事アドバイザー</strong>があなたの健康をサポートします</div>
       </div>
       <div class="auth-guide-text">はじめに選択してください</div>
       <button class="auth-menu-btn btn-new-user" onclick="showStep('register')"><i class="fas fa-user-plus"></i><div><span class="auth-menu-title">はじめての方</span><span class="auth-menu-desc">新規登録して参加する</span></div></button>
@@ -312,10 +312,10 @@
     <!-- 相談セクション -->
     <div class="card-section honne-area">
       <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
-        <img src="https://drive.google.com/thumbnail?id=16yng5mofQMoyvSbdHT4WfaVNQH6n29pp&sz=w120" alt="AI保健師" style="height:56px; filter:drop-shadow(1px 2px 4px rgba(0,0,0,0.1));">
+        <div style="display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#e0f7fa,#b2ebf2);flex-shrink:0;"><i class="fas fa-heartbeat" style="font-size:22px;color:#e91e63;"></i></div>
         <div>
           <div class="section-title" style="margin-bottom:2px;"><i class="far fa-comment-dots"></i> 健康のお悩み・提案</div>
-          <div class="honne-area section-sub">AI保健師が親身にお答えします</div>
+          <div class="honne-area section-sub">AIヘルスアドバイザーが親身にお答えします</div>
         </div>
       </div>
       <textarea id="honne-input" placeholder="最近の体調や気になること、職場環境への提案など、なんでもどうぞ（匿名で届きます）"></textarea>
@@ -325,10 +325,10 @@
     <!-- 食事セクション -->
     <div class="card-section food-section">
       <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
-        <img src="https://drive.google.com/thumbnail?id=1e025vJfgmEcqy9eDDN19QGuZkYLowDeZ&sz=w120" alt="AI栄養士" style="height:56px; filter:drop-shadow(1px 2px 4px rgba(0,0,0,0.1));">
+        <div style="display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#f1f8e9,#dcedc8);flex-shrink:0;"><i class="fas fa-utensils" style="font-size:22px;color:#4caf50;"></i></div>
         <div>
           <div class="section-title" style="margin-bottom:2px;"><i class="fas fa-utensils"></i> 食事チェック</div>
-          <div class="food-section section-sub">AI栄養士がバランスを分析します</div>
+          <div class="food-section section-sub">AI食事アドバイザーがバランスを分析します</div>
         </div>
       </div>
       <div class="food-upload-area" onclick="document.getElementById('file-input').click()">
@@ -342,7 +342,7 @@
       </div>
       <div class="form-check mt-2" style="text-align:left;">
         <input class="form-check-input" type="checkbox" id="food-confirm" checked onchange="toggleFoodSubmit()">
-        <label class="form-check-label small" for="food-confirm">AI栄養士に診断してもらう</label>
+        <label class="form-check-label small" for="food-confirm">AI食事アドバイザーに診断してもらう</label>
       </div>
       <button class="btn-food-submit" id="btn-food-submit" onclick="submitFoodPost()"><i class="fas fa-salad"></i> 食事診断を受ける</button>
     </div>
@@ -801,7 +801,7 @@ document.addEventListener('click', function(e) {
 function submitPost() {
   var txt = document.getElementById('honne-input').value;
   if (!txt) return alert("内容を入力してください");
-  showLoading("AI保健師が分析中...");
+  showLoading("AIヘルスアドバイザーが分析中...");
   processForm({ uid: currentUser.uid, nickname: currentUser.nickname, avatar: currentUser.avatar, honne: encodeURIComponent(txt), department: currentUser.department, birthDate: currentUser.birthDate }).then(function(res) {
     hideLoading();
     if (res && res.success) {
@@ -825,7 +825,7 @@ function showAIResponse(text) {
   box.innerHTML =
     '<div style="text-align:center; margin-bottom:16px;">' +
       '<div style="font-size:2.5rem; margin-bottom:8px;">🩺</div>' +
-      '<div style="font-weight:800; font-size:1.1rem; color:#d63384;">AI保健師からのコメント</div>' +
+      '<div style="font-weight:800; font-size:1.1rem; color:#d63384;">AIヘルスアドバイザーからのコメント</div>' +
       '<div style="font-size:0.75rem; color:#aaa; margin-top:4px;">投稿は健康推進メンバーに届きました</div>' +
     '</div>' +
     '<div style="background:linear-gradient(135deg,#fff5f7,#f0f4ff);padding:16px;border-radius:14px;font-size:0.9rem;line-height:1.8;color:#333;white-space:pre-wrap;border-left:4px solid #d63384;">' + escInbox(text) + '</div>' +
@@ -874,7 +874,7 @@ function submitFoodPost() {
   if (!selectedFoodData) return alert("写真を選択してください");
   if (!document.getElementById('food-confirm').checked) return alert("確認チェックを入れてください");
   var comment = document.getElementById('food-comment').value;
-  showLoading("AI栄養士が分析中...");
+  showLoading("AI食事アドバイザーが分析中...");
   handleFoodPost({ uid: currentUser.uid, nickname: currentUser.nickname, avatar: currentUser.avatar, imageBase64: selectedFoodData, mimeType: selectedFoodMime, userComment: comment, department: currentUser.department, birthDate: currentUser.birthDate, isPublic: true }).then(function(res) {
     hideLoading();
     document.getElementById('food-comment').value = ""; document.getElementById('file-input').value = "";
@@ -883,8 +883,8 @@ function submitFoodPost() {
     if (res && res.success) {
       var msg = '';
       if (res.analysis) {
-        if (res.analysis.nutrition) msg += '【AI栄養士】\n' + res.analysis.nutrition + '\n\n';
-        if (res.analysis.nurse) msg += '【AI保健師】\n' + res.analysis.nurse;
+        if (res.analysis.nutrition) msg += '【AI食事アドバイザー】\n' + res.analysis.nutrition + '\n\n';
+        if (res.analysis.nurse) msg += '【AIヘルスアドバイザー】\n' + res.analysis.nurse;
       }
       showFoodResponse(msg || '食事の投稿を受け付けました。');
       if (!isTimelineOpen) toggleTimeline(); else loadTimeline(0, true);
@@ -904,7 +904,7 @@ function showFoodResponse(text) {
     '<div style="text-align:center; margin-bottom:16px;">' +
       '<div style="font-size:2.5rem; margin-bottom:8px;">🥗</div>' +
       '<div style="font-weight:800; font-size:1.1rem; color:#20c997;">食事分析レポート</div>' +
-      '<div style="font-size:0.75rem; color:#aaa; margin-top:4px;">AI栄養士 × AI保健師</div>' +
+      '<div style="font-size:0.75rem; color:#aaa; margin-top:4px;">AI食事アドバイザー × AIヘルスアドバイザー</div>' +
     '</div>' +
     '<div style="background:linear-gradient(135deg,#f0faf4,#edf4ff);padding:16px;border-radius:14px;font-size:0.9rem;line-height:1.8;color:#333;white-space:pre-wrap;border-left:4px solid #20c997;">' + escInbox(text) + '</div>' +
     '<button onclick="this.closest(\'div[style*=fixed]\').remove()" style="width:100%;margin-top:16px;padding:14px;background:linear-gradient(135deg,#20c997,#38d9a9);color:white;border:none;border-radius:14px;font-weight:700;font-size:0.95rem;cursor:pointer;box-shadow:0 4px 14px rgba(32,201,151,0.3);">閉じる</button>';
@@ -923,7 +923,7 @@ function hideLoading() { document.getElementById('loading-overlay').style.displa
 
 </script>
 
-<!-- ====== AI保健師チャットボット ====== -->
+<!-- ====== AIヘルスアドバイザーチャットボット ====== -->
 <style>
 /* --- FABボタン --- */
 #nurse-fab {
@@ -1180,16 +1180,16 @@ function hideLoading() { document.getElementById('loading-overlay').style.displa
 .nurse-quick-btn:active { background: #ec407a; color: white; }
 </style>
 
-<button id="nurse-fab" style="display:none;" onclick="openNurseChat()"><img class="fab-img" src="https://drive.google.com/thumbnail?id=1xsXmk2unOYMDMxkhY5EemCtEwEXiVGZq&sz=w120&t=2" alt="AI保健師"><span class="fab-label">AI保健師に<br>相談する</span><div class="fab-badge" id="nurse-fab-badge" style="display:none;"></div></button>
+<button id="nurse-fab" style="display:none;" onclick="openNurseChat()"><i class="fas fa-heartbeat fab-img" style="font-size:28px;color:#e91e63;"></i><span class="fab-label">AIヘルスアドバイザーに<br>相談する</span><div class="fab-badge" id="nurse-fab-badge" style="display:none;"></div></button>
 
 <div id="nurse-chat-overlay" onclick="closeNurseChat()" ontouchmove="event.preventDefault()"></div>
 
 <div id="nurse-chat-sheet">
   <div class="nurse-chat-header">
     <div class="nurse-chat-header-left">
-      <div class="nurse-chat-avatar"><img src="https://drive.google.com/thumbnail?id=1xsXmk2unOYMDMxkhY5EemCtEwEXiVGZq&sz=w80&t=2" alt="AI保健師"></div>
+      <div class="nurse-chat-avatar" style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#e0f7fa,#b2ebf2);"><i class="fas fa-heartbeat" style="font-size:18px;color:#e91e63;"></i></div>
       <div>
-        <div class="nurse-chat-name">AI保健師</div>
+        <div class="nurse-chat-name">AIヘルスアドバイザー</div>
         <div class="nurse-chat-status">いつでも相談できます</div>
       </div>
     </div>
@@ -1218,7 +1218,7 @@ function hideLoading() { document.getElementById('loading-overlay').style.displa
 </div>
 
 <script>
-// ====== AI保健師チャットボット JS ======
+// ====== AIヘルスアドバイザーチャットボット JS ======
 var nurseHistory = [];
 var nurseReady = true;
 var nurseInited = false;
@@ -1312,7 +1312,7 @@ function loadNurseGreeting() {
   getNurseGreeting(name).then(function(res) {
     hideNurseTyping();
     var txt = (res && res.success && res.reply) ? res.reply
-      : 'こんにちは' + (name ? '、' + name + 'さん' : '') + '😊 AI保健師です！\nお話しできて嬉しいです。最近、体調やお気持ちで気になっていることはありますか？';
+      : 'こんにちは' + (name ? '、' + name + 'さん' : '') + '😊 AIヘルスアドバイザーです！\nお話しできて嬉しいです。最近、体調やお気持ちで気になっていることはありますか？';
     playReceiveSound();
     addNurseMsg('ai', txt);
     nurseHistory.push({ role: 'assistant', content: txt });
@@ -1320,7 +1320,7 @@ function loadNurseGreeting() {
     nurseScrollBottom();
   }).catch(function() {
     hideNurseTyping();
-    var txt = 'こんにちは😊 AI保健師です！\n最近の体調はいかがですか？気になることがあれば何でもお聞かせくださいね。';
+    var txt = 'こんにちは😊 AIヘルスアドバイザーです！\n最近の体調はいかがですか？気になることがあれば何でもお聞かせくださいね。';
     addNurseMsg('ai', txt);
     nurseHistory.push({ role: 'assistant', content: txt });
     document.getElementById('nurse-quick').style.display = 'flex';
@@ -1402,7 +1402,7 @@ function addNurseMsg(type, text, imageDataUrl) {
   var area = document.getElementById('nurse-messages');
   var div = document.createElement('div');
   div.className = 'nurse-msg ' + type;
-  var av = type === 'ai' ? '<img src="https://drive.google.com/thumbnail?id=1xsXmk2unOYMDMxkhY5EemCtEwEXiVGZq&sz=w64&t=2" alt="AI">' : (currentUser ? currentUser.avatar : '😀');
+  var av = type === 'ai' ? '<div style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#e0f7fa,#b2ebf2);"><i class="fas fa-heartbeat" style="font-size:16px;color:#e91e63;"></i></div>' : (currentUser ? currentUser.avatar : '😀');
   var safe = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   var imgHtml = imageDataUrl ? '<img class="nurse-msg-image" src="' + imageDataUrl + '">' : '';
   div.innerHTML = '<div class="nurse-msg-avatar">' + av + '</div><div class="nurse-msg-bubble">' + imgHtml + safe + '</div>';
@@ -1456,7 +1456,7 @@ function showNurseTyping() {
   var area = document.getElementById('nurse-messages');
   var div = document.createElement('div');
   div.id = 'nurse-typing-ind'; div.className = 'nurse-typing';
-  div.innerHTML = '<div class="nurse-msg-avatar"><img src="https://drive.google.com/thumbnail?id=1xsXmk2unOYMDMxkhY5EemCtEwEXiVGZq&sz=w64&t=2" alt="AI"></div><div class="nurse-typing-bubble"><div class="nurse-typing-dot"></div><div class="nurse-typing-dot"></div><div class="nurse-typing-dot"></div></div>';
+  div.innerHTML = '<div class="nurse-msg-avatar"><div style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#e0f7fa,#b2ebf2);"><i class="fas fa-heartbeat" style="font-size:16px;color:#e91e63;"></i></div></div><div class="nurse-typing-bubble"><div class="nurse-typing-dot"></div><div class="nurse-typing-dot"></div><div class="nurse-typing-dot"></div></div>';
   area.appendChild(div);
   nurseScrollBottom();
 }
@@ -1483,7 +1483,7 @@ function nurseScrollBottom() {
   };
 })();
 </script>
-<!-- ====== /AI保健師チャットボット ====== -->
+<!-- ====== /AIヘルスアドバイザーチャットボット ====== -->
 
 <!-- ====== お知らせ Inbox ====== -->
 <style>

@@ -46,7 +46,7 @@ function previewFoodReport(userId, nickname) {
     var btn = document.getElementById('food-btn-' + userId);
     if (btn) {
         btn.disabled = true;
-        btn.innerHTML = '<div class="spinner-border spinner-border-sm me-2"></div>AI栄養士が分析中...';
+        btn.innerHTML = '<div class="spinner-border spinner-border-sm me-2"></div>AI食事アドバイザーが分析中...';
     }
 
     generateFoodReport(userId).then(function(res) {

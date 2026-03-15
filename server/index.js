@@ -34,6 +34,27 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', version: '1.0.0', timestamp: new Date().toISOString() });
 });
 
+// 手動バックアップAPI（管理者用）
+app.post('/api/admin/backup', (req, res) => {
+  const { runBackup } = require('./services/backup');
+  runBackup().then(r => res.json(r)).catch(e => res.json({ success: false, error: e.message }));
+});
+
+// 日次自動バックアップ（毎日深夜2:00）
+function scheduleBackup() {
+  const now = new Date();
+  const next = new Date();
+  next.setHours(2, 0, 0, 0);
+  if (next <= now) next.setDate(next.getDate() + 1);
+  const delay = next - now;
+  console.log(`次回バックアップ: ${next.toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' })}`);
+  setTimeout(() => {
+    const { runBackup } = require('./services/backup');
+    runBackup().then(() => scheduleBackup());
+  }, delay);
+}
+scheduleBackup();
+
 // SPA フォールバック (管理画面)
 app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'public', 'admin.html'));

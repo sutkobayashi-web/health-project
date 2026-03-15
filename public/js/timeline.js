@@ -62,15 +62,16 @@ function openPostDetail(row) {
   var analysisHtml = p.analysis ? '<div class="ai-reply"><i class="fas fa-robot text-primary"></i> ' + p.analysis.replace(/\n/g, '<br>') + '</div>' : '';
   var sheet = document.getElementById('post-detail-sheet');
   sheet.innerHTML =
-    '<div style="padding:12px 16px 8px;text-align:center;"><div style="width:40px;height:4px;background:#ddd;border-radius:2px;margin:0 auto;"></div></div>' +
-    '<div style="padding:4px 18px 24px;">' +
-      '<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">' +
-        '<div class="avatar">' + p.avatar + '</div>' +
-        '<div><div class="nick">' + p.nickname + ' <span class="rank">' + p.authorRank + '</span></div><div style="font-size:0.72rem;color:#999;">' + p.date + '</div></div>' +
+    '<div style="padding:10px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #eee;position:sticky;top:0;background:white;z-index:1;border-radius:20px 20px 0 0;">' +
+      '<div style="display:flex;align-items:center;gap:10px;">' +
+        '<div class="avatar" style="width:30px;height:30px;font-size:1rem;">' + p.avatar + '</div>' +
+        '<div><span class="nick" style="font-size:0.82rem;">' + p.nickname + '</span> <span class="rank">' + p.authorRank + '</span><div style="font-size:0.65rem;color:#999;">' + p.date + '</div></div>' +
       '</div>' +
+      '<button id="post-detail-close-btn" style="padding:8px 20px;background:#2c3e50;color:white;border:none;border-radius:20px;font-weight:700;font-size:0.8rem;cursor:pointer;">閉じる</button>' +
+    '</div>' +
+    '<div style="padding:16px 18px 24px;">' +
       '<div style="font-size:0.92rem;line-height:1.8;color:#333;white-space:pre-wrap;margin-bottom:14px;">' + p.content + '</div>' +
       imgHtml + analysisHtml +
-      '<button id="post-detail-close-btn" style="width:100%;margin-top:20px;padding:14px;background:linear-gradient(135deg,#2c3e50,#34495e);color:white;border:none;border-radius:14px;font-weight:700;font-size:0.95rem;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,0.15);">閉じる</button>' +
     '</div>';
   document.getElementById('post-detail-modal').classList.add('active');
   lockScroll();

@@ -133,6 +133,45 @@ function loadData() {
         allPostData = data;
         renderInbox(currentInboxFilter);
     }).catch(function(err) { hideLoading(); alert("通信エラー: " + err.message); });
+    // メンバーリスト＆ハートビート開始
+    startHeartbeat();
+    loadSidebarMembers();
+}
+
+// ハートビート送信（30秒ごと）
+function startHeartbeat() {
+    function sendBeat() {
+        if (!currentAdminProfile) return;
+        api('/admin/heartbeat', {
+            email: currentAdminProfile.email || '',
+            name: currentAdminProfile.name || '',
+            avatar: currentAdminProfile.avatar || '🛡️'
+        }, getAdminToken());
+    }
+    sendBeat();
+    setInterval(sendBeat, 30000);
+    // メンバーリストも60秒ごとに更新
+    setInterval(loadSidebarMembers, 60000);
+}
+
+// サイドバーメンバーリスト
+function loadSidebarMembers() {
+    api('/admin/members-status', undefined, getAdminToken()).then(function(members) {
+        var area = document.getElementById('sidebar-members');
+        if (!area || !members || !members.length) return;
+        // オンラインを上に
+        members.sort(function(a, b) { return (b.online ? 1 : 0) - (a.online ? 1 : 0); });
+        area.innerHTML = members.map(function(m) {
+            var avatar = m.avatar || '🛡️';
+            var statusClass = m.online ? 'online' : 'offline';
+            var univBadge = m.isUniversity ? '<span style="font-size:0.5rem;">🎓</span>' : '';
+            return '<div class="member-dot" style="background:' + (m.online ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.05)') + ';" title="' + escapeHtml(m.name) + '">' +
+                avatar + univBadge +
+                '<div class="heartbeat ' + statusClass + '"></div>' +
+                '<div class="member-tooltip">' + escapeHtml(m.name) + (m.online ? ' (オンライン)' : '') + '</div>' +
+            '</div>';
+        }).join('');
+    });
 }
 
 function switchTab(t) {

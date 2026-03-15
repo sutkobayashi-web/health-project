@@ -457,6 +457,40 @@ router.get('/food-users', (req, res) => {
   } catch (e) { res.json([]); }
 });
 
+// ハートビート（オンライン状態管理）
+const onlineMembers = {}; // { email: { name, avatar, lastSeen } }
+
+router.post('/heartbeat', (req, res) => {
+  const { email, name, avatar } = req.body;
+  if (!email) return res.json({ success: false });
+  onlineMembers[email] = { name: name || '', avatar: avatar || '🛡️', lastSeen: Date.now() };
+  // 5分以上応答なしはオフライン
+  const now = Date.now();
+  const members = Object.entries(onlineMembers).map(([e, m]) => ({
+    email: e, name: m.name, avatar: m.avatar, online: (now - m.lastSeen) < 5 * 60 * 1000
+  }));
+  res.json(members);
+});
+
+router.get('/members-status', (req, res) => {
+  try {
+    const db = getDb();
+    const allMembers = db.prepare('SELECT name, email, avatar, is_university FROM core_members').all();
+    const now = Date.now();
+    const result = allMembers.map(m => {
+      let avatar = m.avatar || '🛡️';
+      if (avatar.length > 4 || (avatar.match && avatar.match(/\d{4}/))) avatar = '🛡️';
+      const onlineData = onlineMembers[m.email];
+      return {
+        name: m.name, email: m.email, avatar,
+        isUniversity: m.is_university === 1,
+        online: onlineData ? (now - onlineData.lastSeen) < 5 * 60 * 1000 : false
+      };
+    });
+    res.json(result);
+  } catch (e) { res.json([]); }
+});
+
 // 類似投稿の集約検索
 router.post('/similar-posts', async (req, res) => {
   try {

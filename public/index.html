@@ -86,13 +86,10 @@
   .action-bar { padding: 10px 14px; border-top: 1px solid #f5f5f5; display: flex; justify-content: flex-end; }
   .btn-like { background: white; border: 1.5px solid #ff6b6b; color: #ff6b6b; border-radius: 20px; padding: 5px 14px; font-size: 0.78rem; display: flex; align-items: center; gap: 5px; transition: all 0.2s; font-weight: 600; }
   .btn-like.active { background: #ff6b6b; color: white; border-color: #ff6b6b; }
-  .post-like-btn { margin-left: auto; cursor: pointer; font-size: 0.82rem; color: #ccc; display: flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 16px; transition: all 0.2s; user-select: none; -webkit-tap-highlight-color: transparent; }
-  .post-like-btn:active { transform: scale(1.2); }
-  .post-like-btn .fa-heart { transition: all 0.2s; }
-  .post-like-btn.liked { color: #ff6b6b; }
-  .post-like-btn.liked .fa-heart { animation: heartPop 0.3s ease-out; }
-  .post-like-btn .like-num { font-weight: 700; font-size: 0.75rem; min-width: 8px; }
-  @keyframes heartPop { 0% { transform: scale(1); } 50% { transform: scale(1.4); } 100% { transform: scale(1); } }
+  .post-like-btn { margin-left: auto; cursor: pointer; font-size: 0.82rem; color: #ccc; display: flex; align-items: center; gap: 3px; padding: 4px 10px; border-radius: 16px; user-select: none; -webkit-tap-highlight-color: transparent; }
+  .post-like-btn .like-heart { font-style: normal; font-size: 1rem; line-height: 1; }
+  .post-like-btn .like-num { font-weight: 700; font-size: 0.75rem; min-width: 8px; color: #999; }
+  .post-like-btn.liked .like-num { color: #ff6b6b; }
   .user-info { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
   .paging-area { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
   .btn-more { background: white; color: #555; border: 1px solid #e0e0e0; padding: 12px; border-radius: 12px; width: 100%; font-weight: 700; font-size: 0.9rem; }
@@ -684,7 +681,8 @@ function renderPost(p) {
   var likeId = 'like-' + p.row;
   var heartIcon = p.isLiked ? 'fas' : 'far';
   var heartClass = p.isLiked ? ' liked' : '';
-  var likeBtn = '<span class="post-like-btn' + heartClass + '" id="' + likeId + '" data-row="' + p.row + '"><i class="' + heartIcon + ' fa-heart"></i> <span class="like-num">' + p.likeCount + '</span></span>';
+  var heartEmoji = p.isLiked ? '❤️' : '🤍';
+  var likeBtn = '<span class="post-like-btn' + heartClass + '" id="' + likeId + '" data-row="' + p.row + '"><span class="like-heart">' + heartEmoji + '</span><span class="like-num">' + p.likeCount + '</span></span>';
   return '<div class="post-card">' +
     '<div class="post-header-bar ' + headerClass + '"><span><i class="' + icon + '"></i> ' + catName + '</span><span>' + p.date + '</span></div>' +
     '<div class="post-content">' +
@@ -709,7 +707,15 @@ document.addEventListener('click', function(e) {
   // カードが押された場合（ハート以外）
   var card = e.target.closest('.post-card');
   if (card) {
+    // スクロール位置を保持してカード開閉
+    var rect = card.getBoundingClientRect();
+    var topBefore = rect.top;
     card.classList.toggle('expanded');
+    // 閉じた場合、カードが画面上に見えるようスクロール調整
+    var topAfter = card.getBoundingClientRect().top;
+    if (topAfter < 0) {
+      window.scrollBy(0, topAfter - 10);
+    }
   }
 });
 
@@ -831,10 +837,10 @@ function showFoodResponse(text) {
 function updateLikeUI(el, liked, count) {
   if (liked) {
     el.classList.add('liked');
-    el.innerHTML = '<i class="fas fa-heart"></i> <span class="like-num">' + count + '</span>';
+    el.innerHTML = '<span class="like-heart">❤️</span><span class="like-num">' + count + '</span>';
   } else {
     el.classList.remove('liked');
-    el.innerHTML = '<i class="far fa-heart"></i> <span class="like-num">' + count + '</span>';
+    el.innerHTML = '<span class="like-heart">🤍</span><span class="like-num">' + count + '</span>';
   }
 }
 

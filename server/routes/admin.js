@@ -457,6 +457,27 @@ router.get('/food-users', (req, res) => {
   } catch (e) { res.json([]); }
 });
 
+// メンバー承認
+router.post('/approve-member', (req, res) => {
+  try {
+    const { memberId } = req.body;
+    const db = getDb();
+    db.prepare("UPDATE core_members SET status = 'approved' WHERE id = ?").run(memberId);
+    const member = db.prepare('SELECT name FROM core_members WHERE id = ?').get(memberId);
+    res.json({ success: true, msg: (member ? member.name : '') + 'さんを承認しました' });
+  } catch (e) { res.json({ success: false, msg: e.message }); }
+});
+
+// メンバー却下（削除）
+router.post('/reject-member', (req, res) => {
+  try {
+    const { memberId } = req.body;
+    const db = getDb();
+    db.prepare('DELETE FROM core_members WHERE id = ? AND status = ?').run(memberId, 'pending');
+    res.json({ success: true, msg: '申請を却下しました' });
+  } catch (e) { res.json({ success: false, msg: e.message }); }
+});
+
 // ハートビート（オンライン状態管理）
 const onlineMembers = {}; // { email: { name, avatar, lastSeen } }
 
@@ -475,15 +496,17 @@ router.post('/heartbeat', (req, res) => {
 router.get('/members-status', (req, res) => {
   try {
     const db = getDb();
-    const allMembers = db.prepare('SELECT name, email, avatar, is_university FROM core_members').all();
+    const allMembers = db.prepare('SELECT id, name, email, avatar, is_university, university_org, dept, status FROM core_members').all();
     const now = Date.now();
     const result = allMembers.map(m => {
       let avatar = m.avatar || '🛡️';
       if (avatar.length > 4 || (avatar.match && avatar.match(/\d{4}/))) avatar = '🛡️';
       const onlineData = onlineMembers[m.email];
       return {
-        name: m.name, email: m.email, avatar,
+        id: m.id, name: m.name, email: m.email, avatar,
+        dept: m.dept || '', universityOrg: m.university_org || '',
         isUniversity: m.is_university === 1,
+        status: m.status || 'approved',
         online: onlineData ? (now - onlineData.lastSeen) < 5 * 60 * 1000 : false
       };
     });

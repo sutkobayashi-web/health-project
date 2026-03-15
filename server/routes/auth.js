@@ -66,13 +66,11 @@ router.post('/admin-register', (req, res) => {
     if (existing) return res.json({ success: false, msg: '既に登録されているメールアドレスです' });
     const passwordHash = hashPasswordSHA256(password.trim());
     const role = isUniversity ? 'observer' : 'member';
-    db.prepare(`INSERT INTO core_members (name, dept, email, password_hash, avatar, role, is_exec, is_university, university_org)
-      VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?)`).run(name.trim(), dept || '', email.trim().toLowerCase(), passwordHash, '🛡️', role, isUniversity ? 1 : 0, universityOrg || '');
-    const token = generateToken({ email: email.trim().toLowerCase(), name: name.trim(), type: 'admin', role, isExec: false, isUniversity: !!isUniversity });
+    db.prepare(`INSERT INTO core_members (name, dept, email, password_hash, avatar, role, is_exec, is_university, university_org, status)
+      VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?, 'pending')`).run(name.trim(), dept || '', email.trim().toLowerCase(), passwordHash, '🛡️', role, isUniversity ? 1 : 0, universityOrg || '');
     res.json({
-      success: true, msg: '登録が完了しました',
-      profile: { name: name.trim(), dept: dept || '', email: email.trim().toLowerCase(), avatar: '🛡️', role, isExec: false, isUniversity: !!isUniversity },
-      token
+      success: true, msg: '登録申請を受け付けました。推進メンバーの承認をお待ちください。',
+      pending: true
     });
   } catch (e) {
     res.json({ success: false, msg: 'エラー: ' + e.message });
@@ -103,6 +101,10 @@ router.post('/admin-login', (req, res) => {
       if (member.password_hash !== ph && member.password_hash !== password.trim()) {
         return res.json({ success: false, msg: '認証失敗' });
       }
+    }
+    // 承認チェック
+    if (member.status === 'pending') {
+      return res.json({ success: false, msg: '登録申請は承認待ちです。推進メンバーの承認をお待ちください。' });
     }
 
     let role = member.role || 'member';

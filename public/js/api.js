@@ -39,6 +39,12 @@ function loginUser(n, p) {
 function registerAdmin(data) {
   return api('/auth/admin-register', data);
 }
+function approveMember(memberId) {
+  return api('/admin/approve-member', { memberId }, getAdminToken());
+}
+function rejectMember(memberId) {
+  return api('/admin/reject-member', { memberId }, getAdminToken());
+}
 function getUniversityMembers() {
   return api('/auth/university-members', undefined, getAdminToken());
 }

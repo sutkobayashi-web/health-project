@@ -161,14 +161,26 @@ function loadSidebarMembers() {
     api('/admin/members-status', undefined, getAdminToken()).then(function(members) {
         if (!members || !members.length) return;
         _membersCache = members;
-        // オンラインカウントバッジ更新
-        var onlineCount = members.filter(function(m){ return m.online; }).length;
+        var approved = members.filter(function(m){ return m.status === 'approved'; });
+        var pending = members.filter(function(m){ return m.status === 'pending'; });
+        var onlineCount = approved.filter(function(m){ return m.online; }).length;
+        // バッジ更新（承認待ちがあれば赤、なければ緑のオンライン数）
         var badge = document.getElementById('online-count-badge');
         if (badge) {
-            if (onlineCount > 0) { badge.style.display = 'flex'; badge.innerText = onlineCount; }
-            else { badge.style.display = 'none'; }
+            if (pending.length > 0) {
+                badge.style.display = 'flex';
+                badge.style.background = '#e74c3c';
+                badge.innerText = pending.length;
+                badge.style.animation = 'pulseGlow 1.5s infinite';
+            } else if (onlineCount > 0) {
+                badge.style.display = 'flex';
+                badge.style.background = '#4caf50';
+                badge.innerText = onlineCount;
+                badge.style.animation = '';
+            } else {
+                badge.style.display = 'none';
+            }
         }
-        // ポップアップが開いていれば更新
         var popup = document.getElementById('members-popup');
         if (popup && popup.style.display !== 'none') renderMembersPopup();
     });
@@ -191,24 +203,66 @@ function renderMembersPopup() {
     var subtitle = document.getElementById('members-popup-subtitle');
     if (!list) return;
     var members = _membersCache;
-    members.sort(function(a, b) { return (b.online ? 1 : 0) - (a.online ? 1 : 0); });
-    var onlineCount = members.filter(function(m){ return m.online; }).length;
-    if (subtitle) subtitle.innerText = onlineCount + '人がオンライン / 全' + members.length + '人';
-    list.innerHTML = members.map(function(m) {
+    var approved = members.filter(function(m){ return m.status === 'approved'; });
+    var pending = members.filter(function(m){ return m.status === 'pending'; });
+    approved.sort(function(a, b) { return (b.online ? 1 : 0) - (a.online ? 1 : 0); });
+    var onlineCount = approved.filter(function(m){ return m.online; }).length;
+    if (subtitle) subtitle.innerText = onlineCount + '人がオンライン / 全' + approved.length + '人' + (pending.length > 0 ? ' / 承認待ち' + pending.length + '人' : '');
+
+    var html = '';
+    // 承認待ちセクション
+    if (pending.length > 0) {
+        html += '<div style="background:linear-gradient(135deg,#fff3e0,#ffe0b2); border:2px solid #ff9800; border-radius:10px; padding:10px; margin-bottom:10px;">' +
+            '<div style="font-size:0.75rem; font-weight:800; color:#e65100; margin-bottom:8px;"><i class="fas fa-exclamation-circle me-1"></i>承認待ち（' + pending.length + '件）</div>';
+        pending.forEach(function(m) {
+            var avatar = m.avatar || '🛡️';
+            html += '<div style="display:flex; align-items:center; gap:8px; padding:8px; background:white; border-radius:8px; margin-bottom:6px; border:1px solid #ffe0b2;">' +
+                '<div style="width:36px; height:36px; border-radius:50%; background:#fff3e0; display:flex; justify-content:center; align-items:center; font-size:1.1rem; flex-shrink:0;">' + avatar + '</div>' +
+                '<div style="flex:1; min-width:0;">' +
+                    '<div style="font-weight:700; font-size:0.82rem; color:#333;">' + escapeHtml(m.name) + (m.isUniversity ? ' <span style="font-size:0.55rem; background:#6c5ce7; color:white; padding:1px 5px; border-radius:6px;">大学</span>' : '') + '</div>' +
+                    '<div style="font-size:0.65rem; color:#999;">' + escapeHtml(m.dept || m.universityOrg || m.email) + '</div>' +
+                '</div>' +
+                '<div style="display:flex; gap:4px; flex-shrink:0;">' +
+                    '<button class="btn btn-sm btn-success" style="font-size:0.65rem; padding:3px 10px; font-weight:700;" onclick="handleApproveMember('+m.id+')"><i class="fas fa-check"></i> 承認</button>' +
+                    '<button class="btn btn-sm btn-outline-danger" style="font-size:0.65rem; padding:3px 8px;" onclick="handleRejectMember('+m.id+')"><i class="fas fa-times"></i></button>' +
+                '</div>' +
+            '</div>';
+        });
+        html += '</div>';
+    }
+    // 承認済みメンバー
+    html += approved.map(function(m) {
         var avatar = m.avatar || '🛡️';
         var online = m.online;
-        return '<div style="display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:10px; margin-bottom:4px; background:' + (online ? '#f0fff4' : '#fafafa') + '; border:1px solid ' + (online ? '#c8e6c9' : '#f0f0f0') + '; transition:all 0.2s;">' +
+        return '<div style="display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:10px; margin-bottom:4px; background:' + (online ? '#f0fff4' : '#fafafa') + '; border:1px solid ' + (online ? '#c8e6c9' : '#f0f0f0') + ';">' +
             '<div style="position:relative; flex-shrink:0;">' +
                 '<div style="width:38px; height:38px; border-radius:50%; background:' + (online ? '#e8f5e9' : '#f5f5f5') + '; display:flex; justify-content:center; align-items:center; font-size:1.2rem;">' + avatar + '</div>' +
                 '<div style="position:absolute; bottom:0; right:0; width:12px; height:12px; border-radius:50%; border:2px solid white; background:' + (online ? '#4caf50' : '#bbb') + ';' + (online ? ' animation:heartbeat 1.5s ease-in-out infinite;' : '') + '"></div>' +
             '</div>' +
             '<div style="flex:1; min-width:0;">' +
-                '<div style="font-weight:700; font-size:0.85rem; color:#333; display:flex; align-items:center; gap:4px;">' + escapeHtml(m.name) + (m.isUniversity ? ' <span style="font-size:0.6rem; background:#6c5ce7; color:white; padding:1px 6px; border-radius:8px;">大学</span>' : '') + '</div>' +
-                '<div style="font-size:0.7rem; color:#999; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">' + escapeHtml(m.email) + '</div>' +
+                '<div style="font-weight:700; font-size:0.82rem; color:#333;">' + escapeHtml(m.name) + (m.isUniversity ? ' <span style="font-size:0.55rem; background:#6c5ce7; color:white; padding:1px 5px; border-radius:6px;">大学</span>' : '') + '</div>' +
+                '<div style="font-size:0.65rem; color:#999; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">' + escapeHtml(m.email) + '</div>' +
             '</div>' +
-            '<div style="font-size:0.65rem; font-weight:700; color:' + (online ? '#4caf50' : '#ccc') + ';">' + (online ? '● オンライン' : '○ オフライン') + '</div>' +
+            '<div style="font-size:0.6rem; font-weight:700; color:' + (online ? '#4caf50' : '#ccc') + ';">' + (online ? '●' : '○') + '</div>' +
         '</div>';
     }).join('');
+    list.innerHTML = html;
+}
+
+function handleApproveMember(id) {
+    if(!confirm('このメンバーを承認しますか？')) return;
+    approveMember(id).then(function(res) {
+        if(res && res.success) { alert(res.msg); loadSidebarMembers(); }
+        else alert('エラー: ' + (res ? res.msg : '不明'));
+    });
+}
+
+function handleRejectMember(id) {
+    if(!confirm('この申請を却下しますか？（データは削除されます）')) return;
+    rejectMember(id).then(function(res) {
+        if(res && res.success) { alert(res.msg); loadSidebarMembers(); }
+        else alert('エラー: ' + (res ? res.msg : '不明'));
+    });
 }
 
 function switchTab(t) {

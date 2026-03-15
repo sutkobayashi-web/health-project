@@ -149,7 +149,7 @@ function renderReportList(data) {
         div.className = "post-card" + (isHidden ? " hidden" : "");
         div.setAttribute('data-cat', cardCat);
         div.innerHTML =
-            '<div class="post-header-bar '+headerClass+'"><span><i class="'+icon+'"></i> '+catName+likeBadge+'</span><span>'+dateStr+'</span></div>' +
+            '<div class="post-header-bar '+headerClass+'"><span><i class="'+icon+'"></i> '+catName+'</span><span>'+dateStr+'</span></div>' +
             '<div style="display:flex; min-height:80px;">' +
                 // 左: 投稿内容
                 '<div style="flex:1; padding:12px 14px; border-right:1px solid #f0f0f0;">' +

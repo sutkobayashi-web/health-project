@@ -185,7 +185,8 @@ function renderReportList(data) {
                     // ボタン
                     '<div style="display:flex; gap:4px; flex-shrink:0;">' +
                         '<button class="btn btn-outline-secondary btn-admin" style="flex:1; font-size:0.68rem;" onclick="openEvalModal(\''+pid+'\')"><i class="fas fa-search me-1"></i>詳細</button>' +
-                        (!isTarget ? '<button class="btn btn-outline-danger btn-admin" style="flex:1; font-size:0.68rem;" onclick="toggleTriage(\''+pid+'\', true)"><i class="fas fa-star me-1"></i>重点へ</button>' : '<button class="btn btn-outline-success btn-admin" style="flex:1; font-size:0.68rem;" onclick="toggleTriage(\''+pid+'\', false)"><i class="fas fa-undo me-1"></i>解除</button>') +
+                        '<button class="btn btn-outline-danger btn-admin" style="flex:1; font-size:0.68rem;" onclick="openEvalModalWithTab(\''+pid+'\',\'eval\')"><i class="fas fa-chart-bar me-1"></i>7軸評価</button>' +
+                        (!isTarget ? '<button class="btn btn-outline-warning btn-admin" style="flex:1; font-size:0.68rem;" onclick="toggleTriage(\''+pid+'\', true)"><i class="fas fa-star me-1"></i>重点へ</button>' : '<button class="btn btn-outline-success btn-admin" style="flex:1; font-size:0.68rem;" onclick="toggleTriage(\''+pid+'\', false)"><i class="fas fa-undo me-1"></i>解除</button>') +
                     '</div>' +
                 '</div>' +
             '</div>';
@@ -341,6 +342,12 @@ document.addEventListener('click', function(e) {
 
 /* ── Open evaluation modal ── */
 function openEvalModal(pid) { if(typeof openPriorityModal === 'function') openPriorityModal(pid); else alert("詳細画面を開けません。リロードしてください。"); }
+function openEvalModalWithTab(pid, tab) {
+    if(typeof openPriorityModal === 'function') {
+        openPriorityModal(pid);
+        setTimeout(function(){ if(typeof switchPrioTab === 'function') switchPrioTab(tab); }, 100);
+    } else { alert("詳細画面を開けません。リロードしてください。"); }
+}
 
 /* ── Toggle triage (target) status ── */
 function toggleTriage(pid, toTarget) {

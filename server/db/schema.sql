@@ -28,7 +28,8 @@ CREATE TABLE IF NOT EXISTS core_members (
   role TEXT DEFAULT 'member',
   is_exec INTEGER DEFAULT 0,
   is_university INTEGER DEFAULT 0,
-  university_org TEXT DEFAULT ''
+  university_org TEXT DEFAULT '',
+  status TEXT DEFAULT 'approved'
 );
 
 -- Posts シート → posts テーブル

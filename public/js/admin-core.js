@@ -174,6 +174,7 @@ function refreshActiveTab() {
         case 'exec': loadExecPending(); break;
         case 'food': loadFoodUsers(); break;
         case 'members': loadMemberManagement(); break;
+        case 'backup': loadBackupTab(); break;
     }
 }
 
@@ -544,7 +545,7 @@ function switchTab(t) {
     var target = document.getElementById('tab-'+t); if(target) target.classList.add('active');
     document.querySelectorAll('.nav-item').forEach(function(e) { e.classList.remove('active'); });
 
-    var navMap = { evaluation:'nav-eval', current:'nav-curr', candidates:'nav-cand', resolved:'nav-res', personal:'nav-personal', bmi22:'nav-bmi22', aimeeting:'nav-aimeeting', exec:'nav-exec', food:'nav-food', members:'nav-members' };
+    var navMap = { evaluation:'nav-eval', current:'nav-curr', candidates:'nav-cand', resolved:'nav-res', personal:'nav-personal', bmi22:'nav-bmi22', aimeeting:'nav-aimeeting', exec:'nav-exec', food:'nav-food', members:'nav-members', backup:'nav-backup' };
     var navEl = document.getElementById(navMap[t] || 'nav-eval');
     if(navEl) navEl.classList.add('active');
 
@@ -558,6 +559,7 @@ function switchTab(t) {
     if(t==='exec') loadExecPending();
     if(t==='food') loadFoodUsers();
     if(t==='members') loadMemberManagement();
+    if(t==='backup') loadBackupTab();
 }
 
 function loadResolved() {
@@ -573,89 +575,91 @@ function loadResolved() {
 }
 
 // =============================================
-// バックアップ状態モーダル
+// バックアップ管理タブ
 // =============================================
-function openBackupModal() {
-    var existing = document.getElementById('backup-status-modal');
-    if (existing) existing.remove();
+function loadBackupTab() {
+    var body = document.getElementById('backup-tab-body');
+    if (!body) return;
+    body.innerHTML = '<div class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm"></div> バックアップ状態を確認中...</div>';
 
-    var div = document.createElement('div');
-    div.id = 'backup-status-modal';
-    div.className = 'modal-overlay';
-    div.style.cssText = 'display:flex; z-index:2080;';
-    div.innerHTML = '<div class="modal-box" style="width:94%; max-width:640px; background:white; padding:25px; border-radius:12px;">' +
-        '<div class="fw-bold mb-3 fs-5 border-bottom pb-2" style="display:flex; align-items:center; justify-content:space-between;">' +
-            '<span><i class="fas fa-database" style="color:#667eea; margin-right:8px;"></i>バックアップ状態</span>' +
-            '<button class="btn btn-sm btn-outline-secondary" onclick="closeBackupModal()" style="border:none; font-size:1.1rem;"><i class="fas fa-times"></i></button>' +
-        '</div>' +
-        '<div id="backup-status-body" style="min-height:100px;"><div class="text-center py-4"><div class="spinner-border spinner-border-sm text-primary"></div> 確認中...</div></div>' +
-        '<div class="d-flex gap-2 mt-4">' +
-            '<button class="btn btn-primary flex-grow-1 fw-bold" onclick="doManualBackup()"><i class="fas fa-play me-1"></i>Healthを今すぐバックアップ</button>' +
-            '<button class="btn btn-secondary" style="width:100px;" onclick="closeBackupModal()">閉じる</button>' +
-        '</div>' +
-    '</div>';
-    document.body.appendChild(div);
-
-    // データ取得
     getBackupStatus().then(function(res) {
         if (!res || !res.success) {
-            document.getElementById('backup-status-body').innerHTML = '<div class="text-danger text-center p-3">取得失敗: ' + escapeHtml((res && res.msg) || '不明なエラー') + '</div>';
+            body.innerHTML = '<div class="text-danger text-center p-4">取得失敗: ' + escapeHtml((res && res.msg) || '不明なエラー') + '</div>';
             return;
         }
-        renderBackupStatus(res.apps);
+        renderBackupTab(res.apps);
     }).catch(function(err) {
-        document.getElementById('backup-status-body').innerHTML = '<div class="text-danger text-center p-3">通信エラー: ' + escapeHtml(err.message) + '</div>';
+        body.innerHTML = '<div class="text-danger text-center p-4">通信エラー: ' + escapeHtml(err.message) + '</div>';
     });
 }
 
-function closeBackupModal() {
-    var el = document.getElementById('backup-status-modal');
-    if (el) el.remove();
-}
-
-function renderBackupStatus(apps) {
-    var body = document.getElementById('backup-status-body');
+function renderBackupTab(apps) {
+    var body = document.getElementById('backup-tab-body');
     if (!body) return;
     var icons = { 'health': 'fa-heart-pulse', 'kanto-bc': 'fa-building', 'haisha': 'fa-truck' };
     var colors = { 'health': '#667eea', 'kanto-bc': '#e67e22', 'haisha': '#27ae60' };
+    var labels = { 'health': '健康プロジェクト', 'kanto-bc': '関東BC', 'haisha': '配車システム' };
 
-    var html = '<div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-bottom:16px;">';
+    // ステータスカード3枚
+    var html = '<div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:16px; margin-bottom:20px;">';
     apps.forEach(function(app) {
         var hasLocal = app.latest !== null;
         var statusColor = hasLocal ? '#4caf50' : '#e74c3c';
         var statusText = hasLocal ? 'OK' : 'No Data';
         var lastDate = hasLocal ? new Date(app.latest.date).toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-';
         var sizeText = hasLocal ? app.latest.sizeKB.toLocaleString() + ' KB' : '-';
+        var fileName = hasLocal ? app.latest.name : '-';
         var icon = icons[app.name] || 'fa-database';
         var color = colors[app.name] || '#667eea';
+        var label = labels[app.name] || app.name;
 
-        html += '<div style="border:1px solid #eee; border-radius:12px; padding:16px 12px; text-align:center; background:#fafbfc;">' +
-            '<div style="width:44px; height:44px; border-radius:50%; background:' + color + '15; display:flex; align-items:center; justify-content:center; margin:0 auto 10px;"><i class="fas ' + icon + '" style="color:' + color + '; font-size:1.2rem;"></i></div>' +
-            '<div style="font-weight:800; font-size:0.9rem; margin-bottom:6px;">' + escapeHtml(app.name) + '</div>' +
-            '<div style="display:inline-block; padding:2px 10px; border-radius:10px; font-size:0.7rem; font-weight:700; color:white; background:' + statusColor + '; margin-bottom:8px;">' + statusText + '</div>' +
-            '<div style="font-size:0.72rem; color:#666; line-height:1.8;">' +
-                '<div><i class="fas fa-clock me-1" style="color:#999;"></i>' + lastDate + '</div>' +
-                '<div><i class="fas fa-file me-1" style="color:#999;"></i>' + sizeText + '</div>' +
-                '<div><i class="fas fa-cloud me-1" style="color:#999;"></i>Box: ' + app.boxCount + '件</div>' +
-                '<div style="font-size:0.65rem; color:#aaa; margin-top:2px;">' + escapeHtml(app.cron) + '</div>' +
+        html += '<div class="card shadow-sm" style="border:none; border-radius:14px; overflow:hidden;">' +
+            '<div style="background:linear-gradient(135deg,' + color + ',' + color + 'cc); padding:16px; text-align:center;">' +
+                '<div style="width:50px; height:50px; border-radius:50%; background:rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; margin:0 auto 8px;"><i class="fas ' + icon + '" style="color:white; font-size:1.4rem;"></i></div>' +
+                '<div style="font-weight:800; font-size:1rem; color:white;">' + escapeHtml(label) + '</div>' +
+                '<div style="font-size:0.7rem; color:rgba(255,255,255,0.7);">' + escapeHtml(app.name) + '</div>' +
+            '</div>' +
+            '<div class="card-body" style="padding:16px;">' +
+                '<div class="text-center mb-3"><span style="display:inline-block; padding:3px 14px; border-radius:12px; font-size:0.75rem; font-weight:700; color:white; background:' + statusColor + ';">' + statusText + '</span></div>' +
+                '<table style="width:100%; font-size:0.78rem;">' +
+                    '<tr><td style="color:#999; padding:4px 0;"><i class="fas fa-clock me-1"></i>最終</td><td style="font-weight:600; text-align:right;">' + lastDate + '</td></tr>' +
+                    '<tr><td style="color:#999; padding:4px 0;"><i class="fas fa-file me-1"></i>サイズ</td><td style="font-weight:600; text-align:right;">' + sizeText + '</td></tr>' +
+                    '<tr><td style="color:#999; padding:4px 0;"><i class="fas fa-hdd me-1"></i>ローカル</td><td style="font-weight:600; text-align:right;">' + app.localCount + ' 件</td></tr>' +
+                    '<tr><td style="color:#999; padding:4px 0;"><i class="fas fa-cloud me-1"></i>Box</td><td style="font-weight:600; text-align:right;">' + app.boxCount + ' 件</td></tr>' +
+                    '<tr><td style="color:#999; padding:4px 0;"><i class="fas fa-sync me-1"></i>スケジュール</td><td style="font-weight:600; text-align:right; font-size:0.68rem;">' + escapeHtml(app.cron) + '</td></tr>' +
+                '</table>' +
             '</div>' +
         '</div>';
     });
     html += '</div>';
 
-    // Box内ファイル一覧（詳細）
-    html += '<div style="background:#f8f9fa; border-radius:10px; padding:12px; max-height:200px; overflow-y:auto;">';
-    html += '<div style="font-size:0.75rem; font-weight:700; color:#555; margin-bottom:8px;"><i class="fas fa-cloud me-1"></i>Box上の最新ファイル</div>';
+    // Box内ファイル一覧
+    html += '<div class="card shadow-sm" style="border:none; border-radius:14px;">' +
+        '<div class="card-header fw-bold" style="background:#f8f9fa; border-bottom:1px solid #eee;"><i class="fas fa-cloud me-2" style="color:#3498db;"></i>Box上のファイル一覧</div>' +
+        '<div class="card-body" style="padding:0; max-height:300px; overflow-y:auto;">';
     apps.forEach(function(app) {
-        if (!app.boxFiles || app.boxFiles.length === 0) return;
-        html += '<div style="font-size:0.7rem; font-weight:700; color:' + (colors[app.name] || '#667eea') + '; margin-top:6px; margin-bottom:3px;">' + escapeHtml(app.name) + '</div>';
-        app.boxFiles.forEach(function(f) {
-            html += '<div style="font-size:0.68rem; color:#666; padding:2px 0 2px 12px;">' +
-                '<i class="fas fa-file-alt me-1" style="color:#ccc;"></i>' + escapeHtml(f.name) +
-                ' <span style="color:#aaa;">(' + f.sizeKB.toLocaleString() + ' KB)</span></div>';
-        });
+        var color = colors[app.name] || '#667eea';
+        var label = labels[app.name] || app.name;
+        html += '<div style="padding:10px 16px; border-bottom:1px solid #f0f0f0;">' +
+            '<div style="font-size:0.8rem; font-weight:700; color:' + color + '; margin-bottom:6px;"><i class="fas ' + (icons[app.name] || 'fa-database') + ' me-1"></i>' + escapeHtml(label) + ' <span style="font-size:0.65rem; color:#aaa; font-weight:400;">(' + app.boxCount + '件)</span></div>';
+        if (app.boxFiles && app.boxFiles.length > 0) {
+            app.boxFiles.forEach(function(f) {
+                html += '<div style="font-size:0.75rem; color:#555; padding:3px 0 3px 16px; display:flex; justify-content:space-between;">' +
+                    '<span><i class="fas fa-file-alt me-1" style="color:#ccc;"></i>' + escapeHtml(f.name) + '</span>' +
+                    '<span style="color:#999;">' + f.sizeKB.toLocaleString() + ' KB</span></div>';
+            });
+        } else {
+            html += '<div style="font-size:0.75rem; color:#aaa; padding:3px 0 3px 16px;">ファイルなし</div>';
+        }
+        html += '</div>';
     });
-    html += '</div>';
+    html += '</div></div>';
+
+    // 操作ボタン
+    html += '<div class="d-flex gap-3 mt-4">' +
+        '<button class="btn btn-primary fw-bold" onclick="doManualBackup()" style="border-radius:10px; padding:10px 24px;"><i class="fas fa-play me-2"></i>Health を今すぐバックアップ</button>' +
+        '<button class="btn btn-outline-secondary fw-bold" onclick="loadBackupTab()" style="border-radius:10px; padding:10px 24px;"><i class="fas fa-sync me-2"></i>再読み込み</button>' +
+    '</div>';
 
     body.innerHTML = html;
 }
@@ -667,8 +671,7 @@ function doManualBackup() {
         hideLoading();
         if (res && res.success) {
             alert('バックアップ完了: ' + res.file + ' (' + res.sizeKB + 'KB)');
-            closeBackupModal();
-            openBackupModal(); // 再取得
+            loadBackupTab();
         } else {
             alert('エラー: ' + (res ? (res.error || res.msg) : '不明'));
         }

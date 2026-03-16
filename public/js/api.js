@@ -60,6 +60,9 @@ function runBackup() {
 function updateBoxToken(token) {
   return api('/admin/box-token', { token }, getAdminToken());
 }
+function getBackupStatus() {
+  return api('/admin/backup-status', undefined, getAdminToken());
+}
 function resetAdminPassword(email, name, newPassword) {
   return api('/auth/admin-reset-password', { email, name, newPassword });
 }

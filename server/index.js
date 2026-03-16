@@ -40,6 +40,76 @@ app.post('/api/admin/backup', (req, res) => {
   runBackup().then(r => res.json(r)).catch(e => res.json({ success: false, error: e.message }));
 });
 
+// バックアップ状態確認API
+app.get('/api/admin/backup-status', (req, res) => {
+  const fs = require('fs');
+  const { execSync } = require('child_process');
+
+  function getLocalBackups(dir, pattern) {
+    try {
+      if (!fs.existsSync(dir)) return [];
+      return fs.readdirSync(dir)
+        .filter(f => f.match(pattern))
+        .map(f => {
+          const stat = fs.statSync(path.join(dir, f));
+          return { name: f, size: stat.size, mtime: stat.mtimeMs };
+        })
+        .sort((a, b) => b.mtime - a.mtime);
+    } catch (e) { return []; }
+  }
+
+  function getBoxFiles(remoteDir) {
+    try {
+      const out = execSync(`rclone lsjson box:${remoteDir}/ --no-modtime 2>/dev/null || echo "[]"`, { timeout: 15000 }).toString().trim();
+      return JSON.parse(out).map(f => ({ name: f.Name, size: f.Size }));
+    } catch (e) { return []; }
+  }
+
+  const apps = [
+    {
+      name: 'health',
+      localDir: path.join(__dirname, '..', 'backup'),
+      localPattern: /^health_.*\.db$/,
+      boxDir: 'health-backup',
+      cron: 'Node.js内蔵 毎日 2:00'
+    },
+    {
+      name: 'kanto-bc',
+      localDir: '/opt/kanto-bc/backup',
+      localPattern: /^kanto_.*\.db$/,
+      boxDir: 'kanto-bc-backup',
+      cron: 'cron 毎日 3:00'
+    },
+    {
+      name: 'haisha',
+      localDir: '/opt/haisha/backup',
+      localPattern: /^dispatch_.*\.db$/,
+      boxDir: 'haisha-backup',
+      cron: 'cron 毎日 4:00'
+    }
+  ];
+
+  const results = apps.map(app => {
+    const local = getLocalBackups(app.localDir, app.localPattern);
+    const boxFiles = getBoxFiles(app.boxDir);
+    const latest = local[0] || null;
+    return {
+      name: app.name,
+      cron: app.cron,
+      localCount: local.length,
+      latest: latest ? {
+        name: latest.name,
+        sizeKB: Math.round(latest.size / 1024),
+        date: new Date(latest.mtime).toISOString()
+      } : null,
+      boxCount: boxFiles.length,
+      boxFiles: boxFiles.slice(0, 5).map(f => ({ name: f.name, sizeKB: Math.round(f.size / 1024) }))
+    };
+  });
+
+  res.json({ success: true, apps: results });
+});
+
 // Box Developer Token更新API
 app.post('/api/admin/box-token', (req, res) => {
   const { token } = req.body;

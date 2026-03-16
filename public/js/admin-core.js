@@ -572,6 +572,109 @@ function loadResolved() {
     }).catch(function(err) { area.innerHTML = '<div class="text-danger text-center p-5">通信エラー: ' + escapeHtml(err.message) + '</div>'; });
 }
 
+// =============================================
+// バックアップ状態モーダル
+// =============================================
+function openBackupModal() {
+    var existing = document.getElementById('backup-status-modal');
+    if (existing) existing.remove();
+
+    var div = document.createElement('div');
+    div.id = 'backup-status-modal';
+    div.className = 'modal-overlay';
+    div.style.cssText = 'display:flex; z-index:2080;';
+    div.innerHTML = '<div class="modal-box" style="width:94%; max-width:640px; background:white; padding:25px; border-radius:12px;">' +
+        '<div class="fw-bold mb-3 fs-5 border-bottom pb-2" style="display:flex; align-items:center; justify-content:space-between;">' +
+            '<span><i class="fas fa-database" style="color:#667eea; margin-right:8px;"></i>バックアップ状態</span>' +
+            '<button class="btn btn-sm btn-outline-secondary" onclick="closeBackupModal()" style="border:none; font-size:1.1rem;"><i class="fas fa-times"></i></button>' +
+        '</div>' +
+        '<div id="backup-status-body" style="min-height:100px;"><div class="text-center py-4"><div class="spinner-border spinner-border-sm text-primary"></div> 確認中...</div></div>' +
+        '<div class="d-flex gap-2 mt-4">' +
+            '<button class="btn btn-primary flex-grow-1 fw-bold" onclick="doManualBackup()"><i class="fas fa-play me-1"></i>Healthを今すぐバックアップ</button>' +
+            '<button class="btn btn-secondary" style="width:100px;" onclick="closeBackupModal()">閉じる</button>' +
+        '</div>' +
+    '</div>';
+    document.body.appendChild(div);
+
+    // データ取得
+    getBackupStatus().then(function(res) {
+        if (!res || !res.success) {
+            document.getElementById('backup-status-body').innerHTML = '<div class="text-danger text-center p-3">取得失敗: ' + escapeHtml((res && res.msg) || '不明なエラー') + '</div>';
+            return;
+        }
+        renderBackupStatus(res.apps);
+    }).catch(function(err) {
+        document.getElementById('backup-status-body').innerHTML = '<div class="text-danger text-center p-3">通信エラー: ' + escapeHtml(err.message) + '</div>';
+    });
+}
+
+function closeBackupModal() {
+    var el = document.getElementById('backup-status-modal');
+    if (el) el.remove();
+}
+
+function renderBackupStatus(apps) {
+    var body = document.getElementById('backup-status-body');
+    if (!body) return;
+    var icons = { 'health': 'fa-heart-pulse', 'kanto-bc': 'fa-building', 'haisha': 'fa-truck' };
+    var colors = { 'health': '#667eea', 'kanto-bc': '#e67e22', 'haisha': '#27ae60' };
+
+    var html = '<div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-bottom:16px;">';
+    apps.forEach(function(app) {
+        var hasLocal = app.latest !== null;
+        var statusColor = hasLocal ? '#4caf50' : '#e74c3c';
+        var statusText = hasLocal ? 'OK' : 'No Data';
+        var lastDate = hasLocal ? new Date(app.latest.date).toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-';
+        var sizeText = hasLocal ? app.latest.sizeKB.toLocaleString() + ' KB' : '-';
+        var icon = icons[app.name] || 'fa-database';
+        var color = colors[app.name] || '#667eea';
+
+        html += '<div style="border:1px solid #eee; border-radius:12px; padding:16px 12px; text-align:center; background:#fafbfc;">' +
+            '<div style="width:44px; height:44px; border-radius:50%; background:' + color + '15; display:flex; align-items:center; justify-content:center; margin:0 auto 10px;"><i class="fas ' + icon + '" style="color:' + color + '; font-size:1.2rem;"></i></div>' +
+            '<div style="font-weight:800; font-size:0.9rem; margin-bottom:6px;">' + escapeHtml(app.name) + '</div>' +
+            '<div style="display:inline-block; padding:2px 10px; border-radius:10px; font-size:0.7rem; font-weight:700; color:white; background:' + statusColor + '; margin-bottom:8px;">' + statusText + '</div>' +
+            '<div style="font-size:0.72rem; color:#666; line-height:1.8;">' +
+                '<div><i class="fas fa-clock me-1" style="color:#999;"></i>' + lastDate + '</div>' +
+                '<div><i class="fas fa-file me-1" style="color:#999;"></i>' + sizeText + '</div>' +
+                '<div><i class="fas fa-cloud me-1" style="color:#999;"></i>Box: ' + app.boxCount + '件</div>' +
+                '<div style="font-size:0.65rem; color:#aaa; margin-top:2px;">' + escapeHtml(app.cron) + '</div>' +
+            '</div>' +
+        '</div>';
+    });
+    html += '</div>';
+
+    // Box内ファイル一覧（詳細）
+    html += '<div style="background:#f8f9fa; border-radius:10px; padding:12px; max-height:200px; overflow-y:auto;">';
+    html += '<div style="font-size:0.75rem; font-weight:700; color:#555; margin-bottom:8px;"><i class="fas fa-cloud me-1"></i>Box上の最新ファイル</div>';
+    apps.forEach(function(app) {
+        if (!app.boxFiles || app.boxFiles.length === 0) return;
+        html += '<div style="font-size:0.7rem; font-weight:700; color:' + (colors[app.name] || '#667eea') + '; margin-top:6px; margin-bottom:3px;">' + escapeHtml(app.name) + '</div>';
+        app.boxFiles.forEach(function(f) {
+            html += '<div style="font-size:0.68rem; color:#666; padding:2px 0 2px 12px;">' +
+                '<i class="fas fa-file-alt me-1" style="color:#ccc;"></i>' + escapeHtml(f.name) +
+                ' <span style="color:#aaa;">(' + f.sizeKB.toLocaleString() + ' KB)</span></div>';
+        });
+    });
+    html += '</div>';
+
+    body.innerHTML = html;
+}
+
+function doManualBackup() {
+    if (!confirm('Healthのバックアップを実行しますか？')) return;
+    showLoading('バックアップ実行中...');
+    runBackup().then(function(res) {
+        hideLoading();
+        if (res && res.success) {
+            alert('バックアップ完了: ' + res.file + ' (' + res.sizeKB + 'KB)');
+            closeBackupModal();
+            openBackupModal(); // 再取得
+        } else {
+            alert('エラー: ' + (res ? (res.error || res.msg) : '不明'));
+        }
+    }).catch(function(err) { hideLoading(); alert('通信エラー: ' + err.message); });
+}
+
 // ★ 通知関連（モーダルを動的生成 - include依存を排除）
 function ensureBroadcastModal() {
     var el = document.getElementById('broadcast-modal');

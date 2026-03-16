@@ -587,77 +587,71 @@ function loadBackupTab() {
             body.innerHTML = '<div class="text-danger text-center p-4">取得失敗: ' + escapeHtml((res && res.msg) || '不明なエラー') + '</div>';
             return;
         }
-        renderBackupTab(res.apps);
+        renderBackupTab(res);
     }).catch(function(err) {
         body.innerHTML = '<div class="text-danger text-center p-4">通信エラー: ' + escapeHtml(err.message) + '</div>';
     });
 }
 
-function renderBackupTab(apps) {
+function renderBackupTab(data) {
     var body = document.getElementById('backup-tab-body');
     if (!body) return;
-    var icons = { 'health': 'fa-heart-pulse', 'kanto-bc': 'fa-building', 'haisha': 'fa-truck' };
-    var colors = { 'health': '#667eea', 'kanto-bc': '#e67e22', 'haisha': '#27ae60' };
-    var labels = { 'health': '健康プロジェクト', 'kanto-bc': '関東BC', 'haisha': '配車システム' };
+    var hasLatest = data.latest !== null;
+    var statusColor = hasLatest ? '#4caf50' : '#e74c3c';
+    var statusText = hasLatest ? 'OK' : 'No Data';
+    var lastDate = hasLatest ? new Date(data.latest.date).toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' }) : '-';
+    var sizeText = hasLatest ? data.latest.sizeKB.toLocaleString() + ' KB' : '-';
 
-    // ステータスカード3枚
-    var html = '<div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:16px; margin-bottom:20px;">';
-    apps.forEach(function(app) {
-        var hasLocal = app.latest !== null;
-        var statusColor = hasLocal ? '#4caf50' : '#e74c3c';
-        var statusText = hasLocal ? 'OK' : 'No Data';
-        var lastDate = hasLocal ? new Date(app.latest.date).toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-';
-        var sizeText = hasLocal ? app.latest.sizeKB.toLocaleString() + ' KB' : '-';
-        var fileName = hasLocal ? app.latest.name : '-';
-        var icon = icons[app.name] || 'fa-database';
-        var color = colors[app.name] || '#667eea';
-        var label = labels[app.name] || app.name;
-
-        html += '<div class="card shadow-sm" style="border:none; border-radius:14px; overflow:hidden;">' +
-            '<div style="background:linear-gradient(135deg,' + color + ',' + color + 'cc); padding:16px; text-align:center;">' +
-                '<div style="width:50px; height:50px; border-radius:50%; background:rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; margin:0 auto 8px;"><i class="fas ' + icon + '" style="color:white; font-size:1.4rem;"></i></div>' +
-                '<div style="font-weight:800; font-size:1rem; color:white;">' + escapeHtml(label) + '</div>' +
-                '<div style="font-size:0.7rem; color:rgba(255,255,255,0.7);">' + escapeHtml(app.name) + '</div>' +
+    // ステータスカード
+    var html = '<div class="card shadow-sm mb-4" style="border:none; border-radius:14px; overflow:hidden;">' +
+        '<div style="background:linear-gradient(135deg,#667eea,#667eeacc); padding:20px; display:flex; align-items:center; gap:20px;">' +
+            '<div style="width:60px; height:60px; border-radius:50%; background:rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center;"><i class="fas fa-heart-pulse" style="color:white; font-size:1.6rem;"></i></div>' +
+            '<div><div style="font-weight:800; font-size:1.1rem; color:white;">健康プロジェクト DB</div><div style="font-size:0.75rem; color:rgba(255,255,255,0.7);">スケジュール: ' + escapeHtml(data.schedule) + '</div></div>' +
+            '<div style="margin-left:auto;"><span style="display:inline-block; padding:5px 18px; border-radius:12px; font-size:0.85rem; font-weight:700; color:white; background:' + statusColor + ';">' + statusText + '</span></div>' +
+        '</div>' +
+        '<div class="card-body">' +
+            '<div class="row g-3 text-center">' +
+                '<div class="col-4"><div class="text-muted small">最終バックアップ</div><div class="fw-bold">' + lastDate + '</div></div>' +
+                '<div class="col-4"><div class="text-muted small">サイズ</div><div class="fw-bold">' + sizeText + '</div></div>' +
+                '<div class="col-4"><div class="text-muted small">ファイル名</div><div class="fw-bold" style="font-size:0.8rem;">' + escapeHtml(hasLatest ? data.latest.name : '-') + '</div></div>' +
             '</div>' +
-            '<div class="card-body" style="padding:16px;">' +
-                '<div class="text-center mb-3"><span style="display:inline-block; padding:3px 14px; border-radius:12px; font-size:0.75rem; font-weight:700; color:white; background:' + statusColor + ';">' + statusText + '</span></div>' +
-                '<table style="width:100%; font-size:0.78rem;">' +
-                    '<tr><td style="color:#999; padding:4px 0;"><i class="fas fa-clock me-1"></i>最終</td><td style="font-weight:600; text-align:right;">' + lastDate + '</td></tr>' +
-                    '<tr><td style="color:#999; padding:4px 0;"><i class="fas fa-file me-1"></i>サイズ</td><td style="font-weight:600; text-align:right;">' + sizeText + '</td></tr>' +
-                    '<tr><td style="color:#999; padding:4px 0;"><i class="fas fa-hdd me-1"></i>ローカル</td><td style="font-weight:600; text-align:right;">' + app.localCount + ' 件</td></tr>' +
-                    '<tr><td style="color:#999; padding:4px 0;"><i class="fas fa-cloud me-1"></i>Box</td><td style="font-weight:600; text-align:right;">' + app.boxCount + ' 件</td></tr>' +
-                    '<tr><td style="color:#999; padding:4px 0;"><i class="fas fa-sync me-1"></i>スケジュール</td><td style="font-weight:600; text-align:right; font-size:0.68rem;">' + escapeHtml(app.cron) + '</td></tr>' +
-                '</table>' +
-            '</div>' +
-        '</div>';
-    });
-    html += '</div>';
+        '</div>' +
+    '</div>';
 
-    // Box内ファイル一覧
-    html += '<div class="card shadow-sm" style="border:none; border-radius:14px;">' +
-        '<div class="card-header fw-bold" style="background:#f8f9fa; border-bottom:1px solid #eee;"><i class="fas fa-cloud me-2" style="color:#3498db;"></i>Box上のファイル一覧</div>' +
-        '<div class="card-body" style="padding:0; max-height:300px; overflow-y:auto;">';
-    apps.forEach(function(app) {
-        var color = colors[app.name] || '#667eea';
-        var label = labels[app.name] || app.name;
-        html += '<div style="padding:10px 16px; border-bottom:1px solid #f0f0f0;">' +
-            '<div style="font-size:0.8rem; font-weight:700; color:' + color + '; margin-bottom:6px;"><i class="fas ' + (icons[app.name] || 'fa-database') + ' me-1"></i>' + escapeHtml(label) + ' <span style="font-size:0.65rem; color:#aaa; font-weight:400;">(' + app.boxCount + '件)</span></div>';
-        if (app.boxFiles && app.boxFiles.length > 0) {
-            app.boxFiles.forEach(function(f) {
-                html += '<div style="font-size:0.75rem; color:#555; padding:3px 0 3px 16px; display:flex; justify-content:space-between;">' +
-                    '<span><i class="fas fa-file-alt me-1" style="color:#ccc;"></i>' + escapeHtml(f.name) + '</span>' +
-                    '<span style="color:#999;">' + f.sizeKB.toLocaleString() + ' KB</span></div>';
-            });
-        } else {
-            html += '<div style="font-size:0.75rem; color:#aaa; padding:3px 0 3px 16px;">ファイルなし</div>';
-        }
-        html += '</div>';
-    });
-    html += '</div></div>';
+    // ローカルファイル一覧
+    html += '<div class="row g-4">' +
+        '<div class="col-md-6"><div class="card shadow-sm" style="border:none; border-radius:14px;">' +
+            '<div class="card-header fw-bold" style="background:#f8f9fa;"><i class="fas fa-hdd me-2" style="color:#667eea;"></i>ローカル (' + data.localFiles.length + '件)</div>' +
+            '<div class="card-body p-0" style="max-height:300px; overflow-y:auto;">';
+    if (data.localFiles.length > 0) {
+        data.localFiles.forEach(function(f) {
+            html += '<div style="font-size:0.8rem; padding:8px 16px; border-bottom:1px solid #f0f0f0; display:flex; justify-content:space-between;">' +
+                '<span><i class="fas fa-file-alt me-1" style="color:#ccc;"></i>' + escapeHtml(f.name) + '</span>' +
+                '<span style="color:#999;">' + f.sizeKB.toLocaleString() + ' KB</span></div>';
+        });
+    } else {
+        html += '<div class="text-muted text-center p-3">ファイルなし</div>';
+    }
+    html += '</div></div></div>';
+
+    // Boxファイル一覧
+    html += '<div class="col-md-6"><div class="card shadow-sm" style="border:none; border-radius:14px;">' +
+        '<div class="card-header fw-bold" style="background:#f8f9fa;"><i class="fas fa-cloud me-2" style="color:#3498db;"></i>Box (' + data.boxFiles.length + '件)</div>' +
+        '<div class="card-body p-0" style="max-height:300px; overflow-y:auto;">';
+    if (data.boxFiles.length > 0) {
+        data.boxFiles.forEach(function(f) {
+            html += '<div style="font-size:0.8rem; padding:8px 16px; border-bottom:1px solid #f0f0f0; display:flex; justify-content:space-between;">' +
+                '<span><i class="fas fa-file-alt me-1" style="color:#ccc;"></i>' + escapeHtml(f.name) + '</span>' +
+                '<span style="color:#999;">' + f.sizeKB.toLocaleString() + ' KB</span></div>';
+        });
+    } else {
+        html += '<div class="text-muted text-center p-3">ファイルなし</div>';
+    }
+    html += '</div></div></div></div>';
 
     // 操作ボタン
     html += '<div class="d-flex gap-3 mt-4">' +
-        '<button class="btn btn-primary fw-bold" onclick="doManualBackup()" style="border-radius:10px; padding:10px 24px;"><i class="fas fa-play me-2"></i>Health を今すぐバックアップ</button>' +
+        '<button class="btn btn-primary fw-bold" onclick="doManualBackup()" style="border-radius:10px; padding:10px 24px;"><i class="fas fa-play me-2"></i>今すぐバックアップ</button>' +
         '<button class="btn btn-outline-secondary fw-bold" onclick="loadBackupTab()" style="border-radius:10px; padding:10px 24px;"><i class="fas fa-sync me-2"></i>再読み込み</button>' +
     '</div>';
 

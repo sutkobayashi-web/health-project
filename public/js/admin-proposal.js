@@ -13,20 +13,37 @@ function loadCandidates() {
         if(list) {
             list.innerHTML = plans.map(function(p) {
                 var color = getCategoryColor(p.x, p.y);
-                var statusBadge = (p.status === 'member_review') ? '<span class="badge bg-info">メンバー検討中</span>' : '<span class="badge bg-secondary">候補</span>';
+                var isReview = (p.status === 'member_review');
+                var statusBadge = isReview ? '<span class="badge bg-info"><i class="fas fa-users me-1"></i>メンバー検討中</span>' : '<span class="badge bg-secondary">候補</span>';
+                var actionBtns = '';
+                if(isReview) {
+                    actionBtns =
+                        '<div id="endorse-area-'+p.id+'" class="mb-2"></div>' +
+                        '<div class="d-flex gap-2">' +
+                            '<button type="button" class="btn btn-sm btn-outline-danger w-33" onclick="event.stopPropagation(); remandPlan(\''+p.id+'\')"><i class="fas fa-undo"></i> 差戻</button>' +
+                            '<button type="button" class="btn btn-sm btn-success w-67 fw-bold" id="exec-btn-'+p.id+'" onclick="event.stopPropagation(); submitToExecDirectly(\''+p.id+'\')" disabled><i class="fas fa-gavel me-1"></i>全員賛同で上申可</button>' +
+                        '</div>';
+                } else {
+                    actionBtns =
+                        '<div class="d-flex gap-2">' +
+                            '<button type="button" class="btn btn-sm btn-outline-danger w-33" onclick="event.stopPropagation(); remandPlan(\''+p.id+'\')"><i class="fas fa-undo"></i> 差戻</button>' +
+                            '<button type="button" class="btn btn-sm btn-outline-info w-34 fw-bold" onclick="event.stopPropagation(); submitToReview(\''+p.id+'\')"><i class="fas fa-users me-1"></i>メンバー検討</button>' +
+                            '<button type="button" class="btn btn-sm btn-outline-success w-33" onclick="event.stopPropagation(); archivePlan(\''+p.id+'\')"><i class="fas fa-check"></i> 完了</button>' +
+                        '</div>';
+                }
                 return '<div class="col-lg-4 col-md-6"><div class="plan-card h-100 d-flex flex-column" style="border-left:5px solid '+color+'; cursor:default;">' +
                     '<div class="fw-bold text-truncate fs-5 mb-1">'+escapeHtml(p.title)+'</div>' +
                     '<div class="d-flex justify-content-between text-muted small mb-2"><span>'+statusBadge+'</span><span class="text-primary fw-bold">Pt:'+p.score+'</span></div>' +
                     '<div class="mt-1 mb-3 p-2 bg-light rounded text-secondary flex-grow-1" style="font-size:0.8rem; height:60px; overflow:hidden;"><i class="fas fa-robot me-1"></i> '+escapeHtml(String(p.draft||"")).substring(0,60)+'...</div>' +
                     '<div class="mt-auto">' +
                         '<button type="button" class="btn btn-outline-primary w-100 fw-bold mb-2 shadow-sm" onclick="event.stopPropagation(); openProposalById(\''+p.id+'\')"><i class="fas fa-comments me-1"></i> コメント・編集</button>' +
-                        '<div class="d-flex gap-2">' +
-                            '<button type="button" class="btn btn-sm btn-outline-danger w-33" onclick="event.stopPropagation(); remandPlan(\''+p.id+'\')">↩️差戻</button>' +
-                            '<button type="button" class="btn btn-sm btn-outline-info w-34" onclick="event.stopPropagation(); submitToExecDirectly(\''+p.id+'\')"><i class="fas fa-gavel"></i> 上申</button>' +
-                            '<button type="button" class="btn btn-sm btn-outline-success w-33" onclick="event.stopPropagation(); archivePlan(\''+p.id+'\')">✅完了</button>' +
-                        '</div>' +
+                        actionBtns +
                     '</div></div></div>';
             }).join('');
+            // メンバー検討中の企画書の賛同状況を読み込む
+            plans.forEach(function(p) {
+                if(p.status === 'member_review') loadEndorsementStatus(p.id);
+            });
         }
     });
 }
@@ -332,5 +349,83 @@ function generateThemeProposal() {
     createThemeProposal({ planTitle:title, theme:document.getElementById('theme-title-input').value, background:document.getElementById('theme-bg-input').value, scores:s, postIds:selectedThemePostIds }).then(function(res) {
         hideLoading();
         if(res.success) { alert(res.msg); closeThemePlanModal(); loadData(); switchTab('candidates'); }
+    });
+}
+
+// ====== メンバー合議機能 ======
+function submitToReview(planId) {
+    if(!confirm('この企画書をメンバー検討に回しますか？\n全推進メンバーに賛同を求めます。')) return;
+    showLoading("処理中...");
+    submitToMemberReview(planId).then(function(res) {
+        hideLoading(); alert(res.msg); if(res.success) loadCandidates();
+    });
+}
+
+function loadEndorsementStatus(planId) {
+    var area = document.getElementById('endorse-area-' + planId);
+    if(!area) return;
+    getPlanEndorsements(planId).then(function(res) {
+        if(!res || !res.endorsements) return;
+        var list = res.endorsements;
+        var total = list.length;
+        var agreed = list.filter(function(e){ return e.vote === 'agree'; }).length;
+        var opposed = list.filter(function(e){ return e.vote === 'oppose'; }).length;
+        var pending = list.filter(function(e){ return e.vote === 'pending'; }).length;
+        var myEmail = (currentAdminProfile && currentAdminProfile.email) || '';
+        var myVote = list.find(function(e){ return e.member_email === myEmail; });
+        var html = '<div class="p-2 rounded mb-2" style="background:#f0f7ff; border:1px solid #bee3f8;">';
+        html += '<div class="d-flex align-items-center justify-content-between mb-2">';
+        html += '<span class="small fw-bold" style="color:#2b6cb0;"><i class="fas fa-vote-yea me-1"></i>合議状況</span>';
+        html += '<span class="badge ' + (agreed === total ? 'bg-success' : 'bg-warning text-dark') + '">' + agreed + '/' + total + ' 賛同</span>';
+        html += '</div>';
+        // 各メンバーの投票状況
+        html += '<div class="d-flex flex-wrap gap-1 mb-2">';
+        list.forEach(function(e) {
+            var icon = ''; var bg = '';
+            if(e.vote === 'agree') { icon = '<i class="fas fa-check-circle text-success"></i>'; bg = '#e6ffed'; }
+            else if(e.vote === 'oppose') { icon = '<i class="fas fa-times-circle text-danger"></i>'; bg = '#ffe6e6'; }
+            else { icon = '<i class="fas fa-hourglass-half text-warning"></i>'; bg = '#fff8e1'; }
+            html += '<span class="px-2 py-1 rounded-pill small" style="background:' + bg + '; font-size:0.75rem;">' + icon + ' ' + escapeHtml(e.member_name) + '</span>';
+        });
+        html += '</div>';
+        // 自分の投票ボタン
+        if(myVote && myVote.vote === 'pending') {
+            html += '<div class="d-flex gap-1">';
+            html += '<button class="btn btn-sm btn-success flex-grow-1" onclick="event.stopPropagation(); castEndorsement(\'' + planId + '\',\'agree\')"><i class="fas fa-thumbs-up me-1"></i>賛同</button>';
+            html += '<button class="btn btn-sm btn-outline-secondary flex-grow-1" onclick="event.stopPropagation(); castEndorsementWithComment(\'' + planId + '\',\'oppose\')"><i class="fas fa-thumbs-down me-1"></i>反対</button>';
+            html += '</div>';
+        } else if(myVote) {
+            var label = myVote.vote === 'agree' ? '賛同済み' : '反対済み';
+            html += '<div class="text-center small text-muted"><i class="fas fa-check me-1"></i>' + label + '</div>';
+        }
+        html += '</div>';
+        area.innerHTML = html;
+        // 全員賛同なら上申ボタンを有効化
+        var execBtn = document.getElementById('exec-btn-' + planId);
+        if(execBtn) {
+            if(agreed === total && total > 0) {
+                execBtn.disabled = false;
+                execBtn.className = 'btn btn-sm btn-info w-67 fw-bold';
+                execBtn.innerHTML = '<i class="fas fa-gavel me-1"></i>役員上申';
+            }
+        }
+    });
+}
+
+function castEndorsement(planId, vote) {
+    var myEmail = (currentAdminProfile && currentAdminProfile.email) || '';
+    var myName = (currentAdminProfile && currentAdminProfile.name) || 'Admin';
+    endorsePlan(planId, myEmail, myName, vote, '').then(function(res) {
+        if(res.success) loadCandidates();
+    });
+}
+
+function castEndorsementWithComment(planId, vote) {
+    var reason = prompt('反対理由を入力してください:');
+    if(reason === null) return;
+    var myEmail = (currentAdminProfile && currentAdminProfile.email) || '';
+    var myName = (currentAdminProfile && currentAdminProfile.name) || 'Admin';
+    endorsePlan(planId, myEmail, myName, vote, reason).then(function(res) {
+        if(res.success) loadCandidates();
     });
 }

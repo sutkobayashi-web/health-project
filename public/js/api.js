@@ -162,6 +162,15 @@ function remandActionPlan(planId) {
 function revertPlanToCandidate(planId) {
   return api('/plans/revert-to-candidate', { planId }, getAdminToken());
 }
+function submitToMemberReview(planId) {
+  return api('/plans/submit-to-review', { planId }, getAdminToken());
+}
+function endorsePlan(planId, memberEmail, memberName, vote, comment) {
+  return api('/plans/endorse', { planId, memberEmail, memberName, vote, comment }, getAdminToken());
+}
+function getPlanEndorsements(planId) {
+  return api('/plans/endorsements/' + planId, undefined, getAdminToken());
+}
 function submitToExec(planId) {
   return api('/plans/submit-to-exec', { planId }, getAdminToken());
 }

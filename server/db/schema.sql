@@ -109,6 +109,18 @@ CREATE TABLE IF NOT EXISTS action_plans (
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
+-- PlanEndorsements: 企画書メンバー合議テーブル
+CREATE TABLE IF NOT EXISTS plan_endorsements (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  plan_id TEXT NOT NULL,
+  member_email TEXT NOT NULL,
+  member_name TEXT NOT NULL,
+  vote TEXT NOT NULL DEFAULT 'pending',
+  comment TEXT DEFAULT '',
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(plan_id, member_email)
+);
+
 -- Notices シート → notices テーブル
 CREATE TABLE IF NOT EXISTS notices (
   id INTEGER PRIMARY KEY AUTOINCREMENT,

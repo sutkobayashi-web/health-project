@@ -297,6 +297,46 @@ router.post('/comment', (req, res) => {
   } catch (e) { res.json({ success: false, msg: e.message }); }
 });
 
+// メンバー検討に回す
+router.post('/submit-to-review', (req, res) => {
+  try {
+    const db = getDb();
+    const { planId } = req.body;
+    db.prepare('UPDATE action_plans SET status = ? WHERE plan_id = ?').run(STATUS.MEMBER_REVIEW, planId);
+    // 全承認済みメンバー分のpending投票レコードを作成
+    const members = db.prepare("SELECT email, name FROM core_members WHERE status = 'approved' AND is_exec = 0").all();
+    const stmt = db.prepare('INSERT OR IGNORE INTO plan_endorsements (plan_id, member_email, member_name, vote) VALUES (?,?,?,?)');
+    members.forEach(m => stmt.run(planId, m.email, m.name, 'pending'));
+    let log = [];
+    const plan = db.prepare('SELECT approval_log FROM action_plans WHERE plan_id = ?').get(planId);
+    try { log = JSON.parse(plan.approval_log || '[]'); } catch (e) {}
+    log.push({ action: 'submit_review', by: 'admin', date: new Date().toISOString(), note: 'メンバー合議へ' });
+    db.prepare('UPDATE action_plans SET approval_log = ? WHERE plan_id = ?').run(JSON.stringify(log), planId);
+    res.json({ success: true, msg: 'メンバー検討に回しました。各メンバーの賛同を待ちます。' });
+  } catch (e) { res.json({ success: false, msg: e.message }); }
+});
+
+// メンバー賛同投票
+router.post('/endorse', (req, res) => {
+  try {
+    const db = getDb();
+    const { planId, memberEmail, memberName, vote, comment } = req.body;
+    db.prepare('INSERT INTO plan_endorsements (plan_id, member_email, member_name, vote, comment) VALUES (?,?,?,?,?) ON CONFLICT(plan_id, member_email) DO UPDATE SET vote=?, comment=?, created_at=CURRENT_TIMESTAMP')
+      .run(planId, memberEmail, memberName, vote, comment || '', vote, comment || '');
+    const endorsements = db.prepare('SELECT member_name, vote, comment, created_at FROM plan_endorsements WHERE plan_id = ?').all(planId);
+    res.json({ success: true, endorsements });
+  } catch (e) { res.json({ success: false, msg: e.message }); }
+});
+
+// 賛同状況取得
+router.get('/endorsements/:planId', (req, res) => {
+  try {
+    const db = getDb();
+    const endorsements = db.prepare('SELECT member_name, member_email, vote, comment, created_at FROM plan_endorsements WHERE plan_id = ?').all(req.params.planId);
+    res.json({ success: true, endorsements });
+  } catch (e) { res.json({ success: false, endorsements: [] }); }
+});
+
 // AIログ保存
 router.post('/save-ai-log', (req, res) => {
   try {

@@ -517,6 +517,18 @@ router.get('/my-progress/:challengeId/:userId', (req, res) => {
   }
 });
 
+// チャレンジのエントリー受付開始（管理者）
+router.post('/start-recruiting', (req, res) => {
+  try {
+    const { challengeId } = req.body;
+    const db = getDb();
+    db.prepare("UPDATE challenges SET status = 'recruiting' WHERE challenge_id = ?").run(challengeId);
+    res.json({ success: true });
+  } catch (e) {
+    res.json({ success: false, msg: e.message });
+  }
+});
+
 // チャレンジを開始（管理者）
 router.post('/start-challenge', (req, res) => {
   try {

@@ -297,44 +297,41 @@ if(localStorage.getItem('co_heart_admin_email') && localStorage.getItem('co_hear
 
 <div class="main-container">
   <div class="sidebar">
-    <div class="nav-item active" onclick="switchTab('evaluation')" id="nav-eval">
-      <i class="fas fa-check-double nav-icon"></i><div class="nav-label">Inbox<br>評価</div>
+    <!-- v2: 凝集型スキーム -->
+    <div class="nav-item active" onclick="switchTab('v2dash')" id="nav-v2dash">
+      <i class="fas fa-chart-pie nav-icon" style="color:#667eea;"></i><div class="nav-label" style="font-size:0.55rem; line-height:1.2;">ダッシュ<br>ボード</div>
     </div>
-    <div class="nav-item" onclick="switchTab('current')" id="nav-curr">
-      <i class="fas fa-star nav-icon text-warning"></i><div class="nav-label" style="font-size:0.6rem; line-height:1.2;">重点<br>検討</div>
+    <div class="nav-item" onclick="switchTab('v2challenge')" id="nav-v2challenge">
+      <i class="fas fa-fire nav-icon" style="color:#ff6b35;"></i><div class="nav-label" style="font-size:0.55rem; line-height:1.2;">チャレンジ<br>管理</div>
     </div>
-    <div class="nav-item" onclick="switchTab('candidates')" id="nav-cand">
-      <i class="fas fa-file-alt nav-icon"></i><div class="nav-label">企画書</div>
+    <div class="nav-item" onclick="switchTab('v2kpi')" id="nav-v2kpi">
+      <i class="fas fa-chart-line nav-icon" style="color:#20c997;"></i><div class="nav-label" style="font-size:0.55rem; line-height:1.2;">KPI<br>成果</div>
     </div>
-    <div class="nav-item" onclick="switchTab('aimeeting')" id="nav-aimeeting">
-      <i class="fas fa-users-cog nav-icon text-primary"></i><div class="nav-label" style="font-size:0.6rem; line-height:1.1;">AI企画<br>会議</div>
+    <div class="nav-item" onclick="switchTab('v2ambassador')" id="nav-v2ambassador">
+      <i class="fas fa-user-md nav-icon" style="color:#9c27b0;"></i><div class="nav-label" style="font-size:0.55rem; line-height:1.2;">専門家<br>連携</div>
     </div>
-    <div class="nav-item" onclick="switchTab('exec')" id="nav-exec">
-      <i class="fas fa-gavel nav-icon text-danger"></i><div class="nav-label" style="font-size:0.6rem; line-height:1.2;">役員<br>決裁</div>
-    </div>
-    <div class="nav-item" onclick="switchTab('bmi22')" id="nav-bmi22">
-      <i class="fas fa-leaf nav-icon text-success"></i><div class="nav-label" style="font-size:0.55rem; line-height:1.2;">全社<br>展開</div>
+    <!-- 区切り -->
+    <div style="border-top:1px solid rgba(255,255,255,0.1); margin:4px 0;"></div>
+    <!-- 既存機能（縮小） -->
+    <div class="nav-item" onclick="switchTab('evaluation')" id="nav-eval">
+      <i class="fas fa-inbox nav-icon"></i><div class="nav-label" style="font-size:0.55rem; line-height:1.2;">投稿<br>一覧</div>
     </div>
     <div class="nav-item position-relative" onclick="switchTab('personal')" id="nav-personal">
-      <i class="fas fa-envelope-open-text nav-icon"></i><div class="nav-label">個別メール</div>
+      <i class="fas fa-envelope-open-text nav-icon"></i><div class="nav-label" style="font-size:0.55rem;">メール</div>
       <span id="personal-badge" class="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-danger border border-light" style="display:none; font-size:0.6rem;">!</span>
     </div>
-    <div class="nav-item" onclick="window.location.href='/knowledge'" id="nav-knowledge" style="border-top:1px solid rgba(255,255,255,0.1); margin-top:4px; padding-top:10px;">
-      <i class="fas fa-book-open nav-icon" style="color:#f39c12;"></i><div class="nav-label" style="font-size:0.55rem; line-height:1.2;">学習<br>資料</div>
-    </div>
     <div class="nav-item" onclick="switchTab('food')" id="nav-food">
-      <i class="fas fa-utensils nav-icon" style="color:#20c997;"></i><div class="nav-label" style="font-size:0.55rem; line-height:1.2;">食事<br>分析</div>
+      <i class="fas fa-utensils nav-icon" style="color:#20c997;"></i><div class="nav-label" style="font-size:0.55rem;">食事</div>
     </div>
-    <div class="nav-item" onclick="switchTab('resolved')" id="nav-res">
-      <i class="fas fa-archive nav-icon"></i><div class="nav-label">解決済み</div>
+    <div class="nav-item" onclick="window.location.href='/knowledge'" id="nav-knowledge">
+      <i class="fas fa-book-open nav-icon" style="color:#f39c12;"></i><div class="nav-label" style="font-size:0.55rem;">学習</div>
     </div>
-    <!-- メンバー管理 -->
+    <!-- 管理系 -->
     <div class="nav-item" onclick="switchTab('members')" id="nav-members" style="border-top:1px solid rgba(255,255,255,0.1); margin-top:auto; padding-top:10px; position:relative;">
       <i class="fas fa-users-cog nav-icon" style="color:#4caf50;"></i>
       <div class="nav-label" style="font-size:0.55rem; line-height:1.2;">メンバー<br>管理</div>
       <span id="online-count-badge" style="position:absolute; top:4px; right:8px; background:#4caf50; color:white; font-size:0.5rem; font-weight:800; width:16px; height:16px; border-radius:50%; display:none; justify-content:center; align-items:center; border:2px solid #1a1e2e;"></span>
     </div>
-    <!-- バックアップ -->
     <div class="nav-item" onclick="switchTab('backup')" id="nav-backup">
       <i class="fas fa-database nav-icon" style="color:#f59e0b;"></i>
       <div class="nav-label" style="font-size:0.55rem; line-height:1.2;">バック<br>アップ</div>
@@ -343,8 +340,50 @@ if(localStorage.getItem('co_heart_admin_email') && localStorage.getItem('co_hear
 
   <div class="content-area">
 
-    <!-- Tab: Inbox 評価 -->
-    <div id="tab-evaluation" class="tab-view active">
+    <!-- ====== v2: ダッシュボード ====== -->
+    <div id="tab-v2dash" class="tab-view active">
+      <div class="section-header">
+        <div class="section-icon" style="background:linear-gradient(135deg,#667eea,#764ba2);"><i class="fas fa-chart-pie"></i></div>
+        <div><div class="section-title">ダッシュボード</div><div class="section-subtitle">テーマ凝集 → 投票 → チャレンジのサイクル管理</div></div>
+      </div>
+      <!-- サイクル状態 -->
+      <div id="v2-cycle-status" class="mb-4"></div>
+      <!-- アクションボタン -->
+      <div id="v2-cycle-actions" class="d-flex gap-2 mb-4"></div>
+      <!-- テーマ一覧 -->
+      <div id="v2-themes-area"></div>
+    </div>
+
+    <!-- ====== v2: チャレンジ管理 ====== -->
+    <div id="tab-v2challenge" class="tab-view">
+      <div class="section-header">
+        <div class="section-icon" style="background:linear-gradient(135deg,#ff6b35,#ff9a5c);"><i class="fas fa-fire"></i></div>
+        <div><div class="section-title">チャレンジ管理</div><div class="section-subtitle">アクションプランの作成・実行管理</div></div>
+      </div>
+      <div id="v2-challenges-list"></div>
+    </div>
+
+    <!-- ====== v2: KPI・成果 ====== -->
+    <div id="tab-v2kpi" class="tab-view">
+      <div class="section-header">
+        <div class="section-icon" style="background:linear-gradient(135deg,#20c997,#38d9a9);"><i class="fas fa-chart-line"></i></div>
+        <div><div class="section-title">KPI・成果</div><div class="section-subtitle">参加状況・継続率・効果測定</div></div>
+      </div>
+      <div id="v2-kpi-selector" class="mb-3"></div>
+      <div id="v2-kpi-dashboard"></div>
+    </div>
+
+    <!-- ====== v2: 専門家連携 ====== -->
+    <div id="tab-v2ambassador" class="tab-view">
+      <div class="section-header">
+        <div class="section-icon" style="background:linear-gradient(135deg,#9c27b0,#ce93d8);"><i class="fas fa-user-md"></i></div>
+        <div><div class="section-title">専門家連携（アンバサダー）</div><div class="section-subtitle">保健センター専門職との連携管理</div></div>
+      </div>
+      <div id="v2-ambassador-area"></div>
+    </div>
+
+    <!-- Tab: Inbox 評価（旧: 投稿一覧として残す） -->
+    <div id="tab-evaluation" class="tab-view">
       <div class="section-header">
         <div class="section-icon" style="background:linear-gradient(135deg,#667eea,#764ba2);"><i class="fas fa-check-double"></i></div>
         <div><div class="section-title">Inbox 評価</div><div class="section-subtitle">投稿の確認と優先度評価</div></div>
@@ -744,6 +783,7 @@ if(localStorage.getItem('co_heart_admin_email') && localStorage.getItem('co_hear
 <script src="/js/admin-meeting.js?v=20260316a"></script>
 <script src="/js/admin-mail.js?v=20260316a"></script>
 <script src="/js/admin-food.js?v=20260316a"></script>
+<script src="/js/admin-v2.js?v=20260320a"></script>
 
 </body>
 </html>

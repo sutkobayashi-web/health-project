@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>健康プロジェクト アンバサダー</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Noto Sans JP', sans-serif; margin: 0; background: #f8f5ff; }
+    .amb-header { background: linear-gradient(135deg, #9c27b0 0%, #ce93d8 100%); padding: 12px 20px; color: white; display: flex; justify-content: space-between; align-items: center; }
+    .amb-header .title { font-weight: 900; font-size: 1rem; }
+    .amb-header .subtitle { font-size: 0.7rem; opacity: 0.8; }
+    .content { max-width: 800px; margin: 0 auto; padding: 20px; }
+    .card-box { background: white; border-radius: 14px; padding: 18px; box-shadow: 0 2px 12px rgba(0,0,0,0.05); margin-bottom: 16px; }
+    .advice-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: 700; }
+    .login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #9c27b0, #ce93d8, #f3e5f5); display: flex; justify-content: center; align-items: center; z-index: 9999; }
+    .login-box { background: white; max-width: 380px; width: 100%; padding: 30px; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.2); }
+  </style>
+</head>
+<body>
+
+<div id="login-overlay" class="login-overlay">
+  <div class="login-box text-center">
+    <div style="font-size:2.5rem; margin-bottom:10px;">🩺</div>
+    <h5 class="fw-bold" style="color:#9c27b0;">アンバサダー画面</h5>
+    <p class="text-muted small">保健センター専門職の方はこちらからログインしてください</p>
+    <div class="mb-3"><input type="text" id="amb-login-name" class="form-control" placeholder="お名前"></div>
+    <div class="mb-3"><input type="text" id="amb-login-org" class="form-control" placeholder="所属（例: ○○市保健センター）"></div>
+    <div class="mb-3"><select id="amb-login-role" class="form-select"><option>保健師</option><option>栄養士</option><option>運動指導士</option><option>その他</option></select></div>
+    <button class="btn w-100 fw-bold py-2" style="background:linear-gradient(135deg,#9c27b0,#ce93d8); color:white; border:none; border-radius:10px;" onclick="doAmbLogin()">ログイン</button>
+    <div class="mt-3"><a href="/" class="small text-muted">ユーザー画面に戻る</a></div>
+  </div>
+</div>
+
+<div class="amb-header">
+  <div>
+    <div class="title"><i class="fas fa-user-md me-1"></i> 健康プロジェクト アンバサダー</div>
+    <div class="subtitle" id="amb-user-info"></div>
+  </div>
+  <button class="btn btn-sm btn-outline-light" onclick="ambLogout()">ログアウト</button>
+</div>
+
+<div class="content">
+  <div id="amb-main"></div>
+</div>
+
+<script src="/js/api.js?v=20260320a"></script>
+<script>
+var ambProfile = null;
+
+function doAmbLogin() {
+  var name = document.getElementById('amb-login-name').value.trim();
+  var org = document.getElementById('amb-login-org').value.trim();
+  var role = document.getElementById('amb-login-role').value;
+  if (!name) { alert('お名前を入力してください'); return; }
+  ambProfile = { name: name, organization: org, role: role };
+  localStorage.setItem('amb_profile', JSON.stringify(ambProfile));
+  document.getElementById('login-overlay').style.display = 'none';
+  document.getElementById('amb-user-info').innerText = name + ' (' + org + ' / ' + role + ')';
+  loadAmbDashboard();
+}
+
+// 保存済みログイン復元
+(function() {
+  var saved = localStorage.getItem('amb_profile');
+  if (saved) {
+    try {
+      ambProfile = JSON.parse(saved);
+      document.getElementById('login-overlay').style.display = 'none';
+      document.getElementById('amb-user-info').innerText = ambProfile.name + ' (' + ambProfile.organization + ' / ' + ambProfile.role + ')';
+      setTimeout(loadAmbDashboard, 200);
+    } catch(e) {}
+  }
+})();
+
+function ambLogout() {
+  localStorage.removeItem('amb_profile');
+  location.reload();
+}
+
+function loadAmbDashboard() {
+  getChallenges().then(function(res) {
+    var area = document.getElementById('amb-main');
+    if (!res || !res.success || !res.challenges.length) {
+      area.innerHTML = '<div class="card-box text-center py-5 text-muted"><div style="font-size:2rem; margin-bottom:10px;">📋</div>現在進行中のチャレンジはありません</div>';
+      return;
+    }
+
+    var html = '';
+    res.challenges.filter(function(c) { return c.status === 'active' || c.status === 'recruiting' || c.status === 'completed'; }).forEach(function(c) {
+      html += '<div class="card-box" style="border-left:4px solid #9c27b0;">';
+      html += '<div class="d-flex justify-content-between align-items-start mb-2">';
+      html += '<div><div class="fw-bold">' + (c.icon || '💪') + ' ' + escapeHtml(c.title) + '</div>';
+      html += '<div class="small text-muted">' + (c.period_start || '未定') + ' 〜 ' + (c.period_end || '未定') + '</div></div>';
+      var badge = c.status === 'active' ? '<span class="advice-badge" style="background:#e8f5e9; color:#43a047;">実施中</span>' :
+                  c.status === 'recruiting' ? '<span class="advice-badge" style="background:#e3f2fd; color:#1976d2;">準備中</span>' :
+                  '<span class="advice-badge" style="background:#f5f5f5; color:#666;">完了</span>';
+      html += badge;
+      html += '</div>';
+      html += '<div class="small mb-3">' + escapeHtml(c.description || '') + '</div>';
+      html += '<div class="small text-muted mb-2"><i class="fas fa-users me-1"></i>参加者: ' + (c.participantCount || 0) + '名</div>';
+
+      // 既存の助言
+      ['ambassador_advice_plan', 'ambassador_advice_mid', 'ambassador_advice_final'].forEach(function(key) {
+        if (c[key]) {
+          var label = key.includes('plan') ? 'プラン策定時' : key.includes('mid') ? '中間チェック' : '最終レビュー';
+          html += '<div class="p-2 mb-2" style="background:#f3e5f5; border-radius:8px; font-size:0.82rem;">';
+          html += '<div class="fw-bold small" style="color:#9c27b0;"><i class="fas fa-check-circle me-1"></i>' + label + ' 助言済み</div>';
+          html += '<div class="text-muted" style="white-space:pre-wrap;">' + escapeHtml(c[key]) + '</div>';
+          html += '</div>';
+        }
+      });
+
+      // 助言入力フォーム
+      html += '<div class="mt-3 p-3" style="background:#faf5ff; border-radius:10px;">';
+      html += '<div class="fw-bold small mb-2" style="color:#9c27b0;"><i class="fas fa-pen me-1"></i>助言を追加</div>';
+      html += '<select id="advice-type-' + c.challenge_id + '" class="form-select form-select-sm mb-2"><option value="plan_review">プラン策定時</option><option value="midterm">中間チェック</option><option value="final">最終レビュー</option></select>';
+      html += '<textarea id="advice-text-' + c.challenge_id + '" class="form-control form-control-sm mb-2" rows="4" placeholder="専門的な見地からの助言を入力してください..."></textarea>';
+      html += '<button class="btn btn-sm fw-bold" style="background:#9c27b0; color:white;" onclick="submitAmbAdvice(\'' + c.challenge_id + '\')"><i class="fas fa-paper-plane me-1"></i>助言を送信</button>';
+      html += '</div>';
+
+      html += '</div>';
+    });
+
+    area.innerHTML = html;
+  });
+}
+
+function submitAmbAdvice(cid) {
+  var type = document.getElementById('advice-type-' + cid).value;
+  var text = document.getElementById('advice-text-' + cid).value.trim();
+  if (!text) { alert('助言内容を入力してください'); return; }
+  postAmbassadorAdvice(null, cid, type, text).then(function(res) {
+    if (res.success) { alert('助言を送信しました。推進メンバーに共有されます。'); loadAmbDashboard(); }
+    else alert('エラー: ' + (res.msg || '不明'));
+  });
+}
+
+function escapeHtml(t) {
+  return String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>

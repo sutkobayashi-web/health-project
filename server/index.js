@@ -112,6 +112,11 @@ app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'public', 'admin.html'));
 });
 
+// アンバサダー画面
+app.get('/ambassador', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'public', 'ambassador.html'));
+});
+
 // ナレッジベース
 app.get('/knowledge', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'public', 'knowledge.html'));

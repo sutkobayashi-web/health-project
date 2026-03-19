@@ -365,6 +365,9 @@ function finalizeVoting(cycleNumber) {
 function generateChallenge(themeId) {
   return api('/themes/generate-challenge', { themeId }, getAdminToken());
 }
+function startRecruiting(challengeId) {
+  return api('/themes/start-recruiting', { challengeId }, getAdminToken());
+}
 function startChallenge(challengeId) {
   return api('/themes/start-challenge', { challengeId }, getAdminToken());
 }

@@ -219,7 +219,13 @@ router.post('/generate-challenge', async (req, res) => {
     `).all(themeId);
     const commentsText = voteComments.map(c => `- ${c.nickname || '匿名'}: ${c.comment}`).join('\n') || '（なし）';
 
-    const prompt = `あなたは健康経営プランナーです。社員の声と投票で選ばれたテーマに基づき、参加型アクションプラン（チャレンジ）を設計してください。
+    const prompt = `あなたはエビデンスに基づく健康経営プランナーです。社員の声と投票で選ばれたテーマに基づき、参加型アクションプラン（チャレンジ）を設計してください。
+
+★★★最重要★★★
+以下のエビデンス基盤を必ず根拠として使用し、チャレンジの設計理由をevidence_basedフィールドに明記すること。
+エビデンスのない施策を提案してはいけない。
+
+${EVIDENCE_BASE}
 
 【テーマ】${theme.name}
 【テーマ説明】${theme.description}
@@ -229,20 +235,22 @@ ${voices || '（詳細なし）'}
 【投票時のコメント】
 ${commentsText}
 
-${EVIDENCE_BASE}
-
 【設計要件】
 - 期間: 30日間
 - 任意参加（強制しない、楽しく続けられる設計）
 - 毎日30秒で完了する記録項目（選択式2〜3問）
 - ランキングで競争要素を入れる
 - 具体的で実行可能なアクション
+- EASTフレームワーク（Easy, Attractive, Social, Timely）に沿った行動変容設計
+- COM-Bモデル（Capability・Opportunity・Motivation → Behavior）で設計根拠を整理
 
 【出力形式】JSONのみ。
 {
   "title": "キャッチーなチャレンジ名",
-  "description": "チャレンジの概要説明（3〜4文）",
+  "description": "チャレンジの概要説明（3〜4文。エビデンスに基づく目的を含める）",
   "icon": "絵文字1つ",
+  "evidence_based": "このチャレンジの設計根拠（どのエビデンス・フレームワークに基づいているか。例: 栄養改善パック2020のPFC基準、EASTのEasy原則でハードルを下げた設計、COM-BのMotivation向上にランキング要素を活用等）",
+  "east_design": {"easy": "ハードルを下げた点", "attractive": "楽しさ・魅力の工夫", "social": "仲間と取り組む仕掛け", "timely": "タイミングの工夫"},
   "kpi_definitions": [
     {"question": "質問文", "type": "choice", "options": ["選択肢1","選択肢2","選択肢3","選択肢4"], "is_ranking": true, "ranking_type": "cumulative"},
     {"question": "質問文", "type": "choice", "options": ["😫","😐","😊","🤩"], "is_ranking": false},

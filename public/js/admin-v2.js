@@ -160,6 +160,25 @@ function renderV2Challenges() {
       html += statusBadge;
       html += '</div>';
       html += '<div class="small mb-2">' + escapeHtml(c.description || '') + '</div>';
+      // エビデンス根拠
+      var aiDraft = null; try { aiDraft = JSON.parse(c.ai_draft || '{}'); } catch(e) {}
+      if (aiDraft && aiDraft.evidence_based) {
+        html += '<div class="p-2 mb-2" style="background:#fff8e1; border-radius:8px; border-left:3px solid #f9a825;">';
+        html += '<div style="font-size:0.68rem; font-weight:700; color:#f57f17;"><i class="fas fa-book me-1"></i>エビデンス根拠</div>';
+        html += '<div style="font-size:0.78rem; color:#555;">' + escapeHtml(aiDraft.evidence_based) + '</div>';
+        html += '</div>';
+      }
+      if (aiDraft && aiDraft.east_design) {
+        var east = aiDraft.east_design;
+        html += '<div class="p-2 mb-2" style="background:#e8f5e9; border-radius:8px; border-left:3px solid #43a047;">';
+        html += '<div style="font-size:0.68rem; font-weight:700; color:#2e7d32;"><i class="fas fa-lightbulb me-1"></i>EAST設計</div>';
+        html += '<div style="font-size:0.72rem; color:#555; display:grid; grid-template-columns:1fr 1fr; gap:4px;">';
+        if (east.easy) html += '<div><strong>Easy:</strong> ' + escapeHtml(east.easy) + '</div>';
+        if (east.attractive) html += '<div><strong>Attractive:</strong> ' + escapeHtml(east.attractive) + '</div>';
+        if (east.social) html += '<div><strong>Social:</strong> ' + escapeHtml(east.social) + '</div>';
+        if (east.timely) html += '<div><strong>Timely:</strong> ' + escapeHtml(east.timely) + '</div>';
+        html += '</div></div>';
+      }
       // KPI定義
       if (kpis.length > 0) {
         html += '<div class="mb-2"><span class="small fw-bold text-muted">記録項目:</span>';

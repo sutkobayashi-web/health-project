@@ -147,6 +147,12 @@
   .avatar-builder-body { padding: 16px; max-height: 55vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
   .avatar-builder-preview { text-align: center; margin-bottom: 16px; }
   .avatar-builder-preview canvas { border-radius: 50%; box-shadow: 0 4px 16px rgba(0,0,0,0.12); border: 3px solid #fff; }
+  .avatar-builder-sticky-preview {
+    position: sticky; top: 0; z-index: 10; background: linear-gradient(135deg, #fce4ec, #f3e5f5);
+    padding: 12px 0; text-align: center; border-bottom: 1px solid #eee;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .avatar-builder-sticky-preview canvas { border-radius: 50%; box-shadow: 0 4px 16px rgba(0,0,0,0.15); border: 3px solid #fff; }
   .avatar-builder-row { margin-bottom: 14px; }
   .avatar-builder-row label { display: block; font-size: 0.78rem; font-weight: 700; color: #666; margin-bottom: 6px; }
   .avatar-builder-options { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -688,7 +694,16 @@ function abUpdatePreview(canvasId) {
 function abRenderBuilderUI(containerId, previewCanvasId) {
   var c = document.getElementById(containerId);
   if (!c) return;
-  var html = '<div class="avatar-builder-preview"><canvas id="' + previewCanvasId + '" width="160" height="160" style="width:80px;height:80px;"></canvas></div>';
+  // sticky preview area (change-tab only)
+  var stickyId = containerId === 'change-builder-container' ? 'change-sticky-preview' : null;
+  var stickyEl = stickyId ? document.getElementById(stickyId) : null;
+  if (stickyEl) {
+    stickyEl.innerHTML = '<canvas id="' + previewCanvasId + '" width="160" height="160" style="width:80px;height:80px;"></canvas>';
+  }
+  var html = '';
+  if (!stickyEl) {
+    html += '<div class="avatar-builder-preview"><canvas id="' + previewCanvasId + '" width="160" height="160" style="width:80px;height:80px;"></canvas></div>';
+  }
 
   // 肌の色
   html += '<div class="avatar-builder-row"><label>🎨 肌の色</label><div class="avatar-builder-options">';
@@ -1751,6 +1766,7 @@ function hideLoading() { document.getElementById('loading-overlay').style.displa
     <div class="avatar-sheet-grid" id="avatar-change-grid"></div>
   </div>
   <div class="avatar-tab-content" id="change-tab-custom">
+    <div class="avatar-builder-sticky-preview" id="change-sticky-preview"></div>
     <div class="avatar-builder-body" id="change-builder-container"></div>
     <div style="padding:0 16px 16px;"><button class="ab-submit-btn" onclick="changePickCustomAvatar()">このアバターに決定！</button></div>
   </div>

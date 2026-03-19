@@ -2680,6 +2680,9 @@ function escInbox(t) {
 
 <!-- ====== テーマ投票 & チャレンジ ====== -->
 <script>
+function escapeHtml(t) {
+  return String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
 // ====== テーマ投票 ======
 function loadThemeVoting() {
   if (!currentUser) return;

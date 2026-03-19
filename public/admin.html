@@ -606,7 +606,7 @@ if(localStorage.getItem('co_heart_admin_email') && localStorage.getItem('co_hear
     <!-- Tab buttons -->
     <div style="display:flex; border-bottom:2px solid #eee; background:#f8f9fa; flex-shrink:0;" id="prio-tabs">
       <button class="prio-tab active" onclick="switchPrioTab('content')"><i class="fas fa-file-alt me-1"></i>内容</button>
-      <button class="prio-tab" onclick="switchPrioTab('eval')"><i class="fas fa-chart-bar me-1"></i>7軸評価</button>
+      <!-- 7軸評価タブ削除: 推進メンバーは使用しないため -->
       <button class="prio-tab" onclick="switchPrioTab('discuss')"><i class="fas fa-comments me-1"></i>議論</button>
       <!-- 昇格タブ削除: 過半数賛同で自動昇格のため不要 -->
     </div>
@@ -630,21 +630,7 @@ if(localStorage.getItem('co_heart_admin_email') && localStorage.getItem('co_hear
         <div id="similar-posts-area" style="background:#f0f7ff; padding:10px; border-radius:10px; min-height:40px;"><span style="color:#aaa;">検索中...</span></div>
       </div>
 
-      <!-- Evaluation tab -->
-      <div id="prio-panel-eval" class="prio-panel" style="padding:20px;">
-        <div style="font-size:0.85rem; font-weight:700; color:#e74c3c; margin-bottom:12px;"><i class="fas fa-chart-bar me-1"></i>7軸評価</div>
-        <div style="font-size:0.8rem; color:#888; margin-bottom:16px;">各軸を1〜5点で評価してください。メンバーの平均スコアが21点/35点を超えると重点検討に自動格上げされます。</div>
-        <!-- 7 sliders -->
-        <div id="prio-eval-sliders" style="max-width:500px;">
-          <!-- Will contain slider rows for each axis -->
-        </div>
-        <textarea id="prio-eval-comment" placeholder="評価コメント（任意）" rows="2" class="form-control mt-3" style="font-size:0.88rem;"></textarea>
-        <button class="btn btn-danger fw-bold w-100 mt-3" onclick="submitPrioEval()"><i class="fas fa-check me-1"></i>評価を送信</button>
-
-        <hr class="my-4">
-        <div style="font-size:0.85rem; font-weight:700; color:#20c997; margin-bottom:8px;"><i class="fas fa-users me-1"></i>メンバーの評価一覧</div>
-        <div id="prio-eval-list" style="min-height:40px;"></div>
-      </div>
+      <!-- 7軸評価パネル削除: 推進メンバーは使用しないため -->
 
       <!-- Discussion tab -->
       <div id="prio-panel-discuss" class="prio-panel" style="display:flex; flex-direction:column; height:100%;">

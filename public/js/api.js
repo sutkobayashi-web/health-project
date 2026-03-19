@@ -303,3 +303,20 @@ function getChatMemos(uid) {
 function deleteChatMemo(memoId) {
   return api('/chat/delete-memo', { memoId });
 }
+
+// ===== Empathy (共感+3問) =====
+function submitEmpathy(postId, uid, userName, empathyType, answer1, answer2, answer3, freeComment, isMember) {
+  return api('/posts/empathy', { postId, uid, userName, empathyType, answer1, answer2, answer3, freeComment, isMember });
+}
+function getEmpathySummary(postId) {
+  return api('/posts/empathy/' + postId);
+}
+function getEmpathyDetail(postId) {
+  return api('/posts/empathy-detail/' + postId, undefined, getAdminToken());
+}
+function getEmpathyCheck(uid) {
+  return api('/posts/empathy-check/' + uid);
+}
+function convertEmpathyToScore(postId) {
+  return api('/posts/empathy-to-score', { postId }, getAdminToken());
+}

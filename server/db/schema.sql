@@ -143,3 +143,19 @@ CREATE TABLE IF NOT EXISTS notices (
   admin_read INTEGER DEFAULT 0,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Empathy responses: 共感＋3問回答
+CREATE TABLE IF NOT EXISTS empathy_responses (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  post_id TEXT NOT NULL,
+  user_id TEXT NOT NULL,
+  user_name TEXT,
+  empathy_type TEXT NOT NULL,
+  answer1 TEXT NOT NULL,
+  answer2 TEXT NOT NULL,
+  answer3 TEXT NOT NULL,
+  free_comment TEXT DEFAULT '',
+  is_member INTEGER DEFAULT 0,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(post_id, user_id)
+);

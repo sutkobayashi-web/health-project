@@ -180,6 +180,19 @@ function renderReportList(data) {
                         '</div>' +
                         '<div id="eval-display-'+pid+'" style="font-size:0.72rem; min-height:20px;"></div>' +
                     '</div>' +
+                    // 共感サマリー
+                    '<div style="background:white; border-radius:8px; padding:8px 10px; border:1px solid #e8e0ff;">' +
+                        '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">' +
+                            '<span style="font-size:0.68rem; font-weight:700; color:#667eea;"><i class="fas fa-heart me-1"></i>共感</span>' +
+                            '<span id="empathy-count-'+pid+'" style="font-size:0.65rem; color:#999;"></span>' +
+                        '</div>' +
+                        '<div id="empathy-summary-'+pid+'" style="font-size:0.72rem; min-height:20px;"></div>' +
+                    '</div>' +
+                    // メンバー回答状況
+                    '<div style="background:white; border-radius:8px; padding:8px 10px; border:1px solid #e0ffe0;">' +
+                        '<div style="font-size:0.68rem; font-weight:700; color:#43a047; margin-bottom:2px;"><i class="fas fa-users me-1"></i>メンバー回答</div>' +
+                        '<div id="empathy-members-'+pid+'" style="font-size:0.72rem; min-height:20px;"></div>' +
+                    '</div>' +
                     // コメント欄
                     '<div style="flex:1; min-height:0;">' +
                         '<div style="font-size:0.68rem; font-weight:700; color:#6c5ce7; margin-bottom:2px;"><i class="fas fa-comments me-1"></i>コメント</div>' +
@@ -193,10 +206,12 @@ function renderReportList(data) {
                     '<div style="display:flex; gap:4px; flex-shrink:0;">' +
                         (isTarget ?
                             '<button class="btn btn-primary btn-admin fw-bold" style="flex:1; font-size:0.68rem;" onclick="openEvalModal(\''+pid+'\')"><i class="fas fa-search me-1"></i>詳細・評価・議論</button>' +
+                            '<button class="btn btn-outline-info btn-admin" style="flex-shrink:0; font-size:0.68rem;" onclick="convertEmpathyScore(\''+pid+'\')"><i class="fas fa-magic me-1"></i>AI変換</button>' +
                             '<button class="btn btn-outline-secondary btn-admin" style="flex-shrink:0; font-size:0.68rem;" onclick="toggleTriage(\''+pid+'\', false)"><i class="fas fa-undo me-1"></i>解除</button>'
                         :
                             '<button class="btn btn-outline-secondary btn-admin" style="flex:1; font-size:0.68rem;" onclick="openEvalModal(\''+pid+'\')"><i class="fas fa-search me-1"></i>詳細</button>' +
                             '<button class="btn btn-outline-danger btn-admin" style="flex:1; font-size:0.68rem;" onclick="openEvalModalWithTab(\''+pid+'\',\'eval\')"><i class="fas fa-chart-bar me-1"></i>7軸評価</button>' +
+                            '<button class="btn btn-outline-info btn-admin" style="flex:1; font-size:0.68rem;" onclick="convertEmpathyScore(\''+pid+'\')"><i class="fas fa-magic me-1"></i>AI変換</button>' +
                             '<button class="btn btn-outline-warning btn-admin" style="flex:1; font-size:0.68rem;" onclick="toggleTriage(\''+pid+'\', true)"><i class="fas fa-star me-1"></i>重点へ</button>'
                         ) +
                     '</div>' +
@@ -207,6 +222,8 @@ function renderReportList(data) {
         loadInboxComments(pid);
         // 評価データ読み込み
         loadInlineEvalDisplay(pid);
+        // 共感データ読み込み
+        loadEmpathyDisplay(pid);
     });
     var countEl = document.getElementById('report-count'); if(countEl) countEl.innerText = visibleCount + " 件";
     // 重点案件の賛同進捗バッジを更新
@@ -397,6 +414,73 @@ function openEvalModalWithTab(pid, tab) {
 function toggleTriage(pid, toTarget) {
     if(!confirm(toTarget ? "重点検討案件に引き上げますか？" : "通常案件に戻しますか？")) return;
     toggleTargetStatus(pid, !toTarget).then(function(res) { if(res.success) loadReportData(); else alert("エラー: " + res.msg); });
+}
+
+/* ── Empathy display ── */
+function loadEmpathyDisplay(pid) {
+  var summaryArea = document.getElementById('empathy-summary-' + pid);
+  var countArea = document.getElementById('empathy-count-' + pid);
+  var membersArea = document.getElementById('empathy-members-' + pid);
+  if (!summaryArea) return;
+
+  getEmpathyDetail(pid).then(function(res) {
+    if (!res || !res.success || !res.summary) {
+      summaryArea.innerHTML = '<span style="color:#ccc;">回答なし</span>';
+      if (membersArea) membersArea.innerHTML = '<span style="color:#ccc;">未回答</span>';
+      return;
+    }
+    var s = res.summary;
+
+    // Type count badges
+    var typeEmoji = {
+      '🙋 わかる、自分も': '🙋',
+      '😰 これヤバくない？': '😰',
+      '💡 会社が動けば変わる': '💡',
+      '🍽️ 美味しそう！': '🍽️',
+      '💪 参考になる！': '💪',
+      '😅 自分もこんな感じ…': '😅'
+    };
+    var html = '';
+    Object.keys(s.typeCounts).forEach(function(type) {
+      var emoji = typeEmoji[type] || '❓';
+      var count = s.typeCounts[type];
+      html += '<span style="display:inline-block; margin:1px 3px; padding:2px 8px; border-radius:12px; font-size:0.7rem; font-weight:700; background:#f0f0ff; border:1px solid #e0e0ff;">' + emoji + ' ' + count + '</span>';
+    });
+    summaryArea.innerHTML = html;
+    if (countArea) countArea.innerHTML = '<span style="font-weight:700;">' + s.totalCount + '名回答</span>';
+
+    // Member responses
+    if (membersArea) {
+      if (s.memberResponses && s.memberResponses.length > 0) {
+        var mHtml = '';
+        s.memberResponses.forEach(function(m) {
+          var emoji = typeEmoji[m.empathy_type] || '❓';
+          mHtml += '<div style="padding:3px 0; border-bottom:1px solid #f0f0f0;">' +
+            '<span style="font-weight:700; color:#43a047;">' + escapeHtml(m.user_name) + '</span> ' +
+            '<span>' + emoji + '</span>' +
+            '<span style="color:#999; font-size:0.65rem; margin-left:4px;">' + m.answer1 + '/' + m.answer2 + '/' + m.answer3 + '</span>' +
+            (m.free_comment ? '<div style="color:#555; font-size:0.7rem; margin-top:2px;">💬 ' + escapeHtml(m.free_comment) + '</div>' : '') +
+            '</div>';
+        });
+        membersArea.innerHTML = mHtml;
+      } else {
+        membersArea.innerHTML = '<span style="color:#ccc;">メンバー未回答</span>';
+      }
+    }
+  });
+}
+
+/* ── Convert empathy to 7-axis scores ── */
+function convertEmpathyScore(pid) {
+  if (!confirm('共感回答からAI7軸スコアを算出しますか？')) return;
+  convertEmpathyToScore(pid).then(function(res) {
+    if (res && res.success) {
+      alert('スコア算出完了: 合計 ' + Object.values(res.scores).reduce(function(a,b){return a+b;}, 0) + '/35');
+      loadInlineEvalDisplay(pid);
+    } else {
+      alert('エラー: ' + (res ? res.msg : '不明'));
+    }
+  });
 }
 
 /* ── Like / unlike a post ── */

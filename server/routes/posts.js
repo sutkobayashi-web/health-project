@@ -24,6 +24,7 @@ router.get('/public', (req, res) => {
     const userCounts = {};
     db.prepare('SELECT user_id, COUNT(*) as cnt FROM posts GROUP BY user_id').all().forEach(r => { userCounts[r.user_id] = r.cnt; });
 
+// 共感カウント集計    const empathyCountsByPost = {};    try {      db.prepare('SELECT post_id, empathy_type, COUNT(*) as cnt FROM empathy_responses GROUP BY post_id, empathy_type').all()        .forEach(r => {          if (!empathyCountsByPost[r.post_id]) empathyCountsByPost[r.post_id] = {};          empathyCountsByPost[r.post_id][r.empathy_type] = r.cnt;        });    } catch (e) { /* table may not exist yet */ }
     const mappedPosts = pagedPosts.map(p => {
       const count = userCounts[p.user_id] || 0;
       let rank = 'Beginner';
@@ -45,7 +46,8 @@ router.get('/public', (req, res) => {
         imageUrl: p.image_url || '', authorRank: rank,
         likeCount: likesArr.length,
         isLiked: likesArr.includes(viewerUid),
-        authorUid: p.user_id
+        authorUid: p.user_id,
+        empathyCounts: empathyCountsByPost[p.post_id] || null
       };
     });
     res.json({ posts: mappedPosts, hasNext });
@@ -207,5 +209,159 @@ router.post('/edit', (req, res) => {
     res.json({ success: false, msg: e.message });
   }
 });
+
+
+// 共感＋3問回答を送信
+router.post('/empathy', async (req, res) => {
+  try {
+    const { postId, uid, userName, empathyType, answer1, answer2, answer3, freeComment, isMember } = req.body;
+    if (!postId || !uid || !empathyType || !answer1 || !answer2 || !answer3) {
+      return res.json({ success: false, msg: '必須項目が不足しています' });
+    }
+    const db = getDb();
+    // Upsert
+    db.prepare(`INSERT INTO empathy_responses (post_id, user_id, user_name, empathy_type, answer1, answer2, answer3, free_comment, is_member)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(post_id, user_id) DO UPDATE SET empathy_type=excluded.empathy_type, answer1=excluded.answer1, answer2=excluded.answer2, answer3=excluded.answer3, free_comment=excluded.free_comment, is_member=excluded.is_member, created_at=CURRENT_TIMESTAMP`)
+      .run(postId, uid, userName || '匿名', empathyType, answer1, answer2, answer3, freeComment || '', isMember ? 1 : 0);
+    
+    // Return updated summary
+    const responses = db.prepare('SELECT * FROM empathy_responses WHERE post_id = ?').all(postId);
+    const summary = buildEmpathySummary(responses);
+    res.json({ success: true, summary });
+  } catch (e) {
+    res.json({ success: false, msg: e.message });
+  }
+});
+
+// 投稿の共感サマリー取得
+router.get('/empathy/:postId', (req, res) => {
+  try {
+    const db = getDb();
+    const responses = db.prepare('SELECT * FROM empathy_responses WHERE post_id = ?').all(req.params.postId);
+    const summary = buildEmpathySummary(responses);
+    res.json({ success: true, summary });
+  } catch (e) {
+    res.json({ success: false, msg: e.message });
+  }
+});
+
+// 投稿の共感詳細取得（メンバー用）
+router.get('/empathy-detail/:postId', (req, res) => {
+  try {
+    const db = getDb();
+    const responses = db.prepare('SELECT * FROM empathy_responses WHERE post_id = ? ORDER BY created_at DESC').all(req.params.postId);
+    const summary = buildEmpathySummary(responses);
+    res.json({ success: true, responses, summary });
+  } catch (e) {
+    res.json({ success: false, msg: e.message });
+  }
+});
+
+// ユーザーの回答済み投稿一覧を取得
+router.get('/empathy-check/:uid', (req, res) => {
+  try {
+    const db = getDb();
+    const answered = db.prepare('SELECT post_id FROM empathy_responses WHERE user_id = ?').all(req.params.uid);
+    res.json({ success: true, answeredPostIds: answered.map(r => r.post_id) });
+  } catch (e) {
+    res.json({ success: false, answeredPostIds: [] });
+  }
+});
+
+// 共感集計からAI7軸スコア変換
+router.post('/empathy-to-score', async (req, res) => {
+  try {
+    const { postId } = req.body;
+    const db = getDb();
+    const post = db.prepare('SELECT * FROM posts WHERE post_id = ?').get(postId);
+    if (!post) return res.json({ success: false, msg: '投稿が見つかりません' });
+    
+    const responses = db.prepare('SELECT * FROM empathy_responses WHERE post_id = ?').all(postId);
+    if (responses.length === 0) return res.json({ success: false, msg: '共感回答がありません' });
+    
+    const summary = buildEmpathySummary(responses);
+    const isFood = post.category === '🍱 食事・栄養';
+    
+    const prompt = `あなたは健康経営アナリストです。社員の共感回答データから7軸スコア(各1-5)をJSON形式で算出してください。
+
+【投稿内容】
+${post.content}
+
+【投稿カテゴリ】${isFood ? '食事・栄養' : '相談・提案'}
+
+【共感回答の集計】
+- 回答者数: ${summary.totalCount}名
+- 共感タイプ別:
+${Object.entries(summary.typeCounts).map(([k,v]) => `  ${k}: ${v}名`).join('\n')}
+
+- 設問回答の集計:
+${JSON.stringify(summary.answerAggregation, null, 2)}
+
+- 自由記入コメント:
+${responses.filter(r => r.free_comment).map(r => `「${r.free_comment}」`).join('\n') || '（なし）'}
+
+【変換ルール】
+- 回答者が多いほど freq を高く
+- 「ヤバい」「深刻」系の回答が多いほど risk, urgency, safety を高く
+- 「会社が動けば」「参加する」系が多いほど value, needs を高く
+- 法的義務に関わる内容があれば legal を高く
+- 食事投稿の場合、legal は低め(1-2)に設定
+
+出力: JSONのみ。他のテキスト不要。
+{"legal":3,"risk":3,"freq":3,"urgency":3,"safety":3,"value":3,"needs":3}`;
+
+    const aiResult = await callGroqApi('JSON出力専門AI。指定JSON形式のみ出力。', prompt);
+    if (!aiResult) return res.json({ success: false, msg: 'AI変換失敗' });
+    
+    const jsonMatch = aiResult.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) return res.json({ success: false, msg: 'AIスコア解析失敗' });
+    
+    const scores = JSON.parse(jsonMatch[0]);
+    res.json({ success: true, scores, summary });
+  } catch (e) {
+    res.json({ success: false, msg: e.message });
+  }
+});
+
+// 共感サマリー構築ヘルパー
+function buildEmpathySummary(responses) {
+  const typeCounts = {};
+  const answerAggregation = {};
+  const memberResponses = [];
+  
+  responses.forEach(r => {
+    // タイプ別カウント
+    typeCounts[r.empathy_type] = (typeCounts[r.empathy_type] || 0) + 1;
+    
+    // 回答集計
+    if (!answerAggregation[r.empathy_type]) {
+      answerAggregation[r.empathy_type] = { q1: {}, q2: {}, q3: {} };
+    }
+    const agg = answerAggregation[r.empathy_type];
+    agg.q1[r.answer1] = (agg.q1[r.answer1] || 0) + 1;
+    agg.q2[r.answer2] = (agg.q2[r.answer2] || 0) + 1;
+    agg.q3[r.answer3] = (agg.q3[r.answer3] || 0) + 1;
+    
+    // メンバー回答
+    if (r.is_member) {
+      memberResponses.push(r);
+    }
+  });
+  
+  return {
+    totalCount: responses.length,
+    typeCounts,
+    answerAggregation,
+    memberResponses,
+    memberCount: memberResponses.length,
+    comments: responses.filter(r => r.free_comment).map(r => ({
+      userName: r.user_name,
+      comment: r.free_comment,
+      empathyType: r.empathy_type,
+      isMember: r.is_member
+    }))
+  };
+}
 
 module.exports = router;

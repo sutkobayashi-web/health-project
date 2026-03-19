@@ -469,19 +469,19 @@ function renderCustomAvatar(avatarStr, size) {
     // 背景円
     ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fillStyle = bgColor; ctx.fill();
 
-    // 顔（肌色円）
+    // 顔（肌色円）- 少し下寄せで髪との間隔を確保
     var faceR = r * faceSize / 24;
-    var faceY = cy + r * 0.05;
+    var faceY = cy + r * 0.15;
     ctx.beginPath(); ctx.arc(cx, faceY, faceR, 0, Math.PI * 2); ctx.fillStyle = skinColor; ctx.fill();
 
-    // 目
-    var eyeY = faceY - faceR * 0.15;
+    // 目 - 顔の中心よりやや上
+    var eyeY = faceY + faceR * 0.05;
     var eyeSpacing = faceR * 0.35;
     var eyeSize = faceR * 0.08;
     drawEyes(ctx, cx, eyeY, eyeSpacing, eyeSize, eyeType, faceR);
 
     // 口
-    var mouthY = faceY + faceR * 0.3;
+    var mouthY = faceY + faceR * 0.35;
     drawMouth(ctx, cx, mouthY, faceR, mouthType);
 
     // 髪
@@ -555,35 +555,35 @@ function drawMouth(ctx, cx, my, faceR, type) {
 function drawHair(ctx, cx, faceY, faceR, type, color) {
   if (type === 0) return;
   ctx.fillStyle = color;
-  var topY = faceY - faceR;
+  var topY = faceY - faceR - faceR * 0.12;
   switch(type) {
     case 1: // ショート
-      ctx.beginPath(); ctx.arc(cx, topY + faceR * 0.15, faceR * 0.7, Math.PI, 2 * Math.PI); ctx.fill();
+      ctx.beginPath(); ctx.arc(cx, topY + faceR * 0.1, faceR * 0.65, Math.PI, 2 * Math.PI); ctx.fill();
       break;
     case 2: // ミディアム
-      ctx.beginPath(); ctx.arc(cx, topY + faceR * 0.2, faceR * 0.85, Math.PI * 0.85, Math.PI * 2.15); ctx.fill();
+      ctx.beginPath(); ctx.arc(cx, topY + faceR * 0.12, faceR * 0.8, Math.PI * 0.85, Math.PI * 2.15); ctx.fill();
       break;
     case 3: // ロング
-      ctx.beginPath(); ctx.arc(cx, topY + faceR * 0.2, faceR * 0.9, Math.PI * 0.7, Math.PI * 2.3); ctx.fill();
+      ctx.beginPath(); ctx.arc(cx, topY + faceR * 0.12, faceR * 0.85, Math.PI * 0.7, Math.PI * 2.3); ctx.fill();
       // サイドの髪
       ctx.beginPath();
-      ctx.ellipse(cx - faceR * 0.85, faceY + faceR * 0.1, faceR * 0.2, faceR * 0.6, 0, 0, Math.PI * 2);
+      ctx.ellipse(cx - faceR * 0.85, faceY + faceR * 0.05, faceR * 0.18, faceR * 0.55, 0, 0, Math.PI * 2);
       ctx.fill();
       ctx.beginPath();
-      ctx.ellipse(cx + faceR * 0.85, faceY + faceR * 0.1, faceR * 0.2, faceR * 0.6, 0, 0, Math.PI * 2);
+      ctx.ellipse(cx + faceR * 0.85, faceY + faceR * 0.05, faceR * 0.18, faceR * 0.55, 0, 0, Math.PI * 2);
       ctx.fill();
       break;
     case 4: // スパイキー
       var spikes = 7;
       for (var i = 0; i < spikes; i++) {
         var angle = Math.PI + (i / (spikes - 1)) * Math.PI;
-        var sx = cx + Math.cos(angle) * faceR * 0.6;
-        var sy = topY + faceR * 0.2 + Math.sin(angle) * faceR * 0.3;
-        var tx = cx + Math.cos(angle) * faceR * 1.15;
-        var ty = topY + faceR * 0.2 + Math.sin(angle) * faceR * 0.8 - faceR * 0.4;
+        var sx = cx + Math.cos(angle) * faceR * 0.55;
+        var sy = topY + faceR * 0.15 + Math.sin(angle) * faceR * 0.25;
+        var tx = cx + Math.cos(angle) * faceR * 1.1;
+        var ty = topY + faceR * 0.15 + Math.sin(angle) * faceR * 0.7 - faceR * 0.45;
         ctx.beginPath(); ctx.moveTo(sx - faceR * 0.12, sy); ctx.lineTo(tx, ty); ctx.lineTo(sx + faceR * 0.12, sy); ctx.fill();
       }
-      ctx.beginPath(); ctx.arc(cx, topY + faceR * 0.25, faceR * 0.6, Math.PI, 2 * Math.PI); ctx.fill();
+      ctx.beginPath(); ctx.arc(cx, topY + faceR * 0.2, faceR * 0.55, Math.PI, 2 * Math.PI); ctx.fill();
       break;
   }
 }

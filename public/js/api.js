@@ -320,3 +320,60 @@ function getEmpathyCheck(uid) {
 function convertEmpathyToScore(postId) {
   return api('/posts/empathy-to-score', { postId }, getAdminToken());
 }
+
+// ===== Themes & Challenges (v2) =====
+function getCurrentCycle(uid) {
+  return api('/themes/current-cycle?uid=' + (uid || ''));
+}
+function voteTheme(themeId, userId, comment) {
+  return api('/themes/vote', { themeId, userId, comment });
+}
+function getVoteComments(themeId) {
+  return api('/themes/vote-comments/' + themeId);
+}
+function getChallenges() {
+  return api('/themes/challenges');
+}
+function getChallengeDetail(challengeId, uid) {
+  return api('/themes/challenge/' + challengeId + '?uid=' + (uid || ''));
+}
+function joinChallenge(challengeId, userId, nickname, avatar) {
+  return api('/themes/join', { challengeId, userId, nickname, avatar });
+}
+function recordKpi(challengeId, userId, answers, comment) {
+  return api('/themes/record', { challengeId, userId, answers, comment });
+}
+function getChallengeRanking(challengeId) {
+  return api('/themes/ranking/' + challengeId);
+}
+function getMyProgress(challengeId, userId) {
+  return api('/themes/my-progress/' + challengeId + '/' + userId);
+}
+// 管理者用
+function generateThemes() {
+  return api('/themes/generate-themes', {}, getAdminToken());
+}
+function updateTheme(themeId, name, description, icon) {
+  return api('/themes/update-theme', { themeId, name, description, icon }, getAdminToken());
+}
+function startVoting(cycleNumber, durationDays) {
+  return api('/themes/start-voting', { cycleNumber, durationDays }, getAdminToken());
+}
+function finalizeVoting(cycleNumber) {
+  return api('/themes/finalize-voting', { cycleNumber }, getAdminToken());
+}
+function generateChallenge(themeId) {
+  return api('/themes/generate-challenge', { themeId }, getAdminToken());
+}
+function startChallenge(challengeId) {
+  return api('/themes/start-challenge', { challengeId }, getAdminToken());
+}
+function updateChallenge(challengeId, title, description, icon, kpiDefinitions, durationDays) {
+  return api('/themes/update-challenge', { challengeId, title, description, icon, kpiDefinitions, durationDays }, getAdminToken());
+}
+function getChallengeDashboard(challengeId) {
+  return api('/themes/dashboard/' + challengeId, undefined, getAdminToken());
+}
+function postAmbassadorAdvice(ambassadorId, challengeId, adviceType, content) {
+  return api('/themes/ambassador-advice', { ambassadorId, challengeId, adviceType, content }, getAdminToken());
+}

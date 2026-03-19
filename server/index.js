@@ -28,6 +28,7 @@ app.use('/api/admin', require('./routes/admin'));
 app.use('/api/plans', require('./routes/plans'));
 app.use('/api/notices', require('./routes/notices'));
 app.use('/api/chat', require('./routes/chat'));
+app.use('/api/themes', require('./routes/themes'));
 
 // ヘルスチェック
 app.get('/api/health', (req, res) => {

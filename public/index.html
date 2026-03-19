@@ -399,6 +399,46 @@
       </div>
     </div>
 
+    <!-- テーマ投票 -->
+    <div class="card-section" id="theme-vote-section" style="display:none; border-top:4px solid #667eea; background:linear-gradient(135deg, #f0f4ff 0%, #e8ecff 100%);">
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+        <div style="display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);flex-shrink:0;"><i class="fas fa-vote-yea" style="font-size:22px;color:#fff;"></i></div>
+        <div style="flex:1;">
+          <div class="section-title" style="margin-bottom:2px;"><i class="fas fa-vote-yea"></i> テーマ投票</div>
+          <div style="font-size:0.75rem; color:#999;" id="vote-cycle-subtitle">次のアクションプラン、何にする？</div>
+        </div>
+      </div>
+      <div id="vote-status-bar" style="font-size:0.75rem; color:#667eea; font-weight:700; margin-bottom:10px; text-align:center;"></div>
+      <div id="theme-vote-list"></div>
+      <div id="vote-comment-area" style="display:none; margin-top:10px;">
+        <input type="text" id="vote-comment-input" placeholder="こんなプランだったら参加したい..." style="width:100%; border:1px solid #ddd; border-radius:10px; padding:8px 12px; font-size:0.82rem; outline:none;">
+      </div>
+    </div>
+
+    <!-- チャレンジ -->
+    <div class="card-section" id="challenge-section" style="display:none; border-top:4px solid #ff6b35; background:linear-gradient(135deg, #fff5f0 0%, #ffe8de 100%);">
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+        <div style="display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#ff6b35,#ff9a5c);flex-shrink:0;" id="challenge-icon-circle"><i class="fas fa-fire" style="font-size:22px;color:#fff;"></i></div>
+        <div style="flex:1;">
+          <div class="section-title" style="margin-bottom:2px;" id="challenge-title-display"></div>
+          <div style="font-size:0.75rem; color:#999;" id="challenge-subtitle-display"></div>
+        </div>
+      </div>
+      <div id="challenge-body"></div>
+    </div>
+
+    <!-- 健康メモ -->
+    <div class="card-section" id="health-memo-section" style="display:none; border-top:4px solid #ff9800; background:linear-gradient(135deg, #fffde7 0%, #fff8e1 100%);">
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+        <div style="display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#fff3e0,#ffe0b2);flex-shrink:0;"><i class="fas fa-bookmark" style="font-size:22px;color:#e65100;"></i></div>
+        <div>
+          <div class="section-title" style="margin-bottom:2px;"><i class="fas fa-bookmark"></i> 健康メモ</div>
+          <div style="font-size:0.75rem; color:#999;">AIアドバイザーの回答を保存</div>
+        </div>
+      </div>
+      <div id="health-memo-list"></div>
+    </div>
+
     <!-- QR招待 -->
     <div class="card-section" style="text-align:center; border-top:4px solid #6c5ce7; background:linear-gradient(135deg, #faf8ff 0%, #f3f0ff 100%);">
       <div class="section-title" style="justify-content:center;"><i class="fas fa-qrcode" style="color:#6c5ce7;"></i> 仲間を招待しよう！</div>
@@ -1184,6 +1224,9 @@ function onLoginSuccess() {
   document.getElementById('stat-nickname').innerText = currentUser.nickname || '--';
   updateHeaderStats();
   generateQR();
+  loadHealthMemos();
+  loadThemeVoting();
+  loadActiveChallenge();
 }
 
 // ====== ヘッダー更新 ======
@@ -1606,14 +1649,26 @@ function hideLoading() { document.getElementById('loading-overlay').style.displa
   margin-right: 6px;
 }
 .nurse-memo-list-btn:active { background: rgba(255,255,255,0.4); }
-.memo-save-btn {
-  background: none; border: none; color: #999; cursor: pointer;
-  font-size: 0.75rem; padding: 2px 4px; opacity: 0.4;
-  transition: opacity 0.2s, color 0.2s;
-  display: block; margin-left: auto; margin-top: 4px;
+.health-memo-card {
+  background: white; border-radius: 12px; padding: 12px 14px; margin-bottom: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06); border-left: 3px solid #ff9800;
+  position: relative;
 }
-.memo-save-btn:hover { opacity: 1; }
-.memo-save-btn.saved { opacity: 1; color: #ec407a; }
+.health-memo-card .memo-text { font-size: 0.85rem; line-height: 1.6; color: #333; white-space: pre-wrap; }
+.health-memo-card .memo-meta {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 8px; padding-top: 6px; border-top: 1px solid #f0f0f0;
+}
+.health-memo-card .memo-date { font-size: 0.7rem; color: #999; }
+.health-memo-card .memo-del-btn {
+  background: none; border: none; color: #ccc; font-size: 0.8rem; cursor: pointer; padding: 2px 6px;
+  transition: color 0.2s;
+}
+.health-memo-card .memo-del-btn:hover { color: #e53935; }
+.health-memo-empty-msg { text-align: center; color: #bbb; font-size: 0.82rem; padding: 20px 0; }
+.memo-save-btn { display:inline-flex; align-items:center; gap:4px; margin-top:8px; padding:4px 12px; border-radius:20px; font-size:0.72rem; font-weight:700; background:linear-gradient(135deg,#fff3e0,#ffe0b2); border:1px solid #ffcc80; color:#e65100; cursor:pointer; transition:all 0.2s; }
+.memo-save-btn:hover { background:linear-gradient(135deg,#ffe0b2,#ffcc80); transform:scale(1.05); }
+.memo-save-btn.saved { background:linear-gradient(135deg,#e8f5e9,#c8e6c9); border-color:#a5d6a7; color:#2e7d32; pointer-events:none; }
 .nurse-memo-panel {
   position: absolute; top: 0; left: 0; right: 0; bottom: 0;
   background: #fafafa; z-index: 10; display: flex; flex-direction: column;
@@ -1828,7 +1883,6 @@ function hideLoading() { document.getElementById('loading-overlay').style.displa
       </div>
     </div>
     <div style="display:flex;align-items:center;gap:4px;">
-      <button class="nurse-memo-list-btn" onclick="openMemoPanel()" title="メモ一覧"><i class="fas fa-bookmark"></i></button>
       <button class="nurse-chat-close" onclick="closeNurseChat()"><i class="fas fa-chevron-down"></i></button>
     </div>
   </div>
@@ -2048,7 +2102,7 @@ function addNurseMsg(type, text, imageDataUrl) {
   }
   var safe = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   var imgHtml = imageDataUrl ? '<img class="nurse-msg-image" src="' + imageDataUrl + '">' : '';
-  var memoBtn = type === 'ai' ? '<button class="memo-save-btn" onclick="onSaveChatMemo(this)"><i class="fas fa-bookmark"></i></button>' : '';
+  var memoBtn = type === 'ai' ? '<button class="memo-save-btn" onclick="onSaveChatMemo(this)"><i class="fas fa-bookmark"></i> メモに残す</button>' : '';
   div.innerHTML = '<div class="nurse-msg-avatar">' + av + '</div><div class="nurse-msg-bubble">' + imgHtml + safe + memoBtn + '</div>';
   area.appendChild(div);
 }
@@ -2069,49 +2123,37 @@ function onSaveChatMemo(btn) {
   saveChatMemo(currentUser.uid, memoText, '').then(function(res) {
     if (res && res.success) {
       btn.classList.add('saved');
-      btn.innerHTML = '<i class="fas fa-bookmark"></i>';
+      btn.innerHTML = '<i class="fas fa-check-circle"></i> 保存しました';
+      loadHealthMemos();
     } else {
       btn.disabled = false;
     }
   }).catch(function() { btn.disabled = false; });
 }
 
-function openMemoPanel() {
+// ====== 健康メモ（INDEX画面セクション） ======
+function loadHealthMemos() {
   if (!currentUser) return;
-  // 既存パネルがあれば閉じる
-  var existing = document.getElementById('nurse-memo-panel');
-  if (existing) { existing.remove(); return; }
-  var sheet = document.getElementById('nurse-chat-sheet');
-  var panel = document.createElement('div');
-  panel.className = 'nurse-memo-panel';
-  panel.id = 'nurse-memo-panel';
-  panel.innerHTML = '<div class="nurse-memo-panel-header"><h3><i class="fas fa-bookmark"></i> メモ一覧</h3><button class="nurse-chat-close" onclick="closeMemoPanel()"><i class="fas fa-times"></i></button></div><div class="nurse-memo-panel-list" id="nurse-memo-list"><div class="nurse-memo-empty">読み込み中...</div></div>';
-  sheet.appendChild(panel);
-  loadMemoList();
-}
-
-function closeMemoPanel() {
-  var p = document.getElementById('nurse-memo-panel');
-  if (p) p.remove();
-}
-
-function loadMemoList() {
-  if (!currentUser) return;
+  var section = document.getElementById('health-memo-section');
+  var list = document.getElementById('health-memo-list');
+  if (!list) return;
   getChatMemos(currentUser.uid).then(function(res) {
-    var list = document.getElementById('nurse-memo-list');
-    if (!list) return;
     if (!res || !res.success || !res.memos || res.memos.length === 0) {
-      list.innerHTML = '<div class="nurse-memo-empty">保存されたメモはありません</div>';
+      section.style.display = 'none';
       return;
     }
+    section.style.display = 'block';
     list.innerHTML = '';
     res.memos.forEach(function(m) {
-      var item = document.createElement('div');
-      item.className = 'nurse-memo-item';
-      item.setAttribute('data-memo-id', m.id);
-      var dateStr = m.created_at ? new Date(m.created_at).toLocaleString('ja-JP') : '';
-      item.innerHTML = '<div>' + m.memo_text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</div><div class="nurse-memo-item-date">' + dateStr + '</div><button class="nurse-memo-item-del" onclick="onDeleteMemo(' + m.id + ',this)"><i class="fas fa-trash-alt"></i></button>';
-      list.appendChild(item);
+      var safe = m.memo_text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      var dateStr = m.created_at ? new Date(m.created_at).toLocaleString('ja-JP', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
+      list.innerHTML += '<div class="health-memo-card">' +
+        '<div class="memo-text">' + safe + '</div>' +
+        '<div class="memo-meta">' +
+          '<span class="memo-date"><i class="far fa-clock"></i> ' + dateStr + '</span>' +
+          '<button class="memo-del-btn" onclick="onDeleteMemo(' + m.id + ',this)"><i class="fas fa-trash-alt"></i> 削除</button>' +
+        '</div>' +
+      '</div>';
     });
   });
 }
@@ -2119,14 +2161,7 @@ function loadMemoList() {
 function onDeleteMemo(memoId, btn) {
   if (!confirm('このメモを削除しますか？')) return;
   deleteChatMemo(memoId).then(function(res) {
-    if (res && res.success) {
-      var item = btn.closest('.nurse-memo-item');
-      if (item) item.remove();
-      var list = document.getElementById('nurse-memo-list');
-      if (list && list.children.length === 0) {
-        list.innerHTML = '<div class="nurse-memo-empty">保存されたメモはありません</div>';
-      }
-    }
+    if (res && res.success) loadHealthMemos();
   });
 }
 
@@ -2642,6 +2677,335 @@ function escInbox(t) {
 }
 </script>
 <!-- ====== /お知らせ Inbox ====== -->
+
+<!-- ====== テーマ投票 & チャレンジ ====== -->
+<script>
+// ====== テーマ投票 ======
+function loadThemeVoting() {
+  if (!currentUser) return;
+  getCurrentCycle(currentUser.uid).then(function(res) {
+    if (!res || !res.success || !res.cycle) { document.getElementById('theme-vote-section').style.display = 'none'; return; }
+    if (res.cycle.status !== 'voting') { document.getElementById('theme-vote-section').style.display = 'none'; return; }
+    document.getElementById('theme-vote-section').style.display = 'block';
+    var cycle = res.cycle;
+    var themes = res.themes || [];
+    var myVotes = res.myVotes || [];
+    var endDate = cycle.voting_end ? new Date(cycle.voting_end) : null;
+    var remaining = endDate ? Math.max(0, Math.ceil((endDate - Date.now()) / 86400000)) : '?';
+    document.getElementById('vote-cycle-subtitle').innerText = cycle.title + '（残り' + remaining + '日）';
+    document.getElementById('vote-status-bar').innerHTML = '<i class="fas fa-users"></i> ' + res.totalVoters + '/' + res.totalUsers + '名が投票済み（2票まで選べます）';
+    var html = '';
+    var maxVotes = Math.max.apply(null, themes.map(function(t) { return t.vote_count; }).concat([1]));
+    themes.forEach(function(t) {
+      var voted = myVotes.includes(t.theme_id);
+      var pct = Math.round(t.vote_count / maxVotes * 100);
+      var voices = [];
+      try { voices = JSON.parse(t.representative_voices || '[]'); } catch(e) {}
+      html += '<div style="background:white; border-radius:12px; padding:12px; margin-bottom:10px; border:2px solid ' + (voted ? '#667eea' : '#eee') + '; cursor:pointer; transition:all 0.2s;" onclick="doVoteTheme(\'' + t.theme_id + '\')" id="theme-card-' + t.theme_id + '">';
+      html += '<div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">';
+      html += '<span style="font-size:1.5rem;">' + (t.icon || '💡') + '</span>';
+      html += '<div style="flex:1;"><div style="font-weight:800; font-size:0.9rem; color:#333;">' + escapeHtml(t.name) + '</div>';
+      html += '<div style="font-size:0.72rem; color:#888;">' + t.post_count + '件の声</div></div>';
+      html += '<div style="text-align:right;"><span style="font-size:1.1rem; font-weight:900; color:' + (voted ? '#667eea' : '#333') + ';">' + t.vote_count + '</span><span style="font-size:0.65rem; color:#999;">票</span></div>';
+      html += '</div>';
+      // プログレスバー
+      html += '<div style="height:6px; background:#f0f0f0; border-radius:3px; overflow:hidden; margin-bottom:6px;">';
+      html += '<div style="height:100%; width:' + pct + '%; background:linear-gradient(90deg,#667eea,#764ba2); border-radius:3px; transition:width 0.5s;"></div>';
+      html += '</div>';
+      // 代表的な声
+      if (voices.length > 0) {
+        html += '<div style="font-size:0.72rem; color:#999; line-height:1.5;">';
+        voices.slice(0, 2).forEach(function(v) { html += '<div style="margin-bottom:2px;">&#x1F4AC; ' + escapeHtml(v) + '</div>'; });
+        html += '</div>';
+      }
+      if (voted) html += '<div style="text-align:center; font-size:0.7rem; color:#667eea; font-weight:700; margin-top:4px;"><i class="fas fa-check-circle"></i> 投票済み</div>';
+      html += '</div>';
+    });
+    document.getElementById('theme-vote-list').innerHTML = html;
+    document.getElementById('vote-comment-area').style.display = myVotes.length < 2 ? 'block' : 'none';
+  });
+}
+
+function doVoteTheme(themeId) {
+  if (!currentUser) return;
+  var comment = (document.getElementById('vote-comment-input') || {}).value || '';
+  voteTheme(themeId, currentUser.uid, comment).then(function(res) {
+    if (!res.success) { alert(res.msg); return; }
+    if (document.getElementById('vote-comment-input')) document.getElementById('vote-comment-input').value = '';
+    loadThemeVoting();
+  });
+}
+
+// ====== チャレンジ ======
+var currentChallengeId = null;
+var challengeDetail = null;
+
+function loadActiveChallenge() {
+  if (!currentUser) return;
+  getChallenges().then(function(res) {
+    if (!res || !res.success) return;
+    var active = res.challenges.find(function(c) { return c.status === 'active'; });
+    if (!active) {
+      // エントリー受付中のチャレンジがあるかチェック
+      var recruiting = res.challenges.find(function(c) { return c.status === 'recruiting'; });
+      if (recruiting) { renderChallengeEntry(recruiting); return; }
+      document.getElementById('challenge-section').style.display = 'none';
+      return;
+    }
+    currentChallengeId = active.challenge_id;
+    loadChallengeDetail(active.challenge_id);
+  });
+}
+
+function loadChallengeDetail(cid) {
+  getChallengeDetail(cid, currentUser.uid).then(function(res) {
+    if (!res || !res.success) return;
+    challengeDetail = res;
+    var c = res.challenge;
+    document.getElementById('challenge-section').style.display = 'block';
+    document.getElementById('challenge-title-display').innerHTML = (c.icon || '💪') + ' ' + escapeHtml(c.title);
+    var daysLeft = c.period_end ? Math.max(0, Math.ceil((new Date(c.period_end) - Date.now()) / 86400000)) : '?';
+    document.getElementById('challenge-subtitle-display').innerText = '参加' + res.participants.length + '名 / 残り' + daysLeft + '日';
+    if (!res.myParticipation) {
+      renderChallengeEntry(c);
+    } else if (res.todayRecord) {
+      renderChallengeStatus(res);
+    } else {
+      renderChallengeRecordForm(res);
+    }
+  });
+}
+
+function renderChallengeEntry(c) {
+  document.getElementById('challenge-section').style.display = 'block';
+  document.getElementById('challenge-title-display').innerHTML = (c.icon || '💪') + ' ' + escapeHtml(c.title);
+  document.getElementById('challenge-subtitle-display').innerText = (c.participantCount || 0) + '名が参加予定';
+  var html = '<div style="text-align:center; padding:10px;">';
+  html += '<div style="font-size:0.88rem; color:#444; line-height:1.7; margin-bottom:14px;">' + escapeHtml(c.description || '') + '</div>';
+  // アンバサダー助言があれば表示
+  if (c.ambassador_advice_plan) {
+    html += '<div style="background:white; border-radius:10px; padding:10px; margin-bottom:12px; border-left:3px solid #20c997; text-align:left;">';
+    html += '<div style="font-size:0.7rem; font-weight:700; color:#20c997; margin-bottom:4px;"><i class="fas fa-user-md"></i> 専門家からのアドバイス</div>';
+    html += '<div style="font-size:0.82rem; color:#444; line-height:1.6;">' + escapeHtml(c.ambassador_advice_plan) + '</div>';
+    html += '</div>';
+  }
+  html += '<button onclick="doJoinChallenge(\'' + c.challenge_id + '\')" style="background:linear-gradient(135deg,#ff6b35,#ff9a5c); color:white; border:none; border-radius:12px; padding:12px 30px; font-size:0.95rem; font-weight:800; cursor:pointer; box-shadow:0 4px 14px rgba(255,107,53,0.3);"><i class="fas fa-hand-point-up" style="margin-right:6px;"></i>エントリーする</button>';
+  html += '<div style="font-size:0.7rem; color:#999; margin-top:8px;">途中参加・途中離脱OK</div>';
+  html += '</div>';
+  document.getElementById('challenge-body').innerHTML = html;
+}
+
+function doJoinChallenge(cid) {
+  if (!currentUser) return;
+  joinChallenge(cid, currentUser.uid, currentUser.nickname, currentUser.avatar).then(function(res) {
+    if (res.success) loadChallengeDetail(cid);
+    else alert(res.msg || 'エラー');
+  });
+}
+
+function renderChallengeRecordForm(res) {
+  var c = res.challenge;
+  var kpis = c.kpi_definitions || [];
+  var html = '<div style="background:white; border-radius:12px; padding:14px; margin-bottom:10px;">';
+  html += '<div style="font-size:0.8rem; font-weight:800; color:#ff6b35; margin-bottom:10px;"><i class="fas fa-edit"></i> 今日の記録</div>';
+  kpis.forEach(function(kpi, i) {
+    html += '<div style="margin-bottom:12px;">';
+    html += '<div style="font-size:0.8rem; font-weight:700; color:#555; margin-bottom:6px;">' + escapeHtml(kpi.question) + '</div>';
+    if (kpi.type === 'choice') {
+      html += '<div style="display:flex; flex-wrap:wrap; gap:6px;">';
+      (kpi.options || []).forEach(function(opt, j) {
+        html += '<button class="kpi-opt" data-q="q' + i + '" data-val="' + escapeHtml(opt) + '" onclick="selectKpiOpt(this)" style="border:2px solid #ddd; background:white; border-radius:10px; padding:6px 14px; font-size:0.82rem; cursor:pointer; transition:all 0.15s;">' + escapeHtml(opt) + '</button>';
+      });
+      html += '</div>';
+    } else if (kpi.type === 'number') {
+      html += '<input type="number" id="kpi-num-' + i + '" data-q="q' + i + '" style="border:1px solid #ddd; border-radius:10px; padding:8px 12px; font-size:0.9rem; width:120px;" placeholder="数値">';
+    } else if (kpi.type === 'multi_check') {
+      html += '<div style="display:flex; flex-wrap:wrap; gap:6px;">';
+      (kpi.options || []).forEach(function(opt, j) {
+        html += '<button class="kpi-check" data-q="q' + i + '" data-val="' + escapeHtml(opt) + '" onclick="toggleKpiCheck(this)" style="border:2px solid #ddd; background:white; border-radius:10px; padding:6px 12px; font-size:0.78rem; cursor:pointer; transition:all 0.15s;">' + escapeHtml(opt) + '</button>';
+      });
+      html += '</div>';
+    }
+    html += '</div>';
+  });
+  html += '<input type="text" id="kpi-comment" placeholder="コメント（任意）" style="width:100%; border:1px solid #ddd; border-radius:10px; padding:8px 12px; font-size:0.82rem; margin-bottom:10px;">';
+  html += '<button onclick="doRecordKpi()" style="width:100%; background:linear-gradient(135deg,#ff6b35,#ff9a5c); color:white; border:none; border-radius:10px; padding:10px; font-size:0.9rem; font-weight:800; cursor:pointer;"><i class="fas fa-check"></i> 記録する</button>';
+  html += '</div>';
+  // ランキングボタン
+  html += '<div style="display:flex; gap:8px;">';
+  html += '<button onclick="showChallengeRanking()" style="flex:1; background:white; border:2px solid #667eea; color:#667eea; border-radius:10px; padding:8px; font-size:0.8rem; font-weight:700; cursor:pointer;"><i class="fas fa-trophy"></i> ランキング</button>';
+  html += '<button onclick="showMyProgress()" style="flex:1; background:white; border:2px solid #20c997; color:#20c997; border-radius:10px; padding:8px; font-size:0.8rem; font-weight:700; cursor:pointer;"><i class="fas fa-chart-line"></i> 自分の推移</button>';
+  html += '</div>';
+  document.getElementById('challenge-body').innerHTML = html;
+}
+
+var kpiAnswers = {};
+function selectKpiOpt(el) {
+  var q = el.getAttribute('data-q');
+  var val = el.getAttribute('data-val');
+  kpiAnswers[q] = val;
+  document.querySelectorAll('.kpi-opt[data-q="' + q + '"]').forEach(function(b) {
+    b.style.borderColor = '#ddd'; b.style.background = 'white'; b.style.color = '#333';
+  });
+  el.style.borderColor = '#ff6b35'; el.style.background = '#fff5f0'; el.style.color = '#ff6b35'; el.style.fontWeight = '700';
+}
+function toggleKpiCheck(el) {
+  var q = el.getAttribute('data-q');
+  var val = el.getAttribute('data-val');
+  if (!kpiAnswers[q]) kpiAnswers[q] = [];
+  var arr = kpiAnswers[q];
+  var idx = arr.indexOf(val);
+  if (idx >= 0) { arr.splice(idx, 1); el.style.borderColor = '#ddd'; el.style.background = 'white'; el.style.color = '#333'; }
+  else { arr.push(val); el.style.borderColor = '#ff6b35'; el.style.background = '#fff5f0'; el.style.color = '#ff6b35'; el.style.fontWeight = '700'; }
+}
+
+function doRecordKpi() {
+  if (!currentUser || !currentChallengeId) return;
+  var comment = (document.getElementById('kpi-comment') || {}).value || '';
+  // number入力もチェック
+  document.querySelectorAll('input[id^="kpi-num-"]').forEach(function(el) {
+    kpiAnswers[el.getAttribute('data-q')] = el.value;
+  });
+  recordKpi(currentChallengeId, currentUser.uid, kpiAnswers, comment).then(function(res) {
+    if (res.success) {
+      kpiAnswers = {};
+      loadChallengeDetail(currentChallengeId);
+    } else { alert(res.msg || 'エラー'); }
+  });
+}
+
+function renderChallengeStatus(res) {
+  var c = res.challenge;
+  var record = res.todayRecord;
+  var html = '<div style="background:white; border-radius:12px; padding:14px; margin-bottom:10px; text-align:center;">';
+  html += '<div style="font-size:1.5rem; margin-bottom:4px;">&#x2705;</div>';
+  html += '<div style="font-size:0.88rem; font-weight:800; color:#43a047;">今日の記録完了！</div>';
+  html += '<div style="font-size:0.75rem; color:#999; margin-top:4px;">今日 ' + (res.todayRecord ? '記録済み' : '') + '</div>';
+  // バッジ表示
+  if (res.myBadges && res.myBadges.length > 0) {
+    html += '<div style="display:flex; flex-wrap:wrap; gap:6px; justify-content:center; margin-top:10px;">';
+    res.myBadges.forEach(function(b) {
+      html += '<span style="background:linear-gradient(135deg,#ffd700,#ffaa00); color:#5d4e00; font-size:0.68rem; font-weight:800; padding:3px 10px; border-radius:12px;"><i class="fas fa-medal"></i> ' + escapeHtml(b.badge_name || b.badge_type) + '</span>';
+    });
+    html += '</div>';
+  }
+  // アンバサダー助言
+  if (res.advices && res.advices.length > 0) {
+    var latest = res.advices[0];
+    html += '<div style="text-align:left; background:#f0faf5; border-radius:10px; padding:10px; margin-top:10px; border-left:3px solid #20c997;">';
+    html += '<div style="font-size:0.68rem; font-weight:700; color:#20c997;"><i class="fas fa-user-md"></i> ' + escapeHtml(latest.ambassador_name || '専門家') + '（' + escapeHtml(latest.organization || '') + '）</div>';
+    html += '<div style="font-size:0.8rem; color:#444; line-height:1.6; margin-top:4px;">' + escapeHtml(latest.content).substring(0, 200) + '</div>';
+    html += '</div>';
+  }
+  html += '</div>';
+  // ボタン
+  html += '<div style="display:flex; gap:8px;">';
+  html += '<button onclick="showChallengeRanking()" style="flex:1; background:white; border:2px solid #667eea; color:#667eea; border-radius:10px; padding:8px; font-size:0.8rem; font-weight:700; cursor:pointer;"><i class="fas fa-trophy"></i> ランキング</button>';
+  html += '<button onclick="showMyProgress()" style="flex:1; background:white; border:2px solid #20c997; color:#20c997; border-radius:10px; padding:8px; font-size:0.8rem; font-weight:700; cursor:pointer;"><i class="fas fa-chart-line"></i> 自分の推移</button>';
+  html += '</div>';
+  document.getElementById('challenge-body').innerHTML = html;
+}
+
+function showChallengeRanking() {
+  if (!currentChallengeId) return;
+  getChallengeRanking(currentChallengeId).then(function(res) {
+    if (!res || !res.success) return;
+    var html = '<div style="background:white; border-radius:12px; padding:14px; margin-bottom:10px;">';
+    html += '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">';
+    html += '<div style="font-size:0.85rem; font-weight:800; color:#667eea;"><i class="fas fa-trophy"></i> ランキング</div>';
+    html += '<button onclick="loadChallengeDetail(currentChallengeId)" style="background:none; border:1px solid #ddd; border-radius:8px; padding:4px 10px; font-size:0.72rem; cursor:pointer;">戻る</button>';
+    html += '</div>';
+    // タブ
+    html += '<div style="display:flex; gap:4px; margin-bottom:10px;">';
+    html += '<button class="rank-tab active" onclick="switchRankTab(\'total\',this)" style="flex:1; padding:6px; border:none; border-radius:8px; font-size:0.7rem; font-weight:700; cursor:pointer; background:#667eea; color:white;">総合</button>';
+    html += '<button class="rank-tab" onclick="switchRankTab(\'streak\',this)" style="flex:1; padding:6px; border:1px solid #ddd; border-radius:8px; font-size:0.7rem; font-weight:700; cursor:pointer; background:white; color:#555;">連続</button>';
+    html += '<button class="rank-tab" onclick="switchRankTab(\'records\',this)" style="flex:1; padding:6px; border:1px solid #ddd; border-radius:8px; font-size:0.7rem; font-weight:700; cursor:pointer; background:white; color:#555;">記録数</button>';
+    html += '</div>';
+    // ランキングデータを保持
+    window._rankingData = res.rankings;
+    html += '<div id="ranking-list-area"></div>';
+    html += '</div>';
+    // 最近のコメント
+    if (res.recentComments && res.recentComments.length > 0) {
+      html += '<div style="background:white; border-radius:12px; padding:14px;">';
+      html += '<div style="font-size:0.8rem; font-weight:700; color:#ff6b35; margin-bottom:8px;"><i class="fas fa-comment"></i> みんなのコメント</div>';
+      res.recentComments.forEach(function(c) {
+        html += '<div style="padding:6px 0; border-bottom:1px solid #f5f5f5; font-size:0.8rem;">';
+        html += '<span style="font-weight:700;">' + (c.avatar || '😀') + ' ' + escapeHtml(c.nickname || '匿名') + '</span> ';
+        html += '<span style="color:#444;">' + escapeHtml(c.comment) + '</span>';
+        html += '</div>';
+      });
+      html += '</div>';
+    }
+    document.getElementById('challenge-body').innerHTML = html;
+    renderRankList('total');
+  });
+}
+
+function switchRankTab(type, el) {
+  document.querySelectorAll('.rank-tab').forEach(function(b) { b.style.background = 'white'; b.style.color = '#555'; b.style.border = '1px solid #ddd'; });
+  el.style.background = '#667eea'; el.style.color = 'white'; el.style.border = 'none';
+  renderRankList(type);
+}
+
+function renderRankList(type) {
+  var data = window._rankingData[type] || [];
+  var html = '';
+  data.forEach(function(u, i) {
+    var medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1);
+    var isMe = currentUser && u.userId === currentUser.uid;
+    var val = type === 'total' ? u.totalValue : type === 'streak' ? u.maxStreak + '日' : u.recordCount + '回';
+    html += '<div style="display:flex; align-items:center; gap:8px; padding:8px; border-radius:8px; ' + (isMe ? 'background:#fff5f0; border:1px solid #ff6b35;' : 'border-bottom:1px solid #f5f5f5;') + '">';
+    html += '<span style="width:30px; text-align:center; font-weight:800; font-size:' + (i < 3 ? '1.2rem' : '0.85rem') + ';">' + medal + '</span>';
+    html += '<span style="font-size:1.1rem;">' + (u.avatar || '😀') + '</span>';
+    html += '<span style="flex:1; font-weight:' + (isMe ? '800' : '600') + '; font-size:0.85rem;">' + escapeHtml(u.nickname) + (isMe ? ' (あなた)' : '') + '</span>';
+    html += '<span style="font-weight:800; font-size:0.9rem; color:#667eea;">' + val + '</span>';
+    html += '</div>';
+  });
+  if (data.length === 0) html = '<div style="text-align:center; color:#ccc; padding:20px; font-size:0.85rem;">まだ記録がありません</div>';
+  document.getElementById('ranking-list-area').innerHTML = html;
+}
+
+function showMyProgress() {
+  if (!currentUser || !currentChallengeId) return;
+  getMyProgress(currentChallengeId, currentUser.uid).then(function(res) {
+    if (!res || !res.success) return;
+    var html = '<div style="background:white; border-radius:12px; padding:14px; margin-bottom:10px;">';
+    html += '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">';
+    html += '<div style="font-size:0.85rem; font-weight:800; color:#20c997;"><i class="fas fa-chart-line"></i> 自分の推移</div>';
+    html += '<button onclick="loadChallengeDetail(currentChallengeId)" style="background:none; border:1px solid #ddd; border-radius:8px; padding:4px 10px; font-size:0.72rem; cursor:pointer;">戻る</button>';
+    html += '</div>';
+    var records = res.records || [];
+    html += '<div style="font-size:0.8rem; color:#555; margin-bottom:8px;">記録日数: <strong>' + records.length + '</strong>日</div>';
+    // 日別記録リスト
+    if (records.length > 0) {
+      records.slice().reverse().forEach(function(r) {
+        var ans = r.answers || {};
+        var ansText = Object.values(ans).map(function(v) { return Array.isArray(v) ? v.join(', ') : v; }).join(' / ');
+        html += '<div style="padding:6px 0; border-bottom:1px solid #f5f5f5; font-size:0.8rem;">';
+        html += '<span style="color:#999;">' + r.record_date + '</span> ';
+        html += '<span style="color:#333;">' + escapeHtml(ansText) + '</span>';
+        if (r.comment) html += ' <span style="color:#888;">- ' + escapeHtml(r.comment) + '</span>';
+        html += '</div>';
+      });
+    } else {
+      html += '<div style="text-align:center; color:#ccc; padding:20px;">まだ記録がありません</div>';
+    }
+    html += '</div>';
+    // バッジ
+    if (res.badges && res.badges.length > 0) {
+      html += '<div style="background:white; border-radius:12px; padding:14px;">';
+      html += '<div style="font-size:0.8rem; font-weight:700; color:#ffa000; margin-bottom:8px;"><i class="fas fa-medal"></i> 獲得バッジ</div>';
+      html += '<div style="display:flex; flex-wrap:wrap; gap:6px;">';
+      res.badges.forEach(function(b) {
+        html += '<span style="background:linear-gradient(135deg,#ffd700,#ffaa00); color:#5d4e00; font-size:0.72rem; font-weight:800; padding:4px 12px; border-radius:12px;"><i class="fas fa-medal"></i> ' + escapeHtml(b.badge_name || b.badge_type) + '</span>';
+      });
+      html += '</div></div>';
+    }
+    document.getElementById('challenge-body').innerHTML = html;
+  });
+}
+</script>
 
 </body>
 </html>

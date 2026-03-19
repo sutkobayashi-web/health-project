@@ -159,3 +159,133 @@ CREATE TABLE IF NOT EXISTS empathy_responses (
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   UNIQUE(post_id, user_id)
 );
+
+-- =============================================
+-- 凝集型健康アクションプラン v2
+-- =============================================
+
+-- テーマ（AIクラスタリング結果）
+CREATE TABLE IF NOT EXISTS themes (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  theme_id TEXT UNIQUE NOT NULL,
+  cycle_number INTEGER NOT NULL,
+  name TEXT NOT NULL,
+  description TEXT,
+  icon TEXT DEFAULT '💡',
+  post_ids TEXT DEFAULT '[]',
+  post_count INTEGER DEFAULT 0,
+  dept_distribution TEXT DEFAULT '{}',
+  severity_avg REAL DEFAULT 0,
+  keywords TEXT DEFAULT '[]',
+  representative_voices TEXT DEFAULT '[]',
+  status TEXT DEFAULT 'candidate',
+  vote_count INTEGER DEFAULT 0,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- テーマ投票
+CREATE TABLE IF NOT EXISTS theme_votes (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  theme_id TEXT NOT NULL,
+  user_id TEXT NOT NULL,
+  comment TEXT DEFAULT '',
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(theme_id, user_id)
+);
+
+-- 投票サイクル管理
+CREATE TABLE IF NOT EXISTS vote_cycles (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  cycle_number INTEGER UNIQUE NOT NULL,
+  title TEXT DEFAULT '',
+  status TEXT DEFAULT 'collecting',
+  voting_start DATETIME,
+  voting_end DATETIME,
+  selected_theme_id TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- チャレンジ（アクションプラン v2）
+CREATE TABLE IF NOT EXISTS challenges (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  challenge_id TEXT UNIQUE NOT NULL,
+  theme_id TEXT,
+  cycle_number INTEGER,
+  title TEXT NOT NULL,
+  description TEXT,
+  icon TEXT DEFAULT '💪',
+  period_start DATE,
+  period_end DATE,
+  duration_days INTEGER DEFAULT 30,
+  target_participation_rate REAL DEFAULT 0.5,
+  kpi_definitions TEXT DEFAULT '[]',
+  ranking_config TEXT DEFAULT '{}',
+  badge_config TEXT DEFAULT '[]',
+  ambassador_advice_plan TEXT,
+  ambassador_advice_mid TEXT,
+  ambassador_advice_final TEXT,
+  ai_draft TEXT,
+  status TEXT DEFAULT 'draft',
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- チャレンジ参加者
+CREATE TABLE IF NOT EXISTS challenge_participants (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  challenge_id TEXT NOT NULL,
+  user_id TEXT NOT NULL,
+  nickname TEXT,
+  avatar TEXT,
+  joined_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  status TEXT DEFAULT 'active',
+  pre_survey TEXT DEFAULT '{}',
+  post_survey TEXT DEFAULT '{}',
+  UNIQUE(challenge_id, user_id)
+);
+
+-- KPI記録（日次/週次）
+CREATE TABLE IF NOT EXISTS kpi_records (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  challenge_id TEXT NOT NULL,
+  user_id TEXT NOT NULL,
+  record_date DATE NOT NULL,
+  answers TEXT DEFAULT '{}',
+  comment TEXT DEFAULT '',
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(challenge_id, user_id, record_date)
+);
+
+-- バッジ
+CREATE TABLE IF NOT EXISTS badges (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  challenge_id TEXT NOT NULL,
+  user_id TEXT NOT NULL,
+  badge_type TEXT NOT NULL,
+  badge_name TEXT,
+  earned_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(challenge_id, user_id, badge_type)
+);
+
+-- アンバサダー
+CREATE TABLE IF NOT EXISTS ambassadors (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  organization TEXT,
+  role TEXT DEFAULT '保健師',
+  email TEXT UNIQUE NOT NULL,
+  password_hash TEXT,
+  status TEXT DEFAULT 'active',
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- アンバサダー助言
+CREATE TABLE IF NOT EXISTS ambassador_advices (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  ambassador_id INTEGER,
+  challenge_id TEXT NOT NULL,
+  advice_type TEXT NOT NULL,
+  content TEXT NOT NULL,
+  ai_summary_snapshot TEXT,
+  member_response TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);

@@ -204,6 +204,11 @@ window.openPriorityModal = function(pid) {
         }
     });
 
+    // Inboxの場合は7軸評価タブを非表示
+    var status = String(r[MX_COLS.STATUS]||"").toLowerCase();
+    var evalTab = document.querySelector('.prio-tab[onclick*="eval"]');
+    if(evalTab) evalTab.style.display = (status === 'open') ? 'none' : '';
+
     // Always start on content tab
     switchPrioTab('content');
 

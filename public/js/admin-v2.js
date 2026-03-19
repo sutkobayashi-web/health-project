@@ -447,23 +447,14 @@ function doPostAmbassadorAdvice() {
   });
 }
 
-// ============================================================
-// タブ切替にv2を統合
-// ============================================================
-var _origSwitchTab = window.switchTab;
-window.switchTab = function(tab) {
-  // v2タブの場合
-  if (tab === 'v2dash') { if (typeof renderV2Dashboard === 'function') renderV2Dashboard(); }
-  else if (tab === 'v2challenge') { if (typeof renderV2Challenges === 'function') renderV2Challenges(); }
-  else if (tab === 'v2kpi') { if (typeof renderV2KpiSelector === 'function') renderV2KpiSelector(); }
-  else if (tab === 'v2ambassador') { if (typeof renderV2Ambassador === 'function') renderV2Ambassador(); }
-  // 既存のswitchTabを呼ぶ
-  if (typeof _origSwitchTab === 'function') _origSwitchTab(tab);
-};
-
-// 初回ロード時にv2ダッシュボードを表示
-document.addEventListener('DOMContentLoaded', function() {
-  setTimeout(function() {
-    if (typeof renderV2Dashboard === 'function') renderV2Dashboard();
-  }, 500);
-});
+// 初回ロード時にv2ダッシュボードを表示（認証完了後）
+(function() {
+  var checkReady = setInterval(function() {
+    if (typeof currentAdminProfile !== 'undefined' && currentAdminProfile && currentAdminProfile.name) {
+      clearInterval(checkReady);
+      renderV2Dashboard();
+    }
+  }, 300);
+  // 10秒でタイムアウト
+  setTimeout(function() { clearInterval(checkReady); }, 10000);
+})();

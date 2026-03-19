@@ -132,7 +132,8 @@ function loadData() {
     getReportData().then(function(data) {
         hideLoading();
         allPostData = data;
-        renderInbox(currentInboxFilter);
+        // v2ダッシュボードがデフォルト表示
+        if (typeof renderV2Dashboard === 'function') renderV2Dashboard();
     }).catch(function(err) { hideLoading(); alert("通信エラー: " + err.message); });
     // メンバーリスト＆ハートビート開始
     startHeartbeat();
@@ -560,6 +561,11 @@ function switchTab(t) {
     if(t==='food') loadFoodUsers();
     if(t==='members') loadMemberManagement();
     if(t==='backup') loadBackupTab();
+    // v2
+    if(t==='v2dash' && typeof renderV2Dashboard === 'function') renderV2Dashboard();
+    if(t==='v2challenge' && typeof renderV2Challenges === 'function') renderV2Challenges();
+    if(t==='v2kpi' && typeof renderV2KpiSelector === 'function') renderV2KpiSelector();
+    if(t==='v2ambassador' && typeof renderV2Ambassador === 'function') renderV2Ambassador();
 }
 
 function loadResolved() {

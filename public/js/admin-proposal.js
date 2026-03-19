@@ -57,6 +57,14 @@ function openProposalById(planId) {
     loadedComments = [];
     try { if(plan.comments) loadedComments = JSON.parse(plan.comments); } catch(e){}
     renderMarkdownBlocks(plan.draft || "（ドラフトなし）", plan.scores);
+    // メンバー検討中なら再編集系ボタンを表示
+    var isReview = (plan.status === 'member_review');
+    var refineBtn = document.getElementById('btn-ai-refine');
+    var resubmitBtn = document.getElementById('btn-resubmit-vote');
+    var execModalBtn = document.getElementById('btn-exec-from-modal');
+    if(refineBtn) refineBtn.classList.toggle('d-none', !isReview);
+    if(resubmitBtn) resubmitBtn.classList.toggle('d-none', !isReview);
+    if(execModalBtn) execModalBtn.classList.toggle('d-none', isReview);
     document.getElementById('proposal-modal').style.display = 'flex';
 }
 
@@ -427,5 +435,54 @@ function castEndorsementWithComment(planId, vote) {
     var myName = (currentAdminProfile && currentAdminProfile.name) || 'Admin';
     endorsePlan(planId, myEmail, myName, vote, reason).then(function(res) {
         if(res.success) loadCandidates();
+    });
+}
+
+// メンバーコメントを反映してAIリファイン
+function aiRefineWithComments() {
+    var plan = currentPlanList.find(function(p){ return p.id === currentProposalId; });
+    if(!plan) return;
+    // セクション別コメントを集約
+    var feedbackData = {};
+    var comments = [];
+    try { comments = JSON.parse(plan.comments || '[]'); } catch(e) {}
+    if(comments.length === 0) return alert('まだメンバーからのコメントがありません。\nコメントを集めてからリファインしてください。');
+    comments.forEach(function(c) {
+        var match = c.text.match(/^【(.+?)】\s*(.+)$/);
+        if(match) {
+            var sec = match[1]; var txt = match[2];
+            if(!feedbackData[sec]) feedbackData[sec] = [];
+            feedbackData[sec].push(c.name + ': ' + txt);
+        }
+    });
+    if(!confirm('メンバーの' + comments.length + '件のコメントを反映してAIが企画書を書き直します。\n実行しますか？')) return;
+    var title = document.getElementById('proposal-title-input').value;
+    showLoading("AIリファイン中...");
+    refineActionPlanByAI(currentProposalId, plan.draft, feedbackData, title).then(function(res) {
+        hideLoading();
+        if(res.success) {
+            alert('リファイン完了！内容を確認してください。');
+            // 更新されたデータを再読み込み
+            getActionPlanCandidates().then(function(plans) {
+                currentPlanList = plans || [];
+                var updated = plans.find(function(p){ return p.id === currentProposalId; });
+                if(updated) {
+                    document.getElementById('proposal-title-input').value = updated.title;
+                    loadedComments = [];
+                    try { if(updated.comments) loadedComments = JSON.parse(updated.comments); } catch(e){}
+                    renderMarkdownBlocks(updated.draft || "", updated.scores);
+                }
+            });
+        } else { alert('リファインエラー: ' + (res.msg || '')); }
+    });
+}
+
+// 再編集後に投票リセット → 再投票
+function resubmitForVote() {
+    if(!confirm('企画書の編集が完了しましたか？\n投票をリセットして全メンバーに再投票を依頼します。')) return;
+    showLoading("処理中...");
+    resetPlanEndorsements(currentProposalId).then(function(res) {
+        hideLoading(); alert(res.msg);
+        if(res.success) { closeProposalModal(); loadCandidates(); }
     });
 }

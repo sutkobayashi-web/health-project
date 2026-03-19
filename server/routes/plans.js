@@ -337,6 +337,21 @@ router.get('/endorsements/:planId', (req, res) => {
   } catch (e) { res.json({ success: false, endorsements: [] }); }
 });
 
+// 投票リセット（再編集後に再投票）
+router.post('/reset-endorsements', (req, res) => {
+  try {
+    const db = getDb();
+    const { planId } = req.body;
+    db.prepare("UPDATE plan_endorsements SET vote = 'pending', comment = '', created_at = CURRENT_TIMESTAMP WHERE plan_id = ?").run(planId);
+    let log = [];
+    const plan = db.prepare('SELECT approval_log FROM action_plans WHERE plan_id = ?').get(planId);
+    try { log = JSON.parse(plan.approval_log || '[]'); } catch (e) {}
+    log.push({ action: 'reset_vote', by: 'admin', date: new Date().toISOString(), note: '企画書再編集後に再投票' });
+    db.prepare('UPDATE action_plans SET approval_log = ? WHERE plan_id = ?').run(JSON.stringify(log), planId);
+    res.json({ success: true, msg: '投票をリセットしました。メンバーに再投票を依頼します。' });
+  } catch (e) { res.json({ success: false, msg: e.message }); }
+});
+
 // AIログ保存
 router.post('/save-ai-log', (req, res) => {
   try {

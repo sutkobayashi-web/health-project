@@ -171,6 +171,9 @@ function endorsePlan(planId, memberEmail, memberName, vote, comment) {
 function getPlanEndorsements(planId) {
   return api('/plans/endorsements/' + planId, undefined, getAdminToken());
 }
+function resetPlanEndorsements(planId) {
+  return api('/plans/reset-endorsements', { planId }, getAdminToken());
+}
 function submitToExec(planId) {
   return api('/plans/submit-to-exec', { planId }, getAdminToken());
 }

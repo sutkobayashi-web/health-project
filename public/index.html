@@ -446,7 +446,7 @@ var AB_BGS = ['#E8F5E9','#E3F2FD','#FFF3E0','#FCE4EC','#F3E5F5','#E0F7FA','#FFF9
 var AB_FACES = [14,16,18];
 var AB_EYE_NAMES = ['ドット','ライン','まんまる','ウインク','閉じ目'];
 var AB_MOUTH_NAMES = ['にっこり','わーい','一文字','ぽかん'];
-var AB_HAIR_NAMES = ['なし','ショート','ミディアム','ロング','スパイキー'];
+var AB_HAIR_NAMES = ['なし','ショート','ミディアム','ロング','スパイキー','ひよこ','チカラ'];
 var AB_ACC_NAMES = ['なし','メガネ','帽子','リボン','ヘアバンド'];
 var _avatarCache = {};
 
@@ -590,6 +590,49 @@ function drawHair(ctx, cx, faceY, faceR, type, color) {
         ctx.beginPath(); ctx.moveTo(sx - faceR * 0.12, sy); ctx.lineTo(tx, ty); ctx.lineTo(sx + faceR * 0.12, sy); ctx.fill();
       }
       ctx.beginPath(); ctx.arc(cx, topY + faceR * 0.2, faceR * 0.55, Math.PI, 2 * Math.PI); ctx.fill();
+      break;
+    case 5: // ひよこ - やわらかいふわふわ毛
+      var puffs = 9;
+      for (var j = 0; j < puffs; j++) {
+        var pa = Math.PI + (j / (puffs - 1)) * Math.PI;
+        var px = cx + Math.cos(pa) * faceR * 0.5;
+        var py = topY + faceR * 0.15 + Math.sin(pa) * faceR * 0.15;
+        var pr = faceR * (0.25 + Math.sin(j * 1.8) * 0.08);
+        ctx.beginPath(); ctx.arc(px, py - pr * 0.3, pr, 0, Math.PI * 2); ctx.fill();
+      }
+      // 頭頂のふわっとした一房
+      ctx.beginPath(); ctx.arc(cx - faceR * 0.1, topY - faceR * 0.15, faceR * 0.2, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(cx + faceR * 0.12, topY - faceR * 0.1, faceR * 0.18, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(cx, topY - faceR * 0.22, faceR * 0.15, 0, Math.PI * 2); ctx.fill();
+      break;
+    case 6: // チカラ - オールバック角刈り風（艶あり）
+      // ベース：角張ったフラットトップ
+      ctx.beginPath();
+      ctx.moveTo(cx - faceR * 0.75, topY + faceR * 0.3);
+      ctx.lineTo(cx - faceR * 0.7, topY - faceR * 0.1);
+      ctx.lineTo(cx - faceR * 0.45, topY - faceR * 0.25);
+      ctx.lineTo(cx + faceR * 0.45, topY - faceR * 0.25);
+      ctx.lineTo(cx + faceR * 0.7, topY - faceR * 0.1);
+      ctx.lineTo(cx + faceR * 0.75, topY + faceR * 0.3);
+      ctx.closePath(); ctx.fill();
+      // オールバックの流れ線（艶）
+      ctx.strokeStyle = 'rgba(255,255,255,0.3)'; ctx.lineWidth = faceR * 0.03; ctx.lineCap = 'round';
+      for (var s = -2; s <= 2; s++) {
+        ctx.beginPath();
+        ctx.moveTo(cx + s * faceR * 0.12, topY + faceR * 0.25);
+        ctx.quadraticCurveTo(cx + s * faceR * 0.15, topY - faceR * 0.05, cx + s * faceR * 0.18 + faceR * 0.05, topY - faceR * 0.2);
+        ctx.stroke();
+      }
+      // サイドの刈り上げ
+      ctx.fillStyle = color;
+      ctx.globalAlpha = 0.6;
+      ctx.beginPath();
+      ctx.rect(cx - faceR * 0.78, topY + faceR * 0.15, faceR * 0.12, faceR * 0.5);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.rect(cx + faceR * 0.66, topY + faceR * 0.15, faceR * 0.12, faceR * 0.5);
+      ctx.fill();
+      ctx.globalAlpha = 1.0;
       break;
   }
 }

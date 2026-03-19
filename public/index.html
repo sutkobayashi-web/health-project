@@ -137,6 +137,30 @@
   .avatar-option { font-size: 26px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 10px; transition: all 0.15s; }
   .avatar-option:hover, .avatar-option.selected { background: #e8f5e9; transform: scale(1.15); }
 
+  /* ====== アバタービルダー ====== */
+  .avatar-tab-bar { display: flex; border-bottom: 2px solid #eee; }
+  .avatar-tab-btn { flex: 1; padding: 10px 0; text-align: center; font-weight: 700; font-size: 0.85rem; color: #999; background: none; border: none; cursor: pointer; position: relative; transition: color 0.2s; }
+  .avatar-tab-btn.active { color: #d63384; }
+  .avatar-tab-btn.active::after { content: ''; position: absolute; bottom: -2px; left: 20%; width: 60%; height: 3px; background: #d63384; border-radius: 2px; }
+  .avatar-tab-content { display: none; }
+  .avatar-tab-content.active { display: block; }
+  .avatar-builder-body { padding: 16px; max-height: 55vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .avatar-builder-preview { text-align: center; margin-bottom: 16px; }
+  .avatar-builder-preview canvas { border-radius: 50%; box-shadow: 0 4px 16px rgba(0,0,0,0.12); border: 3px solid #fff; }
+  .avatar-builder-row { margin-bottom: 14px; }
+  .avatar-builder-row label { display: block; font-size: 0.78rem; font-weight: 700; color: #666; margin-bottom: 6px; }
+  .avatar-builder-options { display: flex; flex-wrap: wrap; gap: 8px; }
+  .ab-color-circle { width: 32px; height: 32px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; transition: all 0.15s; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+  .ab-color-circle.selected { border-color: #d63384; transform: scale(1.15); box-shadow: 0 2px 8px rgba(214,51,132,0.3); }
+  .ab-icon-btn { width: 44px; height: 44px; border-radius: 10px; border: 2px solid #eee; background: #fafafa; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 600; color: #666; transition: all 0.15s; }
+  .ab-icon-btn.selected { border-color: #d63384; background: #fce4ec; color: #d63384; transform: scale(1.05); }
+  .ab-icon-btn canvas { border-radius: 6px; }
+  .ab-toggle-btn { padding: 6px 12px; border-radius: 16px; border: 2px solid #eee; background: #fafafa; cursor: pointer; font-size: 0.78rem; font-weight: 600; color: #666; transition: all 0.15s; }
+  .ab-toggle-btn.selected { border-color: #d63384; background: #fce4ec; color: #d63384; }
+  .ab-submit-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #d63384, #e91e8c); color: white; border: none; border-radius: 14px; font-weight: 700; font-size: 0.95rem; cursor: pointer; margin-top: 8px; box-shadow: 0 4px 14px rgba(214,51,132,0.3); }
+  .ab-submit-btn:active { transform: scale(0.98); }
+  .avatar-img-inline { border-radius: 50%; vertical-align: middle; }
+
   /* ====== フッター ====== */
   .app-footer { text-align: center; padding: 24px 0 8px; color: #ccc; font-size: 0.7rem; }
 
@@ -198,7 +222,17 @@
         <div class="form-group" style="flex:1; margin-bottom:0;"><label><i class="fas fa-birthday-cake" style="color:#f39c12; margin-right:4px;"></i> 生年月日</label><input type="date" id="reg-birthdate"></div>
       </div>
       <div class="form-group"><label><i class="fas fa-smile" style="color:#d63384; margin-right:4px;"></i> アバターを選ぼう！</label>
-        <div class="avatar-grid" id="avatar-grid"></div>
+        <div class="avatar-tab-bar">
+          <button class="avatar-tab-btn active" onclick="switchRegTab('emoji')">絵文字</button>
+          <button class="avatar-tab-btn" onclick="switchRegTab('custom')">カスタム作成</button>
+        </div>
+        <div class="avatar-tab-content active" id="reg-tab-emoji">
+          <div class="avatar-grid" id="avatar-grid"></div>
+        </div>
+        <div class="avatar-tab-content" id="reg-tab-custom">
+          <div class="avatar-builder-body" id="reg-builder-container"></div>
+          <button class="ab-submit-btn" onclick="regSelectCustomAvatar()">このアバターに決定！</button>
+        </div>
       </div>
       <button class="auth-submit-btn" id="reg-submit-btn" onclick="doRegister()" disabled style="opacity:0.5; cursor:not-allowed;">利用規約に同意してください</button>
       <div class="back-btn" onclick="showStep('menu')">← 戻る</div>
@@ -399,6 +433,346 @@ var avatarList = [
   '🚀','🚗','🚂','✈️','🏠','💼','🔧','💡','📱','🎒'
 ];
 
+// ====== カスタムアバター定義 ======
+var AB_SKINS = ['#FDEBD0','#F5CBA7','#D08B5B','#A0522D','#614335','#3E2723'];
+var AB_HAIRS = ['#1A1A1A','#4A3728','#8B4513','#FFD700','#FF6347','#C0C0C0'];
+var AB_BGS = ['#E8F5E9','#E3F2FD','#FFF3E0','#FCE4EC','#F3E5F5','#E0F7FA','#FFF9C4','#EFEBE9'];
+var AB_FACES = [14,16,18];
+var AB_EYE_NAMES = ['ドット','ライン','まんまる','ウインク','閉じ目'];
+var AB_MOUTH_NAMES = ['にっこり','わーい','一文字','ぽかん'];
+var AB_HAIR_NAMES = ['なし','ショート','ミディアム','ロング','スパイキー'];
+var AB_ACC_NAMES = ['なし','メガネ','帽子','リボン','ヘアバンド'];
+var _avatarCache = {};
+
+// ====== カスタムアバター描画 ======
+function renderCustomAvatar(avatarStr, size) {
+  if (!avatarStr || !avatarStr.startsWith('custom:')) return null;
+  var cacheKey = avatarStr + '_' + size;
+  if (_avatarCache[cacheKey]) return _avatarCache[cacheKey];
+  try {
+    var parts = avatarStr.substring(7).split('|');
+    var skinColor = parts[0] || AB_SKINS[2];
+    var hairColor = parts[1] || AB_HAIRS[0];
+    var bgColor = parts[2] || AB_BGS[0];
+    var faceSize = parseInt(parts[3]) || 16;
+    var eyeType = parseInt(parts[4]) || 0;
+    var mouthType = parseInt(parts[5]) || 0;
+    var accStr = parts[6] || '0';
+    var accessories = accStr.split(',').map(Number);
+    var hairType = parseInt(parts[7]) || 0;
+
+    var canvas = document.createElement('canvas');
+    canvas.width = size; canvas.height = size;
+    var ctx = canvas.getContext('2d');
+    var cx = size / 2, cy = size / 2, r = size / 2;
+
+    // 背景円
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fillStyle = bgColor; ctx.fill();
+
+    // 顔（肌色円）
+    var faceR = r * faceSize / 24;
+    var faceY = cy + r * 0.05;
+    ctx.beginPath(); ctx.arc(cx, faceY, faceR, 0, Math.PI * 2); ctx.fillStyle = skinColor; ctx.fill();
+
+    // 目
+    var eyeY = faceY - faceR * 0.15;
+    var eyeSpacing = faceR * 0.35;
+    var eyeSize = faceR * 0.08;
+    drawEyes(ctx, cx, eyeY, eyeSpacing, eyeSize, eyeType, faceR);
+
+    // 口
+    var mouthY = faceY + faceR * 0.3;
+    drawMouth(ctx, cx, mouthY, faceR, mouthType);
+
+    // 髪
+    drawHair(ctx, cx, faceY, faceR, hairType, hairColor);
+
+    // アクセサリー
+    accessories.forEach(function(acc) {
+      drawAccessory(ctx, cx, faceY, eyeY, faceR, eyeSpacing, acc, hairColor);
+    });
+
+    var dataUrl = canvas.toDataURL('image/png');
+    _avatarCache[cacheKey] = dataUrl;
+    return dataUrl;
+  } catch(e) { console.error('Avatar render error:', e); return null; }
+}
+
+function drawEyes(ctx, cx, eyeY, spacing, sz, type, faceR) {
+  var lx = cx - spacing, rx = cx + spacing;
+  ctx.fillStyle = '#333'; ctx.strokeStyle = '#333';
+  switch(type) {
+    case 0: // ドット
+      ctx.beginPath(); ctx.arc(lx, eyeY, sz * 1.2, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(rx, eyeY, sz * 1.2, 0, Math.PI * 2); ctx.fill();
+      break;
+    case 1: // ライン
+      ctx.lineWidth = sz * 1.5;
+      ctx.beginPath(); ctx.moveTo(lx - sz * 2, eyeY); ctx.lineTo(lx + sz * 2, eyeY); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(rx - sz * 2, eyeY); ctx.lineTo(rx + sz * 2, eyeY); ctx.stroke();
+      break;
+    case 2: // まんまる
+      ctx.lineWidth = sz;
+      ctx.beginPath(); ctx.arc(lx, eyeY, sz * 2.2, 0, Math.PI * 2); ctx.stroke();
+      ctx.beginPath(); ctx.arc(lx, eyeY, sz * 0.8, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(rx, eyeY, sz * 2.2, 0, Math.PI * 2); ctx.stroke();
+      ctx.beginPath(); ctx.arc(rx, eyeY, sz * 0.8, 0, Math.PI * 2); ctx.fill();
+      break;
+    case 3: // ウインク
+      ctx.beginPath(); ctx.arc(lx, eyeY, sz * 1.2, 0, Math.PI * 2); ctx.fill();
+      ctx.lineWidth = sz * 1.5;
+      ctx.beginPath(); ctx.moveTo(rx - sz * 2, eyeY); ctx.lineTo(rx + sz * 2, eyeY); ctx.stroke();
+      break;
+    case 4: // 閉じ目
+      ctx.lineWidth = sz * 1.5; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.arc(lx, eyeY, sz * 2, 0, Math.PI); ctx.stroke();
+      ctx.beginPath(); ctx.arc(rx, eyeY, sz * 2, 0, Math.PI); ctx.stroke();
+      break;
+  }
+}
+
+function drawMouth(ctx, cx, my, faceR, type) {
+  var mw = faceR * 0.3;
+  ctx.strokeStyle = '#333'; ctx.fillStyle = '#e74c3c'; ctx.lineWidth = faceR * 0.04;
+  ctx.lineCap = 'round';
+  switch(type) {
+    case 0: // にっこり
+      ctx.beginPath(); ctx.arc(cx, my - mw * 0.2, mw, 0.1 * Math.PI, 0.9 * Math.PI); ctx.stroke();
+      break;
+    case 1: // わーい
+      ctx.beginPath(); ctx.arc(cx, my - mw * 0.3, mw, 0.05 * Math.PI, 0.95 * Math.PI);
+      ctx.closePath(); ctx.fill(); ctx.stroke();
+      break;
+    case 2: // 一文字
+      ctx.beginPath(); ctx.moveTo(cx - mw * 0.7, my); ctx.lineTo(cx + mw * 0.7, my); ctx.stroke();
+      break;
+    case 3: // ぽかん
+      ctx.beginPath(); ctx.arc(cx, my, mw * 0.35, 0, Math.PI * 2); ctx.stroke();
+      break;
+  }
+}
+
+function drawHair(ctx, cx, faceY, faceR, type, color) {
+  if (type === 0) return;
+  ctx.fillStyle = color;
+  var topY = faceY - faceR;
+  switch(type) {
+    case 1: // ショート
+      ctx.beginPath(); ctx.arc(cx, topY + faceR * 0.15, faceR * 0.7, Math.PI, 2 * Math.PI); ctx.fill();
+      break;
+    case 2: // ミディアム
+      ctx.beginPath(); ctx.arc(cx, topY + faceR * 0.2, faceR * 0.85, Math.PI * 0.85, Math.PI * 2.15); ctx.fill();
+      break;
+    case 3: // ロング
+      ctx.beginPath(); ctx.arc(cx, topY + faceR * 0.2, faceR * 0.9, Math.PI * 0.7, Math.PI * 2.3); ctx.fill();
+      // サイドの髪
+      ctx.beginPath();
+      ctx.ellipse(cx - faceR * 0.85, faceY + faceR * 0.1, faceR * 0.2, faceR * 0.6, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(cx + faceR * 0.85, faceY + faceR * 0.1, faceR * 0.2, faceR * 0.6, 0, 0, Math.PI * 2);
+      ctx.fill();
+      break;
+    case 4: // スパイキー
+      var spikes = 7;
+      for (var i = 0; i < spikes; i++) {
+        var angle = Math.PI + (i / (spikes - 1)) * Math.PI;
+        var sx = cx + Math.cos(angle) * faceR * 0.6;
+        var sy = topY + faceR * 0.2 + Math.sin(angle) * faceR * 0.3;
+        var tx = cx + Math.cos(angle) * faceR * 1.15;
+        var ty = topY + faceR * 0.2 + Math.sin(angle) * faceR * 0.8 - faceR * 0.4;
+        ctx.beginPath(); ctx.moveTo(sx - faceR * 0.12, sy); ctx.lineTo(tx, ty); ctx.lineTo(sx + faceR * 0.12, sy); ctx.fill();
+      }
+      ctx.beginPath(); ctx.arc(cx, topY + faceR * 0.25, faceR * 0.6, Math.PI, 2 * Math.PI); ctx.fill();
+      break;
+  }
+}
+
+function drawAccessory(ctx, cx, faceY, eyeY, faceR, eyeSpacing, acc, hairColor) {
+  if (acc === 0) return;
+  var lx = cx - eyeSpacing, rx = cx + eyeSpacing;
+  switch(acc) {
+    case 1: // メガネ
+      ctx.strokeStyle = '#333'; ctx.lineWidth = faceR * 0.04;
+      var gr = faceR * 0.18;
+      ctx.beginPath(); ctx.arc(lx, eyeY, gr, 0, Math.PI * 2); ctx.stroke();
+      ctx.beginPath(); ctx.arc(rx, eyeY, gr, 0, Math.PI * 2); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(lx + gr, eyeY); ctx.lineTo(rx - gr, eyeY); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(lx - gr, eyeY); ctx.lineTo(lx - gr - faceR * 0.12, eyeY - faceR * 0.03); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(rx + gr, eyeY); ctx.lineTo(rx + gr + faceR * 0.12, eyeY - faceR * 0.03); ctx.stroke();
+      break;
+    case 2: // 帽子
+      var hatY = faceY - faceR - faceR * 0.05;
+      ctx.fillStyle = '#e74c3c';
+      ctx.beginPath();
+      ctx.moveTo(cx - faceR * 0.7, hatY + faceR * 0.15);
+      ctx.lineTo(cx + faceR * 0.7, hatY + faceR * 0.15);
+      ctx.lineTo(cx + faceR * 0.5, hatY - faceR * 0.3);
+      ctx.lineTo(cx - faceR * 0.5, hatY - faceR * 0.3);
+      ctx.closePath(); ctx.fill();
+      // ツバ
+      ctx.fillStyle = '#c0392b';
+      ctx.beginPath();
+      ctx.ellipse(cx, hatY + faceR * 0.15, faceR * 0.85, faceR * 0.1, 0, 0, Math.PI * 2);
+      ctx.fill();
+      break;
+    case 3: // リボン
+      var ribY = faceY - faceR - faceR * 0.1;
+      ctx.fillStyle = '#ff69b4';
+      ctx.beginPath(); ctx.ellipse(cx - faceR * 0.2, ribY, faceR * 0.18, faceR * 0.12, -0.3, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(cx + faceR * 0.2, ribY, faceR * 0.18, faceR * 0.12, 0.3, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(cx, ribY, faceR * 0.06, 0, Math.PI * 2); ctx.fill();
+      break;
+    case 4: // ヘアバンド
+      var hbY = faceY - faceR + faceR * 0.15;
+      ctx.strokeStyle = '#e74c3c'; ctx.lineWidth = faceR * 0.07;
+      ctx.beginPath(); ctx.arc(cx, faceY, faceR * 1.02, Math.PI * 1.15, Math.PI * 1.85); ctx.stroke();
+      break;
+  }
+}
+
+function getAvatarHtml(avatarStr, size) {
+  if (!avatarStr) avatarStr = '😀';
+  if (avatarStr.startsWith('custom:')) {
+    var dataUrl = renderCustomAvatar(avatarStr, size * 2); // 2x for retina
+    if (dataUrl) return '<img src="' + dataUrl + '" class="avatar-img-inline" style="width:' + size + 'px;height:' + size + 'px;" alt="avatar">';
+  }
+  return '<span style="font-size:' + Math.round(size * 0.7) + 'px;line-height:1;">' + avatarStr + '</span>';
+}
+
+// ====== アバタービルダー状態 ======
+var abState = { skin: 2, hair: 0, hairColor: 0, eye: 0, mouth: 0, accessories: [0], bg: 0, faceSize: 1 };
+
+function abBuildString() {
+  var accs = abState.accessories.filter(function(a) { return a > 0; });
+  if (accs.length === 0) accs = [0];
+  return 'custom:' + AB_SKINS[abState.skin] + '|' + AB_HAIRS[abState.hairColor] + '|' + AB_BGS[abState.bg] + '|' + AB_FACES[abState.faceSize] + '|' + abState.eye + '|' + abState.mouth + '|' + accs.join(',') + '|' + abState.hair;
+}
+
+function abParseString(str) {
+  if (!str || !str.startsWith('custom:')) return;
+  try {
+    var parts = str.substring(7).split('|');
+    abState.skin = AB_SKINS.indexOf(parts[0]); if (abState.skin < 0) abState.skin = 2;
+    abState.hairColor = AB_HAIRS.indexOf(parts[1]); if (abState.hairColor < 0) abState.hairColor = 0;
+    abState.bg = AB_BGS.indexOf(parts[2]); if (abState.bg < 0) abState.bg = 0;
+    var fs = parseInt(parts[3]); abState.faceSize = AB_FACES.indexOf(fs); if (abState.faceSize < 0) abState.faceSize = 1;
+    abState.eye = parseInt(parts[4]) || 0;
+    abState.mouth = parseInt(parts[5]) || 0;
+    var accStr = parts[6] || '0';
+    abState.accessories = accStr.split(',').map(Number);
+    abState.hair = parseInt(parts[7]) || 0;
+  } catch(e) {}
+}
+
+function abUpdatePreview(canvasId) {
+  var canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  var str = abBuildString();
+  var size = 160;
+  canvas.width = size; canvas.height = size;
+  // Draw directly
+  var dataUrl = renderCustomAvatar(str, size);
+  if (dataUrl) {
+    var img = new Image();
+    img.onload = function() {
+      canvas.getContext('2d').clearRect(0, 0, size, size);
+      canvas.getContext('2d').drawImage(img, 0, 0, size, size);
+    };
+    img.src = dataUrl;
+  }
+  // invalidate cache for this exact string at other sizes
+  Object.keys(_avatarCache).forEach(function(k) { if (k.startsWith(str + '_')) delete _avatarCache[k]; });
+}
+
+function abRenderBuilderUI(containerId, previewCanvasId) {
+  var c = document.getElementById(containerId);
+  if (!c) return;
+  var html = '<div class="avatar-builder-preview"><canvas id="' + previewCanvasId + '" width="160" height="160" style="width:80px;height:80px;"></canvas></div>';
+
+  // 肌の色
+  html += '<div class="avatar-builder-row"><label>🎨 肌の色</label><div class="avatar-builder-options">';
+  AB_SKINS.forEach(function(col, i) {
+    html += '<div class="ab-color-circle' + (abState.skin === i ? ' selected' : '') + '" style="background:' + col + ';" onclick="abSelect(\'skin\',' + i + ',\'' + previewCanvasId + '\')"></div>';
+  });
+  html += '</div></div>';
+
+  // 髪型
+  html += '<div class="avatar-builder-row"><label>💇 髪型</label><div class="avatar-builder-options">';
+  AB_HAIR_NAMES.forEach(function(name, i) {
+    html += '<div class="ab-icon-btn' + (abState.hair === i ? ' selected' : '') + '" onclick="abSelect(\'hair\',' + i + ',\'' + previewCanvasId + '\')">' + name + '</div>';
+  });
+  html += '</div></div>';
+
+  // 髪の色
+  html += '<div class="avatar-builder-row"><label>🎨 髪の色</label><div class="avatar-builder-options">';
+  AB_HAIRS.forEach(function(col, i) {
+    html += '<div class="ab-color-circle' + (abState.hairColor === i ? ' selected' : '') + '" style="background:' + col + ';" onclick="abSelect(\'hairColor\',' + i + ',\'' + previewCanvasId + '\')"></div>';
+  });
+  html += '</div></div>';
+
+  // 目
+  html += '<div class="avatar-builder-row"><label>👀 目</label><div class="avatar-builder-options">';
+  AB_EYE_NAMES.forEach(function(name, i) {
+    html += '<div class="ab-icon-btn' + (abState.eye === i ? ' selected' : '') + '" onclick="abSelect(\'eye\',' + i + ',\'' + previewCanvasId + '\')">' + name + '</div>';
+  });
+  html += '</div></div>';
+
+  // 口
+  html += '<div class="avatar-builder-row"><label>👄 口</label><div class="avatar-builder-options">';
+  AB_MOUTH_NAMES.forEach(function(name, i) {
+    html += '<div class="ab-icon-btn' + (abState.mouth === i ? ' selected' : '') + '" onclick="abSelect(\'mouth\',' + i + ',\'' + previewCanvasId + '\')">' + name + '</div>';
+  });
+  html += '</div></div>';
+
+  // アクセサリー
+  html += '<div class="avatar-builder-row"><label>✨ アクセサリー（複数選択OK）</label><div class="avatar-builder-options">';
+  AB_ACC_NAMES.forEach(function(name, i) {
+    var sel = abState.accessories.indexOf(i) !== -1;
+    html += '<div class="ab-toggle-btn' + (sel ? ' selected' : '') + '" onclick="abToggleAcc(' + i + ',\'' + previewCanvasId + '\')">' + name + '</div>';
+  });
+  html += '</div></div>';
+
+  // 背景色
+  html += '<div class="avatar-builder-row"><label>🌈 背景色</label><div class="avatar-builder-options">';
+  AB_BGS.forEach(function(col, i) {
+    html += '<div class="ab-color-circle' + (abState.bg === i ? ' selected' : '') + '" style="background:' + col + ';" onclick="abSelect(\'bg\',' + i + ',\'' + previewCanvasId + '\')"></div>';
+  });
+  html += '</div></div>';
+
+  // 顔の大きさ
+  html += '<div class="avatar-builder-row"><label>📐 顔の大きさ</label><div class="avatar-builder-options">';
+  ['小さい','ふつう','大きい'].forEach(function(name, i) {
+    html += '<div class="ab-icon-btn' + (abState.faceSize === i ? ' selected' : '') + '" onclick="abSelect(\'faceSize\',' + i + ',\'' + previewCanvasId + '\')">' + name + '</div>';
+  });
+  html += '</div></div>';
+
+  c.innerHTML = html;
+  setTimeout(function() { abUpdatePreview(previewCanvasId); }, 50);
+}
+
+function abSelect(prop, val, previewCanvasId) {
+  abState[prop] = val;
+  _avatarCache = {};
+  var containerId = previewCanvasId === 'reg-preview-canvas' ? 'reg-builder-container' : 'change-builder-container';
+  abRenderBuilderUI(containerId, previewCanvasId);
+}
+
+function abToggleAcc(idx, previewCanvasId) {
+  if (idx === 0) {
+    abState.accessories = [0];
+  } else {
+    abState.accessories = abState.accessories.filter(function(a) { return a !== 0; });
+    var pos = abState.accessories.indexOf(idx);
+    if (pos !== -1) abState.accessories.splice(pos, 1);
+    else abState.accessories.push(idx);
+    if (abState.accessories.length === 0) abState.accessories = [0];
+  }
+  _avatarCache = {};
+  var containerId = previewCanvasId === 'reg-preview-canvas' ? 'reg-builder-container' : 'change-builder-container';
+  abRenderBuilderUI(containerId, previewCanvasId);
+}
+
 // ★ ページ読み込み時に保存済みログイン情報をチェック
 (function() {
   var savedNick = localStorage.getItem('co_heart_user_nick');
@@ -468,11 +842,36 @@ function initAvatarGrid() {
   grid.innerHTML = avatarList.map(function(a) {
     return '<div class="avatar-option' + (a === selectedAvatar ? ' selected' : '') + '" onclick="selectAvatar(this, \'' + a + '\')">' + a + '</div>';
   }).join('');
+  // Init custom builder for registration too
+  abState = { skin: 2, hair: 0, hairColor: 0, eye: 0, mouth: 0, accessories: [0], bg: 0, faceSize: 1 };
+  abRenderBuilderUI('reg-builder-container', 'reg-preview-canvas');
 }
 
 function selectAvatar(el, av) {
   document.querySelectorAll('#avatar-grid .avatar-option').forEach(function(e) { e.classList.remove('selected'); });
   el.classList.add('selected'); selectedAvatar = av;
+}
+
+function switchRegTab(tab) {
+  var emojiTab = document.getElementById('reg-tab-emoji');
+  var customTab = document.getElementById('reg-tab-custom');
+  var parent = emojiTab.parentElement;
+  var btns = parent.querySelectorAll('.avatar-tab-btn');
+  if (tab === 'emoji') {
+    emojiTab.classList.add('active'); customTab.classList.remove('active');
+    btns[0].classList.add('active'); btns[1].classList.remove('active');
+  } else {
+    emojiTab.classList.remove('active'); customTab.classList.add('active');
+    btns[0].classList.remove('active'); btns[1].classList.add('active');
+    abRenderBuilderUI('reg-builder-container', 'reg-preview-canvas');
+  }
+}
+
+function regSelectCustomAvatar() {
+  selectedAvatar = abBuildString();
+  // Show visual feedback
+  document.querySelectorAll('#avatar-grid .avatar-option').forEach(function(e) { e.classList.remove('selected'); });
+  alert('カスタムアバターを選択しました！');
 }
 
 function openAvatarSheet() {
@@ -482,6 +881,14 @@ function openAvatarSheet() {
     var cls = 'avatar-option' + (a === currentUser.avatar ? ' current' : '');
     return '<div class="' + cls + '" onclick="pickNewAvatar(this, \'' + a + '\')">' + a + '</div>';
   }).join('');
+  // Reset to emoji tab
+  switchChangeTab('emoji');
+  // If current avatar is custom, pre-load it into builder
+  if (currentUser.avatar && currentUser.avatar.startsWith('custom:')) {
+    abParseString(currentUser.avatar);
+  } else {
+    abState = { skin: 2, hair: 0, hairColor: 0, eye: 0, mouth: 0, accessories: [0], bg: 0, faceSize: 1 };
+  }
   document.getElementById('avatar-change-overlay').classList.add('active');
   document.getElementById('avatar-change-sheet').classList.add('active');
 }
@@ -491,12 +898,29 @@ function closeAvatarSheet() {
   document.getElementById('avatar-change-sheet').classList.remove('active');
 }
 
-function pickNewAvatar(el, av) {
-  if (!currentUser || av === currentUser.avatar) { closeAvatarSheet(); return; }
+function switchChangeTab(tab) {
+  var emojiTab = document.getElementById('change-tab-emoji');
+  var customTab = document.getElementById('change-tab-custom');
+  var emojiBtn = document.getElementById('change-tab-emoji-btn');
+  var customBtn = document.getElementById('change-tab-custom-btn');
+  if (tab === 'emoji') {
+    emojiTab.classList.add('active'); customTab.classList.remove('active');
+    emojiBtn.classList.add('active'); customBtn.classList.remove('active');
+  } else {
+    emojiTab.classList.remove('active'); customTab.classList.add('active');
+    emojiBtn.classList.remove('active'); customBtn.classList.add('active');
+    abRenderBuilderUI('change-builder-container', 'change-preview-canvas');
+  }
+}
+
+function changePickCustomAvatar() {
+  if (!currentUser) return;
+  var av = abBuildString();
+  _avatarCache = {};
   updateUserAvatar(currentUser.uid, av).then(function(res) {
     if (res.success) {
       currentUser.avatar = av;
-      document.getElementById('stat-avatar').innerText = av;
+      updateStatAvatar();
       var saved = localStorage.getItem('co_heart_user_data');
       if (saved) { try { var d = JSON.parse(saved); d.avatar = av; localStorage.setItem('co_heart_user_data', JSON.stringify(d)); } catch(e){} }
     } else {
@@ -504,6 +928,31 @@ function pickNewAvatar(el, av) {
     }
     closeAvatarSheet();
   });
+}
+
+function pickNewAvatar(el, av) {
+  if (!currentUser || av === currentUser.avatar) { closeAvatarSheet(); return; }
+  updateUserAvatar(currentUser.uid, av).then(function(res) {
+    if (res.success) {
+      currentUser.avatar = av;
+      updateStatAvatar();
+      var saved = localStorage.getItem('co_heart_user_data');
+      if (saved) { try { var d = JSON.parse(saved); d.avatar = av; localStorage.setItem('co_heart_user_data', JSON.stringify(d)); } catch(e){} }
+    } else {
+      alert('変更に失敗しました: ' + (res.msg || ''));
+    }
+    closeAvatarSheet();
+  });
+}
+
+function updateStatAvatar() {
+  var el = document.getElementById('stat-avatar');
+  if (!el || !currentUser) return;
+  if (currentUser.avatar && currentUser.avatar.startsWith('custom:')) {
+    el.innerHTML = getAvatarHtml(currentUser.avatar, 20);
+  } else {
+    el.innerText = currentUser.avatar || '😀';
+  }
 }
 
 function toggleRegisterBtn() {
@@ -669,7 +1118,7 @@ function doAdminLogin() {
 function onLoginSuccess() {
   document.getElementById('auth-modal').style.display = 'none';
   document.getElementById('main-app').style.display = 'block';
-  document.getElementById('stat-avatar').innerText = currentUser.avatar || '😀';
+  updateStatAvatar();
   document.getElementById('stat-nickname').innerText = currentUser.nickname || '--';
   updateHeaderStats();
   generateQR();
@@ -724,11 +1173,12 @@ function renderPost(p) {
   var liked = p.isLiked;
   var isOwn = currentUser && p.authorUid === currentUser.uid;
   var ownBtns = isOwn ? '<span class="post-own-btns" data-postid="' + p.id + '"><span class="post-edit-btn" title="修正">✏️</span><span class="post-del-btn" title="削除">🗑️</span></span>' : '';
+  var avatarHtml = getAvatarHtml(p.avatar, 28);
   return '<div class="post-card" data-row="' + p.row + '">' +
     '<div class="post-header-bar ' + headerClass + '"><span><i class="' + icon + '"></i> ' + catName + '</span><span>' + p.date + '</span></div>' +
     '<div class="post-content">' +
       '<div class="user-info">' +
-        '<div class="avatar">' + p.avatar + '</div>' +
+        '<div class="avatar">' + avatarHtml + '</div>' +
         '<div class="nick">' + p.nickname + ' <span class="rank">' + p.authorRank + '</span></div>' +
         ownBtns +
         '<span class="post-like-btn" id="' + likeId + '" data-row="' + p.row + '" data-liked="' + (liked ? '1' : '0') + '">' +
@@ -767,9 +1217,10 @@ function openPostDetail(row) {
   var imgHtml = (p.imageUrl && p.imageUrl.startsWith('http')) ? '<img src="' + p.imageUrl + '" style="width:100%;border-radius:12px;margin-bottom:12px;">' : '';
   var analysisHtml = p.analysis ? '<div class="ai-reply"><i class="fas fa-robot text-primary"></i> ' + p.analysis.replace(/\n/g, '<br>') + '</div>' : '';
   var sheet = document.getElementById('post-detail-sheet');
+  var detailAvHtml = getAvatarHtml(p.avatar, 28);
   sheet.innerHTML =
     '<div style="padding:12px 18px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #eee;flex-shrink:0;">' +
-      '<div class="avatar" style="width:32px;height:32px;font-size:1rem;">' + p.avatar + '</div>' +
+      '<div class="avatar" style="width:32px;height:32px;font-size:1rem;">' + detailAvHtml + '</div>' +
       '<div style="flex:1;"><div class="nick" style="font-size:0.85rem;">' + p.nickname + ' <span class="rank">' + p.authorRank + '</span></div><div style="font-size:0.65rem;color:#999;">' + p.date + '</div></div>' +
     '</div>' +
     '<div id="post-detail-body">' +
@@ -1042,10 +1493,11 @@ function hideLoading() { document.getElementById('loading-overlay').style.displa
 #avatar-change-overlay.active { display: block; }
 #avatar-change-sheet {
   position: fixed; bottom: 0; left: 0; width: 100%;
-  max-height: 60vh; background: #fff; border-radius: 20px 20px 0 0;
+  max-height: 85vh; background: #fff; border-radius: 20px 20px 0 0;
   z-index: 9999; transform: translateY(100%); visibility: hidden;
   transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), visibility 0s 0.35s;
   box-shadow: 0 -8px 40px rgba(0,0,0,0.2); overflow: hidden;
+  display: flex; flex-direction: column;
 }
 #avatar-change-sheet.active { transform: translateY(0); visibility: visible; transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), visibility 0s 0s; }
 .avatar-sheet-header {
@@ -1287,7 +1739,17 @@ function hideLoading() { document.getElementById('loading-overlay').style.displa
     <h3><i class="fas fa-smile" style="color:#d63384; margin-right:6px;"></i>アバターを変更</h3>
     <button class="avatar-sheet-close" onclick="closeAvatarSheet()"><i class="fas fa-times"></i></button>
   </div>
-  <div class="avatar-sheet-grid" id="avatar-change-grid"></div>
+  <div class="avatar-tab-bar">
+    <button class="avatar-tab-btn active" id="change-tab-emoji-btn" onclick="switchChangeTab('emoji')">絵文字</button>
+    <button class="avatar-tab-btn" id="change-tab-custom-btn" onclick="switchChangeTab('custom')">カスタム作成</button>
+  </div>
+  <div class="avatar-tab-content active" id="change-tab-emoji">
+    <div class="avatar-sheet-grid" id="avatar-change-grid"></div>
+  </div>
+  <div class="avatar-tab-content" id="change-tab-custom">
+    <div class="avatar-builder-body" id="change-builder-container"></div>
+    <div style="padding:0 16px 16px;"><button class="ab-submit-btn" onclick="changePickCustomAvatar()">このアバターに決定！</button></div>
+  </div>
 </div>
 
 <div id="nurse-chat-overlay" onclick="closeNurseChat()" ontouchmove="event.preventDefault()"></div>
@@ -1513,7 +1975,13 @@ function addNurseMsg(type, text, imageDataUrl) {
   var area = document.getElementById('nurse-messages');
   var div = document.createElement('div');
   div.className = 'nurse-msg ' + type;
-  var av = type === 'ai' ? '<div style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#e0f7fa,#b2ebf2);"><i class="fas fa-heartbeat" style="font-size:16px;color:#e91e63;"></i></div>' : (currentUser ? currentUser.avatar : '😀');
+  var av;
+  if (type === 'ai') {
+    av = '<div style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#e0f7fa,#b2ebf2);"><i class="fas fa-heartbeat" style="font-size:16px;color:#e91e63;"></i></div>';
+  } else {
+    var userAvStr = currentUser ? currentUser.avatar : '😀';
+    av = getAvatarHtml(userAvStr, 32);
+  }
   var safe = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   var imgHtml = imageDataUrl ? '<img class="nurse-msg-image" src="' + imageDataUrl + '">' : '';
   var memoBtn = type === 'ai' ? '<button class="memo-save-btn" onclick="onSaveChatMemo(this)"><i class="fas fa-bookmark"></i></button>' : '';

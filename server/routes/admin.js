@@ -543,8 +543,8 @@ router.post('/similar-posts', async (req, res) => {
       date: new Date(allPosts[i].created_at).toLocaleDateString('ja-JP')
     }));
 
-    res.json({ similar, count: similar.length });
-  } catch (e) { res.json({ similar: [], count: 0, error: e.message }); }
+    res.json({ posts: similar, count: similar.length });
+  } catch (e) { res.json({ posts: [], count: 0, error: e.message }); }
 });
 
 // Inboxコメント投稿

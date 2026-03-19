@@ -296,6 +296,23 @@ function initThemePreviewChart() {
     themeRadarChart = new Chart(ctx.getContext('2d'), { type:'radar', data:{ labels:['法令','リスク','頻度','緊急','安全','価値','ニーズ'], datasets:[{ label:'スコア', data:[3,3,3,3,3,3,3], backgroundColor:'rgba(54,162,235,0.2)', borderColor:'rgba(54,162,235,1)', pointBackgroundColor:'rgba(54,162,235,1)', borderWidth:2 }] }, options:{ responsive:true, maintainAspectRatio:false, scales:{ r:{min:0,max:5,ticks:{display:false}} }, plugins:{legend:{display:false}} } });
 }
 function updThemeRadar() { if(!themeRadarChart) return; var d=[]; for(var i=1; i<=7; i++) d.push(document.getElementById('ts'+i).value); themeRadarChart.data.datasets[0].data = d; themeRadarChart.update(); }
+function formatAiIdea(text) {
+    if(!text) return '';
+    var safe = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    // 見出し（### → h6, ## → h5）
+    safe = safe.replace(/^###\s*(.+)$/gm, '<h6 style="margin:12px 0 4px; color:#e74c3c; font-weight:700;">$1</h6>');
+    safe = safe.replace(/^##\s*(.+)$/gm, '<h5 style="margin:16px 0 6px; color:#c0392b; font-weight:700; border-bottom:1px solid #eee; padding-bottom:4px;">$1</h5>');
+    // 太字 **text**
+    safe = safe.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    // リスト項目（- や * や数字.）
+    safe = safe.replace(/^[\-\*]\s+(.+)$/gm, '<div style="padding:2px 0 2px 16px; position:relative;"><span style="position:absolute; left:4px; color:#e74c3c;">•</span>$1</div>');
+    safe = safe.replace(/^(\d+)\.\s+(.+)$/gm, '<div style="padding:2px 0 2px 20px; position:relative;"><span style="position:absolute; left:2px; color:#e74c3c; font-weight:700;">$1.</span>$2</div>');
+    // 連続改行をセクション区切りに
+    safe = safe.replace(/\n{2,}/g, '<div style="margin:10px 0;"></div>');
+    // 残りの改行
+    safe = safe.replace(/\n/g, '<br>');
+    return '<div style="line-height:1.7; font-size:0.85rem;">' + safe + '</div>';
+}
 function startThemeBrainstorm() {
     var theme = document.getElementById('theme-title-input').value;
     var bg = document.getElementById('theme-bg-input').value;
@@ -303,7 +320,7 @@ function startThemeBrainstorm() {
     var resArea = document.getElementById('theme-brainstorm-result');
     resArea.innerHTML = "AI思考中..."; resArea.classList.remove('d-none');
     brainstormThemeActionPlans({ theme:theme, background:bg }).then(function(res) {
-        if(res.success) resArea.innerHTML = res.idea; else resArea.innerHTML = "エラー";
+        if(res.success) resArea.innerHTML = formatAiIdea(res.idea); else resArea.innerHTML = "エラー";
     });
 }
 function generateThemeProposal() {

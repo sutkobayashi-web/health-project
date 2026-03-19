@@ -2704,24 +2704,42 @@ function loadThemeVoting() {
       var pct = Math.round(t.vote_count / maxVotes * 100);
       var voices = [];
       try { voices = JSON.parse(t.representative_voices || '[]'); } catch(e) {}
-      html += '<div style="background:white; border-radius:12px; padding:12px; margin-bottom:10px; border:2px solid ' + (voted ? '#667eea' : '#eee') + '; cursor:pointer; transition:all 0.2s;" onclick="doVoteTheme(\'' + t.theme_id + '\')" id="theme-card-' + t.theme_id + '">';
-      html += '<div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">';
-      html += '<span style="font-size:1.5rem;">' + (t.icon || '💡') + '</span>';
-      html += '<div style="flex:1;"><div style="font-weight:800; font-size:0.9rem; color:#333;">' + escapeHtml(t.name) + '</div>';
-      html += '<div style="font-size:0.72rem; color:#888;">' + t.post_count + '件の声</div></div>';
-      html += '<div style="text-align:right;"><span style="font-size:1.1rem; font-weight:900; color:' + (voted ? '#667eea' : '#333') + ';">' + t.vote_count + '</span><span style="font-size:0.65rem; color:#999;">票</span></div>';
+      var keywords = [];
+      try { keywords = JSON.parse(t.keywords || '[]'); } catch(e) {}
+      var deptDist = {};
+      try { deptDist = JSON.parse(t.dept_distribution || '{}'); } catch(e) {}
+      var deptText = Object.keys(deptDist).map(function(k) { return k + ' ' + deptDist[k] + '件'; }).join('、');
+
+      html += '<div style="background:white; border-radius:14px; padding:14px; margin-bottom:12px; border:2px solid ' + (voted ? '#667eea' : '#eee') + '; cursor:pointer; transition:all 0.2s; box-shadow:0 2px 8px rgba(0,0,0,0.04);" onclick="doVoteTheme(\'' + t.theme_id + '\')" id="theme-card-' + t.theme_id + '">';
+      // ヘッダー: アイコン + テーマ名 + 票数
+      html += '<div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">';
+      html += '<div style="width:44px; height:44px; border-radius:12px; background:linear-gradient(135deg,#f0f4ff,#e8ecff); display:flex; align-items:center; justify-content:center; font-size:1.4rem; flex-shrink:0;">' + (t.icon || '💡') + '</div>';
+      html += '<div style="flex:1;"><div style="font-weight:800; font-size:0.92rem; color:#333;">' + escapeHtml(t.name) + '</div>';
+      html += '<div style="font-size:0.7rem; color:#888;">' + t.post_count + '件の声' + (deptText ? '（' + escapeHtml(deptText) + '）' : '') + '</div></div>';
+      html += '<div style="text-align:center; min-width:44px;"><div style="font-size:1.2rem; font-weight:900; color:' + (voted ? '#667eea' : '#333') + ';">' + t.vote_count + '</div><div style="font-size:0.6rem; color:#999;">票</div></div>';
       html += '</div>';
-      // プログレスバー
-      html += '<div style="height:6px; background:#f0f0f0; border-radius:3px; overflow:hidden; margin-bottom:6px;">';
-      html += '<div style="height:100%; width:' + pct + '%; background:linear-gradient(90deg,#667eea,#764ba2); border-radius:3px; transition:width 0.5s;"></div>';
-      html += '</div>';
-      // 代表的な声
-      if (voices.length > 0) {
-        html += '<div style="font-size:0.72rem; color:#999; line-height:1.5;">';
-        voices.slice(0, 2).forEach(function(v) { html += '<div style="margin-bottom:2px;">&#x1F4AC; ' + escapeHtml(v) + '</div>'; });
+      // テーマの説明
+      if (t.description) {
+        html += '<div style="font-size:0.8rem; color:#555; line-height:1.6; margin-bottom:8px; padding:8px 10px; background:#fafbff; border-radius:8px;">' + escapeHtml(t.description) + '</div>';
+      }
+      // キーワード
+      if (keywords.length > 0) {
+        html += '<div style="margin-bottom:8px; display:flex; flex-wrap:wrap; gap:4px;">';
+        keywords.forEach(function(k) { html += '<span style="font-size:0.68rem; font-weight:600; padding:2px 8px; border-radius:10px; background:#e8ecff; color:#667eea;">#' + escapeHtml(k) + '</span>'; });
         html += '</div>';
       }
-      if (voted) html += '<div style="text-align:center; font-size:0.7rem; color:#667eea; font-weight:700; margin-top:4px;"><i class="fas fa-check-circle"></i> 投票済み</div>';
+      // 代表的な声
+      if (voices.length > 0) {
+        html += '<div style="font-size:0.75rem; color:#777; line-height:1.6; padding:6px 10px; background:#f9f9f9; border-radius:8px; margin-bottom:6px;">';
+        html += '<div style="font-size:0.65rem; font-weight:700; color:#aaa; margin-bottom:3px;">みんなの声</div>';
+        voices.slice(0, 3).forEach(function(v) { html += '<div style="margin-bottom:2px;"><span style="color:#667eea;">&#x25B6;</span> ' + escapeHtml(v) + '</div>'; });
+        html += '</div>';
+      }
+      // プログレスバー
+      html += '<div style="height:6px; background:#f0f0f0; border-radius:3px; overflow:hidden; margin-bottom:4px;">';
+      html += '<div style="height:100%; width:' + pct + '%; background:linear-gradient(90deg,#667eea,#764ba2); border-radius:3px; transition:width 0.5s;"></div>';
+      html += '</div>';
+      if (voted) html += '<div style="text-align:center; font-size:0.72rem; color:#667eea; font-weight:700; margin-top:4px;"><i class="fas fa-check-circle"></i> 投票済み（もう一度タップで取消）</div>';
       html += '</div>';
     });
     document.getElementById('theme-vote-list').innerHTML = html;

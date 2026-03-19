@@ -92,9 +92,9 @@ function renderV2Dashboard() {
 
 function doGenerateThemes() {
   if (!confirm('AIテーマ凝集を実行しますか？直近3ヶ月の投稿を分析します。')) return;
-  showGlobalLoading('AIがテーマを分析中...');
+  showLoading('AIがテーマを分析中...');
   generateThemes().then(function(res) {
-    hideGlobalLoading();
+    hideLoading();
     if (res.success) {
       alert('サイクル #' + res.cycleNumber + ' のテーマ候補を' + res.themes.length + '件生成しました');
       renderV2Dashboard();
@@ -122,9 +122,9 @@ function doFinalizeVoting(cycleNum) {
 
 function doGenerateChallenge(themeId) {
   if (!confirm('選出テーマからチャレンジ（アクションプラン）をAI自動生成しますか？')) return;
-  showGlobalLoading('AIがチャレンジを設計中...');
+  showLoading('AIがチャレンジを設計中...');
   generateChallenge(themeId).then(function(res) {
-    hideGlobalLoading();
+    hideLoading();
     if (res.success) {
       alert('チャレンジ「' + res.plan.title + '」を生成しました');
       switchTab('v2challenge');
@@ -311,10 +311,10 @@ function kpiCard(title, value, sub1, color, icon, sub2) {
 function doGenerateReport(cid, type) {
   var label = type === 'midterm' ? '中間レポート' : '最終レポート';
   if (!confirm(label + 'をAIで生成しますか？')) return;
-  showGlobalLoading('AIが' + label + 'を作成中...');
+  showLoading('AIが' + label + 'を作成中...');
 
   getChallengeDashboard(cid).then(function(dashRes) {
-    if (!dashRes.success) { hideGlobalLoading(); alert('データ取得エラー'); return; }
+    if (!dashRes.success) { hideLoading(); alert('データ取得エラー'); return; }
 
     getChallengeRanking(cid).then(function(rankRes) {
       var s = dashRes.stats;
@@ -358,14 +358,14 @@ function doGenerateReport(cid, type) {
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getAdminToken() },
         body: JSON.stringify({ theme: c.title, background: prompt })
       }).then(function(r) { return r.json(); }).then(function(aiRes) {
-        hideGlobalLoading();
+        hideLoading();
         if (aiRes && aiRes.success && aiRes.ideas) {
           showReportModal(label, aiRes.ideas);
         } else {
           alert('レポート生成に失敗しました');
         }
       }).catch(function() {
-        hideGlobalLoading();
+        hideLoading();
         alert('通信エラー');
       });
     });

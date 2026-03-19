@@ -1,5 +1,6 @@
 const express = require('express');
 const { chatWithNurse, getNurseGreeting, chatWithNurseImage } = require('../services/ai');
+const { getDb } = require('../services/db');
 
 const router = express.Router();
 
@@ -56,6 +57,44 @@ ${EVIDENCE_BASE}
     res.json({ success: true, reply: reply || '申し訳ありません、回答を生成できませんでした。' });
   } catch (e) {
     res.json({ success: false, reply: 'エラーが発生しました: ' + e.message });
+  }
+});
+
+// メモ保存
+router.post('/save-memo', (req, res) => {
+  try {
+    const { uid, memoText, sourceMessage } = req.body;
+    if (!uid || !memoText) return res.json({ success: false, msg: 'uid and memoText required' });
+    const db = getDb();
+    const stmt = db.prepare('INSERT INTO chat_memos (user_id, memo_text, source_message) VALUES (?, ?, ?)');
+    const result = stmt.run(uid, memoText, sourceMessage || '');
+    res.json({ success: true, id: result.lastInsertRowid });
+  } catch (e) {
+    res.json({ success: false, msg: e.message });
+  }
+});
+
+// メモ一覧取得
+router.get('/memos/:uid', (req, res) => {
+  try {
+    const db = getDb();
+    const rows = db.prepare('SELECT * FROM chat_memos WHERE user_id = ? ORDER BY created_at DESC').all(req.params.uid);
+    res.json({ success: true, memos: rows });
+  } catch (e) {
+    res.json({ success: false, msg: e.message });
+  }
+});
+
+// メモ削除
+router.post('/delete-memo', (req, res) => {
+  try {
+    const { memoId } = req.body;
+    if (!memoId) return res.json({ success: false, msg: 'memoId required' });
+    const db = getDb();
+    db.prepare('DELETE FROM chat_memos WHERE id = ?').run(memoId);
+    res.json({ success: true });
+  } catch (e) {
+    res.json({ success: false, msg: e.message });
   }
 });
 

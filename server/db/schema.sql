@@ -121,6 +121,15 @@ CREATE TABLE IF NOT EXISTS plan_endorsements (
   UNIQUE(plan_id, member_email)
 );
 
+-- Chat Memos: AIチャット応答のメモ保存
+CREATE TABLE IF NOT EXISTS chat_memos (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id TEXT NOT NULL,
+  memo_text TEXT NOT NULL,
+  source_message TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Notices シート → notices テーブル
 CREATE TABLE IF NOT EXISTS notices (
   id INTEGER PRIMARY KEY AUTOINCREMENT,

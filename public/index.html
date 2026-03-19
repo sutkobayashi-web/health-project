@@ -299,7 +299,7 @@
   <div class="app-header">
     <div class="logo"><i class="fas fa-heart-pulse"></i><span class="logo-text">健康<br>プロジェクト</span></div>
     <div class="header-stats">
-      <span class="stat-chip" id="stat-user-info"><span id="stat-avatar">😀</span> <span id="stat-nickname">--</span></span>
+      <span class="stat-chip" id="stat-user-info" style="cursor:pointer;" onclick="openAvatarSheet()"><span id="stat-avatar">😀</span> <span id="stat-nickname">--</span></span>
       <span class="stat-chip" id="stat-rank"><i class="fas fa-medal"></i> --</span>
       <span class="stat-chip" id="stat-posts"><i class="fas fa-pen"></i> 0</span>
       <span class="stat-chip" id="stat-invites"><i class="fas fa-user-plus"></i> 0</span>
@@ -471,8 +471,39 @@ function initAvatarGrid() {
 }
 
 function selectAvatar(el, av) {
-  document.querySelectorAll('.avatar-option').forEach(function(e) { e.classList.remove('selected'); });
+  document.querySelectorAll('#avatar-grid .avatar-option').forEach(function(e) { e.classList.remove('selected'); });
   el.classList.add('selected'); selectedAvatar = av;
+}
+
+function openAvatarSheet() {
+  if (!currentUser) return;
+  var grid = document.getElementById('avatar-change-grid');
+  grid.innerHTML = avatarList.map(function(a) {
+    var cls = 'avatar-option' + (a === currentUser.avatar ? ' current' : '');
+    return '<div class="' + cls + '" onclick="pickNewAvatar(this, \'' + a + '\')">' + a + '</div>';
+  }).join('');
+  document.getElementById('avatar-change-overlay').classList.add('active');
+  document.getElementById('avatar-change-sheet').classList.add('active');
+}
+
+function closeAvatarSheet() {
+  document.getElementById('avatar-change-overlay').classList.remove('active');
+  document.getElementById('avatar-change-sheet').classList.remove('active');
+}
+
+function pickNewAvatar(el, av) {
+  if (!currentUser || av === currentUser.avatar) { closeAvatarSheet(); return; }
+  updateUserAvatar(currentUser.uid, av).then(function(res) {
+    if (res.success) {
+      currentUser.avatar = av;
+      document.getElementById('stat-avatar').innerText = av;
+      var saved = localStorage.getItem('co_heart_user_data');
+      if (saved) { try { var d = JSON.parse(saved); d.avatar = av; localStorage.setItem('co_heart_user_data', JSON.stringify(d)); } catch(e){} }
+    } else {
+      alert('変更に失敗しました: ' + (res.msg || ''));
+    }
+    closeAvatarSheet();
+  });
 }
 
 function toggleRegisterBtn() {
@@ -1003,6 +1034,32 @@ function hideLoading() { document.getElementById('loading-overlay').style.displa
 }
 #nurse-chat-sheet.active { transform: translateY(0); visibility: visible; transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), visibility 0s 0s; }
 
+/* --- アバター変更シート --- */
+#avatar-change-overlay {
+  display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.4); z-index: 9998;
+}
+#avatar-change-overlay.active { display: block; }
+#avatar-change-sheet {
+  position: fixed; bottom: 0; left: 0; width: 100%;
+  max-height: 60vh; background: #fff; border-radius: 20px 20px 0 0;
+  z-index: 9999; transform: translateY(100%); visibility: hidden;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), visibility 0s 0.35s;
+  box-shadow: 0 -8px 40px rgba(0,0,0,0.2); overflow: hidden;
+}
+#avatar-change-sheet.active { transform: translateY(0); visibility: visible; transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), visibility 0s 0s; }
+.avatar-sheet-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px 12px; border-bottom: 1px solid #eee;
+}
+.avatar-sheet-header h3 { margin: 0; font-size: 1rem; color: #333; }
+.avatar-sheet-close { background: none; border: none; font-size: 1.4rem; color: #999; cursor: pointer; padding: 4px 8px; }
+.avatar-sheet-grid {
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;
+  padding: 16px 20px 24px; max-height: 45vh; overflow-y: auto;
+}
+.avatar-sheet-grid .avatar-option.current { background: #d4edda; transform: scale(1.2); box-shadow: 0 0 0 2px #20c997; }
+
 /* --- ヘッダー --- */
 .nurse-chat-header {
   background: linear-gradient(135deg, #ec407a 0%, #f48fb1 100%);
@@ -1181,6 +1238,15 @@ function hideLoading() { document.getElementById('loading-overlay').style.displa
 </style>
 
 <button id="nurse-fab" style="display:none;" onclick="openNurseChat()"><i class="fas fa-heartbeat fab-img" style="font-size:28px;color:#e91e63;"></i><span class="fab-label">AIヘルスアドバイザーに<br>相談する</span><div class="fab-badge" id="nurse-fab-badge" style="display:none;"></div></button>
+
+<div id="avatar-change-overlay" onclick="closeAvatarSheet()"></div>
+<div id="avatar-change-sheet">
+  <div class="avatar-sheet-header">
+    <h3><i class="fas fa-smile" style="color:#d63384; margin-right:6px;"></i>アバターを変更</h3>
+    <button class="avatar-sheet-close" onclick="closeAvatarSheet()"><i class="fas fa-times"></i></button>
+  </div>
+  <div class="avatar-sheet-grid" id="avatar-change-grid"></div>
+</div>
 
 <div id="nurse-chat-overlay" onclick="closeNurseChat()" ontouchmove="event.preventDefault()"></div>
 
@@ -1647,6 +1713,16 @@ function nurseScrollBottom() {
 .inbox-card.read .inbox-card-tag { background: #aaa; }
 .inbox-read-badge { font-size: 0.6rem; color: #aaa; font-weight: 700; }
 .inbox-unread-dot { width: 8px; height: 8px; border-radius: 50%; background: #ec407a; display: inline-block; margin-right: 6px; animation: nPulse 1.5s infinite; }
+.inbox-unread-dot.general-dot { background: #6c5ce7; }
+@keyframes inboxFadeRead { from { opacity: 1; } to { opacity: 0.6; } }
+.inbox-card.read-anim { animation: inboxFadeRead 0.4s ease forwards; border-left-color: #ccc; }
+.inbox-card.read-anim .inbox-card-tag { transition: background 0.4s ease; background: #aaa; }
+.inbox-mark-all-btn {
+  background: none; border: 1px solid #ccc; border-radius: 8px;
+  font-size: 0.72rem; color: #888; padding: 4px 10px; cursor: pointer;
+  font-weight: 600; transition: all 0.15s; margin-left: 8px;
+}
+.inbox-mark-all-btn:active { background: #f0f0f0; }
 .inbox-empty {
   text-align: center; padding: 40px 20px; color: #bbb;
 }
@@ -1671,6 +1747,7 @@ function nurseScrollBottom() {
         <div class="inbox-header-sub">事務局からの連絡</div>
       </div>
     </div>
+    <button class="inbox-mark-all-btn" id="inbox-mark-all-btn" onclick="inboxMarkAllRead()" style="display:none;"><i class="fas fa-check-double"></i> すべて既読</button>
     <button class="inbox-close" onclick="closeInbox()"><i class="fas fa-chevron-down"></i></button>
   </div>
   <div class="inbox-body" id="inbox-body"></div>

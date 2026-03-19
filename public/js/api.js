@@ -66,6 +66,9 @@ function getBackupStatus() {
 function resetAdminPassword(email, name, newPassword) {
   return api('/auth/admin-reset-password', { email, name, newPassword });
 }
+function updateUserAvatar(uid, avatar) {
+  return api('/auth/update-avatar', { uid, avatar });
+}
 function getLatestUserStats(uid) {
   return api('/auth/stats/' + uid);
 }
@@ -290,4 +293,13 @@ function getNurseGreeting(userName) {
 }
 function chatWithNurseImage(userMessage, imageBase64, mimeType, history, userName) {
   return api('/chat/image-message', { userMessage, imageBase64, mimeType, history, userName });
+}
+function saveChatMemo(uid, memoText, sourceMessage) {
+  return api('/chat/save-memo', { uid, memoText, sourceMessage });
+}
+function getChatMemos(uid) {
+  return api('/chat/memos/' + uid, undefined);
+}
+function deleteChatMemo(memoId) {
+  return api('/chat/delete-memo', { memoId });
 }

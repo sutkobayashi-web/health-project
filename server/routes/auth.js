@@ -158,6 +158,19 @@ router.post('/reset-password', (req, res) => {
   }
 });
 
+// アバター変更
+router.post('/update-avatar', (req, res) => {
+  try {
+    const { uid, avatar } = req.body;
+    if (!uid || !avatar) return res.json({ success: false, msg: 'uid と avatar を指定してください' });
+    const db = getDb();
+    db.prepare('UPDATE users SET avatar = ? WHERE id = ?').run(avatar, uid);
+    res.json({ success: true });
+  } catch (e) {
+    res.json({ success: false, msg: e.message });
+  }
+});
+
 // ユーザー統計
 router.get('/stats/:uid', (req, res) => {
   try {

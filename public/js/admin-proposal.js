@@ -49,23 +49,29 @@ function loadCandidates() {
 }
 
 function openProposalById(planId) {
-    var plan = currentPlanList.find(function(p){ return p.id === planId; });
-    if(!plan) return alert("データが見つかりません");
-    currentProposalId = planId;
-    document.getElementById('prop-category').innerText = plan.category || "未分類";
-    document.getElementById('proposal-title-input').value = plan.title;
-    loadedComments = [];
-    try { if(plan.comments) loadedComments = JSON.parse(plan.comments); } catch(e){}
-    renderMarkdownBlocks(plan.draft || "（ドラフトなし）", plan.scores);
-    // メンバー検討中なら再編集系ボタンを表示
-    var isReview = (plan.status === 'member_review');
-    var refineBtn = document.getElementById('btn-ai-refine');
-    var resubmitBtn = document.getElementById('btn-resubmit-vote');
-    var execModalBtn = document.getElementById('btn-exec-from-modal');
-    if(refineBtn) refineBtn.classList.toggle('d-none', !isReview);
-    if(resubmitBtn) resubmitBtn.classList.toggle('d-none', !isReview);
-    if(execModalBtn) execModalBtn.classList.toggle('d-none', isReview);
-    document.getElementById('proposal-modal').style.display = 'flex';
+    // 常に最新データをAPIから取得してモーダルを開く
+    showLoading("読み込み中...");
+    getActionPlanCandidates().then(function(plans) {
+        hideLoading();
+        currentPlanList = plans || [];
+        var plan = currentPlanList.find(function(p){ return p.id === planId; });
+        if(!plan) return alert("データが見つかりません");
+        currentProposalId = planId;
+        document.getElementById('prop-category').innerText = plan.category || "未分類";
+        document.getElementById('proposal-title-input').value = plan.title;
+        loadedComments = [];
+        try { if(plan.comments) loadedComments = JSON.parse(plan.comments); } catch(e){}
+        renderMarkdownBlocks(plan.draft || "（ドラフトなし）", plan.scores);
+        // メンバー検討中なら再編集系ボタンを表示
+        var isReview = (plan.status === 'member_review');
+        var refineBtn = document.getElementById('btn-ai-refine');
+        var resubmitBtn = document.getElementById('btn-resubmit-vote');
+        var execModalBtn = document.getElementById('btn-exec-from-modal');
+        if(refineBtn) refineBtn.classList.toggle('d-none', !isReview);
+        if(resubmitBtn) resubmitBtn.classList.toggle('d-none', !isReview);
+        if(execModalBtn) execModalBtn.classList.toggle('d-none', isReview);
+        document.getElementById('proposal-modal').style.display = 'flex';
+    });
 }
 
 function renderMarkdownBlocks(markdownText, scores) {
@@ -389,11 +395,16 @@ function loadEndorsementStatus(planId) {
         // 各メンバーの投票状況
         html += '<div class="d-flex flex-wrap gap-1 mb-2">';
         list.forEach(function(e) {
-            var icon = ''; var bg = '';
-            if(e.vote === 'agree') { icon = '<i class="fas fa-check-circle text-success"></i>'; bg = '#e6ffed'; }
-            else if(e.vote === 'oppose') { icon = '<i class="fas fa-times-circle text-danger"></i>'; bg = '#ffe6e6'; }
-            else { icon = '<i class="fas fa-hourglass-half text-warning"></i>'; bg = '#fff8e1'; }
-            html += '<span class="px-2 py-1 rounded-pill small" style="background:' + bg + '; font-size:0.75rem;">' + icon + ' ' + escapeHtml(e.member_name) + '</span>';
+            var icon = ''; var bg = ''; var border = '';
+            if(e.vote === 'agree') { icon = '<i class="fas fa-check-circle text-success"></i>'; bg = '#e6ffed'; border = '1px solid #c6f6d5'; }
+            else if(e.vote === 'oppose') { icon = '<i class="fas fa-times-circle text-danger"></i>'; bg = '#ffe6e6'; border = '1px solid #fed7d7'; }
+            else { icon = '<i class="fas fa-hourglass-half text-warning"></i>'; bg = '#fff8e1'; border = '1px solid #fefcbf'; }
+            var av = e.avatar || '';
+            html += '<span class="d-inline-flex align-items-center gap-1 px-2 py-1 rounded-pill" style="background:' + bg + '; border:' + border + '; font-size:0.78rem;">';
+            if(av) html += '<span style="font-size:1.1rem;">' + av + '</span>';
+            html += icon + ' ' + escapeHtml(e.member_name);
+            if(e.vote === 'oppose' && e.comment) html += ' <span class="text-muted" style="font-size:0.7rem;">(' + escapeHtml(e.comment) + ')</span>';
+            html += '</span>';
         });
         html += '</div>';
         // 自分の投票ボタン
@@ -462,17 +473,18 @@ function aiRefineWithComments() {
         hideLoading();
         if(res.success) {
             alert('リファイン完了！内容を確認してください。');
-            // 更新されたデータを再読み込み
-            getActionPlanCandidates().then(function(plans) {
-                currentPlanList = plans || [];
-                var updated = plans.find(function(p){ return p.id === currentProposalId; });
-                if(updated) {
-                    document.getElementById('proposal-title-input').value = updated.title;
-                    loadedComments = [];
-                    try { if(updated.comments) loadedComments = JSON.parse(updated.comments); } catch(e){}
-                    renderMarkdownBlocks(updated.draft || "", updated.scores);
-                }
-            });
+            // リファイン結果でモーダルを即時更新
+            if(res.newTitle) document.getElementById('proposal-title-input').value = res.newTitle;
+            if(res.newDraft) {
+                // ローカルキャッシュも更新
+                var p = currentPlanList.find(function(x){ return x.id === currentProposalId; });
+                if(p) { p.draft = res.newDraft; p.title = res.newTitle || p.title; }
+                loadedComments = [];
+                try { if(p && p.comments) loadedComments = JSON.parse(p.comments); } catch(e){}
+                renderMarkdownBlocks(res.newDraft, p ? p.scores : null);
+            }
+            // カード一覧も更新
+            loadCandidates();
         } else { alert('リファインエラー: ' + (res.msg || '')); }
     });
 }

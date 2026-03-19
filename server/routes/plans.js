@@ -323,7 +323,13 @@ router.post('/endorse', (req, res) => {
     const { planId, memberEmail, memberName, vote, comment } = req.body;
     db.prepare('INSERT INTO plan_endorsements (plan_id, member_email, member_name, vote, comment) VALUES (?,?,?,?,?) ON CONFLICT(plan_id, member_email) DO UPDATE SET vote=?, comment=?, created_at=CURRENT_TIMESTAMP')
       .run(planId, memberEmail, memberName, vote, comment || '', vote, comment || '');
-    const endorsements = db.prepare('SELECT member_name, vote, comment, created_at FROM plan_endorsements WHERE plan_id = ?').all(planId);
+    const endorsements = db.prepare(`
+      SELECT e.member_name, e.member_email, e.vote, e.comment, e.created_at,
+             COALESCE(c.avatar, '') as avatar
+      FROM plan_endorsements e
+      LEFT JOIN core_members c ON e.member_email = c.email
+      WHERE e.plan_id = ?
+    `).all(planId);
     res.json({ success: true, endorsements });
   } catch (e) { res.json({ success: false, msg: e.message }); }
 });
@@ -332,7 +338,13 @@ router.post('/endorse', (req, res) => {
 router.get('/endorsements/:planId', (req, res) => {
   try {
     const db = getDb();
-    const endorsements = db.prepare('SELECT member_name, member_email, vote, comment, created_at FROM plan_endorsements WHERE plan_id = ?').all(req.params.planId);
+    const endorsements = db.prepare(`
+      SELECT e.member_name, e.member_email, e.vote, e.comment, e.created_at,
+             COALESCE(c.avatar, '') as avatar
+      FROM plan_endorsements e
+      LEFT JOIN core_members c ON e.member_email = c.email
+      WHERE e.plan_id = ?
+    `).all(req.params.planId);
     res.json({ success: true, endorsements });
   } catch (e) { res.json({ success: false, endorsements: [] }); }
 });

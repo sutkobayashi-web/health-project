@@ -170,16 +170,8 @@ function renderReportList(data) {
                     (thumbTag ? '<div style="margin-bottom:8px;">'+thumbTag+'</div>' : '') +
                     '<div style="font-size:0.88rem;line-height:1.6;color:#444;white-space:pre-wrap;">'+escapeHtml(rawContent)+'</div>' +
                 '</div>' +
-                // 右: 評価 + コメント + ボタン
+                // 右: コメント + ボタン
                 '<div style="width:280px; flex-shrink:0; background:#faf8ff; padding:10px 12px; display:flex; flex-direction:column; gap:6px;">' +
-                    // 7軸評価結果（表示のみ）
-                    '<div style="background:white; border-radius:8px; padding:8px 10px; border:1px solid #e8e0ff;">' +
-                        '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">' +
-                            '<span style="font-size:0.68rem; font-weight:700; color:#e74c3c;"><i class="fas fa-chart-bar me-1"></i>7軸評価</span>' +
-                            '<span id="eval-avg-'+pid+'" style="font-size:0.65rem; color:#999;"></span>' +
-                        '</div>' +
-                        '<div id="eval-display-'+pid+'" style="font-size:0.72rem; min-height:20px;"></div>' +
-                    '</div>' +
                     // 共感サマリー
                     '<div style="background:white; border-radius:8px; padding:8px 10px; border:1px solid #e8e0ff;">' +
                         '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">' +
@@ -210,7 +202,6 @@ function renderReportList(data) {
                             '<button class="btn btn-outline-secondary btn-admin" style="flex-shrink:0; font-size:0.68rem;" onclick="toggleTriage(\''+pid+'\', false)"><i class="fas fa-undo me-1"></i>解除</button>'
                         :
                             '<button class="btn btn-outline-secondary btn-admin" style="flex:1; font-size:0.68rem;" onclick="openEvalModal(\''+pid+'\')"><i class="fas fa-search me-1"></i>詳細</button>' +
-                            '<button class="btn btn-outline-danger btn-admin" style="flex:1; font-size:0.68rem;" onclick="openEvalModalWithTab(\''+pid+'\',\'eval\')"><i class="fas fa-chart-bar me-1"></i>7軸評価</button>' +
                             '<button class="btn btn-outline-info btn-admin" style="flex:1; font-size:0.68rem;" onclick="convertEmpathyScore(\''+pid+'\')"><i class="fas fa-magic me-1"></i>AI変換</button>' +
                             '<button class="btn btn-outline-warning btn-admin" style="flex:1; font-size:0.68rem;" onclick="toggleTriage(\''+pid+'\', true)"><i class="fas fa-star me-1"></i>重点へ</button>'
                         ) +
@@ -220,8 +211,6 @@ function renderReportList(data) {
         list.appendChild(div);
         // コメント読み込み
         loadInboxComments(pid);
-        // 評価データ読み込み
-        loadInlineEvalDisplay(pid);
         // 共感データ読み込み
         loadEmpathyDisplay(pid);
     });

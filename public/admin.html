@@ -659,7 +659,7 @@ if(localStorage.getItem('co_heart_admin_email') && localStorage.getItem('co_hear
       <div id="prio-vote-progress" style="text-align:center; margin-bottom:6px; font-size:0.78rem;"></div>
       <div style="display:flex; gap:6px; align-items:center;">
         <button type="button" class="btn btn-primary btn-sm fw-bold" style="font-size:0.78rem; flex:2; padding:8px;" onclick="handlePriorityAction('like')"><i class="fas fa-hand-paper me-1"></i>賛同 <span id="prio-vote-count" class="badge bg-light text-primary ms-1">0</span></button>
-        <button type="button" class="btn btn-outline-secondary btn-sm" style="font-size:0.72rem; flex:1;" onclick="handlePriorityAction('demote')"><i class="fas fa-undo me-1"></i>戻す</button>
+        <button type="button" class="btn btn-outline-secondary btn-sm" style="font-size:0.72rem; flex:1;" onclick="document.getElementById('priority-modal').style.display='none'"><i class="fas fa-times me-1"></i>閉じる</button>
       </div>
     </div>
 

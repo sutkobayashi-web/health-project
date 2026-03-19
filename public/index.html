@@ -889,13 +889,17 @@ function openAvatarSheet() {
   } else {
     abState = { skin: 2, hair: 0, hairColor: 0, eye: 0, mouth: 0, accessories: [0], bg: 0, faceSize: 1 };
   }
-  document.getElementById('avatar-change-overlay').classList.add('active');
-  document.getElementById('avatar-change-sheet').classList.add('active');
+  var overlay = document.getElementById('avatar-change-overlay');
+  var sheet = document.getElementById('avatar-change-sheet');
+  overlay.classList.add('active');
+  setTimeout(function(){ sheet.classList.add('active'); }, 10);
 }
 
 function closeAvatarSheet() {
-  document.getElementById('avatar-change-overlay').classList.remove('active');
-  document.getElementById('avatar-change-sheet').classList.remove('active');
+  var sheet = document.getElementById('avatar-change-sheet');
+  var overlay = document.getElementById('avatar-change-overlay');
+  sheet.classList.remove('active');
+  setTimeout(function(){ overlay.classList.remove('active'); }, 300);
 }
 
 function switchChangeTab(tab) {
@@ -1488,18 +1492,18 @@ function hideLoading() { document.getElementById('loading-overlay').style.displa
 /* --- アバター変更シート --- */
 #avatar-change-overlay {
   display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0,0,0,0.4); z-index: 9998;
+  background: rgba(0,0,0,0.5); z-index: 9998;
 }
-#avatar-change-overlay.active { display: block; }
+#avatar-change-overlay.active { display: flex; align-items: center; justify-content: center; }
 #avatar-change-sheet {
-  position: fixed; bottom: 0; left: 0; width: 100%;
-  max-height: 85vh; background: #fff; border-radius: 20px 20px 0 0;
-  z-index: 9999; transform: translateY(100%); visibility: hidden;
-  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), visibility 0s 0.35s;
-  box-shadow: 0 -8px 40px rgba(0,0,0,0.2); overflow: hidden;
+  position: relative; width: 92%; max-width: 420px;
+  max-height: 85vh; background: #fff; border-radius: 20px;
+  z-index: 9999; transform: scale(0.85); opacity: 0; visibility: hidden;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease, visibility 0s 0.3s;
+  box-shadow: 0 12px 48px rgba(0,0,0,0.25); overflow: hidden;
   display: flex; flex-direction: column;
 }
-#avatar-change-sheet.active { transform: translateY(0); visibility: visible; transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), visibility 0s 0s; }
+#avatar-change-sheet.active { transform: scale(1); opacity: 1; visibility: visible; transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease, visibility 0s 0s; }
 .avatar-sheet-header {
   display: flex; align-items: center; justify-content: space-between;
   padding: 16px 20px 12px; border-bottom: 1px solid #eee;
@@ -1733,8 +1737,8 @@ function hideLoading() { document.getElementById('loading-overlay').style.displa
 
 <button id="nurse-fab" style="display:none;" onclick="openNurseChat()"><i class="fas fa-heartbeat fab-img" style="font-size:28px;color:#e91e63;"></i><span class="fab-label">AIヘルスアドバイザーに<br>相談する</span><div class="fab-badge" id="nurse-fab-badge" style="display:none;"></div></button>
 
-<div id="avatar-change-overlay" onclick="closeAvatarSheet()"></div>
-<div id="avatar-change-sheet">
+<div id="avatar-change-overlay" onclick="closeAvatarSheet()">
+<div id="avatar-change-sheet" onclick="event.stopPropagation()">
   <div class="avatar-sheet-header">
     <h3><i class="fas fa-smile" style="color:#d63384; margin-right:6px;"></i>アバターを変更</h3>
     <button class="avatar-sheet-close" onclick="closeAvatarSheet()"><i class="fas fa-times"></i></button>
@@ -1750,6 +1754,7 @@ function hideLoading() { document.getElementById('loading-overlay').style.displa
     <div class="avatar-builder-body" id="change-builder-container"></div>
     <div style="padding:0 16px 16px;"><button class="ab-submit-btn" onclick="changePickCustomAvatar()">このアバターに決定！</button></div>
   </div>
+</div>
 </div>
 
 <div id="nurse-chat-overlay" onclick="closeNurseChat()" ontouchmove="event.preventDefault()"></div>

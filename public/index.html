@@ -1084,6 +1084,48 @@ function hideLoading() { document.getElementById('loading-overlay').style.displa
   display: flex; justify-content: center; align-items: center;
 }
 .nurse-chat-close:active { background: rgba(255,255,255,0.4); }
+.nurse-memo-list-btn {
+  background: rgba(255,255,255,0.2); border: none; color: white;
+  width: 36px; height: 36px; border-radius: 50%;
+  font-size: 1.1rem; cursor: pointer;
+  display: flex; justify-content: center; align-items: center;
+  margin-right: 6px;
+}
+.nurse-memo-list-btn:active { background: rgba(255,255,255,0.4); }
+.memo-save-btn {
+  background: none; border: none; color: #999; cursor: pointer;
+  font-size: 0.75rem; padding: 2px 4px; opacity: 0.4;
+  transition: opacity 0.2s, color 0.2s;
+  display: block; margin-left: auto; margin-top: 4px;
+}
+.memo-save-btn:hover { opacity: 1; }
+.memo-save-btn.saved { opacity: 1; color: #ec407a; }
+.nurse-memo-panel {
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  background: #fafafa; z-index: 10; display: flex; flex-direction: column;
+}
+.nurse-memo-panel-header {
+  background: linear-gradient(135deg, #ec407a 0%, #f48fb1 100%);
+  color: white; padding: 14px 18px;
+  display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+}
+.nurse-memo-panel-header h3 { margin: 0; font-size: 0.95rem; }
+.nurse-memo-panel-list {
+  flex: 1; overflow-y: auto; padding: 12px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.nurse-memo-item {
+  background: white; border-radius: 10px; padding: 10px 14px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08); font-size: 0.85rem;
+  line-height: 1.5; position: relative; word-break: break-word; white-space: pre-wrap;
+}
+.nurse-memo-item-date { font-size: 0.7rem; color: #999; margin-top: 4px; }
+.nurse-memo-item-del {
+  position: absolute; top: 6px; right: 8px;
+  background: none; border: none; color: #ccc; cursor: pointer; font-size: 0.8rem;
+}
+.nurse-memo-item-del:hover { color: #e53935; }
+.nurse-memo-empty { text-align: center; color: #999; padding: 40px 0; font-size: 0.85rem; }
 
 /* --- メッセージエリア --- */
 .nurse-chat-messages {
@@ -1259,7 +1301,10 @@ function hideLoading() { document.getElementById('loading-overlay').style.displa
         <div class="nurse-chat-status">いつでも相談できます</div>
       </div>
     </div>
-    <button class="nurse-chat-close" onclick="closeNurseChat()"><i class="fas fa-chevron-down"></i></button>
+    <div style="display:flex;align-items:center;gap:4px;">
+      <button class="nurse-memo-list-btn" onclick="openMemoPanel()" title="メモ一覧"><i class="fas fa-bookmark"></i></button>
+      <button class="nurse-chat-close" onclick="closeNurseChat()"><i class="fas fa-chevron-down"></i></button>
+    </div>
   </div>
   <div class="nurse-chat-messages" id="nurse-messages"></div>
   <div class="nurse-quick-replies" id="nurse-quick" style="display:none;">
@@ -1471,8 +1516,86 @@ function addNurseMsg(type, text, imageDataUrl) {
   var av = type === 'ai' ? '<div style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#e0f7fa,#b2ebf2);"><i class="fas fa-heartbeat" style="font-size:16px;color:#e91e63;"></i></div>' : (currentUser ? currentUser.avatar : '😀');
   var safe = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   var imgHtml = imageDataUrl ? '<img class="nurse-msg-image" src="' + imageDataUrl + '">' : '';
-  div.innerHTML = '<div class="nurse-msg-avatar">' + av + '</div><div class="nurse-msg-bubble">' + imgHtml + safe + '</div>';
+  var memoBtn = type === 'ai' ? '<button class="memo-save-btn" onclick="onSaveChatMemo(this)"><i class="fas fa-bookmark"></i></button>' : '';
+  div.innerHTML = '<div class="nurse-msg-avatar">' + av + '</div><div class="nurse-msg-bubble">' + imgHtml + safe + memoBtn + '</div>';
   area.appendChild(div);
+}
+
+// ====== メモ機能 ======
+function onSaveChatMemo(btn) {
+  if (!currentUser) return;
+  var bubble = btn.closest('.nurse-msg-bubble');
+  // テキスト部分のみ取得（ボタン自体を除く）
+  var clone = bubble.cloneNode(true);
+  var btns = clone.querySelectorAll('.memo-save-btn');
+  btns.forEach(function(b) { b.remove(); });
+  var imgs = clone.querySelectorAll('img');
+  imgs.forEach(function(i) { i.remove(); });
+  var memoText = clone.textContent.trim();
+  if (!memoText) return;
+  btn.disabled = true;
+  saveChatMemo(currentUser.uid, memoText, '').then(function(res) {
+    if (res && res.success) {
+      btn.classList.add('saved');
+      btn.innerHTML = '<i class="fas fa-bookmark"></i>';
+    } else {
+      btn.disabled = false;
+    }
+  }).catch(function() { btn.disabled = false; });
+}
+
+function openMemoPanel() {
+  if (!currentUser) return;
+  // 既存パネルがあれば閉じる
+  var existing = document.getElementById('nurse-memo-panel');
+  if (existing) { existing.remove(); return; }
+  var sheet = document.getElementById('nurse-chat-sheet');
+  var panel = document.createElement('div');
+  panel.className = 'nurse-memo-panel';
+  panel.id = 'nurse-memo-panel';
+  panel.innerHTML = '<div class="nurse-memo-panel-header"><h3><i class="fas fa-bookmark"></i> メモ一覧</h3><button class="nurse-chat-close" onclick="closeMemoPanel()"><i class="fas fa-times"></i></button></div><div class="nurse-memo-panel-list" id="nurse-memo-list"><div class="nurse-memo-empty">読み込み中...</div></div>';
+  sheet.appendChild(panel);
+  loadMemoList();
+}
+
+function closeMemoPanel() {
+  var p = document.getElementById('nurse-memo-panel');
+  if (p) p.remove();
+}
+
+function loadMemoList() {
+  if (!currentUser) return;
+  getChatMemos(currentUser.uid).then(function(res) {
+    var list = document.getElementById('nurse-memo-list');
+    if (!list) return;
+    if (!res || !res.success || !res.memos || res.memos.length === 0) {
+      list.innerHTML = '<div class="nurse-memo-empty">保存されたメモはありません</div>';
+      return;
+    }
+    list.innerHTML = '';
+    res.memos.forEach(function(m) {
+      var item = document.createElement('div');
+      item.className = 'nurse-memo-item';
+      item.setAttribute('data-memo-id', m.id);
+      var dateStr = m.created_at ? new Date(m.created_at).toLocaleString('ja-JP') : '';
+      item.innerHTML = '<div>' + m.memo_text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</div><div class="nurse-memo-item-date">' + dateStr + '</div><button class="nurse-memo-item-del" onclick="onDeleteMemo(' + m.id + ',this)"><i class="fas fa-trash-alt"></i></button>';
+      list.appendChild(item);
+    });
+  });
+}
+
+function onDeleteMemo(memoId, btn) {
+  if (!confirm('このメモを削除しますか？')) return;
+  deleteChatMemo(memoId).then(function(res) {
+    if (res && res.success) {
+      var item = btn.closest('.nurse-memo-item');
+      if (item) item.remove();
+      var list = document.getElementById('nurse-memo-list');
+      if (list && list.children.length === 0) {
+        list.innerHTML = '<div class="nurse-memo-empty">保存されたメモはありません</div>';
+      }
+    }
+  });
 }
 
 // ====== 写真相談機能 ======
@@ -1755,6 +1878,23 @@ function nurseScrollBottom() {
 
 <script>
 // ====== お知らせ Inbox JS ======
+var _inboxNoticesCache = [];
+
+function getReadBroadcastIds() {
+  try { return JSON.parse(localStorage.getItem('co_heart_read_notices') || '[]'); }
+  catch(e) { return []; }
+}
+function addReadBroadcastId(nid) {
+  var ids = getReadBroadcastIds();
+  if (ids.indexOf(nid) === -1) { ids.push(nid); localStorage.setItem('co_heart_read_notices', JSON.stringify(ids)); }
+}
+function addReadBroadcastIds(nids) {
+  var ids = getReadBroadcastIds();
+  nids.forEach(function(nid) { if (ids.indexOf(nid) === -1) ids.push(nid); });
+  localStorage.setItem('co_heart_read_notices', JSON.stringify(ids));
+}
+function isBroadcastRead(nid) { return getReadBroadcastIds().indexOf(nid) !== -1; }
+
 function initInbox() {
   if (!currentUser) return;
   var fab = document.getElementById('inbox-fab');
@@ -1767,20 +1907,20 @@ function checkInboxBadge() {
   var badge = document.getElementById('inbox-badge');
   if (!badge) return;
   badge.style.display = 'none';
-  getUnreadPersonalNotice(currentUser.uid).then(function(res) {
-    if (res) {
+
+  getAllNotices(currentUser.uid).then(function(notices) {
+    if (!notices || notices.length === 0) return;
+    var totalUnread = 0;
+    notices.forEach(function(n) {
+      if (n.isPersonal) {
+        if (n.status !== 'read' && !n.readAt) totalUnread++;
+      } else {
+        if (!isBroadcastRead(n.id)) totalUnread++;
+      }
+    });
+    if (totalUnread > 0) {
       badge.style.display = 'flex';
-      badge.innerText = '個別';
-    } else {
-      getLatestNotice('ALL').then(function(n) {
-        if (n) {
-          var lastRead = localStorage.getItem('co_heart_last_read_notice');
-          if (lastRead !== n.date) {
-            badge.style.display = 'flex';
-            badge.innerText = 'NEW';
-          }
-        }
-      });
+      badge.innerText = totalUnread;
     }
   });
 }
@@ -1800,6 +1940,15 @@ function closeInbox() {
   document.getElementById('inbox-fab').style.display = 'flex';
   var nf = document.getElementById('nurse-fab'); if (nf) nf.style.display = 'flex';
   unlockScroll();
+  checkInboxBadge();
+}
+
+function updateInboxBadge(count) {
+  var badge = document.getElementById('inbox-badge');
+  if (badge) {
+    if (count > 0) { badge.style.display = 'flex'; badge.innerText = count; }
+    else { badge.style.display = 'none'; }
+  }
 }
 
 function loadInboxContent() {
@@ -1807,22 +1956,34 @@ function loadInboxContent() {
   body.innerHTML = '<div style="text-align:center;padding:30px;"><div class="spinner-border text-primary" role="status"></div></div>';
 
   getAllNotices(currentUser.uid).then(function(notices) {
+    _inboxNoticesCache = notices || [];
     if (!notices || notices.length === 0) {
       body.innerHTML = '<div class="inbox-empty"><i class="far fa-bell-slash"></i><div class="inbox-empty-text">お知らせはありません</div></div>';
+      var mab = document.getElementById('inbox-mark-all-btn'); if (mab) mab.style.display = 'none';
       return;
     }
     var html = '';
     var unreadCount = 0;
+    var readBroadcastIds = getReadBroadcastIds();
+
     notices.forEach(function(n, idx) {
-      var isRead = (n.status === 'read' || n.readAt);
-      if (!isRead && n.isPersonal) unreadCount++;
+      var isRead;
+      if (n.isPersonal) {
+        isRead = (n.status === 'read' || !!n.readAt);
+      } else {
+        isRead = readBroadcastIds.indexOf(n.id) !== -1;
+      }
+      if (!isRead) unreadCount++;
+
       var cardClass = 'inbox-card' + (n.isPersonal ? ' personal' : '') + (isRead ? ' read' : '');
       var tagClass = n.isPersonal ? 'personal' : 'general';
       var tagIcon = n.isPersonal ? '<i class="fas fa-envelope"></i> 個別' : '<i class="fas fa-bullhorn"></i> お知らせ';
-      var unreadDot = (!isRead && n.isPersonal) ? '<span class="inbox-unread-dot"></span>' : '';
+      var unreadDot = '';
+      if (!isRead && n.isPersonal) unreadDot = '<span class="inbox-unread-dot"></span>';
+      else if (!isRead && !n.isPersonal) unreadDot = '<span class="inbox-unread-dot general-dot"></span>';
       var readBadge = isRead ? '<span class="inbox-read-badge"><i class="fas fa-check"></i> 既読</span>' : '';
 
-      html += '<div class="' + cardClass + '" id="inbox-card-' + idx + '">' +
+      html += '<div class="' + cardClass + '" id="inbox-card-' + idx + '" data-notice-id="' + escInbox(n.id) + '" data-personal="' + (n.isPersonal ? '1' : '0') + '">' +
         '<div class="inbox-card-header">' +
           '<span class="inbox-card-tag ' + tagClass + '">' + unreadDot + tagIcon + '</span>' +
           '<span class="inbox-card-date"><i class="far fa-clock"></i> ' + escInbox(n.date) + ' ' + readBadge + '</span>' +
@@ -1837,6 +1998,10 @@ function loadInboxContent() {
           '</button></div>';
       } else if (n.isPersonal && isRead && n.reply) {
         html += '<div style="margin-top:8px; padding:8px 12px; background:#f0f8ff; border-radius:8px; font-size:0.8rem; color:#555;"><i class="fas fa-reply text-primary me-1"></i>あなたの返信: ' + escInbox(n.reply) + '</div>';
+      } else if (!n.isPersonal && !isRead) {
+        html += '<div style="margin-top:8px; text-align:right;">' +
+          '<button class="inbox-reply-btn" style="width:auto; padding:6px 16px; font-size:0.78rem;" onclick="inboxMarkBroadcastRead(\'' + escInbox(n.id) + '\', ' + idx + ')">' +
+            '<i class="fas fa-check"></i> 既読にする</button></div>';
       }
 
       html += '</div>';
@@ -1844,13 +2009,36 @@ function loadInboxContent() {
 
     body.innerHTML = '<div style="padding:0 2px 4px; font-size:0.75rem; color:#999; text-align:right;">' + notices.length + '件のお知らせ' + (unreadCount > 0 ? ' / <span style="color:#ec407a; font-weight:700;">' + unreadCount + '件未読</span>' : '') + '</div>' + html;
 
+    // すべて既読ボタン表示
+    var mab = document.getElementById('inbox-mark-all-btn');
+    if (mab) mab.style.display = unreadCount > 0 ? 'inline-block' : 'none';
+
     // バッジ更新
-    var badge = document.getElementById('inbox-badge');
-    if (badge) {
-      if (unreadCount > 0) { badge.style.display = 'flex'; badge.innerText = unreadCount; }
-      else { badge.style.display = 'none'; }
-    }
+    updateInboxBadge(unreadCount);
   });
+}
+
+function _inboxCardMarkReadUI(card) {
+  if (!card) return;
+  card.classList.add('read-anim');
+  card.classList.add('read');
+  var dot = card.querySelector('.inbox-unread-dot');
+  if (dot) dot.remove();
+  var dateSpan = card.querySelector('.inbox-card-date');
+  if (dateSpan && !dateSpan.querySelector('.inbox-read-badge')) {
+    dateSpan.innerHTML += ' <span class="inbox-read-badge"><i class="fas fa-check"></i> 既読</span>';
+  }
+}
+
+function _inboxDecrementBadge() {
+  var badge = document.getElementById('inbox-badge');
+  if (!badge) return;
+  var current = parseInt(badge.innerText) || 0;
+  if (current <= 1) { badge.style.display = 'none'; }
+  else { badge.innerText = current - 1; }
+  var remaining = current - 1;
+  var mab = document.getElementById('inbox-mark-all-btn');
+  if (mab && remaining <= 0) mab.style.display = 'none';
 }
 
 function inboxMarkRead(noticeId, idx) {
@@ -1858,13 +2046,13 @@ function inboxMarkRead(noticeId, idx) {
   var replyText = replyEl ? replyEl.value : '';
   var card = document.getElementById('inbox-card-' + idx);
 
-  // UIを即座に更新
+  // UIを即座に更新（アニメーション付き）
+  _inboxCardMarkReadUI(card);
   if (card) {
-    card.classList.add('read');
     var replyArea = card.querySelector('.inbox-reply-area');
     if (replyArea) {
       if (replyText) {
-        replyArea.innerHTML = '<div style="padding:8px 12px; background:#e8f5e9; border-radius:8px; font-size:0.8rem; color:#2e7d32;"><i class="fas fa-check-circle me-1"></i>既読にしました' + (replyText ? ' / 返信: ' + escInbox(replyText) : '') + '</div>';
+        replyArea.innerHTML = '<div style="padding:8px 12px; background:#e8f5e9; border-radius:8px; font-size:0.8rem; color:#2e7d32;"><i class="fas fa-check-circle me-1"></i>既読にしました / 返信: ' + escInbox(replyText) + '</div>';
       } else {
         replyArea.innerHTML = '<div style="padding:8px 12px; background:#e8f5e9; border-radius:8px; font-size:0.8rem; color:#2e7d32;"><i class="fas fa-check-circle me-1"></i>既読にしました</div>';
       }
@@ -1872,13 +2060,49 @@ function inboxMarkRead(noticeId, idx) {
   }
 
   markNoticeAsRead(noticeId, replyText).then(function() {
-    var badge = document.getElementById('inbox-badge');
-    if (badge) {
-      var current = parseInt(badge.innerText) || 0;
-      if (current <= 1) badge.style.display = 'none';
-      else { badge.innerText = current - 1; }
+    _inboxDecrementBadge();
+  });
+}
+
+function inboxMarkBroadcastRead(noticeId, idx) {
+  addReadBroadcastId(noticeId);
+  var card = document.getElementById('inbox-card-' + idx);
+  _inboxCardMarkReadUI(card);
+  // broadcastの既読ボタンを消す
+  if (card) {
+    var btn = card.querySelector('.inbox-reply-btn');
+    if (btn) btn.parentElement.innerHTML = '<div style="padding:6px 12px; background:#e8f5e9; border-radius:8px; font-size:0.78rem; color:#2e7d32; text-align:right;"><i class="fas fa-check-circle me-1"></i>既読にしました</div>';
+  }
+  _inboxDecrementBadge();
+}
+
+function inboxMarkAllRead() {
+  var broadcastIds = [];
+  _inboxNoticesCache.forEach(function(n, idx) {
+    var card = document.getElementById('inbox-card-' + idx);
+    if (n.isPersonal) {
+      if (n.status !== 'read' && !n.readAt) {
+        markNoticeAsRead(n.id, '');
+        _inboxCardMarkReadUI(card);
+        if (card) {
+          var ra = card.querySelector('.inbox-reply-area');
+          if (ra) ra.innerHTML = '<div style="padding:8px 12px; background:#e8f5e9; border-radius:8px; font-size:0.8rem; color:#2e7d32;"><i class="fas fa-check-circle me-1"></i>既読にしました</div>';
+        }
+      }
+    } else {
+      if (!isBroadcastRead(n.id)) {
+        broadcastIds.push(n.id);
+        _inboxCardMarkReadUI(card);
+        if (card) {
+          var btn = card.querySelector('.inbox-reply-btn');
+          if (btn) btn.parentElement.innerHTML = '<div style="padding:6px 12px; background:#e8f5e9; border-radius:8px; font-size:0.78rem; color:#2e7d32; text-align:right;"><i class="fas fa-check-circle me-1"></i>既読にしました</div>';
+        }
+      }
     }
   });
+  if (broadcastIds.length > 0) addReadBroadcastIds(broadcastIds);
+  updateInboxBadge(0);
+  var mab = document.getElementById('inbox-mark-all-btn'); if (mab) mab.style.display = 'none';
 }
 
 function escInbox(t) {

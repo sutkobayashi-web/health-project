@@ -39,12 +39,22 @@ async function getBoxToken() {
 // Boxにファイルをアップロード（新規 or 上書き）
 async function uploadToBox(token, filePath, fileName, folderId) {
   // 既存ファイルを検索
-  const searchRes = await fetch(
-    `https://api.box.com/2.0/search?query=${encodeURIComponent(fileName)}&ancestor_folder_ids=${folderId}&type=file&limit=5`,
-    { headers: { 'Authorization': 'Bearer ' + token } }
-  );
-  const searchJson = await searchRes.json();
-  const existing = searchJson.entries && searchJson.entries.find(e => e.name === fileName);
+  let existing = null;
+  try {
+    const searchRes = await fetch(
+      `https://api.box.com/2.0/search?query=${encodeURIComponent(fileName)}&ancestor_folder_ids=${folderId}&type=file&limit=5`,
+      { headers: { 'Authorization': 'Bearer ' + token } }
+    );
+    const searchText = await searchRes.text();
+    if (searchRes.ok && searchText) {
+      const searchJson = JSON.parse(searchText);
+      existing = searchJson.entries && searchJson.entries.find(e => e.name === fileName);
+    } else {
+      console.log('  Box検索スキップ (status:' + searchRes.status + ')。新規アップロードします');
+    }
+  } catch (searchErr) {
+    console.log('  Box検索エラー: ' + searchErr.message + '。新規アップロードします');
+  }
 
   const fileData = fs.readFileSync(filePath);
   const boundary = '----BoxUpload' + Date.now();

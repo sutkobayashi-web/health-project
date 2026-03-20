@@ -241,8 +241,14 @@ function renderReportList(data) {
                 '<div id="inbox-tab-empathy-'+pid+'" class="inbox-tab-panel" style="padding:12px; display:none;">' +
                     '<div style="font-size:0.75rem; font-weight:700; color:#667eea; margin-bottom:6px;"><i class="fas fa-heart me-1"></i>共感サマリー <span id="empathy-count-'+pid+'" style="color:#999;"></span></div>' +
                     '<div id="empathy-summary-'+pid+'" style="margin-bottom:10px;"></div>' +
-                    '<div style="font-size:0.75rem; font-weight:700; color:#43a047; margin-bottom:6px;"><i class="fas fa-users me-1"></i>メンバー回答</div>' +
-                    '<div id="empathy-members-'+pid+'"></div>' +
+                    '<div style="font-size:0.75rem; font-weight:700; color:#333; margin-bottom:6px;"><i class="fas fa-list me-1"></i>全回答一覧</div>' +
+                    '<div id="empathy-members-'+pid+'" style="max-height:200px; overflow-y:auto; margin-bottom:12px;"></div>' +
+                    '<div style="font-size:0.75rem; font-weight:700; color:#d32f2f; margin-bottom:6px; border-top:1px solid #eee; padding-top:10px;"><i class="fas fa-comments me-1"></i>推進メンバー議論</div>' +
+                    '<div id="empathy-member-chats-'+pid+'" style="max-height:150px; overflow-y:auto; font-size:0.8rem; margin-bottom:6px; background:#fafafa; border-radius:8px; padding:6px;"></div>' +
+                    '<div style="display:flex; gap:4px;">' +
+                        '<input type="text" id="empathy-chat-input-'+pid+'" placeholder="この共感データについて議論..." style="flex:1; border:1px solid #ddd; border-radius:8px; padding:6px 10px; font-size:0.78rem; outline:none;" onkeydown="if(event.key===\'Enter\'){event.preventDefault();doPostEmpathyChat(\''+pid+'\');}">' +
+                        '<button class="btn btn-sm btn-danger" style="font-size:0.72rem; padding:4px 10px;" onclick="doPostEmpathyChat(\''+pid+'\')"><i class="fas fa-paper-plane"></i></button>' +
+                    '</div>' +
                 '</div>' +
                 // コメントタブ
                 '<div id="inbox-tab-comments-'+pid+'" class="inbox-tab-panel" style="padding:12px; display:none;">' +
@@ -501,6 +507,7 @@ function switchInboxDetailTab(pid, tab) {
     }
     // 注目タブの場合はデータ読み込み
     if (tab === 'actions') loadAttentionTab(pid);
+    if (tab === 'empathy') loadEmpathyTabFull(pid);
 }
 
 // 推進メンバーコメント投稿
@@ -581,6 +588,41 @@ function renderAutoEvaluation(pid, data) {
 }
 
 // 注目タブを開いた時にデータを読み込む
+// 共感タブのフル読み込み（共感データ+チャット）
+function loadEmpathyTabFull(pid) {
+    loadEmpathyDisplay(pid);
+    // 推進メンバーチャットも読み込み
+    getMemberChats(pid).then(function(res) {
+        var area = document.getElementById('empathy-member-chats-' + pid);
+        if (!area) return;
+        if (res.success && res.chats && res.chats.length > 0) {
+            renderEmpathyChats(pid, res.chats);
+        } else {
+            area.innerHTML = '<div style="color:#ccc; font-size:0.75rem;">まだ議論はありません</div>';
+        }
+    });
+}
+
+function renderEmpathyChats(pid, chats) {
+    var area = document.getElementById('empathy-member-chats-' + pid);
+    if (!area) return;
+    area.innerHTML = chats.map(function(c) {
+        var date = c.created_at ? new Date(c.created_at).toLocaleString('ja-JP', { hour:'2-digit', minute:'2-digit' }) : '';
+        return '<div style="padding:3px 0;"><span style="font-weight:700; color:#d32f2f; font-size:0.75rem;">' + escapeHtml(c.member_name) + '</span> <span style="color:#ccc; font-size:0.6rem;">' + date + '</span><div style="color:#333; font-size:0.8rem;">' + escapeHtml(c.message) + '</div></div>';
+    }).join('');
+    area.scrollTop = area.scrollHeight;
+}
+
+function doPostEmpathyChat(pid) {
+    var input = document.getElementById('empathy-chat-input-' + pid);
+    if (!input || !input.value.trim()) return;
+    var name = (currentAdminProfile && currentAdminProfile.name) || 'Admin';
+    postMemberChat(pid, name, input.value.trim()).then(function(res) {
+        if (res.success) { input.value = ''; renderEmpathyChats(pid, res.chats); }
+        else alert(res.msg || 'エラー');
+    });
+}
+
 function loadAttentionTab(pid) {
     getMemberComments(pid).then(function(res) { if (res.success) renderMemberComments(pid, res.comments); });
     getMemberChats(pid).then(function(res) { if (res.success) renderMemberChats(pid, res.chats); });

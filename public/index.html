@@ -39,7 +39,7 @@
   .section-title i { font-size: 1.1rem; }
 
   /* ====== 相談セクション ====== */
-  .honne-area { border-top: 4px solid #d63384; }
+  .honne-area { }
   .honne-area::before { content: ''; position: absolute; top: 0; right: 0; width: 120px; height: 120px; background: radial-gradient(circle, rgba(214,51,132,0.06) 0%, transparent 70%); pointer-events: none; }
   .honne-area .section-title i { color: #d63384; }
   .honne-area .section-sub { font-size: 0.78rem; color: #aaa; margin-top: 0; margin-bottom: 0; }
@@ -50,7 +50,7 @@
   .btn-submit:active { transform: scale(0.98); box-shadow: 0 2px 8px rgba(214,51,132,0.2); }
 
   /* ====== 食事セクション ====== */
-  .food-section { text-align: center; border-top: 4px solid #20c997; }
+  .food-section { text-align: center; }
   .food-section::before { content: ''; position: absolute; top: 0; left: 0; width: 120px; height: 120px; background: radial-gradient(circle, rgba(32,201,151,0.06) 0%, transparent 70%); pointer-events: none; }
   .food-section .section-title i { color: #20c997; }
   .food-section .section-sub { font-size: 0.78rem; color: #aaa; margin-top: 0; margin-bottom: 0; text-align: left; }
@@ -431,7 +431,7 @@
   <div class="main-content">
 
     <!-- プロフィールカード -->
-    <div class="card-section" style="border-top:4px solid #667eea; background:linear-gradient(135deg, #f0f4ff 0%, #e8ecff 100%); text-align:center; padding:18px;">
+    <div class="card-section" style="background:linear-gradient(135deg, #f0f4ff 0%, #e8ecff 100%); text-align:center; padding:18px;">
       <div style="display:flex; align-items:center; gap:14px;">
         <div id="profile-avatar" style="width:64px; height:64px; border-radius:50%; overflow:hidden; border:3px solid #fff; box-shadow:0 4px 12px rgba(0,0,0,0.1); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:2rem; background:#f0f0f0;"></div>
         <div style="flex:1; text-align:left;">
@@ -491,7 +491,7 @@
     </div>
 
     <!-- テーマ投票 -->
-    <div class="card-section" id="theme-vote-section" style="display:none; border-top:4px solid #667eea; background:linear-gradient(135deg, #f0f4ff 0%, #e8ecff 100%);">
+    <div class="card-section" id="theme-vote-section" style="display:none; background:linear-gradient(135deg, #f0f4ff 0%, #e8ecff 100%);">
       <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="toggleAccordion('vote-body','vote-chevron')">
         <div style="display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);flex-shrink:0;"><i class="fas fa-vote-yea" style="font-size:22px;color:#fff;"></i></div>
         <div style="flex:1;">
@@ -510,7 +510,7 @@
     </div>
 
     <!-- チャレンジ -->
-    <div class="card-section" id="challenge-section" style="display:none; border-top:4px solid #ff6b35; background:linear-gradient(135deg, #fff5f0 0%, #ffe8de 100%);">
+    <div class="card-section" id="challenge-section" style="display:none; background:linear-gradient(135deg, #fff5f0 0%, #ffe8de 100%);">
       <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="toggleAccordion('challenge-body','challenge-chevron')">
         <div style="display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#ff6b35,#ff9a5c);flex-shrink:0;" id="challenge-icon-circle"><i class="fas fa-fire" style="font-size:22px;color:#fff;"></i></div>
         <div style="flex:1;">
@@ -523,7 +523,7 @@
     </div>
 
     <!-- 健康メモ -->
-    <div class="card-section" id="health-memo-section" style="border-top:4px solid #ff9800; background:linear-gradient(135deg, #fffde7 0%, #fff8e1 100%);">
+    <div class="card-section" id="health-memo-section" style="background:linear-gradient(135deg, #fffde7 0%, #fff8e1 100%);">
       <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="toggleAccordion('memo-body','memo-chevron')">
         <div style="display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#fff3e0,#ffe0b2);flex-shrink:0;"><i class="fas fa-bookmark" style="font-size:22px;color:#e65100;"></i></div>
         <div style="flex:1;">
@@ -538,7 +538,7 @@
     </div>
 
     <!-- QR招待 -->
-    <div class="card-section" style="border-top:4px solid #6c5ce7; background:linear-gradient(135deg, #faf8ff 0%, #f3f0ff 100%);">
+    <div class="card-section" style="background:linear-gradient(135deg, #faf8ff 0%, #f3f0ff 100%);">
       <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="toggleAccordion('qr-body','qr-chevron')">
         <div style="display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#6c5ce7,#a29bfe);flex-shrink:0;"><i class="fas fa-qrcode" style="font-size:22px;color:#fff;"></i></div>
         <div style="flex:1;">

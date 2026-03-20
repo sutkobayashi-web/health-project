@@ -419,12 +419,13 @@
   <div class="app-header">
     <div class="logo"><i class="fas fa-heart-pulse"></i><span class="logo-text">健康<br>プロジェクト</span></div>
     <div class="header-stats">
-      <span class="stat-chip" id="stat-user-info"><span id="stat-avatar">😀</span> <span id="stat-nickname">--</span></span>
       <span class="stat-chip" id="stat-rank"><i class="fas fa-medal"></i> --</span>
       <span class="stat-chip" id="stat-posts"><i class="fas fa-pen"></i> 0</span>
-      <span class="stat-chip" id="stat-invites"><i class="fas fa-user-plus"></i> 0</span>
       <span class="stat-chip" style="cursor:pointer; color:white; background:rgba(255,255,255,0.15);" onclick="doUserLogout()"><i class="fas fa-sign-out-alt"></i></span>
     </div>
+    <!-- 非表示のstat-avatar/stat-nickname（JS参照用） -->
+    <span id="stat-avatar" style="display:none;"></span>
+    <span id="stat-nickname" style="display:none;"></span>
   </div>
 
   <div class="main-content">
@@ -646,7 +647,7 @@ function renderCustomAvatar(avatarStr, size) {
 
     // 顔（輪郭形状反映）- 少し下寄せで髪との間隔を確保
     var faceR = r * faceSize / 24 * (1 + sizeFaceVal * 0.06);
-    var faceY = cy + r * 0.28;
+    var faceY = cy + r * 0.08;
     drawFace(ctx, cx, faceY, faceR, faceShapeType, skinColor);
 
     // 髪のオフセット

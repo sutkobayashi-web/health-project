@@ -50,6 +50,10 @@ var INBOX_AVATAR_MAP = { "メディカル":"🩺","医":"🩺","ヘルス":"💉
 
 /* ── Helper: avatar resolution ── */
 function getInboxAvatar(name, role, currentAvatar) {
+    // カスタムアバター対応
+    if(currentAvatar && String(currentAvatar).startsWith('custom:') && typeof getAvatarHtml === 'function') {
+        return getAvatarHtml(currentAvatar, 36);
+    }
     if(currentAvatar && currentAvatar.length <= 4 && !currentAvatar.match(/[亜-熙ぁ-んァ-ヶ]/)) return currentAvatar;
     var targetStr = (String(currentAvatar) + String(name) + String(role));
     for(var key in INBOX_AVATAR_MAP) { if(targetStr.includes(key)) return INBOX_AVATAR_MAP[key]; }

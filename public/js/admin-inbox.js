@@ -626,40 +626,52 @@ function loadEmpathyDisplay(pid) {
     var badge = document.getElementById('empathy-badge-' + pid);
     if (badge && s.totalCount > 0) badge.innerText = '❤️' + s.totalCount;
 
-    // Type count badges
-    var typeEmoji = {
-      '🙋 わかる、自分も': '🙋',
-      '😰 これヤバくない？': '😰',
-      '💡 会社が動けば変わる': '💡',
-      '🍽️ 美味しそう！': '🍽️',
-      '💪 参考になる！': '💪',
-      '😅 自分もこんな感じ…': '😅'
+    // Type count badges（英語キー＋日本語ラベル両対応）
+    var typeMap = {
+      'wakaru': { emoji:'🙋', label:'わかる、自分も' },
+      'yabai': { emoji:'😰', label:'これヤバくない？' },
+      'kaisha': { emoji:'💡', label:'会社が動けば変わる' },
+      'oishii': { emoji:'🍽️', label:'美味しそう！' },
+      'sankou': { emoji:'💪', label:'参考になる！' },
+      'onaji': { emoji:'😅', label:'自分もこんな感じ…' },
+      '🙋 わかる、自分も': { emoji:'🙋', label:'わかる' },
+      '😰 これヤバくない？': { emoji:'😰', label:'ヤバい' },
+      '💡 会社が動けば変わる': { emoji:'💡', label:'会社が動けば' },
+      '🍽️ 美味しそう！': { emoji:'🍽️', label:'美味しそう' },
+      '💪 参考になる！': { emoji:'💪', label:'参考になる' },
+      '😅 自分もこんな感じ…': { emoji:'😅', label:'自分も' }
     };
     var html = '';
     Object.keys(s.typeCounts).forEach(function(type) {
-      var emoji = typeEmoji[type] || '❓';
+      var info = typeMap[type] || { emoji:'❓', label:type };
       var count = s.typeCounts[type];
-      html += '<span style="display:inline-block; margin:1px 3px; padding:2px 8px; border-radius:12px; font-size:0.7rem; font-weight:700; background:#f0f0ff; border:1px solid #e0e0ff;">' + emoji + ' ' + count + '</span>';
+      html += '<span style="display:inline-flex; align-items:center; gap:3px; margin:2px 3px; padding:4px 10px; border-radius:12px; font-size:0.72rem; font-weight:700; background:#f0f0ff; border:1px solid #e0e0ff;">' + info.emoji + ' ' + info.label + ' <span style="background:#667eea; color:white; border-radius:8px; padding:0 6px; font-size:0.65rem;">' + count + '</span></span>';
     });
-    summaryArea.innerHTML = html;
-    if (countArea) countArea.innerHTML = '<span style="font-weight:700;">' + s.totalCount + '名回答</span>';
+    summaryArea.innerHTML = html || '<span style="color:#ccc;">共感なし</span>';
+    if (countArea) countArea.innerHTML = '<span style="font-weight:700;">' + s.totalCount + '名が共感</span>';
 
-    // Member responses
+    // 全回答一覧（メンバー以外も含む）
     if (membersArea) {
-      if (s.memberResponses && s.memberResponses.length > 0) {
+      var allResponses = (res.responses || s.memberResponses || []);
+      if (allResponses.length > 0) {
         var mHtml = '';
-        s.memberResponses.forEach(function(m) {
-          var emoji = typeEmoji[m.empathy_type] || '❓';
-          mHtml += '<div style="padding:3px 0; border-bottom:1px solid #f0f0f0;">' +
-            '<span style="font-weight:700; color:#43a047;">' + escapeHtml(m.user_name) + '</span> ' +
-            '<span>' + emoji + '</span>' +
-            '<span style="color:#999; font-size:0.65rem; margin-left:4px;">' + m.answer1 + '/' + m.answer2 + '/' + m.answer3 + '</span>' +
-            (m.free_comment ? '<div style="color:#555; font-size:0.7rem; margin-top:2px;">💬 ' + escapeHtml(m.free_comment) + '</div>' : '') +
-            '</div>';
+        allResponses.forEach(function(m) {
+          var info = typeMap[m.empathy_type] || { emoji:'❓', label:m.empathy_type };
+          mHtml += '<div style="padding:5px 0; border-bottom:1px solid #f5f5f5;">' +
+            '<div style="display:flex; align-items:center; gap:6px;">' +
+              '<span style="font-weight:700; color:#333; font-size:0.78rem;">' + escapeHtml(m.user_name || '匿名') + '</span>' +
+              '<span style="font-size:0.82rem;">' + info.emoji + '</span>' +
+              (m.is_member ? '<span style="font-size:0.55rem; background:#667eea; color:white; padding:1px 5px; border-radius:6px;">推進</span>' : '') +
+            '</div>' +
+            '<div style="font-size:0.72rem; color:#888; margin-top:2px;">' +
+              '① ' + escapeHtml(m.answer1) + ' ② ' + escapeHtml(m.answer2) + ' ③ ' + escapeHtml(m.answer3) +
+            '</div>' +
+            (m.free_comment ? '<div style="font-size:0.72rem; color:#555; margin-top:2px; background:#f8f8ff; padding:3px 8px; border-radius:6px;">💬 ' + escapeHtml(m.free_comment) + '</div>' : '') +
+          '</div>';
         });
         membersArea.innerHTML = mHtml;
       } else {
-        membersArea.innerHTML = '<span style="color:#ccc;">メンバー未回答</span>';
+        membersArea.innerHTML = '<span style="color:#ccc;">まだ回答はありません</span>';
       }
     }
   });

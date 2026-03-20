@@ -5393,17 +5393,24 @@ function toggleKpiCheck(el) {
 }
 
 function doRecordKpi() {
-  if (!currentUser || !currentChallengeId) return;
+  console.log('[KPI] doRecordKpi called', 'user:', !!currentUser, 'challengeId:', currentChallengeId, 'answers:', JSON.stringify(kpiAnswers));
+  if (!currentUser) { alert('ログインしてください'); return; }
+  if (!currentChallengeId) { alert('チャレンジが選択されていません'); return; }
   var comment = (document.getElementById('kpi-comment') || {}).value || '';
   // number入力もチェック
   document.querySelectorAll('input[id^="kpi-num-"]').forEach(function(el) {
     kpiAnswers[el.getAttribute('data-q')] = el.value;
   });
+  console.log('[KPI] Sending:', currentChallengeId, kpiAnswers, comment);
   recordKpi(currentChallengeId, currentUser.uid, kpiAnswers, comment).then(function(res) {
+    console.log('[KPI] Response:', JSON.stringify(res));
     if (res.success) {
       kpiAnswers = {};
       loadChallengeDetail(currentChallengeId);
     } else { alert(res.msg || 'エラー'); }
+  }).catch(function(e) {
+    console.error('[KPI] Error:', e);
+    alert('通信エラー: ' + e.message);
   });
 }
 

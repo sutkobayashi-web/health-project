@@ -194,53 +194,70 @@ function renderReportList(data) {
         var div = document.createElement('div');
         div.className = "post-card" + (isHidden ? " hidden" : "");
         div.setAttribute('data-cat', cardCat);
+        // コンパクトカード + 詳細パネル（タブ切替）
+        var empathyBadge = '<span id="empathy-badge-'+pid+'" style="font-size:0.6rem; background:#eef; color:#667eea; padding:1px 6px; border-radius:8px; font-weight:700;"></span>';
+        var commentBadge = '<span id="comment-badge-'+pid+'" style="font-size:0.6rem; background:#f0f0f0; color:#666; padding:1px 6px; border-radius:8px; font-weight:700;"></span>';
         div.innerHTML =
+            // ヘッダー
             '<div class="post-header-bar '+headerClass+'"><span><i class="'+icon+'"></i> '+catName+'</span><span>'+dateStr+'</span></div>' +
-            '<div style="display:flex; min-height:80px;">' +
-                // 左: 投稿内容
-                '<div style="flex:1; padding:12px 14px; border-right:1px solid #f0f0f0;">' +
-                    '<div class="user-info" style="margin-bottom:6px;">'+avatarDiv+'<div class="nick">'+escapeHtml(r[INBOX_COLS.USER_NAME])+'</div>' +
-                    (isTarget ?
-                        '<span id="vote-progress-'+pid+'" style="margin-left:auto; font-size:0.65rem; font-weight:700; padding:3px 10px; border-radius:10px; display:inline-flex; align-items:center; gap:4px; background:#fff3e0; color:#e65100; border:1px solid #ffcc80;"><i class="fas fa-hand-paper"></i> '+likeCount+'票 / <span class="vote-threshold">?</span>票必要</span>' :
-                        (likeCount > 0 ? '<span style="margin-left:auto; background:linear-gradient(135deg,#667eea,#764ba2); color:white; font-size:0.65rem; font-weight:700; padding:2px 8px; border-radius:10px; display:inline-flex; align-items:center; gap:3px;"><i class="fas fa-hand-paper"></i> '+likeCount+'票</span>' : '')
-                    ) + '</div>' +
-                    (thumbTag ? '<div style="margin-bottom:8px;">'+thumbTag+'</div>' : '') +
-                    '<div style="font-size:0.88rem;line-height:1.6;color:#444;white-space:pre-wrap;">'+escapeHtml(rawContent)+'</div>' +
+            // コンパクト本体
+            '<div style="padding:10px 14px;">' +
+                '<div class="user-info" style="margin-bottom:6px;">'+avatarDiv+'<div class="nick">'+escapeHtml(r[INBOX_COLS.USER_NAME])+'</div>' +
+                (likeCount > 0 ? '<span style="margin-left:auto; background:linear-gradient(135deg,#667eea,#764ba2); color:white; font-size:0.6rem; font-weight:700; padding:2px 7px; border-radius:10px;"><i class="fas fa-hand-paper"></i> '+likeCount+'</span>' : '') +
+                ' '+empathyBadge+' '+commentBadge+'</div>' +
+                '<div style="display:flex; gap:8px; align-items:flex-start;">' +
+                    (thumbTag ? thumbTag : '') +
+                    '<div style="flex:1; font-size:0.85rem; line-height:1.5; color:#444; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">'+escapeHtml(rawContent)+'</div>' +
                 '</div>' +
-                // 右: コメント + ボタン
-                '<div style="width:280px; flex-shrink:0; background:#faf8ff; padding:10px 12px; display:flex; flex-direction:column; gap:6px;">' +
-                    // 共感サマリー
-                    '<div style="background:white; border-radius:8px; padding:8px 10px; border:1px solid #e8e0ff;">' +
-                        '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">' +
-                            '<span style="font-size:0.68rem; font-weight:700; color:#667eea;"><i class="fas fa-heart me-1"></i>共感</span>' +
-                            '<span id="empathy-count-'+pid+'" style="font-size:0.65rem; color:#999;"></span>' +
-                        '</div>' +
-                        '<div id="empathy-summary-'+pid+'" style="font-size:0.72rem; min-height:20px;"></div>' +
+                // 操作ボタン行
+                '<div style="display:flex; gap:4px; margin-top:8px;">' +
+                    '<button class="btn btn-sm btn-outline-primary fw-bold" style="font-size:0.68rem; flex:1;" onclick="event.stopPropagation(); toggleInboxDetail(\''+pid+'\')"><i class="fas fa-chevron-down me-1"></i>詳細</button>' +
+                    (isTarget ?
+                        '<button class="btn btn-sm btn-outline-secondary" style="font-size:0.68rem;" onclick="event.stopPropagation(); toggleTriage(\''+pid+'\', false)"><i class="fas fa-undo me-1"></i>解除</button>'
+                    :
+                        '<button class="btn btn-sm btn-outline-warning" style="font-size:0.68rem;" onclick="event.stopPropagation(); toggleTriage(\''+pid+'\', true)"><i class="fas fa-star me-1"></i>重点へ</button>'
+                    ) +
+                '</div>' +
+            '</div>' +
+            // 詳細パネル（初期非表示）
+            '<div id="inbox-detail-'+pid+'" style="display:none; border-top:1px solid #eee;">' +
+                // タブ
+                '<div style="display:flex; border-bottom:1px solid #eee; background:#f8f9fa;">' +
+                    '<button class="inbox-tab active" onclick="switchInboxDetailTab(\''+pid+'\',\'content\')" data-tab="content" style="flex:1; padding:8px; border:none; background:transparent; font-size:0.72rem; font-weight:700; color:#667eea; border-bottom:2px solid #667eea; cursor:pointer;">📝 内容</button>' +
+                    '<button class="inbox-tab" onclick="switchInboxDetailTab(\''+pid+'\',\'empathy\')" data-tab="empathy" style="flex:1; padding:8px; border:none; background:transparent; font-size:0.72rem; font-weight:700; color:#999; border-bottom:2px solid transparent; cursor:pointer;">❤️ 共感</button>' +
+                    '<button class="inbox-tab" onclick="switchInboxDetailTab(\''+pid+'\',\'comments\')" data-tab="comments" style="flex:1; padding:8px; border:none; background:transparent; font-size:0.72rem; font-weight:700; color:#999; border-bottom:2px solid transparent; cursor:pointer;">💬 コメント</button>' +
+                    '<button class="inbox-tab" onclick="switchInboxDetailTab(\''+pid+'\',\'actions\')" data-tab="actions" style="flex:1; padding:8px; border:none; background:transparent; font-size:0.72rem; font-weight:700; color:#999; border-bottom:2px solid transparent; cursor:pointer;">⚡ 操作</button>' +
+                '</div>' +
+                // 内容タブ
+                '<div id="inbox-tab-content-'+pid+'" class="inbox-tab-panel" style="padding:12px;">' +
+                    '<div style="font-size:0.88rem; line-height:1.7; color:#333; white-space:pre-wrap; margin-bottom:10px;">'+escapeHtml(rawContent)+'</div>' +
+                    (imgTag ? imgTag : '') +
+                    aiHtml +
+                '</div>' +
+                // 共感タブ
+                '<div id="inbox-tab-empathy-'+pid+'" class="inbox-tab-panel" style="padding:12px; display:none;">' +
+                    '<div style="font-size:0.75rem; font-weight:700; color:#667eea; margin-bottom:6px;"><i class="fas fa-heart me-1"></i>共感サマリー <span id="empathy-count-'+pid+'" style="color:#999;"></span></div>' +
+                    '<div id="empathy-summary-'+pid+'" style="margin-bottom:10px;"></div>' +
+                    '<div style="font-size:0.75rem; font-weight:700; color:#43a047; margin-bottom:6px;"><i class="fas fa-users me-1"></i>メンバー回答</div>' +
+                    '<div id="empathy-members-'+pid+'"></div>' +
+                '</div>' +
+                // コメントタブ
+                '<div id="inbox-tab-comments-'+pid+'" class="inbox-tab-panel" style="padding:12px; display:none;">' +
+                    '<div id="inbox-comments-'+pid+'" style="max-height:200px; overflow-y:auto; font-size:0.8rem; color:#555; margin-bottom:8px;"></div>' +
+                    '<div style="display:flex; gap:4px;">' +
+                        '<input type="text" id="inbox-comment-input-'+pid+'" placeholder="コメントを入力..." style="flex:1; border:1px solid #ddd; border-radius:8px; padding:6px 10px; font-size:0.78rem; outline:none;">' +
+                        '<button class="btn btn-sm btn-primary" style="font-size:0.72rem; padding:4px 10px;" onclick="submitInboxComment(\''+pid+'\')"><i class="fas fa-paper-plane"></i></button>' +
                     '</div>' +
-                    // メンバー回答状況
-                    '<div style="background:white; border-radius:8px; padding:8px 10px; border:1px solid #e0ffe0;">' +
-                        '<div style="font-size:0.68rem; font-weight:700; color:#43a047; margin-bottom:2px;"><i class="fas fa-users me-1"></i>メンバー回答</div>' +
-                        '<div id="empathy-members-'+pid+'" style="font-size:0.72rem; min-height:20px;"></div>' +
-                    '</div>' +
-                    // コメント欄
-                    '<div style="flex:1; min-height:0;">' +
-                        '<div style="font-size:0.68rem; font-weight:700; color:#6c5ce7; margin-bottom:2px;"><i class="fas fa-comments me-1"></i>コメント</div>' +
-                        '<div id="inbox-comments-'+pid+'" style="overflow-y:auto; max-height:60px; font-size:0.78rem; color:#555;"></div>' +
-                        '<div style="display:flex; gap:4px; margin-top:4px;">' +
-                            '<input type="text" id="inbox-comment-input-'+pid+'" placeholder="一言..." style="flex:1; border:1px solid #ddd; border-radius:8px; padding:4px 8px; font-size:0.72rem; outline:none;">' +
-                            '<button class="btn btn-sm btn-outline-primary" style="font-size:0.65rem; padding:3px 8px;" onclick="submitInboxComment(\''+pid+'\')"><i class="fas fa-paper-plane"></i></button>' +
-                        '</div>' +
-                    '</div>' +
-                    // ボタン
-                    '<div style="display:flex; gap:4px; flex-shrink:0;">' +
+                '</div>' +
+                // 操作タブ
+                '<div id="inbox-tab-actions-'+pid+'" class="inbox-tab-panel" style="padding:12px; display:none;">' +
+                    '<div style="display:flex; flex-direction:column; gap:6px;">' +
+                        '<button class="btn btn-outline-secondary btn-sm fw-bold" onclick="openEvalModal(\''+pid+'\')"><i class="fas fa-search me-1"></i>詳細モーダルを開く</button>' +
+                        '<button class="btn btn-outline-info btn-sm fw-bold" onclick="convertEmpathyScore(\''+pid+'\')"><i class="fas fa-magic me-1"></i>共感→AI7軸スコア変換</button>' +
                         (isTarget ?
-                            '<button class="btn btn-primary btn-admin fw-bold" style="flex:1; font-size:0.68rem;" onclick="openEvalModal(\''+pid+'\')"><i class="fas fa-search me-1"></i>詳細・評価・議論</button>' +
-                            '<button class="btn btn-outline-info btn-admin" style="flex-shrink:0; font-size:0.68rem;" onclick="convertEmpathyScore(\''+pid+'\')"><i class="fas fa-magic me-1"></i>AI変換</button>' +
-                            '<button class="btn btn-outline-secondary btn-admin" style="flex-shrink:0; font-size:0.68rem;" onclick="toggleTriage(\''+pid+'\', false)"><i class="fas fa-undo me-1"></i>解除</button>'
+                            '<button class="btn btn-outline-secondary btn-sm" onclick="toggleTriage(\''+pid+'\', false)"><i class="fas fa-undo me-1"></i>重点から解除</button>'
                         :
-                            '<button class="btn btn-outline-secondary btn-admin" style="flex:1; font-size:0.68rem;" onclick="openEvalModal(\''+pid+'\')"><i class="fas fa-search me-1"></i>詳細</button>' +
-                            '<button class="btn btn-outline-info btn-admin" style="flex:1; font-size:0.68rem;" onclick="convertEmpathyScore(\''+pid+'\')"><i class="fas fa-magic me-1"></i>AI変換</button>' +
-                            '<button class="btn btn-outline-warning btn-admin" style="flex:1; font-size:0.68rem;" onclick="toggleTriage(\''+pid+'\', true)"><i class="fas fa-star me-1"></i>重点へ</button>'
+                            '<button class="btn btn-outline-warning btn-sm fw-bold" onclick="toggleTriage(\''+pid+'\', true)"><i class="fas fa-star me-1"></i>重点検討へ引き上げ</button>'
                         ) +
                     '</div>' +
                 '</div>' +
@@ -386,6 +403,9 @@ function loadInboxComments(pid) {
         } else {
             area.innerHTML = '<div style="color:#ccc; font-size:0.75rem;">まだコメントはありません</div>';
         }
+        // コンパクトカードのバッジ更新
+        var badge = document.getElementById('comment-badge-' + pid);
+        if (badge && comments && comments.length > 0) badge.innerText = '💬' + comments.length;
     });
 }
 
@@ -430,6 +450,39 @@ document.addEventListener('click', function(e) {
 });
 
 /* ── Open evaluation modal ── */
+// 詳細パネルのトグル
+function toggleInboxDetail(pid) {
+    var panel = document.getElementById('inbox-detail-' + pid);
+    if (!panel) return;
+    if (panel.style.display === 'none') {
+        panel.style.display = 'block';
+        // 共感・コメントデータを読み込み
+        loadEmpathyDisplay(pid);
+        loadInboxComments(pid);
+    } else {
+        panel.style.display = 'none';
+    }
+}
+
+// 詳細パネル内のタブ切替
+function switchInboxDetailTab(pid, tab) {
+    ['content','empathy','comments','actions'].forEach(function(t) {
+        var panel = document.getElementById('inbox-tab-' + t + '-' + pid);
+        if (panel) panel.style.display = (t === tab) ? 'block' : 'none';
+    });
+    // タブボタンのスタイル更新
+    var detailEl = document.getElementById('inbox-detail-' + pid);
+    if (detailEl) {
+        detailEl.querySelectorAll('.inbox-tab').forEach(function(btn) {
+            if (btn.getAttribute('data-tab') === tab) {
+                btn.style.color = '#667eea'; btn.style.borderBottomColor = '#667eea';
+            } else {
+                btn.style.color = '#999'; btn.style.borderBottomColor = 'transparent';
+            }
+        });
+    }
+}
+
 function openEvalModal(pid) { if(typeof openPriorityModal === 'function') openPriorityModal(pid); else alert("詳細画面を開けません。リロードしてください。"); }
 function openEvalModalWithTab(pid, tab) {
     if(typeof openPriorityModal === 'function') {
@@ -458,6 +511,9 @@ function loadEmpathyDisplay(pid) {
       return;
     }
     var s = res.summary;
+    // コンパクトカードのバッジ更新
+    var badge = document.getElementById('empathy-badge-' + pid);
+    if (badge && s.totalCount > 0) badge.innerText = '❤️' + s.totalCount;
 
     // Type count badges
     var typeEmoji = {

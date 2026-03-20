@@ -54,6 +54,8 @@ function renderV2Dashboard() {
       }
       btns += '<button class="btn btn-outline-primary fw-bold" onclick="doGenerateThemes()"><i class="fas fa-plus me-1"></i>次のサイクルを開始</button>';
     }
+    // 全ステータス共通: 削除ボタン
+    btns += '<button class="btn btn-outline-danger fw-bold" onclick="doDeleteCycle(' + cycle.cycle_number + ')"><i class="fas fa-trash me-1"></i>サイクル削除</button>';
     actionsArea.innerHTML = btns;
 
     // テーマ一覧
@@ -101,6 +103,14 @@ function doGenerateThemes() {
     } else {
       alert('エラー: ' + (res.msg || '不明'));
     }
+  });
+}
+
+function doDeleteCycle(cycleNum) {
+  if (!confirm('サイクル #' + cycleNum + ' を削除しますか？テーマ・投票・チャレンジも全て削除されます。')) return;
+  api('/themes/delete-cycle', { cycleNumber: cycleNum }, getAdminToken()).then(function(res) {
+    if (res.success) { alert('削除しました'); renderV2Dashboard(); }
+    else alert('エラー: ' + res.msg);
   });
 }
 

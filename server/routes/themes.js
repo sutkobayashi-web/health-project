@@ -192,6 +192,36 @@ router.post('/finalize-voting', (req, res) => {
   }
 });
 
+// サイクル削除
+router.post('/delete-cycle', (req, res) => {
+  try {
+    const { cycleNumber } = req.body;
+    const db = getDb();
+    // テーマIDを取得
+    const themeIds = db.prepare("SELECT theme_id FROM themes WHERE cycle_number = ?").all(cycleNumber).map(t => t.theme_id);
+    // 投票削除
+    themeIds.forEach(tid => {
+      db.prepare("DELETE FROM theme_votes WHERE theme_id = ?").run(tid);
+    });
+    // テーマ削除
+    db.prepare("DELETE FROM themes WHERE cycle_number = ?").run(cycleNumber);
+    // チャレンジ・参加者・KPI・バッジ削除
+    const challenges = db.prepare("SELECT challenge_id FROM challenges WHERE cycle_number = ?").all(cycleNumber);
+    challenges.forEach(c => {
+      db.prepare("DELETE FROM kpi_records WHERE challenge_id = ?").run(c.challenge_id);
+      db.prepare("DELETE FROM challenge_participants WHERE challenge_id = ?").run(c.challenge_id);
+      db.prepare("DELETE FROM badges WHERE challenge_id = ?").run(c.challenge_id);
+      db.prepare("DELETE FROM ambassador_advices WHERE challenge_id = ?").run(c.challenge_id);
+    });
+    db.prepare("DELETE FROM challenges WHERE cycle_number = ?").run(cycleNumber);
+    // サイクル削除
+    db.prepare("DELETE FROM vote_cycles WHERE cycle_number = ?").run(cycleNumber);
+    res.json({ success: true });
+  } catch (e) {
+    res.json({ success: false, msg: e.message });
+  }
+});
+
 // ============================================================
 // AIアクションプラン自動生成
 // ============================================================

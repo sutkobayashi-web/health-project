@@ -3,6 +3,16 @@
 // ====================================================
 window.addEventListener('submit', function(e) { e.preventDefault(); }, true);
 
+// カスタムアバター描画ヘルパー
+function _renderMemberAvatar(avatarStr, fallback, size) {
+    if (avatarStr && String(avatarStr).startsWith('custom:') && typeof renderCustomAvatar === 'function') {
+        var dataUrl = renderCustomAvatar(avatarStr, size * 2);
+        if (dataUrl) return '<img src="' + dataUrl + '" style="width:' + size + 'px;height:' + size + 'px;border-radius:50%;display:block;">';
+    }
+    if (avatarStr && avatarStr.length <= 4) return avatarStr;
+    return fallback || '😀';
+}
+
 // グローバル変数
 var allPostData = [];
 var currentPlanList = [];
@@ -316,10 +326,9 @@ function renderCoreMembers(members) {
         html += '<div style="background:linear-gradient(135deg,#fff3e0,#ffe0b2); border-bottom:2px solid #ff9800; padding:12px 16px;">' +
             '<div style="font-size:0.8rem; font-weight:800; color:#e65100; margin-bottom:10px;"><i class="fas fa-exclamation-circle me-1"></i>承認待ち（' + pending.length + '件）</div>';
         pending.forEach(function(m) {
-            var avatar = m.avatar || '🛡️';
-            if (avatar.length > 4) avatar = '🛡️';
+            var avatarHtml = _renderMemberAvatar(m.avatar, '🛡️', 32);
             html += '<div style="display:flex; align-items:center; gap:10px; padding:10px; background:white; border-radius:8px; margin-bottom:6px; border:1px solid #ffe0b2;">' +
-                '<div style="font-size:1.3rem;">' + avatar + '</div>' +
+                '<div style="width:32px;height:32px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;">' + avatarHtml + '</div>' +
                 '<div style="flex:1; min-width:0;">' +
                     '<div class="fw-bold" style="font-size:0.85rem;">' + escapeHtml(m.name) + (m.is_university ? ' <span class="badge bg-info" style="font-size:0.55rem;">大学</span>' : '') + '</div>' +
                     '<div class="text-muted" style="font-size:0.7rem;">' + escapeHtml(m.email) + ' / ' + escapeHtml(m.dept || m.university_org || '') + '</div>' +
@@ -335,11 +344,10 @@ function renderCoreMembers(members) {
     html += '<table class="table table-hover mb-0" style="font-size:0.85rem;">' +
         '<thead style="background:#f8f9fa;"><tr><th style="width:50px;"></th><th>氏名</th><th>部署</th><th>メール</th><th>役割</th><th style="width:100px;">操作</th></tr></thead>' +
         '<tbody>' + approved.map(function(m) {
-            var avatar = m.avatar || '🛡️';
-            if (avatar.length > 4) avatar = '🛡️';
+            var avatarHtml = _renderMemberAvatar(m.avatar, '🛡️', 32);
             var roleLabel = m.is_exec ? '<span class="badge bg-danger">Exec</span>' : (m.is_university ? '<span class="badge bg-info">大学</span>' : '<span class="badge bg-secondary">Member</span>');
             return '<tr>' +
-                '<td class="text-center" style="font-size:1.3rem;">' + avatar + '</td>' +
+                '<td class="text-center"><div style="width:32px;height:32px;border-radius:50%;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;font-size:1.3rem;">' + avatarHtml + '</div></td>' +
                 '<td class="fw-bold">' + escapeHtml(m.name) + '</td>' +
                 '<td>' + escapeHtml(m.dept || m.university_org || '') + '</td>' +
                 '<td class="text-muted small">' + escapeHtml(m.email) + '</td>' +
@@ -361,10 +369,10 @@ function renderGeneralUsers(users) {
     area.innerHTML = '<table class="table table-hover mb-0" style="font-size:0.85rem;">' +
         '<thead style="background:#f8f9fa;"><tr><th style="width:50px;"></th><th>ニックネーム</th><th>本名</th><th>部署</th><th>投稿数</th><th>登録日</th><th style="width:100px;">操作</th></tr></thead>' +
         '<tbody>' + users.map(function(u) {
-            var avatar = u.avatar || '😀';
+            var avatarHtml = _renderMemberAvatar(u.avatar, '😀', 32);
             var dateStr = u.created_at ? new Date(u.created_at).toLocaleDateString('ja-JP') : '';
             return '<tr>' +
-                '<td class="text-center" style="font-size:1.3rem;">' + avatar + '</td>' +
+                '<td class="text-center"><div style="width:32px;height:32px;border-radius:50%;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;font-size:1.3rem;">' + avatarHtml + '</div></td>' +
                 '<td class="fw-bold">' + escapeHtml(u.nickname) + '</td>' +
                 '<td>' + escapeHtml(u.real_name || '') + '</td>' +
                 '<td>' + escapeHtml(u.department || '') + '</td>' +

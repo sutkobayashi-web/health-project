@@ -70,10 +70,12 @@ router.get('/latest/:uid', (req, res) => {
 router.post('/mark-read', (req, res) => {
   try {
     const { noticeId, replyText } = req.body;
+    if (!noticeId) return res.json({ success: false, msg: 'noticeId missing' });
     const db = getDb();
-    db.prepare("UPDATE notices SET status = 'read', reply = ?, read_at = CURRENT_TIMESTAMP, admin_read = 0 WHERE notice_id = ?").run(replyText || '', noticeId);
-    res.json({ success: true });
-  } catch (e) { res.json({ success: false }); }
+    const result = db.prepare("UPDATE notices SET status = 'read', reply = ?, read_at = CURRENT_TIMESTAMP, admin_read = 0 WHERE notice_id = ?").run(replyText || '', noticeId);
+    console.log('[mark-read]', noticeId, 'changes:', result.changes);
+    res.json({ success: true, changes: result.changes });
+  } catch (e) { console.error('[mark-read error]', e.message); res.json({ success: false, msg: e.message }); }
 });
 
 // 管理者既読マーク

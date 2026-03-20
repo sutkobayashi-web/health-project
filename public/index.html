@@ -101,7 +101,7 @@
   .user-info { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
   .paging-area { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
   .btn-more { background: white; color: #555; border: 1px solid #e0e0e0; padding: 12px; border-radius: 12px; width: 100%; font-weight: 700; font-size: 0.9rem; }
-  .btn-close-timeline { background: #f0f0f0; color: #777; border: 1px solid #ddd; padding: 8px; border-radius: 10px; width: 50%; margin: 0 auto; font-weight: 600; font-size: 0.8rem; display: block; }
+  .btn-close-timeline { background: linear-gradient(135deg, #6c5ce7, #a29bfe); color: white; border: none; padding: 10px; border-radius: 12px; width: 60%; margin: 0 auto; font-weight: 700; font-size: 0.82rem; display: block; box-shadow: 0 2px 8px rgba(108,92,231,0.2); }
 
   /* ====== ローディング ====== */
   #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.96); z-index: 2147483648; display: none; justify-content: center; align-items: center; flex-direction: column; backdrop-filter: blur(8px); }
@@ -1352,7 +1352,7 @@ function openPostDetail(row) {
       imgHtml + analysisHtml +
     '</div>' +
     '<div id="post-detail-footer">' +
-      '<button id="post-detail-close-btn" style="width:100%;padding:14px;background:linear-gradient(135deg,#2c3e50,#34495e);color:white;border:none;border-radius:14px;font-weight:700;font-size:0.95rem;cursor:pointer;">閉じる</button>' +
+      '<button id="post-detail-close-btn" style="width:60%;padding:10px;background:linear-gradient(135deg,#6c5ce7,#a29bfe);color:white;border:none;border-radius:12px;font-weight:700;font-size:0.82rem;cursor:pointer;display:block;margin:0 auto;box-shadow:0 2px 8px rgba(108,92,231,0.2);">閉じる</button>' +
     '</div>';
   document.getElementById('post-detail-modal').classList.add('active');
   lockScroll();

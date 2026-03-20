@@ -3988,20 +3988,22 @@ function openEmpathyModal(row) {
     '<div style="font-size:0.75rem; color:#888; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:220px;">' + escapeHtml(p.content).substring(0, 40) + '…</div></div>' +
   '</div>';
 
-  // 共感タイプ選択
+  // 共感タイプ選択（全部盛り）
   var types = isFood ?
-    [{ key:'oishii', emoji:'🍽️', label:'美味しそう！' }, { key:'sankou', emoji:'💪', label:'参考になる！' }, { key:'onaji', emoji:'😅', label:'自分もこんな感じ…' }] :
-    [{ key:'wakaru', emoji:'🙋', label:'わかる、自分も' }, { key:'yabai', emoji:'😰', label:'これヤバくない？' }, { key:'kaisha', emoji:'💡', label:'会社が動けば変わる' }];
+    [{ key:'oishii', emoji:'🍽️', label:'美味しそう！' }, { key:'sankou', emoji:'💪', label:'参考になる！' }, { key:'onaji', emoji:'😅', label:'自分もこんな感じ…' },
+     { key:'healthy', emoji:'🌿', label:'健康的！見習いたい' }, { key:'kaizen', emoji:'🍺', label:'一緒に改善したい' }, { key:'motto', emoji:'📸', label:'もっと見たい' }] :
+    [{ key:'wakaru', emoji:'🙋', label:'わかる、自分も' }, { key:'yabai', emoji:'😰', label:'これヤバくない？' }, { key:'kaisha', emoji:'💡', label:'会社が動けば変わる' },
+     { key:'ouen', emoji:'💪', label:'応援してる！' }, { key:'issho', emoji:'🤝', label:'一緒に取り組みたい' }, { key:'senmon', emoji:'🏥', label:'専門家に相談すべき' }, { key:'kininaru', emoji:'👀', label:'気になっていた' }];
 
   html += '<div style="padding:14px 18px; flex:1; overflow-y:auto;">';
   html += '<div style="font-size:0.9rem; font-weight:700; color:#667eea; text-align:center; margin-bottom:12px;">この投稿への共感を選んでください</div>';
-  html += '<div style="display:flex; flex-direction:column; gap:8px;" id="empathy-type-area">';
+  html += '<div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center;" id="empathy-type-area">';
   types.forEach(function(t) {
-    html += '<button class="empathy-type-select" data-type="' + t.key + '" onclick="selectEmpathyType(this,\'' + t.key + '\',' + row + ',' + (isFood ? 'true' : 'false') + ')" style="display:flex; align-items:center; justify-content:center; gap:8px; padding:12px; border-radius:14px; border:2px solid #e0e0e0; background:white; font-size:0.9rem; font-weight:700; color:#444; cursor:pointer; transition:all 0.2s;">';
+    html += '<button class="empathy-type-select" data-type="' + t.key + '" onclick="quickEmpathy(this,\'' + t.key + '\',' + row + ')" style="display:flex; align-items:center; gap:6px; padding:10px 14px; border-radius:14px; border:2px solid #e0e0e0; background:white; font-size:0.82rem; font-weight:700; color:#444; cursor:pointer; transition:all 0.15s;">';
     html += t.emoji + ' ' + t.label + '</button>';
   });
   html += '</div>';
-  html += '<div id="empathy-questions-area" style="display:none; margin-top:12px;"></div>';
+  html += '<div style="margin-top:12px;"><textarea id="empathy-free-comment" placeholder="コメント（任意）" rows="2" style="width:100%; border:1.5px solid #ddd; border-radius:10px; padding:8px; font-size:0.85rem; resize:none; box-sizing:border-box;"></textarea></div>';
   html += '</div>';
 
   html += '<div style="padding:12px 18px;">' +
@@ -4015,6 +4017,41 @@ function openEmpathyModal(row) {
 
 // 共感タイプ選択
 var _selectedEmpathyType = null;
+
+// クイック共感（タイプ選択→即送信）
+function quickEmpathy(el, typeKey, row) {
+  var p = _postCache[row];
+  if (!p) return;
+  // ボタンを選択状態に
+  document.querySelectorAll('.empathy-type-select').forEach(function(b) {
+    b.style.borderColor = '#e0e0e0'; b.style.background = 'white'; b.style.color = '#444';
+  });
+  el.style.borderColor = '#667eea'; el.style.background = '#667eea'; el.style.color = 'white';
+  el.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 送信中...';
+
+  var freeComment = (document.getElementById('empathy-free-comment') || {}).value || '';
+  submitEmpathy(p.id, currentUser.uid, currentUser.nickname, typeKey, '-', '-', '-', freeComment, false).then(function(res) {
+    if (res && res.success) {
+      _empathyAnsweredPosts[p.id] = true;
+      // ハート更新
+      var likeEl = document.querySelector('.post-like-btn[data-row="' + row + '"]');
+      if (likeEl) { likeEl.classList.add('liked'); likeEl.innerHTML = '❤️ <span class="like-num" style="color:#ff6b6b;">共感済</span>'; }
+      // 感謝メッセージ
+      var sheet = document.getElementById('post-detail-sheet');
+      sheet.innerHTML =
+        '<div style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:50px 20px; text-align:center;">' +
+          '<div style="font-size:3rem; margin-bottom:12px; animation:empBounce 0.6s ease;">🎉</div>' +
+          '<div style="font-size:1.1rem; font-weight:700; color:#333;">ありがとう！</div>' +
+          '<div style="font-size:0.85rem; color:#888; margin-top:6px;">あなたの声が健康アクションプランに活かされます</div>' +
+        '</div>' +
+        '<div style="padding:12px 18px;"><button id="post-detail-close-btn" style="width:60%;padding:10px;background:linear-gradient(135deg,#6c5ce7,#a29bfe);color:white;border:none;border-radius:12px;font-weight:700;font-size:0.82rem;cursor:pointer;display:block;margin:0 auto;">閉じる</button></div>';
+    } else {
+      alert('送信失敗: ' + (res ? res.msg : ''));
+      el.innerHTML = el.getAttribute('data-type'); // 元に戻す（簡易）
+      el.style.borderColor = '#e0e0e0'; el.style.background = 'white'; el.style.color = '#444';
+    }
+  });
+}
 var _empathyQuestions = {
   consult: {
     wakaru: [{ q:'どのくらい困ってる？', c:['すごく','まあまあ','少し'] }, { q:'いつ頃から？', c:['最近','半年くらい','ずっと前から'] }, { q:'自分で何か対策してる？', c:['してる','したいけど…','してない'] }],

@@ -650,15 +650,16 @@ function loadEmpathyDisplay(pid) {
       'wakaru': { emoji:'🙋', label:'わかる、自分も' },
       'yabai': { emoji:'😰', label:'これヤバくない？' },
       'kaisha': { emoji:'💡', label:'会社が動けば変わる' },
+      'ouen': { emoji:'💪', label:'応援してる！' },
+      'issho': { emoji:'🤝', label:'一緒に取り組みたい' },
+      'senmon': { emoji:'🏥', label:'専門家に相談すべき' },
+      'kininaru': { emoji:'👀', label:'気になっていた' },
       'oishii': { emoji:'🍽️', label:'美味しそう！' },
       'sankou': { emoji:'💪', label:'参考になる！' },
       'onaji': { emoji:'😅', label:'自分もこんな感じ…' },
-      '🙋 わかる、自分も': { emoji:'🙋', label:'わかる' },
-      '😰 これヤバくない？': { emoji:'😰', label:'ヤバい' },
-      '💡 会社が動けば変わる': { emoji:'💡', label:'会社が動けば' },
-      '🍽️ 美味しそう！': { emoji:'🍽️', label:'美味しそう' },
-      '💪 参考になる！': { emoji:'💪', label:'参考になる' },
-      '😅 自分もこんな感じ…': { emoji:'😅', label:'自分も' }
+      'healthy': { emoji:'🌿', label:'健康的！見習いたい' },
+      'kaizen': { emoji:'🍺', label:'一緒に改善したい' },
+      'motto': { emoji:'📸', label:'もっと見たい' }
     };
     var html = '';
     // タイプ別バッジ

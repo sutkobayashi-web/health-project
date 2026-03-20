@@ -213,13 +213,8 @@ function renderReportList(data) {
                     '<div style="flex:1; font-size:0.85rem; line-height:1.5; color:#444; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">'+escapeHtml(rawContent)+'</div>' +
                 '</div>' +
                 // 操作ボタン行
-                '<div style="display:flex; gap:4px; margin-top:8px;">' +
-                    '<button class="btn btn-sm btn-outline-primary fw-bold" style="font-size:0.68rem; flex:1;" onclick="event.stopPropagation(); toggleInboxDetail(\''+pid+'\')"><i class="fas fa-chevron-down me-1"></i>詳細</button>' +
-                    (isTarget ?
-                        '<button class="btn btn-sm btn-outline-secondary" style="font-size:0.68rem;" onclick="event.stopPropagation(); toggleTriage(\''+pid+'\', false)"><i class="fas fa-undo me-1"></i>解除</button>'
-                    :
-                        '<button class="btn btn-sm btn-outline-warning" style="font-size:0.68rem;" onclick="event.stopPropagation(); toggleTriage(\''+pid+'\', true)"><i class="fas fa-star me-1"></i>重点へ</button>'
-                    ) +
+                '<div style="margin-top:8px; text-align:right;">' +
+                    '<button class="btn btn-sm btn-outline-primary" style="font-size:0.68rem; padding:3px 12px;" onclick="event.stopPropagation(); toggleInboxDetail(\''+pid+'\')"><i class="fas fa-chevron-down"></i> 詳細</button>' +
                 '</div>' +
             '</div>' +
             // 詳細パネル（左右分割モーダル）

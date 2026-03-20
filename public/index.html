@@ -234,18 +234,8 @@
         </div>
         <div class="form-group" style="flex:1; margin-bottom:0;"><label><i class="fas fa-birthday-cake" style="color:#f39c12; margin-right:4px;"></i> 生年月日</label><input type="date" id="reg-birthdate"></div>
       </div>
-      <div class="form-group"><label><i class="fas fa-smile" style="color:#d63384; margin-right:4px;"></i> アバターを選ぼう！</label>
-        <div class="avatar-tab-bar">
-          <button class="avatar-tab-btn active" onclick="switchRegTab('emoji')">絵文字</button>
-          <button class="avatar-tab-btn" onclick="switchRegTab('custom')">カスタム作成</button>
-        </div>
-        <div class="avatar-tab-content active" id="reg-tab-emoji">
-          <div class="avatar-grid" id="avatar-grid"></div>
-        </div>
-        <div class="avatar-tab-content" id="reg-tab-custom">
-          <div class="avatar-builder-body" id="reg-builder-container"></div>
-          <button class="ab-submit-btn" onclick="regSelectCustomAvatar()">このアバターに決定！</button>
-        </div>
+      <div class="form-group"><label><i class="fas fa-smile" style="color:#d63384; margin-right:4px;"></i> アバターを作ろう！</label>
+        <div class="avatar-builder-body" id="reg-builder-container"></div>
       </div>
       <button class="auth-submit-btn" id="reg-submit-btn" onclick="doRegister()" disabled style="opacity:0.5; cursor:not-allowed;">利用規約に同意してください</button>
       <div class="back-btn" onclick="showStep('menu')">← 戻る</div>
@@ -1523,6 +1513,7 @@ function abSelect(prop, val, previewCanvasId) {
   _avatarCache = {};
   var containerId = previewCanvasId === 'reg-preview-canvas' ? 'reg-builder-container' : 'change-builder-container';
   abRenderBuilderUI(containerId, previewCanvasId);
+  selectedAvatar = abBuildString();
 }
 
 function abToggleAcc(idx, previewCanvasId) {
@@ -1538,6 +1529,7 @@ function abToggleAcc(idx, previewCanvasId) {
   _avatarCache = {};
   var containerId = previewCanvasId === 'reg-preview-canvas' ? 'reg-builder-container' : 'change-builder-container';
   abRenderBuilderUI(containerId, previewCanvasId);
+  selectedAvatar = abBuildString();
 }
 
 // ★ ページ読み込み時に保存済みログイン情報をチェック
@@ -1603,20 +1595,11 @@ function showStep(step) {
   }
 }
 
-var selectedAvatar = '😀';
+var selectedAvatar = null;
 function initAvatarGrid() {
-  var grid = document.getElementById('avatar-grid');
-  grid.innerHTML = avatarList.map(function(a) {
-    return '<div class="avatar-option' + (a === selectedAvatar ? ' selected' : '') + '" onclick="selectAvatar(this, \'' + a + '\')">' + a + '</div>';
-  }).join('');
-  // Init custom builder for registration too
   abState = { skin: 2, hair: 0, hairColor: 0, eye: 0, mouth: 0, accessories: [0], bg: 0, faceSize: 1, eyebrow: 0, nose: 0, beard: 0, cheek: 0, faceShape: 0, eyeColor: 0 };
   abRenderBuilderUI('reg-builder-container', 'reg-preview-canvas');
-}
-
-function selectAvatar(el, av) {
-  document.querySelectorAll('#avatar-grid .avatar-option').forEach(function(e) { e.classList.remove('selected'); });
-  el.classList.add('selected'); selectedAvatar = av;
+  selectedAvatar = abBuildString();
 }
 
 function switchRegTab(tab) {
@@ -1643,19 +1626,13 @@ function regSelectCustomAvatar() {
 
 function openAvatarSheet() {
   if (!currentUser) return;
-  var grid = document.getElementById('avatar-change-grid');
-  grid.innerHTML = avatarList.map(function(a) {
-    var cls = 'avatar-option' + (a === currentUser.avatar ? ' current' : '');
-    return '<div class="' + cls + '" onclick="pickNewAvatar(this, \'' + a + '\')">' + a + '</div>';
-  }).join('');
-  // Reset to emoji tab
-  switchChangeTab('emoji');
   // If current avatar is custom, pre-load it into builder
   if (currentUser.avatar && currentUser.avatar.startsWith('custom:')) {
     abParseString(currentUser.avatar);
   } else {
     abState = { skin: 2, hair: 0, hairColor: 0, eye: 0, mouth: 0, accessories: [0], bg: 0, faceSize: 1, eyebrow: 0, nose: 0, beard: 0, cheek: 0, faceShape: 0, eyeColor: 0 };
   }
+  abRenderBuilderUI('change-builder-container', 'change-preview-canvas');
   var overlay = document.getElementById('avatar-change-overlay');
   var sheet = document.getElementById('avatar-change-sheet');
   overlay.classList.add('active');
@@ -2531,18 +2508,9 @@ function hideLoading() { document.getElementById('loading-overlay').style.displa
     <h3><i class="fas fa-smile" style="color:#d63384; margin-right:6px;"></i>アバターを変更</h3>
     <button class="avatar-sheet-close" onclick="closeAvatarSheet()"><i class="fas fa-times"></i></button>
   </div>
-  <div class="avatar-tab-bar">
-    <button class="avatar-tab-btn active" id="change-tab-emoji-btn" onclick="switchChangeTab('emoji')">絵文字</button>
-    <button class="avatar-tab-btn" id="change-tab-custom-btn" onclick="switchChangeTab('custom')">カスタム作成</button>
-  </div>
-  <div class="avatar-tab-content active" id="change-tab-emoji">
-    <div class="avatar-sheet-grid" id="avatar-change-grid"></div>
-  </div>
-  <div class="avatar-tab-content" id="change-tab-custom">
-    <div class="avatar-builder-sticky-preview" id="change-sticky-preview"></div>
-    <div class="avatar-builder-body" id="change-builder-container"></div>
-    <div style="padding:0 16px 16px;"><button class="ab-submit-btn" onclick="changePickCustomAvatar()">このアバターに決定！</button></div>
-  </div>
+  <div class="avatar-builder-sticky-preview" id="change-sticky-preview"></div>
+  <div class="avatar-builder-body" id="change-builder-container"></div>
+  <div style="padding:0 16px 16px;"><button class="ab-submit-btn" onclick="changePickCustomAvatar()">このアバターに決定！</button></div>
 </div>
 </div>
 

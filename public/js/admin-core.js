@@ -550,7 +550,7 @@ function switchTab(t) {
     var navEl = document.getElementById(navMap[t] || 'nav-eval');
     if(navEl) navEl.classList.add('active');
 
-    if(t==='evaluation') renderInbox(currentInboxFilter);
+    if(t==='evaluation') { renderInbox(currentInboxFilter); setTimeout(function(){ if(typeof renderInboxCustomAvatars==='function') renderInboxCustomAvatars(); }, 500); }
     if(t==='current') loadCurrentAnalysis();
     if(t==='candidates') loadCandidates();
     if(t==='resolved') loadResolved();

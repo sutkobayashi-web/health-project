@@ -348,6 +348,22 @@
 
   <div class="main-content">
 
+    <!-- プロフィールカード -->
+    <div class="card-section" style="border-top:4px solid #667eea; background:linear-gradient(135deg, #f0f4ff 0%, #e8ecff 100%); text-align:center; padding:18px;">
+      <div style="display:flex; align-items:center; gap:14px;">
+        <div id="profile-avatar" style="width:64px; height:64px; border-radius:50%; overflow:hidden; border:3px solid #fff; box-shadow:0 4px 12px rgba(0,0,0,0.1); flex-shrink:0; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:2rem; background:#f0f0f0;" onclick="openAvatarSheet()"></div>
+        <div style="flex:1; text-align:left;">
+          <div style="font-weight:800; font-size:1.05rem; color:#2c3e50;" id="profile-nickname">--</div>
+          <div style="display:flex; gap:8px; margin-top:4px; flex-wrap:wrap;">
+            <span style="font-size:0.72rem; color:#667eea; font-weight:700;" id="profile-rank"><i class="fas fa-medal"></i> --</span>
+            <span style="font-size:0.72rem; color:#888;" id="profile-posts"><i class="fas fa-pen"></i> 投稿 0</span>
+            <span style="font-size:0.72rem; color:#888;" id="profile-dept"></span>
+          </div>
+        </div>
+        <button style="background:none; border:1px solid #ddd; border-radius:8px; padding:6px 10px; font-size:0.7rem; color:#888; cursor:pointer;" onclick="openAvatarSheet()"><i class="fas fa-edit"></i></button>
+      </div>
+    </div>
+
     <!-- 相談セクション -->
     <div class="card-section honne-area">
       <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
@@ -1987,11 +2003,22 @@ function onLoginSuccess() {
   document.getElementById('main-app').style.display = 'block';
   updateStatAvatar();
   document.getElementById('stat-nickname').innerText = currentUser.nickname || '--';
+  updateProfileCard();
   updateHeaderStats();
   generateQR();
   loadHealthMemos();
   loadThemeVoting();
   loadActiveChallenge();
+}
+
+function updateProfileCard() {
+  if (!currentUser) return;
+  var avEl = document.getElementById('profile-avatar');
+  if (avEl) avEl.innerHTML = getAvatarHtml(currentUser.avatar, 58);
+  var nickEl = document.getElementById('profile-nickname');
+  if (nickEl) nickEl.innerText = currentUser.nickname || '--';
+  var deptEl = document.getElementById('profile-dept');
+  if (deptEl && currentUser.department) deptEl.innerHTML = '<i class="fas fa-building"></i> ' + currentUser.department;
 }
 
 // ====== ヘッダー更新 ======
@@ -2001,6 +2028,11 @@ function updateHeaderStats() {
     document.getElementById('stat-rank').innerHTML = '<i class="fas fa-medal"></i> ' + res.rank;
     document.getElementById('stat-posts').innerHTML = '<i class="fas fa-pen"></i> ' + res.postCount;
     document.getElementById('stat-invites').innerHTML = '<i class="fas fa-user-plus"></i> ' + (res.inviteCount || 0);
+    // プロフィールカード更新
+    var prRank = document.getElementById('profile-rank');
+    if (prRank) prRank.innerHTML = '<i class="fas fa-medal"></i> ' + res.rank;
+    var prPosts = document.getElementById('profile-posts');
+    if (prPosts) prPosts.innerHTML = '<i class="fas fa-pen"></i> 投稿 ' + res.postCount;
   });
 }
 

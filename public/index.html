@@ -589,7 +589,7 @@ var AB_FACES = [14,16,18];
 var AB_EYE_NAMES = ['ドット','ライン','まんまる','ウインク','閉じ目','たれ目','つり目','キラキラ','ジト目'];
 var AB_MOUTH_NAMES = ['にっこり','わーい','一文字','ぽかん','むすっ','にやり','べー'];
 var AB_HAIR_NAMES = ['なし','ショート','ミディアム','ロング','スパイキー','ひよこ','チカラ','ポニテ','ボブ','おだんご','ツインテ','ウェーブ','ワンレン','ハーフアップ','マッシュ'];
-var AB_ACC_NAMES = ['なし','メガネ','帽子','リボン','ヘアバンド'];
+var AB_ACC_NAMES = ['なし','丸メガネ','四角メガネ','アンダーリム','サングラス','帽子','リボン','ヘアバンド'];
 var AB_FACE_SHAPE_NAMES = ['まるがお','おもなが','しかくめ','たまご','ホームベース','おにぎり','ほそおも','えら張り'];
 var AB_EYEBROW_NAMES = ['ナチュラル','太め','キリッと','ハの字','ほそめ','なし'];
 var AB_NOSE_NAMES = ['ちょこん','まるい','たかい','なし'];
@@ -999,31 +999,53 @@ function drawHairBack(ctx, cx, faceY, faceR, type, color) {
       }
       ctx.restore();
       break;
-    case 7: // ポニテ - ボリューミーな束
+    case 7: // ポニテ - 後頭部から下に垂れるテール
       ctx.save();
-      var pGrad = ctx.createLinearGradient(cx + faceR * 0.4, faceY - faceR * 0.8, cx + faceR * 1.2, faceY + faceR * 0.7);
+      // テール開始位置（頭頂部やや右の高い位置）
+      var ptStartX = cx + faceR * 0.15;
+      var ptStartY = faceY - faceR * 0.7;
+      // テール終了位置（背中方向に下へ流れる）
+      var ptEndX = cx + faceR * 0.5;
+      var ptEndY = faceY + faceR * 0.5;
+      var ptLen = faceR * 1.2;
+      // テール本体（太めに開始→毛先に向かって細く）
+      var pGrad = ctx.createLinearGradient(ptStartX, ptStartY, ptEndX, ptEndY);
       pGrad.addColorStop(0, darker); pGrad.addColorStop(0.3, color); pGrad.addColorStop(0.7, lighter); pGrad.addColorStop(1, darker);
       ctx.fillStyle = pGrad;
       ctx.beginPath();
-      ctx.moveTo(cx + faceR * 0.4, faceY - faceR * 0.75);
-      ctx.bezierCurveTo(cx + faceR * 0.8, faceY - faceR * 0.9, cx + faceR * 1.35, faceY - faceR * 0.4, cx + faceR * 1.2, faceY + faceR * 0.3);
-      ctx.bezierCurveTo(cx + faceR * 1.15, faceY + faceR * 0.55, cx + faceR * 1.0, faceY + faceR * 0.7, cx + faceR * 0.85, faceY + faceR * 0.65);
-      ctx.bezierCurveTo(cx + faceR * 0.7, faceY + faceR * 0.5, cx + faceR * 0.75, faceY + faceR * 0.1, cx + faceR * 0.6, faceY - faceR * 0.3);
-      ctx.bezierCurveTo(cx + faceR * 0.55, faceY - faceR * 0.55, cx + faceR * 0.45, faceY - faceR * 0.7, cx + faceR * 0.4, faceY - faceR * 0.75);
+      // テール左側（太い側）
+      ctx.moveTo(ptStartX - faceR * 0.12, ptStartY);
+      ctx.bezierCurveTo(
+        ptStartX - faceR * 0.08, ptStartY + ptLen * 0.3,
+        ptStartX + faceR * 0.15, ptStartY + ptLen * 0.6,
+        ptEndX - faceR * 0.05, ptEndY
+      );
+      // 毛先（細くなる）
+      ctx.lineTo(ptEndX + faceR * 0.05, ptEndY + faceR * 0.02);
+      // テール右側（太い側に戻る）
+      ctx.bezierCurveTo(
+        ptStartX + faceR * 0.35, ptStartY + ptLen * 0.6,
+        ptStartX + faceR * 0.25, ptStartY + ptLen * 0.3,
+        ptStartX + faceR * 0.18, ptStartY
+      );
       ctx.closePath(); ctx.fill();
-      // 結び目（リボン風の丸）
-      var knotGrad = ctx.createRadialGradient(cx + faceR * 0.45, faceY - faceR * 0.72, faceR * 0.02, cx + faceR * 0.45, faceY - faceR * 0.72, faceR * 0.1);
-      knotGrad.addColorStop(0, lighter); knotGrad.addColorStop(1, darker);
-      ctx.fillStyle = knotGrad;
-      ctx.beginPath(); ctx.arc(cx + faceR * 0.45, faceY - faceR * 0.72, faceR * 0.09, 0, Math.PI * 2); ctx.fill();
-      // 毛束のストランド
+      // 結び目（ゴム）- 髪色より暗い円
+      var pkGrad = ctx.createRadialGradient(ptStartX + faceR * 0.03, ptStartY, faceR * 0.02, ptStartX + faceR * 0.03, ptStartY, faceR * 0.09);
+      pkGrad.addColorStop(0, _skinDarker(color, 30)); pkGrad.addColorStop(1, _skinDarker(color, 50));
+      ctx.fillStyle = pkGrad;
+      ctx.beginPath(); ctx.arc(ptStartX + faceR * 0.03, ptStartY, faceR * 0.08, 0, Math.PI * 2); ctx.fill();
+      // 毛束のストランド線（5-7本）
       if (detail) {
         ctx.strokeStyle = darker; ctx.globalAlpha = 0.18; ctx.lineWidth = Math.max(0.5, faceR * 0.01);
-        for (var pi = 0; pi < 7; pi++) {
-          var pOff = (pi - 3) * faceR * 0.025;
+        for (var pi = 0; pi < 6; pi++) {
+          var pOff = (pi - 2.5) * faceR * 0.04;
           ctx.beginPath();
-          ctx.moveTo(cx + faceR * 0.45 + pOff, faceY - faceR * 0.7);
-          ctx.bezierCurveTo(cx + faceR * 1.1 + pOff, faceY - faceR * 0.3, cx + faceR * 1.05 + pOff, faceY + faceR * 0.2, cx + faceR * 0.9 + pOff, faceY + faceR * 0.6);
+          ctx.moveTo(ptStartX + faceR * 0.03 + pOff * 0.3, ptStartY + faceR * 0.05);
+          ctx.bezierCurveTo(
+            ptStartX + pOff * 0.6, ptStartY + ptLen * 0.35,
+            ptStartX + faceR * 0.2 + pOff * 0.8, ptStartY + ptLen * 0.6,
+            ptEndX + pOff * 0.5, ptEndY - faceR * 0.05
+          );
           ctx.stroke();
         }
         ctx.globalAlpha = 1;
@@ -2421,39 +2443,46 @@ function drawHair(ctx, cx, faceY, faceR, type, color) {
       }
       ctx.restore();
       break;
-    case 7: // ポニテ — 前髪残し、後ろで結ぶ
-      // ベースの頭頂部
+    case 7: // ポニテ — 流し前髪、後ろに集まる流れ
+      // ベースの頭頂部（後ろに流れるシルエット）
       ctx.fillStyle = hairGrad(topY - faceR * 0.3, topY + faceR * 0.4);
       ctx.beginPath(); ctx.arc(cx, topY + faceR * 0.1, faceR * 0.7, Math.PI, 2 * Math.PI); ctx.fill();
-      // 後ろに流れる髪の根元（結び目に向かう）
-      ctx.fillStyle = hairGrad(topY - faceR * 0.1, topY + faceR * 0.3);
+      // 頭頂部から後ろへ集まる髪の流れ（右後方へ向かう膨らみ）
+      ctx.fillStyle = hairGrad(topY - faceR * 0.15, topY + faceR * 0.3);
       ctx.beginPath();
-      ctx.moveTo(cx + faceR * 0.15, topY - faceR * 0.1);
-      ctx.bezierCurveTo(cx + faceR * 0.4, topY - faceR * 0.15, cx + faceR * 0.55, topY - faceR * 0.05, cx + faceR * 0.5, topY + faceR * 0.15);
-      ctx.bezierCurveTo(cx + faceR * 0.45, topY + faceR * 0.25, cx + faceR * 0.3, topY + faceR * 0.2, cx + faceR * 0.15, topY + faceR * 0.15);
+      ctx.moveTo(cx, topY - faceR * 0.1);
+      ctx.bezierCurveTo(cx + faceR * 0.3, topY - faceR * 0.2, cx + faceR * 0.55, topY - faceR * 0.15, cx + faceR * 0.55, topY + faceR * 0.05);
+      ctx.bezierCurveTo(cx + faceR * 0.55, topY + faceR * 0.2, cx + faceR * 0.35, topY + faceR * 0.25, cx + faceR * 0.15, topY + faceR * 0.15);
+      ctx.bezierCurveTo(cx + faceR * 0.05, topY + faceR * 0.1, cx - faceR * 0.02, topY + faceR * 0.05, cx, topY - faceR * 0.1);
       ctx.closePath(); ctx.fill();
-      // 前髪（ぱっつん風、少し隙間あり）
+      // 前髪（流し前髪風 — 左から右へ流れる）
       ctx.fillStyle = hairGrad(topY - faceR * 0.1, topY + faceR * 0.45);
       ctx.beginPath();
-      ctx.moveTo(cx - faceR * 0.55, topY + faceR * 0.15);
-      ctx.bezierCurveTo(cx - faceR * 0.5, topY + faceR * 0.38, cx - faceR * 0.35, topY + faceR * 0.45, cx - faceR * 0.15, topY + faceR * 0.43);
-      ctx.bezierCurveTo(cx - faceR * 0.05, topY + faceR * 0.4, cx + faceR * 0.05, topY + faceR * 0.42, cx + faceR * 0.15, topY + faceR * 0.4);
-      ctx.bezierCurveTo(cx + faceR * 0.3, topY + faceR * 0.36, cx + faceR * 0.45, topY + faceR * 0.28, cx + faceR * 0.55, topY + faceR * 0.18);
-      ctx.lineTo(cx + faceR * 0.6, topY + faceR * 0.05);
-      ctx.bezierCurveTo(cx + faceR * 0.45, topY - faceR * 0.15, cx - faceR * 0.45, topY - faceR * 0.15, cx - faceR * 0.58, topY + faceR * 0.05);
+      ctx.moveTo(cx - faceR * 0.58, topY + faceR * 0.05);
+      // 左側から右に流れるカーブ
+      ctx.bezierCurveTo(cx - faceR * 0.55, topY + faceR * 0.25, cx - faceR * 0.45, topY + faceR * 0.4, cx - faceR * 0.25, topY + faceR * 0.44);
+      ctx.bezierCurveTo(cx - faceR * 0.1, topY + faceR * 0.46, cx + faceR * 0.05, topY + faceR * 0.43, cx + faceR * 0.2, topY + faceR * 0.38);
+      // 右側は短く上がる（流し前髪の端）
+      ctx.bezierCurveTo(cx + faceR * 0.35, topY + faceR * 0.32, cx + faceR * 0.48, topY + faceR * 0.22, cx + faceR * 0.55, topY + faceR * 0.12);
+      ctx.lineTo(cx + faceR * 0.6, topY + faceR * 0.02);
+      ctx.bezierCurveTo(cx + faceR * 0.45, topY - faceR * 0.18, cx - faceR * 0.45, topY - faceR * 0.18, cx - faceR * 0.58, topY + faceR * 0.05);
       ctx.closePath(); ctx.fill();
       _drawHairShine(ctx, cx, topY, faceR, color, [
-        [cx - faceR * 0.3, topY + faceR * 0.05, cx - faceR * 0.1, topY - faceR * 0.15, cx + faceR * 0.15, topY - faceR * 0.1],
-        [cx + faceR * 0.05, topY + faceR * 0.08, cx + faceR * 0.2, topY - faceR * 0.12, cx + faceR * 0.4, topY - faceR * 0.05]
+        [cx - faceR * 0.35, topY + faceR * 0.08, cx - faceR * 0.1, topY - faceR * 0.12, cx + faceR * 0.15, topY - faceR * 0.08],
+        [cx + faceR * 0.05, topY + faceR * 0.06, cx + faceR * 0.25, topY - faceR * 0.1, cx + faceR * 0.42, topY - faceR * 0.02]
       ]);
-      _drawPartLine(cx - faceR * 0.12, topY - faceR * 0.05, topY + faceR * 0.1);
+      _drawPartLine(cx - faceR * 0.2, topY - faceR * 0.08, topY + faceR * 0.08);
+      // 頭頂部から後ろへ集まる流れ線
       _drawStrands([
-        [cx - faceR * 0.5, topY + faceR * 0.18, cx - faceR * 0.42, topY + faceR * 0.3, cx - faceR * 0.28, topY + faceR * 0.42],
-        [cx - faceR * 0.3, topY + faceR * 0.16, cx - faceR * 0.15, topY + faceR * 0.32, cx - faceR * 0.02, topY + faceR * 0.4],
-        [cx - faceR * 0.1, topY + faceR * 0.15, cx + faceR * 0.08, topY + faceR * 0.3, cx + faceR * 0.2, topY + faceR * 0.38],
-        [cx + faceR * 0.1, topY + faceR * 0.16, cx + faceR * 0.25, topY + faceR * 0.26, cx + faceR * 0.38, topY + faceR * 0.3],
-        [cx - faceR * 0.45, topY + faceR * 0.1, cx - faceR * 0.3, topY - faceR * 0.05, cx - faceR * 0.1, topY - faceR * 0.08],
-        [cx + faceR * 0.15, topY + faceR * 0.08, cx + faceR * 0.3, topY - faceR * 0.02, cx + faceR * 0.45, topY + faceR * 0.05]
+        // 前髪の流し方向ストランド（左→右）
+        [cx - faceR * 0.5, topY + faceR * 0.12, cx - faceR * 0.3, topY + faceR * 0.3, cx - faceR * 0.1, topY + faceR * 0.42],
+        [cx - faceR * 0.35, topY + faceR * 0.1, cx - faceR * 0.1, topY + faceR * 0.3, cx + faceR * 0.1, topY + faceR * 0.4],
+        [cx - faceR * 0.15, topY + faceR * 0.08, cx + faceR * 0.1, topY + faceR * 0.25, cx + faceR * 0.3, topY + faceR * 0.32],
+        [cx + faceR * 0.05, topY + faceR * 0.06, cx + faceR * 0.25, topY + faceR * 0.18, cx + faceR * 0.45, topY + faceR * 0.2],
+        // 頭頂部→後方への流れ線
+        [cx - faceR * 0.1, topY - faceR * 0.05, cx + faceR * 0.15, topY - faceR * 0.12, cx + faceR * 0.4, topY - faceR * 0.05],
+        [cx, topY - faceR * 0.08, cx + faceR * 0.2, topY - faceR * 0.15, cx + faceR * 0.45, topY - faceR * 0.02],
+        [cx + faceR * 0.1, topY - faceR * 0.05, cx + faceR * 0.3, topY - faceR * 0.1, cx + faceR * 0.5, topY + faceR * 0.05]
       ]);
       break;
     case 8: // ボブ — 顎ラインで内巻き、ぱっつん前髪
@@ -2748,7 +2777,7 @@ function drawAccessory(ctx, cx, faceY, eyeY, faceR, eyeSpacing, acc, hairColor) 
   var detail = faceR >= 20;
   ctx.save();
   switch(acc) {
-    case 1: // メガネ
+    case 1: // 丸メガネ
       var gr = faceR * 0.18;
       // フレームの影
       if (detail) {
@@ -2771,7 +2800,114 @@ function drawAccessory(ctx, cx, faceY, eyeY, faceR, eyeSpacing, acc, hairColor) 
         ctx.beginPath(); ctx.arc(rx, eyeY, gr * 0.85, 0, Math.PI * 2); ctx.fill();
       }
       break;
-    case 2: // 帽子
+    case 2: // 四角メガネ
+      var sqW = faceR * 0.2;
+      var sqH = faceR * 0.15;
+      var sqR = faceR * 0.03;
+      // フレームの影
+      if (detail) {
+        ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+        ctx.lineWidth = faceR * 0.05;
+        ctx.beginPath(); ctx.roundRect(lx - sqW, eyeY - sqH + faceR * 0.005, sqW * 2, sqH * 2, sqR); ctx.stroke();
+        ctx.beginPath(); ctx.roundRect(rx - sqW, eyeY - sqH + faceR * 0.005, sqW * 2, sqH * 2, sqR); ctx.stroke();
+      }
+      // メインフレーム
+      ctx.strokeStyle = '#1a1a1a'; ctx.lineWidth = faceR * 0.04;
+      ctx.beginPath(); ctx.roundRect(lx - sqW, eyeY - sqH, sqW * 2, sqH * 2, sqR); ctx.stroke();
+      ctx.beginPath(); ctx.roundRect(rx - sqW, eyeY - sqH, sqW * 2, sqH * 2, sqR); ctx.stroke();
+      // ブリッジ（まっすぐ）
+      ctx.beginPath(); ctx.moveTo(lx + sqW, eyeY); ctx.lineTo(rx - sqW, eyeY); ctx.stroke();
+      // テンプル（つる）
+      ctx.beginPath(); ctx.moveTo(lx - sqW, eyeY - sqH * 0.3); ctx.lineTo(lx - sqW - faceR * 0.14, eyeY - faceR * 0.04); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(rx + sqW, eyeY - sqH * 0.3); ctx.lineTo(rx + sqW + faceR * 0.14, eyeY - faceR * 0.04); ctx.stroke();
+      // レンズの微かな反射
+      if (detail) {
+        ctx.fillStyle = 'rgba(255,255,255,0.05)';
+        ctx.beginPath(); ctx.roundRect(lx - sqW * 0.8, eyeY - sqH * 0.8, sqW * 1.6, sqH * 1.6, sqR); ctx.fill();
+        ctx.beginPath(); ctx.roundRect(rx - sqW * 0.8, eyeY - sqH * 0.8, sqW * 1.6, sqH * 1.6, sqR); ctx.fill();
+      }
+      break;
+    case 3: // アンダーリム
+      var urW = faceR * 0.18;
+      var urH = faceR * 0.14;
+      // フレームの影
+      if (detail) {
+        ctx.strokeStyle = 'rgba(0,0,0,0.08)';
+        ctx.lineWidth = faceR * 0.04;
+        ctx.beginPath(); ctx.arc(lx, eyeY + faceR * 0.005, urW, 0.15 * Math.PI, 0.85 * Math.PI); ctx.stroke();
+        ctx.beginPath(); ctx.arc(rx, eyeY + faceR * 0.005, urW, 0.15 * Math.PI, 0.85 * Math.PI); ctx.stroke();
+      }
+      // 下半分フレーム（アンダーリム）
+      ctx.strokeStyle = '#333'; ctx.lineWidth = faceR * 0.035;
+      // 左レンズ下半分
+      ctx.beginPath(); ctx.arc(lx, eyeY, urW, 0.15 * Math.PI, 0.85 * Math.PI); ctx.stroke();
+      // 右レンズ下半分
+      ctx.beginPath(); ctx.arc(rx, eyeY, urW, 0.15 * Math.PI, 0.85 * Math.PI); ctx.stroke();
+      // 下フレームの端を上に繋ぐ細い線（左右の端）
+      ctx.lineWidth = faceR * 0.015;
+      // 左レンズの左端縦線
+      var ulAng1 = 0.85 * Math.PI;
+      ctx.beginPath();
+      ctx.moveTo(lx + Math.cos(ulAng1) * urW, eyeY + Math.sin(ulAng1) * urW);
+      ctx.lineTo(lx + Math.cos(ulAng1) * urW, eyeY - urH * 0.3);
+      ctx.stroke();
+      // 左レンズの右端縦線
+      var ulAng2 = 0.15 * Math.PI;
+      ctx.beginPath();
+      ctx.moveTo(lx + Math.cos(ulAng2) * urW, eyeY + Math.sin(ulAng2) * urW);
+      ctx.lineTo(lx + Math.cos(ulAng2) * urW, eyeY - urH * 0.3);
+      ctx.stroke();
+      // 右レンズの左端縦線
+      ctx.beginPath();
+      ctx.moveTo(rx + Math.cos(ulAng1) * urW, eyeY + Math.sin(ulAng1) * urW);
+      ctx.lineTo(rx + Math.cos(ulAng1) * urW, eyeY - urH * 0.3);
+      ctx.stroke();
+      // 右レンズの右端縦線
+      ctx.beginPath();
+      ctx.moveTo(rx + Math.cos(ulAng2) * urW, eyeY + Math.sin(ulAng2) * urW);
+      ctx.lineTo(rx + Math.cos(ulAng2) * urW, eyeY - urH * 0.3);
+      ctx.stroke();
+      // ブリッジ
+      ctx.lineWidth = faceR * 0.025;
+      ctx.beginPath(); ctx.moveTo(lx + urW * 0.95, eyeY); ctx.lineTo(rx - urW * 0.95, eyeY); ctx.stroke();
+      // テンプル
+      ctx.beginPath(); ctx.moveTo(lx - urW, eyeY); ctx.lineTo(lx - urW - faceR * 0.12, eyeY - faceR * 0.03); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(rx + urW, eyeY); ctx.lineTo(rx + urW + faceR * 0.12, eyeY - faceR * 0.03); ctx.stroke();
+      break;
+    case 4: // サングラス
+      var sgR = faceR * 0.22;
+      // レンズ塗りつぶし（グラデーション）
+      var sgGradL = ctx.createRadialGradient(lx - sgR * 0.2, eyeY - sgR * 0.3, sgR * 0.1, lx, eyeY, sgR);
+      sgGradL.addColorStop(0, '#4a3728'); sgGradL.addColorStop(0.6, '#2a1a10'); sgGradL.addColorStop(1, '#1a0e08');
+      var sgGradR = ctx.createRadialGradient(rx - sgR * 0.2, eyeY - sgR * 0.3, sgR * 0.1, rx, eyeY, sgR);
+      sgGradR.addColorStop(0, '#4a3728'); sgGradR.addColorStop(0.6, '#2a1a10'); sgGradR.addColorStop(1, '#1a0e08');
+      // 左レンズ塗り
+      ctx.fillStyle = sgGradL;
+      ctx.beginPath(); ctx.arc(lx, eyeY, sgR, 0, Math.PI * 2); ctx.fill();
+      // 右レンズ塗り
+      ctx.fillStyle = sgGradR;
+      ctx.beginPath(); ctx.arc(rx, eyeY, sgR, 0, Math.PI * 2); ctx.fill();
+      // 太めのフレーム
+      ctx.strokeStyle = '#111'; ctx.lineWidth = faceR * 0.055;
+      ctx.beginPath(); ctx.arc(lx, eyeY, sgR, 0, Math.PI * 2); ctx.stroke();
+      ctx.beginPath(); ctx.arc(rx, eyeY, sgR, 0, Math.PI * 2); ctx.stroke();
+      // ブリッジ
+      ctx.lineWidth = faceR * 0.05;
+      ctx.beginPath(); ctx.moveTo(lx + sgR, eyeY); ctx.lineTo(rx - sgR, eyeY); ctx.stroke();
+      // テンプル（太め）
+      ctx.lineWidth = faceR * 0.045;
+      ctx.beginPath(); ctx.moveTo(lx - sgR, eyeY); ctx.lineTo(lx - sgR - faceR * 0.15, eyeY - faceR * 0.04); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(rx + sgR, eyeY); ctx.lineTo(rx + sgR + faceR * 0.15, eyeY - faceR * 0.04); ctx.stroke();
+      // レンズの反射ハイライト
+      if (detail) {
+        ctx.fillStyle = 'rgba(255,255,255,0.18)';
+        ctx.save();
+        ctx.beginPath(); ctx.ellipse(lx - sgR * 0.25, eyeY - sgR * 0.25, sgR * 0.35, sgR * 0.2, -0.4, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(rx - sgR * 0.25, eyeY - sgR * 0.25, sgR * 0.35, sgR * 0.2, -0.4, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+      }
+      break;
+    case 5: // 帽子
       var hatY = faceY - faceR - faceR * 0.05;
       // 帽子本体（グラデーション）
       var hatGrad = ctx.createLinearGradient(cx, hatY - faceR * 0.3, cx, hatY + faceR * 0.15);
@@ -2794,7 +2930,7 @@ function drawAccessory(ctx, cx, faceY, eyeY, faceR, eyeSpacing, acc, hairColor) 
       ctx.ellipse(cx, hatY + faceR * 0.15, faceR * 0.85, faceR * 0.1, 0, 0, Math.PI * 2);
       ctx.fill();
       break;
-    case 3: // リボン
+    case 6: // リボン
       var ribY = faceY - faceR - faceR * 0.1;
       // リボン影
       if (detail) {
@@ -2817,7 +2953,7 @@ function drawAccessory(ctx, cx, faceY, eyeY, faceR, eyeSpacing, acc, hairColor) 
       ctx.fillStyle = knotGrad;
       ctx.beginPath(); ctx.arc(cx, ribY, faceR * 0.06, 0, Math.PI * 2); ctx.fill();
       break;
-    case 4: // ヘアバンド
+    case 7: // ヘアバンド
       // ヘアバンド影
       if (detail) {
         ctx.strokeStyle = 'rgba(150,30,30,0.2)'; ctx.lineWidth = faceR * 0.09;

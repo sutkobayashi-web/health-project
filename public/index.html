@@ -401,17 +401,20 @@
 
     <!-- テーマ投票 -->
     <div class="card-section" id="theme-vote-section" style="display:none; border-top:4px solid #667eea; background:linear-gradient(135deg, #f0f4ff 0%, #e8ecff 100%);">
-      <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+      <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="toggleAccordion('vote-body','vote-chevron')">
         <div style="display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);flex-shrink:0;"><i class="fas fa-vote-yea" style="font-size:22px;color:#fff;"></i></div>
         <div style="flex:1;">
           <div class="section-title" style="margin-bottom:2px;"><i class="fas fa-vote-yea"></i> テーマ投票</div>
           <div style="font-size:0.75rem; color:#999;" id="vote-cycle-subtitle">次のアクションプラン、何にする？</div>
         </div>
+        <i class="fas fa-chevron-down" id="vote-chevron" style="color:#667eea; font-size:0.9rem; transition:transform 0.3s;"></i>
       </div>
-      <div id="vote-status-bar" style="font-size:0.75rem; color:#667eea; font-weight:700; margin-bottom:10px; text-align:center;"></div>
-      <div id="theme-vote-list"></div>
-      <div id="vote-comment-area" style="display:none; margin-top:10px;">
-        <input type="text" id="vote-comment-input" placeholder="こんなプランだったら参加したい..." style="width:100%; border:1px solid #ddd; border-radius:10px; padding:8px 12px; font-size:0.82rem; outline:none;">
+      <div id="vote-body" style="display:none; margin-top:12px;">
+        <div id="vote-status-bar" style="font-size:0.75rem; color:#667eea; font-weight:700; margin-bottom:10px; text-align:center;"></div>
+        <div id="theme-vote-list"></div>
+        <div id="vote-comment-area" style="display:none; margin-top:10px;">
+          <input type="text" id="vote-comment-input" placeholder="こんなプランだったら参加したい..." style="width:100%; border:1px solid #ddd; border-radius:10px; padding:8px 12px; font-size:0.82rem; outline:none;">
+        </div>
       </div>
     </div>
 
@@ -429,14 +432,17 @@
 
     <!-- 健康メモ -->
     <div class="card-section" id="health-memo-section" style="border-top:4px solid #ff9800; background:linear-gradient(135deg, #fffde7 0%, #fff8e1 100%);">
-      <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+      <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="toggleAccordion('memo-body','memo-chevron')">
         <div style="display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#fff3e0,#ffe0b2);flex-shrink:0;"><i class="fas fa-bookmark" style="font-size:22px;color:#e65100;"></i></div>
-        <div>
-          <div class="section-title" style="margin-bottom:2px;"><i class="fas fa-bookmark"></i> 健康メモ</div>
+        <div style="flex:1;">
+          <div class="section-title" style="margin-bottom:2px;"><i class="fas fa-bookmark"></i> 健康メモ <span id="memo-count-badge" style="font-size:0.65rem; font-weight:700; background:#ff9800; color:white; padding:1px 7px; border-radius:10px; margin-left:6px; display:none;">0</span></div>
           <div style="font-size:0.75rem; color:#999;">AIアドバイザーの回答を保存</div>
         </div>
+        <i class="fas fa-chevron-down" id="memo-chevron" style="color:#ff9800; font-size:0.9rem; transition:transform 0.3s;"></i>
       </div>
-      <div id="health-memo-list"></div>
+      <div id="memo-body" style="display:none; margin-top:12px;">
+        <div id="health-memo-list"></div>
+      </div>
     </div>
 
     <!-- QR招待 -->
@@ -2138,10 +2144,13 @@ function loadHealthMemos() {
   var list = document.getElementById('health-memo-list');
   if (!list) return;
   getChatMemos(currentUser.uid).then(function(res) {
+    var badge = document.getElementById('memo-count-badge');
     if (!res || !res.success || !res.memos || res.memos.length === 0) {
       list.innerHTML = '<div class="health-memo-empty-msg"><i class="fas fa-info-circle" style="margin-right:4px;"></i>AIアドバイザーとのチャットで<br>気になった回答を保存できます</div>';
+      if (badge) { badge.style.display = 'none'; }
       return;
     }
+    if (badge) { badge.innerText = res.memos.length; badge.style.display = 'inline'; }
     list.innerHTML = '';
     res.memos.forEach(function(m) {
       var safe = m.memo_text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -2681,6 +2690,18 @@ function escInbox(t) {
 <script>
 function escapeHtml(t) {
   return String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function toggleAccordion(bodyId, chevronId) {
+  var body = document.getElementById(bodyId);
+  var chevron = document.getElementById(chevronId);
+  if (!body) return;
+  if (body.style.display === 'none') {
+    body.style.display = 'block';
+    if (chevron) chevron.style.transform = 'rotate(180deg)';
+  } else {
+    body.style.display = 'none';
+    if (chevron) chevron.style.transform = 'rotate(0deg)';
+  }
 }
 // ====== テーマ投票 ======
 function loadThemeVoting() {

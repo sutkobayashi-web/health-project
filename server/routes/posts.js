@@ -24,7 +24,15 @@ router.get('/public', (req, res) => {
     const userCounts = {};
     db.prepare('SELECT user_id, COUNT(*) as cnt FROM posts GROUP BY user_id').all().forEach(r => { userCounts[r.user_id] = r.cnt; });
 
-// 共感カウント集計    const empathyCountsByPost = {};    try {      db.prepare('SELECT post_id, empathy_type, COUNT(*) as cnt FROM empathy_responses GROUP BY post_id, empathy_type').all()        .forEach(r => {          if (!empathyCountsByPost[r.post_id]) empathyCountsByPost[r.post_id] = {};          empathyCountsByPost[r.post_id][r.empathy_type] = r.cnt;        });    } catch (e) { /* table may not exist yet */ }
+    // 共感カウント集計
+    const empathyCountsByPost = {};
+    try {
+      db.prepare('SELECT post_id, empathy_type, COUNT(*) as cnt FROM empathy_responses GROUP BY post_id, empathy_type').all()
+        .forEach(r => {
+          if (!empathyCountsByPost[r.post_id]) empathyCountsByPost[r.post_id] = {};
+          empathyCountsByPost[r.post_id][r.empathy_type] = r.cnt;
+        });
+    } catch (e) { /* table may not exist yet */ }
     const mappedPosts = pagedPosts.map(p => {
       const count = userCounts[p.user_id] || 0;
       let rank = 'Beginner';

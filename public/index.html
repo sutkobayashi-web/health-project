@@ -5506,7 +5506,7 @@ function showChallengeRanking() {
       html += '<div style="font-size:0.8rem; font-weight:700; color:#ff6b35; margin-bottom:8px;"><i class="fas fa-comment"></i> みんなのコメント</div>';
       res.recentComments.forEach(function(c) {
         html += '<div style="padding:6px 0; border-bottom:1px solid #f5f5f5; font-size:0.8rem;">';
-        html += '<span style="font-weight:700;">' + (c.avatar || '😀') + ' ' + escapeHtml(c.nickname || '匿名') + '</span> ';
+        html += '<span style="font-weight:700; display:inline-flex; align-items:center; gap:4px;">' + getAvatarHtml(c.avatar || '😀', 20) + ' ' + escapeHtml(c.nickname || '匿名') + '</span> ';
         html += '<span style="color:#444;">' + escapeHtml(c.comment) + '</span>';
         html += '</div>';
       });
@@ -5532,7 +5532,7 @@ function renderRankList(type) {
     var val = type === 'total' ? u.totalValue : type === 'streak' ? u.maxStreak + '日' : u.recordCount + '回';
     html += '<div style="display:flex; align-items:center; gap:8px; padding:8px; border-radius:8px; ' + (isMe ? 'background:#fff5f0; border:1px solid #ff6b35;' : 'border-bottom:1px solid #f5f5f5;') + '">';
     html += '<span style="width:30px; text-align:center; font-weight:800; font-size:' + (i < 3 ? '1.2rem' : '0.85rem') + ';">' + medal + '</span>';
-    html += '<span style="font-size:1.1rem;">' + (u.avatar || '😀') + '</span>';
+    html += '<span style="width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;overflow:hidden;flex-shrink:0;">' + getAvatarHtml(u.avatar || '😀', 32) + '</span>';
     html += '<span style="flex:1; font-weight:' + (isMe ? '800' : '600') + '; font-size:0.85rem;">' + escapeHtml(u.nickname) + (isMe ? ' (あなた)' : '') + '</span>';
     html += '<span style="font-weight:800; font-size:0.9rem; color:#667eea;">' + val + '</span>';
     html += '</div>';

@@ -3905,9 +3905,12 @@ function renderPost(p) {
         '<div class="avatar">' + avatarHtml + '</div>' +
         '<div class="nick">' + p.nickname + ' <span class="rank">' + p.authorRank + '</span></div>' +
         ownBtns +
-        '<span class="post-like-btn" id="' + likeId + '" data-row="' + p.row + '" data-liked="' + (liked ? '1' : '0') + '">' +
-          (liked ? '❤️' : '🤍') + ' <span class="like-num">' + p.likeCount + '</span>' +
-        '</span>' +
+        (function() {
+          var empathied = _empathyAnsweredPosts[p.id];
+          var heartIcon = empathied ? '❤️' : '🤍';
+          var heartLabel = empathied ? '<span class="like-num" style="color:#ff6b6b;">共感済</span>' : '<span class="like-num" style="color:#999;">共感</span>';
+          return '<span class="post-like-btn' + (empathied ? ' liked' : '') + '" id="' + likeId + '" data-row="' + p.row + '">' + heartIcon + ' ' + heartLabel + '</span>';
+        })() +
       '</div>' +
       '<div style="display:flex;gap:10px;align-items:flex-start;">' +
         (thumbHtml ? thumbHtml : '') +
@@ -4083,6 +4086,12 @@ function submitEmpathyResponse(row) {
   submitEmpathy(p.id, currentUser.uid, currentUser.nickname, _selectedEmpathyType, answers[0], answers[1], answers[2], freeComment, false).then(function(res) {
     if (res && res.success) {
       _empathyAnsweredPosts[p.id] = true;
+      // ハートマークを更新（❤️に変更 + 共感済み表示）
+      var likeEl = document.querySelector('.post-like-btn[data-row="' + row + '"]');
+      if (likeEl) {
+        likeEl.classList.add('liked');
+        likeEl.innerHTML = '❤️ <span class="like-num" style="color:#ff6b6b;">共感済</span>';
+      }
       // 感謝メッセージ
       var sheet = document.getElementById('post-detail-sheet');
       sheet.innerHTML =

@@ -171,6 +171,22 @@ router.post('/update-avatar', (req, res) => {
   }
 });
 
+// プロフィール更新（ニックネーム・部署）
+router.post('/update-profile', (req, res) => {
+  try {
+    const { uid, nickname, department } = req.body;
+    if (!uid || !nickname) return res.json({ success: false, msg: 'uidとニックネームは必須です' });
+    const db = getDb();
+    // ニックネーム重複チェック（自分以外）
+    const existing = db.prepare('SELECT id FROM users WHERE nickname = ? AND id != ?').get(nickname, uid);
+    if (existing) return res.json({ success: false, msg: 'そのニックネームは既に使われています' });
+    db.prepare('UPDATE users SET nickname = ?, department = ? WHERE id = ?').run(nickname, department || '', uid);
+    res.json({ success: true });
+  } catch (e) {
+    res.json({ success: false, msg: e.message });
+  }
+});
+
 // ユーザー統計
 router.get('/stats/:uid', (req, res) => {
   try {

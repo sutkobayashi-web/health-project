@@ -692,6 +692,16 @@ function loadEmpathyDisplay(pid) {
     summaryArea.innerHTML = html || '<span style="color:#ccc;">共感なし</span>';
     if (countArea) countArea.innerHTML = '<span style="font-weight:700;">' + s.totalCount + '名が共感</span>';
 
+    // 質問マップ（旧3問回答データ表示用）
+    var questionMap = {
+      wakaru: ['どのくらい困ってる？','いつ頃から？','自分で対策してる？'],
+      yabai: ['どのくらい深刻？','急いで対応すべき？','放っておくと誰か困る？'],
+      kaisha: ['会社が対策したら参加する？','周りにも同じ悩み？','効果ありそう？'],
+      oishii: ['自分の食事と比べて？','続けるのは？','情報もっと欲しい？'],
+      sankou: ['真似してみたい？','食事で困ってる？','会社サポートあったら？'],
+      onaji: ['食事の偏り気になる？','改善が難しい理由？','きっかけがあれば？']
+    };
+
     // 全回答一覧（メンバー以外も含む）
     if (membersArea) {
       var allResponses = (res.responses || s.memberResponses || []);
@@ -699,17 +709,23 @@ function loadEmpathyDisplay(pid) {
         var mHtml = '';
         allResponses.forEach(function(m) {
           var info = typeMap[m.empathy_type] || { emoji:'❓', label:m.empathy_type };
-          mHtml += '<div style="padding:5px 0; border-bottom:1px solid #f5f5f5;">' +
+          var qs = questionMap[m.empathy_type];
+          var hasAnswers = m.answer1 && m.answer1 !== '-';
+          mHtml += '<div style="padding:6px 0; border-bottom:1px solid #f5f5f5;">' +
             '<div style="display:flex; align-items:center; gap:6px;">' +
               '<span style="font-weight:700; color:#333; font-size:0.78rem;">' + escapeHtml(m.user_name || '匿名') + '</span>' +
-              '<span style="font-size:0.82rem;">' + info.emoji + '</span>' +
+              '<span style="background:#f0f0ff; border:1px solid #e0e0ff; border-radius:10px; padding:1px 8px; font-size:0.7rem; font-weight:700;">' + info.emoji + ' ' + info.label + '</span>' +
               (m.is_member ? '<span style="font-size:0.55rem; background:#667eea; color:white; padding:1px 5px; border-radius:6px;">推進</span>' : '') +
-            '</div>' +
-            '<div style="font-size:0.72rem; color:#888; margin-top:2px;">' +
-              '① ' + escapeHtml(m.answer1) + ' ② ' + escapeHtml(m.answer2) + ' ③ ' + escapeHtml(m.answer3) +
-            '</div>' +
-            (m.free_comment ? '<div style="font-size:0.72rem; color:#555; margin-top:2px; background:#f8f8ff; padding:3px 8px; border-radius:6px;">💬 ' + escapeHtml(m.free_comment) + '</div>' : '') +
-          '</div>';
+            '</div>';
+          if (hasAnswers && qs) {
+            mHtml += '<div style="font-size:0.7rem; color:#666; margin-top:3px; padding-left:4px;">';
+            mHtml += '<div>Q1. ' + qs[0] + ' → <strong>' + escapeHtml(m.answer1) + '</strong></div>';
+            mHtml += '<div>Q2. ' + qs[1] + ' → <strong>' + escapeHtml(m.answer2) + '</strong></div>';
+            mHtml += '<div>Q3. ' + qs[2] + ' → <strong>' + escapeHtml(m.answer3) + '</strong></div>';
+            mHtml += '</div>';
+          }
+          if (m.free_comment) mHtml += '<div style="font-size:0.72rem; color:#555; margin-top:3px; background:#f8f8ff; padding:4px 8px; border-radius:6px;">💬 ' + escapeHtml(m.free_comment) + '</div>';
+          mHtml += '</div>';
         });
         membersArea.innerHTML = mHtml;
       } else {

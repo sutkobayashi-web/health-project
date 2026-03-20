@@ -419,10 +419,11 @@
   <div class="app-header">
     <div class="logo"><i class="fas fa-heart-pulse"></i><span class="logo-text">健康<br>プロジェクト</span></div>
     <div class="header-stats">
-      <span class="stat-chip" id="stat-rank"><i class="fas fa-medal"></i> --</span>
-      <span class="stat-chip" id="stat-posts"><i class="fas fa-pen"></i> 0</span>
-      <span class="stat-chip" style="cursor:pointer; color:white; background:rgba(255,255,255,0.15);" onclick="doUserLogout()"><i class="fas fa-sign-out-alt"></i></span>
+      <span class="stat-chip" style="cursor:pointer; color:white; background:rgba(255,255,255,0.2); padding:6px 14px; font-size:0.8rem; border-radius:20px;" onclick="doUserLogout()"><i class="fas fa-sign-out-alt" style="margin-right:4px;"></i>ログアウト</span>
     </div>
+    <!-- 非表示（JS参照用） -->
+    <span id="stat-rank" style="display:none;"></span>
+    <span id="stat-posts" style="display:none;"></span>
     <!-- 非表示のstat-avatar/stat-nickname（JS参照用） -->
     <span id="stat-avatar" style="display:none;"></span>
     <span id="stat-nickname" style="display:none;"></span>

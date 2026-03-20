@@ -50,14 +50,21 @@ var INBOX_AVATAR_MAP = { "メディカル":"🩺","医":"🩺","ヘルス":"💉
 
 /* ── Helper: avatar resolution ── */
 function getInboxAvatar(name, role, currentAvatar) {
-    // カスタムアバター対応 — data-custom-avatar属性で後からCanvas描画
-    if(currentAvatar && String(currentAvatar).startsWith('custom:')) {
-        return '<span data-custom-avatar="' + currentAvatar.replace(/"/g,'&quot;') + '" data-avatar-size="36"></span>';
-    }
     if(currentAvatar && currentAvatar.length <= 4 && !currentAvatar.match(/[亜-熙ぁ-んァ-ヶ]/)) return currentAvatar;
     var targetStr = (String(currentAvatar) + String(name) + String(role));
     for(var key in INBOX_AVATAR_MAP) { if(targetStr.includes(key)) return INBOX_AVATAR_MAP[key]; }
     return "🤖";
+}
+
+// カスタムアバターの場合は.avatar divごと置き換えるHTML生成
+function getInboxAvatarDiv(name, role, currentAvatar) {
+    if(currentAvatar && String(currentAvatar).startsWith('custom:') && typeof renderCustomAvatar === 'function') {
+        var dataUrl = renderCustomAvatar(currentAvatar, 80);
+        if(dataUrl) {
+            return '<div class="avatar" style="padding:0;overflow:hidden;"><img src="'+dataUrl+'" style="width:40px;height:40px;border-radius:50%;display:block;"></div>';
+        }
+    }
+    return '<div class="avatar">' + getInboxAvatar(name, role, currentAvatar) + '</div>';
 }
 
 // DOM追加後にカスタムアバターをCanvas描画
@@ -167,7 +174,7 @@ function renderReportList(data) {
         var isTarget = false;
         if(analysisText.includes("///SCORE///")) { try { var s = JSON.parse(analysisText.split("///SCORE///")[1]); if(s.is_target) isTarget = true; } catch(e){} analysisText = analysisText.split("///SCORE///")[0]; }
         rawContent = rawContent.replace(/^【写真】/, '').split("///SCORE///")[0];
-        var avatar = getInboxAvatar(r[INBOX_COLS.USER_NAME], "", r[INBOX_COLS.AVATAR]);
+        var avatarDiv = getInboxAvatarDiv(r[INBOX_COLS.USER_NAME], "", r[INBOX_COLS.AVATAR]);
         var likeCount = parseInt(r[INBOX_COLS.LIKE_COUNT]) || 0;
         var likeBadge = likeCount > 0 ? '<span class="like-badge"><i class="fas fa-heart"></i> ' + likeCount + '</span>' : '';
         var dateStr = String(r[INBOX_COLS.DATE]||"");
@@ -192,7 +199,7 @@ function renderReportList(data) {
             '<div style="display:flex; min-height:80px;">' +
                 // 左: 投稿内容
                 '<div style="flex:1; padding:12px 14px; border-right:1px solid #f0f0f0;">' +
-                    '<div class="user-info" style="margin-bottom:6px;"><div class="avatar">'+avatar+'</div><div class="nick">'+escapeHtml(r[INBOX_COLS.USER_NAME])+'</div>' +
+                    '<div class="user-info" style="margin-bottom:6px;">'+avatarDiv+'<div class="nick">'+escapeHtml(r[INBOX_COLS.USER_NAME])+'</div>' +
                     (isTarget ?
                         '<span id="vote-progress-'+pid+'" style="margin-left:auto; font-size:0.65rem; font-weight:700; padding:3px 10px; border-radius:10px; display:inline-flex; align-items:center; gap:4px; background:#fff3e0; color:#e65100; border:1px solid #ffcc80;"><i class="fas fa-hand-paper"></i> '+likeCount+'票 / <span class="vote-threshold">?</span>票必要</span>' :
                         (likeCount > 0 ? '<span style="margin-left:auto; background:linear-gradient(135deg,#667eea,#764ba2); color:white; font-size:0.65rem; font-weight:700; padding:2px 8px; border-radius:10px; display:inline-flex; align-items:center; gap:3px;"><i class="fas fa-hand-paper"></i> '+likeCount+'票</span>' : '')

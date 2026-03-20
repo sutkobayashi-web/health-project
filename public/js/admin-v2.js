@@ -44,7 +44,6 @@ function renderV2Dashboard() {
     var btns = '';
     if (cycle.status === 'candidate') {
       btns += '<button class="btn btn-primary fw-bold" onclick="doStartVoting(' + cycle.cycle_number + ')"><i class="fas fa-play me-1"></i>全社投票を開始</button>';
-      btns += '<button class="btn btn-success fw-bold" onclick="doDirectDecide(' + cycle.cycle_number + ')"><i class="fas fa-gavel me-1"></i>投票で決定</button>';
       btns += '<button class="btn btn-outline-warning fw-bold" onclick="doGenerateThemes()"><i class="fas fa-redo me-1"></i>テーマを再生成</button>';
     } else if (cycle.status === 'voting') {
       btns += '<button class="btn btn-success fw-bold" onclick="doFinalizeVoting(' + cycle.cycle_number + ')"><i class="fas fa-check me-1"></i>投票を締め切り・テーマ確定</button>';

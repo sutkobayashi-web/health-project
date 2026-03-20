@@ -35,7 +35,7 @@
   .honne-area { border-top: 4px solid #d63384; }
   .honne-area::before { content: ''; position: absolute; top: 0; right: 0; width: 120px; height: 120px; background: radial-gradient(circle, rgba(214,51,132,0.06) 0%, transparent 70%); pointer-events: none; }
   .honne-area .section-title i { color: #d63384; }
-  .honne-area .section-sub { font-size: 0.78rem; color: #aaa; margin-top: -10px; margin-bottom: 12px; padding-left: 28px; }
+  .honne-area .section-sub { font-size: 0.78rem; color: #aaa; margin-top: 0; margin-bottom: 0; }
   .honne-area textarea { width: 100%; border: 2px solid #f0e0ea; border-radius: 14px; padding: 14px; font-size: 0.92rem; resize: none; min-height: 90px; transition: all 0.25s; background: #fef9fb; color: #333; line-height: 1.6; }
   .honne-area textarea:focus { outline: none; border-color: #d63384; background: white; box-shadow: 0 0 0 4px rgba(214,51,132,0.08); }
   .honne-area textarea::placeholder { color: #caa; }
@@ -46,7 +46,7 @@
   .food-section { text-align: center; border-top: 4px solid #20c997; }
   .food-section::before { content: ''; position: absolute; top: 0; left: 0; width: 120px; height: 120px; background: radial-gradient(circle, rgba(32,201,151,0.06) 0%, transparent 70%); pointer-events: none; }
   .food-section .section-title i { color: #20c997; }
-  .food-section .section-sub { font-size: 0.78rem; color: #aaa; margin-top: -10px; margin-bottom: 12px; }
+  .food-section .section-sub { font-size: 0.78rem; color: #aaa; margin-top: 0; margin-bottom: 0; }
   .food-upload-area { border: 2px dashed #b8e6d4; border-radius: 16px; padding: 24px 20px; cursor: pointer; transition: all 0.25s; background: linear-gradient(135deg, #f6fdf8 0%, #edfaf3 100%); }
   .food-upload-area:hover, .food-upload-area:active { border-color: #20c997; background: #e0f7ed; transform: scale(1.01); }
   .food-upload-area i { font-size: 2.2rem; color: #20c997; }
@@ -353,7 +353,7 @@
     <div class="card-section honne-area">
       <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
         <div style="display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#e0f7fa,#b2ebf2);flex-shrink:0;"><i class="fas fa-heartbeat" style="font-size:22px;color:#e91e63;"></i></div>
-        <div>
+        <div style="flex:1; min-width:0;">
           <div class="section-title" style="margin-bottom:2px;"><i class="far fa-comment-dots"></i> 健康のお悩み・提案</div>
           <div class="honne-area section-sub">AIヘルスアドバイザーが親身にお答えします</div>
         </div>
@@ -366,7 +366,7 @@
     <div class="card-section food-section">
       <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
         <div style="display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#f1f8e9,#dcedc8);flex-shrink:0;"><i class="fas fa-utensils" style="font-size:22px;color:#4caf50;"></i></div>
-        <div>
+        <div style="flex:1; min-width:0;">
           <div class="section-title" style="margin-bottom:2px;"><i class="fas fa-utensils"></i> 食事チェック</div>
           <div class="food-section section-sub">AI食事アドバイザーがバランスを分析します</div>
         </div>

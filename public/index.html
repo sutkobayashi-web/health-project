@@ -356,7 +356,6 @@
         <button class="ab-part-btn" data-part="posHair" onclick="abSelectDragPart(this,'posHair')">髪↕</button>
         <button class="ab-part-btn" data-part="sizeHair" onclick="abSelectDragPart(this,'sizeHair')">髪⊕</button>
         <button class="ab-part-btn" data-part="widthHair" onclick="abSelectDragPart(this,'widthHair')">髪↔</button>
-        <button class="ab-part-btn" data-part="sizeFace" onclick="abSelectDragPart(this,'sizeFace')">顔⊕</button>
         <button class="ab-part-btn selected" data-part="posEye" onclick="abSelectDragPart(this,'posEye')">目↕</button>
         <button class="ab-part-btn" data-part="eyeSpacing" onclick="abSelectDragPart(this,'eyeSpacing')">目↔</button>
         <button class="ab-part-btn" data-part="sizeEye" onclick="abSelectDragPart(this,'sizeEye')">目⊕</button>
@@ -2988,7 +2987,7 @@ function getAvatarHtml(avatarStr, size) {
 }
 
 // ====== アバタービルダー状態 ======
-var abState = { skin: 2, hair: 1, hairColor: 0, eye: 0, mouth: 0, accessories: [0], bg: 0, faceSize: 1, eyebrow: 0, nose: 0, beard: 0, cheek: 0, faceShape: 0, eyeColor: 0, posEye: 0, posMouth: 0, posNose: 0, posBrow: 0, eyeSpacing: 0, sizeEye: 0, sizeNose: 0, sizeMouth: 0, posHair: 0, sizeHair: 0, widthHair: 0, sizeFace: 0 };
+var abState = { skin: 2, hair: 1, hairColor: 0, eye: 0, mouth: 0, accessories: [0], bg: 0, faceSize: 0, eyebrow: 0, nose: 0, beard: 0, cheek: 0, faceShape: 0, eyeColor: 0, posEye: 0, posMouth: 0, posNose: 0, posBrow: 0, eyeSpacing: 0, sizeEye: 0, sizeNose: 0, sizeMouth: 0, posHair: 0, sizeHair: 0, widthHair: 0, sizeFace: 0 };
 
 function abBuildString() {
   var accs = abState.accessories.filter(function(a) { return a > 0; });
@@ -3136,7 +3135,7 @@ function openAbEditor(initialAvatar, onSave) {
   if (initialAvatar && initialAvatar.startsWith('custom:')) {
     abParseString(initialAvatar);
   } else {
-    abState = { skin: 2, hair: 1, hairColor: 0, eye: 0, mouth: 0, accessories: [0], bg: 0, faceSize: 1, eyebrow: 0, nose: 0, beard: 0, cheek: 0, faceShape: 0, eyeColor: 0, posEye: 0, posMouth: 0, posNose: 0, posBrow: 0, eyeSpacing: 0, sizeEye: 0, sizeNose: 0, sizeMouth: 0, posHair: 0, sizeHair: 0, widthHair: 0, sizeFace: 0 };
+    abState = { skin: 2, hair: 1, hairColor: 0, eye: 0, mouth: 0, accessories: [0], bg: 0, faceSize: 0, eyebrow: 0, nose: 0, beard: 0, cheek: 0, faceShape: 0, eyeColor: 0, posEye: 0, posMouth: 0, posNose: 0, posBrow: 0, eyeSpacing: 0, sizeEye: 0, sizeNose: 0, sizeMouth: 0, posHair: 0, sizeHair: 0, widthHair: 0, sizeFace: 0 };
   }
   abRenderBuilderUI('ab-editor-parts-container', 'ab-editor-preview-canvas');
   document.getElementById('ab-editor-modal').style.display = 'flex';
@@ -3202,9 +3201,7 @@ function abRenderBuilderUI(containerId, previewCanvasId) {
   AB_FACE_SHAPE_NAMES.forEach(function(name, i) {
     html += '<div class="ab-icon-btn' + (abState.faceShape === i ? ' selected' : '') + '" onclick="abSelect(\'faceShape\',' + i + ',\'' + previewCanvasId + '\')">' + name + '</div>';
   });
-  html += '</div>';
-  html += abSlider('sizeFace', '顔の大きさ', -3, 3);
-  html += '</div>';
+  html += '</div></div>';
 
   // スライダーヘルパー
   function abSlider(key, label, min, max) {
@@ -3287,13 +3284,6 @@ function abRenderBuilderUI(containerId, previewCanvasId) {
   html += '<div class="avatar-builder-row"><label>🌈 背景色</label><div class="avatar-builder-options">';
   AB_BGS.forEach(function(col, i) {
     html += '<div class="ab-color-circle' + (abState.bg === i ? ' selected' : '') + '" style="background:' + col + ';" onclick="abSelect(\'bg\',' + i + ',\'' + previewCanvasId + '\')"></div>';
-  });
-  html += '</div></div>';
-
-  // 顔の大きさ
-  html += '<div class="avatar-builder-row"><label>📐 顔の大きさ</label><div class="avatar-builder-options">';
-  ['小さい','ふつう','大きい'].forEach(function(name, i) {
-    html += '<div class="ab-icon-btn' + (abState.faceSize === i ? ' selected' : '') + '" onclick="abSelect(\'faceSize\',' + i + ',\'' + previewCanvasId + '\')">' + name + '</div>';
   });
   html += '</div></div>';
 
@@ -3390,7 +3380,7 @@ function showStep(step) {
 
 var selectedAvatar = null;
 function initAvatarGrid() {
-  abState = { skin: 2, hair: 1, hairColor: 0, eye: 0, mouth: 0, accessories: [0], bg: 0, faceSize: 1, eyebrow: 0, nose: 0, beard: 0, cheek: 0, faceShape: 0, eyeColor: 0, posEye: 0, posMouth: 0, posNose: 0, posBrow: 0, eyeSpacing: 0, sizeEye: 0, sizeNose: 0, sizeMouth: 0, posHair: 0, sizeHair: 0, widthHair: 0, sizeFace: 0 };
+  abState = { skin: 2, hair: 1, hairColor: 0, eye: 0, mouth: 0, accessories: [0], bg: 0, faceSize: 0, eyebrow: 0, nose: 0, beard: 0, cheek: 0, faceShape: 0, eyeColor: 0, posEye: 0, posMouth: 0, posNose: 0, posBrow: 0, eyeSpacing: 0, sizeEye: 0, sizeNose: 0, sizeMouth: 0, posHair: 0, sizeHair: 0, widthHair: 0, sizeFace: 0 };
   selectedAvatar = abBuildString();
   var el = document.getElementById('reg-avatar-preview');
   if (el) el.innerHTML = getAvatarHtml(selectedAvatar, 58);
@@ -3424,7 +3414,7 @@ function openAvatarSheet() {
   if (currentUser.avatar && currentUser.avatar.startsWith('custom:')) {
     abParseString(currentUser.avatar);
   } else {
-    abState = { skin: 2, hair: 1, hairColor: 0, eye: 0, mouth: 0, accessories: [0], bg: 0, faceSize: 1, eyebrow: 0, nose: 0, beard: 0, cheek: 0, faceShape: 0, eyeColor: 0, posEye: 0, posMouth: 0, posNose: 0, posBrow: 0, eyeSpacing: 0, sizeEye: 0, sizeNose: 0, sizeMouth: 0, posHair: 0, sizeHair: 0, widthHair: 0, sizeFace: 0 };
+    abState = { skin: 2, hair: 1, hairColor: 0, eye: 0, mouth: 0, accessories: [0], bg: 0, faceSize: 0, eyebrow: 0, nose: 0, beard: 0, cheek: 0, faceShape: 0, eyeColor: 0, posEye: 0, posMouth: 0, posNose: 0, posBrow: 0, eyeSpacing: 0, sizeEye: 0, sizeNose: 0, sizeMouth: 0, posHair: 0, sizeHair: 0, widthHair: 0, sizeFace: 0 };
   }
   abRenderBuilderUI('change-builder-container', 'change-preview-canvas');
   var overlay = document.getElementById('avatar-change-overlay');

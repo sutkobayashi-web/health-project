@@ -154,9 +154,10 @@
   .avatar-builder-body { padding: 16px; max-height: 55vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
   .avatar-builder-preview { display: none; }
   .avatar-builder-preview canvas { border-radius: 50%; box-shadow: 0 4px 16px rgba(0,0,0,0.12); border: 3px solid #fff; }
-  .ab-float-preview { position: fixed; bottom: 16px; right: 16px; z-index: 9000; background: white; border-radius: 50%; box-shadow: 0 6px 24px rgba(0,0,0,0.25); border: 3px solid #667eea; display: none; touch-action: none; }
-  .ab-float-preview canvas { border-radius: 50%; display: block; }
-  .ab-float-preview .ab-float-resize { position: absolute; top: -4px; right: -4px; width: 26px; height: 26px; border-radius: 50%; background: #667eea; color: white; border: 2px solid white; font-size: 0.65rem; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
+  @media (max-width: 600px) {
+    #ab-editor-modal > div:last-child { flex-direction: column !important; }
+    #ab-editor-left { width: 100% !important; height: 45% !important; }
+  }
   .ab-part-btn { border: 1.5px solid #ddd; background: white; color: #888; border-radius: 8px; padding: 4px 10px; font-size: 0.7rem; font-weight: 700; cursor: pointer; transition: all 0.15s; }
   .ab-part-btn.selected { background: #667eea; color: white; border-color: #667eea; }
   .avatar-builder-sticky-preview {
@@ -240,7 +241,10 @@
         <div class="form-group" style="flex:1; margin-bottom:0;"><label><i class="fas fa-birthday-cake" style="color:#f39c12; margin-right:4px;"></i> 生年月日</label><input type="date" id="reg-birthdate"></div>
       </div>
       <div class="form-group"><label><i class="fas fa-smile" style="color:#d63384; margin-right:4px;"></i> アバターを作ろう！</label>
-        <div class="avatar-builder-body" id="reg-builder-container"></div>
+        <div style="display:flex; align-items:center; gap:12px; padding:10px;">
+          <div id="reg-avatar-preview" style="width:64px; height:64px; border-radius:50%; overflow:hidden; border:3px solid #fff; box-shadow:0 4px 12px rgba(0,0,0,0.1); display:flex; align-items:center; justify-content:center; font-size:2rem; background:#f0f0f0; flex-shrink:0;"></div>
+          <button type="button" onclick="openAbEditor(selectedAvatar, function(av){ selectedAvatar=av; var el=document.getElementById('reg-avatar-preview'); if(el) el.innerHTML=getAvatarHtml(av,58); })" style="flex:1; background:linear-gradient(135deg,#d63384,#e91e8c); color:white; border:none; border-radius:12px; padding:12px; font-weight:700; font-size:0.9rem; cursor:pointer;"><i class="fas fa-edit me-1"></i>アバターを作成</button>
+        </div>
       </div>
       <button class="auth-submit-btn" id="reg-submit-btn" onclick="doRegister()" disabled style="opacity:0.5; cursor:not-allowed;">利用規約に同意してください</button>
       <div class="back-btn" onclick="showStep('menu')">← 戻る</div>
@@ -333,52 +337,39 @@
 
 <!-- メインコンテンツ -->
 <!-- フロートアバタープレビュー -->
-<div class="ab-float-preview" id="ab-float-preview">
-  <canvas id="ab-float-canvas" width="400" height="400" style="width:100px;height:100px;"></canvas>
-  <div class="ab-float-resize" onclick="abToggleFloatSize(event)"><i class="fas fa-expand"></i></div>
+<!-- フルスクリーン アバターエディタ -->
+<div id="ab-editor-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#fff; z-index:9500; flex-direction:column;">
+  <!-- ヘッダー -->
+  <div style="padding:8px 16px; background:linear-gradient(135deg,#667eea,#764ba2); display:flex; justify-content:space-between; align-items:center; flex-shrink:0;">
+    <div style="color:white; font-weight:800; font-size:0.9rem;"><i class="fas fa-smile me-1"></i>アバター編集</div>
+    <div style="display:flex; gap:8px;">
+      <button onclick="abEditorSave()" style="background:white; color:#667eea; border:none; border-radius:8px; padding:6px 16px; font-weight:700; font-size:0.8rem; cursor:pointer;"><i class="fas fa-check me-1"></i>決定</button>
+      <button onclick="abEditorClose()" style="background:rgba(255,255,255,0.2); color:white; border:none; border-radius:8px; padding:6px 12px; font-size:0.8rem; cursor:pointer;"><i class="fas fa-times"></i></button>
+    </div>
+  </div>
+  <!-- 左右分割 -->
+  <div style="flex:1; display:flex; overflow:hidden;">
+    <!-- 左: プレビュー -->
+    <div id="ab-editor-left" style="width:45%; background:linear-gradient(135deg,#f0f4ff,#e8ecff); display:flex; flex-direction:column; align-items:center; justify-content:center; padding:10px; flex-shrink:0; touch-action:none;">
+      <canvas id="ab-editor-canvas" width="400" height="400" style="width:100%; max-width:280px; aspect-ratio:1; border-radius:50%; box-shadow:0 8px 30px rgba(0,0,0,0.15); border:4px solid #fff; cursor:grab;"></canvas>
+      <div style="margin-top:8px; display:flex; gap:4px; flex-wrap:wrap; justify-content:center;" id="ab-editor-part-btns">
+        <button class="ab-part-btn selected" data-part="posEye" onclick="abSelectDragPart(this,'posEye')">目↕</button>
+        <button class="ab-part-btn" data-part="eyeSpacing" onclick="abSelectDragPart(this,'eyeSpacing')">目↔</button>
+        <button class="ab-part-btn" data-part="sizeEye" onclick="abSelectDragPart(this,'sizeEye')">目⊕</button>
+        <button class="ab-part-btn" data-part="posBrow" onclick="abSelectDragPart(this,'posBrow')">眉↕</button>
+        <button class="ab-part-btn" data-part="posNose" onclick="abSelectDragPart(this,'posNose')">鼻↕</button>
+        <button class="ab-part-btn" data-part="sizeNose" onclick="abSelectDragPart(this,'sizeNose')">鼻⊕</button>
+        <button class="ab-part-btn" data-part="posMouth" onclick="abSelectDragPart(this,'posMouth')">口↕</button>
+        <button class="ab-part-btn" data-part="sizeMouth" onclick="abSelectDragPart(this,'sizeMouth')">口⊕</button>
+      </div>
+      <div style="font-size:0.6rem; color:#aaa; margin-top:4px;">パーツを選んで画面をドラッグ</div>
+    </div>
+    <!-- 右: パーツ選択 -->
+    <div style="flex:1; overflow-y:auto; padding:12px; -webkit-overflow-scrolling:touch;">
+      <div id="ab-editor-parts-container" class="avatar-builder-body"></div>
+    </div>
+  </div>
 </div>
-<script>
-// フロートプレビューのドラッグ移動
-(function() {
-  var el = document.getElementById('ab-float-preview');
-  var startX, startY, origLeft, origTop, dragging = false;
-  function getPos(e) { return e.touches ? { x: e.touches[0].clientX, y: e.touches[0].clientY } : { x: e.clientX, y: e.clientY }; }
-  function onStart(e) {
-    if (e.target.closest('.ab-float-resize')) return;
-    e.preventDefault(); dragging = true;
-    var p = getPos(e);
-    startX = p.x; startY = p.y;
-    var rect = el.getBoundingClientRect();
-    origLeft = rect.left; origTop = rect.top;
-  }
-  function onMove(e) {
-    if (!dragging) return;
-    e.preventDefault();
-    var p = getPos(e);
-    el.style.left = (origLeft + p.x - startX) + 'px';
-    el.style.top = (origTop + p.y - startY) + 'px';
-    el.style.right = 'auto'; el.style.bottom = 'auto';
-  }
-  function onEnd() { dragging = false; }
-  el.addEventListener('mousedown', onStart);
-  el.addEventListener('touchstart', onStart, { passive: false });
-  document.addEventListener('mousemove', onMove);
-  document.addEventListener('touchmove', onMove, { passive: false });
-  document.addEventListener('mouseup', onEnd);
-  document.addEventListener('touchend', onEnd);
-})();
-
-var _abFloatSize = 0; // 0=小, 1=中, 2=大
-function abToggleFloatSize(e) {
-  e.stopPropagation();
-  var canvas = document.getElementById('ab-float-canvas');
-  var sizes = [100, 160, 220];
-  _abFloatSize = (_abFloatSize + 1) % 3;
-  var s = sizes[_abFloatSize];
-  canvas.style.width = s + 'px';
-  canvas.style.height = s + 'px';
-}
-</script>
 
 <!-- プロフィール編集モーダル -->
 <div id="profile-edit-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:5000; justify-content:center; align-items:center; padding:16px; overflow-y:auto;">
@@ -408,9 +399,10 @@ function abToggleFloatSize(e) {
 
     <!-- アバター変更 -->
     <div style="padding:14px; background:#f0f4ff; border-radius:12px; border:1px solid #e0e8ff;">
-      <div style="font-size:0.8rem; font-weight:700; color:#667eea; margin-bottom:10px;"><i class="fas fa-smile" style="margin-right:4px;"></i>アバター変更</div>
-      <div class="avatar-builder-body" id="profile-edit-builder-container" style="max-height:50vh;"></div>
-      <button onclick="saveAvatarChange()" style="width:100%; background:linear-gradient(135deg,#667eea,#764ba2); color:white; border:none; border-radius:10px; padding:10px; font-weight:700; font-size:0.85rem; cursor:pointer; margin-top:8px;"><i class="fas fa-check" style="margin-right:4px;"></i>アバターを更新</button>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div id="profile-edit-avatar" style="width:60px; height:60px; border-radius:50%; overflow:hidden; border:2px solid #fff; box-shadow:0 3px 10px rgba(0,0,0,0.1); display:flex; align-items:center; justify-content:center; font-size:1.8rem; background:#f0f0f0; flex-shrink:0;"></div>
+        <button onclick="openAbEditor(currentUser.avatar, saveAvatarChange)" style="flex:1; background:linear-gradient(135deg,#667eea,#764ba2); color:white; border:none; border-radius:10px; padding:12px; font-weight:700; font-size:0.85rem; cursor:pointer;"><i class="fas fa-edit me-1"></i>アバターを編集</button>
+      </div>
     </div>
   </div>
 </div>
@@ -2325,7 +2317,7 @@ function abUpdatePreview(canvasId) {
       canvas.getContext('2d').clearRect(0, 0, size, size);
       canvas.getContext('2d').drawImage(img, 0, 0, size, size);
       // フロートプレビューも更新
-      var floatCanvas = document.getElementById('ab-float-canvas');
+      var floatCanvas = document.getElementById('ab-editor-canvas');
       if (floatCanvas) {
         floatCanvas.width = size; floatCanvas.height = size;
         floatCanvas.getContext('2d').drawImage(img, 0, 0, size, size);
@@ -2410,12 +2402,36 @@ function abInitDrag(canvas) {
   document.addEventListener('touchend', onEnd);
 }
 
+// フルスクリーン アバターエディタ
+var _abEditorCallback = null;
+function openAbEditor(initialAvatar, onSave) {
+  _abEditorCallback = onSave;
+  if (initialAvatar && initialAvatar.startsWith('custom:')) {
+    abParseString(initialAvatar);
+  } else {
+    abState = { skin: 2, hair: 0, hairColor: 0, eye: 0, mouth: 0, accessories: [0], bg: 0, faceSize: 1, eyebrow: 0, nose: 0, beard: 0, cheek: 0, faceShape: 0, eyeColor: 0, posEye: 0, posMouth: 0, posNose: 0, posBrow: 0, eyeSpacing: 0, sizeEye: 0, sizeNose: 0, sizeMouth: 0 };
+  }
+  abRenderBuilderUI('ab-editor-parts-container', 'ab-editor-preview-canvas');
+  document.getElementById('ab-editor-modal').style.display = 'flex';
+  // エディタキャンバスにもドラッグ初期化
+  setTimeout(function() {
+    var ec = document.getElementById('ab-editor-canvas');
+    if (ec) abInitDrag(ec);
+  }, 100);
+}
+function abEditorSave() {
+  selectedAvatar = abBuildString();
+  document.getElementById('ab-editor-modal').style.display = 'none';
+  if (_abEditorCallback) _abEditorCallback(selectedAvatar);
+}
+function abEditorClose() {
+  document.getElementById('ab-editor-modal').style.display = 'none';
+}
+
 function abRenderBuilderUI(containerId, previewCanvasId) {
   var c = document.getElementById(containerId);
   if (!c) return;
-  // フロートプレビュー表示
-  var floatEl = document.getElementById('ab-float-preview');
-  if (floatEl) floatEl.style.display = 'block';
+  // エディタモーダルのプレビューも同期
   // sticky preview area (change-tab only)
   var stickyId = containerId === 'change-builder-container' ? 'change-sticky-preview' : null;
   var stickyEl = stickyId ? document.getElementById(stickyId) : null;
@@ -2642,8 +2658,9 @@ function showStep(step) {
 var selectedAvatar = null;
 function initAvatarGrid() {
   abState = { skin: 2, hair: 0, hairColor: 0, eye: 0, mouth: 0, accessories: [0], bg: 0, faceSize: 1, eyebrow: 0, nose: 0, beard: 0, cheek: 0, faceShape: 0, eyeColor: 0, posEye: 0, posMouth: 0, posNose: 0, posBrow: 0, eyeSpacing: 0, sizeEye: 0, sizeNose: 0, sizeMouth: 0 };
-  abRenderBuilderUI('reg-builder-container', 'reg-preview-canvas');
   selectedAvatar = abBuildString();
+  var el = document.getElementById('reg-avatar-preview');
+  if (el) el.innerHTML = getAvatarHtml(selectedAvatar, 58);
 }
 
 function switchRegTab(tab) {
@@ -2910,8 +2927,6 @@ function doAdminLogin() {
 function onLoginSuccess() {
   document.getElementById('auth-modal').style.display = 'none';
   document.getElementById('main-app').style.display = 'block';
-  var floatEl = document.getElementById('ab-float-preview');
-  if (floatEl) floatEl.style.display = 'none';
   updateStatAvatar();
   document.getElementById('stat-nickname').innerText = currentUser.nickname || '--';
   updateProfileCard();
@@ -2944,19 +2959,13 @@ function openProfileEditModal() {
   var newPw = document.getElementById('profile-edit-new-pw');
   if (curPw) curPw.value = '';
   if (newPw) newPw.value = '';
-  // アバタービルダー初期化
-  if (currentUser.avatar && currentUser.avatar.startsWith('custom:')) {
-    abParseString(currentUser.avatar);
-  } else {
-    abState = { skin: 2, hair: 0, hairColor: 0, eye: 0, mouth: 0, accessories: [0], bg: 0, faceSize: 1, eyebrow: 0, nose: 0, beard: 0, cheek: 0, faceShape: 0, eyeColor: 0, posEye: 0, posMouth: 0, posNose: 0, posBrow: 0, eyeSpacing: 0, sizeEye: 0, sizeNose: 0, sizeMouth: 0 };
-  }
-  abRenderBuilderUI('profile-edit-builder-container', 'profile-edit-preview-canvas');
+  // アバタープレビュー表示
+  var avEl = document.getElementById('profile-edit-avatar');
+  if (avEl) avEl.innerHTML = getAvatarHtml(currentUser.avatar, 52);
 }
 
 function closeProfileEditModal() {
   document.getElementById('profile-edit-modal').style.display = 'none';
-  var floatEl = document.getElementById('ab-float-preview');
-  if (floatEl) floatEl.style.display = 'none';
 }
 
 function savePasswordChange() {
@@ -2977,8 +2986,8 @@ function savePasswordChange() {
   });
 }
 
-function saveAvatarChange() {
-  var newAvatar = abBuildString();
+function saveAvatarChange(newAvatarFromEditor) {
+  var newAvatar = newAvatarFromEditor || abBuildString();
   api('/auth/update-avatar', { uid: currentUser.uid, avatar: newAvatar }).then(function(res) {
     if (res && res.success) {
       currentUser.avatar = newAvatar;

@@ -438,7 +438,7 @@
         <div style="flex:1; text-align:left;">
           <div style="font-weight:800; font-size:1.05rem; color:#2c3e50;" id="profile-nickname">--</div>
           <div style="display:flex; gap:8px; margin-top:4px; flex-wrap:wrap;">
-            <span style="font-size:0.72rem; color:#667eea; font-weight:700;" id="profile-rank"><i class="fas fa-medal"></i> --</span>
+            <span id="profile-rank"></span>
             <span style="font-size:0.72rem; color:#888;" id="profile-posts"><i class="fas fa-pen"></i> 投稿 0</span>
             <span style="font-size:0.72rem; color:#888;" id="profile-dept"></span>
           </div>
@@ -3743,6 +3743,19 @@ function saveAvatarChange(newAvatarFromEditor) {
 }
 
 // ====== ヘッダー更新 ======
+function getRankBadgeHtml(rank) {
+  var configs = {
+    'Beginner': { bg:'linear-gradient(135deg,#e0e0e0,#bdbdbd)', color:'#555', icon:'fas fa-seedling' },
+    'Bronze':   { bg:'linear-gradient(135deg,#d7a86e,#a0724a)', color:'#fff', icon:'fas fa-medal' },
+    'Silver':   { bg:'linear-gradient(135deg,#c0c0c0,#9e9e9e)', color:'#fff', icon:'fas fa-medal' },
+    'Gold':     { bg:'linear-gradient(135deg,#ffd700,#ffaa00)', color:'#5d4e00', icon:'fas fa-trophy' },
+    'Platinum': { bg:'linear-gradient(135deg,#e5e4e2,#8e9aaf)', color:'#333', icon:'fas fa-crown' },
+    'Black':    { bg:'linear-gradient(135deg,#333,#111)', color:'#ffd700', icon:'fas fa-gem' }
+  };
+  var c = configs[rank] || configs['Beginner'];
+  return '<span style="display:inline-flex; align-items:center; gap:4px; background:' + c.bg + '; color:' + c.color + '; font-size:0.68rem; font-weight:800; padding:3px 10px; border-radius:12px; box-shadow:0 2px 6px rgba(0,0,0,0.15);"><i class="' + c.icon + '"></i> ' + (rank || '--') + '</span>';
+}
+
 function updateHeaderStats() {
   getLatestUserStats(currentUser.uid).then(function(res) {
     if (!res || !res.success) return;
@@ -3750,7 +3763,7 @@ function updateHeaderStats() {
     document.getElementById('stat-posts').innerHTML = '<i class="fas fa-pen"></i> ' + res.postCount;
     // プロフィールカード更新
     var prRank = document.getElementById('profile-rank');
-    if (prRank) prRank.innerHTML = '<i class="fas fa-medal"></i> ' + res.rank;
+    if (prRank) prRank.innerHTML = getRankBadgeHtml(res.rank);
     var prPosts = document.getElementById('profile-posts');
     if (prPosts) prPosts.innerHTML = '<i class="fas fa-pen"></i> 投稿 ' + res.postCount;
   });

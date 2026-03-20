@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>健康プロジェクト システムガイド</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html { background: #f0f2f5; }
+body {
+  font-family: 'Noto Sans JP', sans-serif;
+  background: linear-gradient(160deg, #f5f0ff 0%, #eef6ff 40%, #f0faf5 100%);
+  margin: 0; padding: 0; min-height: 100vh;
+  padding-bottom: 100px;
+  color: #333;
+}
+
+/* ====== Header ====== */
+.kb-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 0 16px;
+  display: flex; justify-content: space-between; align-items: center;
+  box-shadow: 0 4px 20px rgba(102,126,234,0.3);
+  position: sticky; top: 0; z-index: 100; height: 56px;
+}
+.kb-header-left { display: flex; align-items: center; gap: 12px; }
+.btn-back {
+  background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 20px; padding: 5px 14px; font-size: 0.75rem; font-weight: 700;
+  cursor: pointer; display: flex; align-items: center; gap: 5px;
+  transition: all 0.2s; text-decoration: none;
+}
+.btn-back:hover { background: rgba(255,255,255,0.35); color: white; }
+.kb-title-group { line-height: 1.2; }
+.kb-title-main { font-weight: 900; color: #fff; font-size: 0.9rem; letter-spacing: 0.3px; text-shadow: 0 1px 2px rgba(0,0,0,0.15); }
+.kb-title-sub { font-weight: 500; color: rgba(255,255,255,0.75); font-size: 0.6rem; }
+
+/* ====== Main Content ====== */
+.main-content { max-width: 740px; margin: 0 auto; padding: 20px 16px; }
+
+/* ====== Intro Banner ====== */
+.intro-banner {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 20px; padding: 28px 24px; margin-bottom: 24px;
+  color: white; position: relative; overflow: hidden;
+}
+.intro-banner::before {
+  content: ''; position: absolute; top: -30px; right: -30px;
+  width: 120px; height: 120px;
+  background: rgba(255,255,255,0.1); border-radius: 50%;
+}
+.intro-banner::after {
+  content: ''; position: absolute; bottom: -20px; left: -20px;
+  width: 80px; height: 80px;
+  background: rgba(255,255,255,0.08); border-radius: 50%;
+}
+.intro-banner h2 { font-size: 1.1rem; font-weight: 900; margin-bottom: 8px; }
+.intro-banner p { font-size: 0.85rem; opacity: 0.9; line-height: 1.7; margin: 0; }
+
+/* ====== Guide Card ====== */
+.guide-card {
+  background: white; border-radius: 20px; padding: 0;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+  overflow: hidden;
+}
+.guide-card-header {
+  padding: 18px 20px 14px;
+  display: flex; align-items: center; gap: 12px;
+  border-bottom: 1px solid #f0f0f0;
+}
+.guide-card-icon {
+  width: 44px; height: 44px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.3rem; color: #fff; flex-shrink: 0;
+}
+.guide-card-title { font-weight: 800; font-size: 0.95rem; color: #2c3e50; line-height: 1.4; }
+.guide-card-body { padding: 18px 20px 22px; }
+.guide-card-body p {
+  font-size: 0.88rem; line-height: 1.8; color: #555; margin-bottom: 12px;
+}
+.guide-card-body p:last-child { margin-bottom: 0; }
+
+/* Card color themes */
+.theme-purple .guide-card-icon { background: linear-gradient(135deg, #8e2de2, #4a00e0); }
+.theme-purple { border-top: 4px solid #8e2de2; }
+.theme-blue .guide-card-icon { background: linear-gradient(135deg, #667eea, #764ba2); }
+.theme-blue { border-top: 4px solid #667eea; }
+.theme-teal .guide-card-icon { background: linear-gradient(135deg, #11998e, #38ef7d); }
+.theme-teal { border-top: 4px solid #11998e; }
+.theme-orange .guide-card-icon { background: linear-gradient(135deg, #f2994a, #f2c94c); }
+.theme-orange { border-top: 4px solid #f2994a; }
+.theme-green .guide-card-icon { background: linear-gradient(135deg, #56ab2f, #a8e063); }
+.theme-green { border-top: 4px solid #56ab2f; }
+.theme-red .guide-card-icon { background: linear-gradient(135deg, #eb3349, #f45c43); }
+.theme-red { border-top: 4px solid #eb3349; }
+.theme-pink .guide-card-icon { background: linear-gradient(135deg, #ee5a24, #f0932b); }
+.theme-pink { border-top: 4px solid #ee5a24; }
+.theme-indigo .guide-card-icon { background: linear-gradient(135deg, #4834d4, #686de0); }
+.theme-indigo { border-top: 4px solid #4834d4; }
+.theme-cyan .guide-card-icon { background: linear-gradient(135deg, #00b4db, #0083b0); }
+.theme-cyan { border-top: 4px solid #00b4db; }
+.theme-gray .guide-card-icon { background: linear-gradient(135deg, #606c88, #3f4c6b); }
+.theme-gray { border-top: 4px solid #606c88; }
+
+/* ====== Highlight boxes ====== */
+.highlight-box {
+  background: #f8f5ff; border-left: 4px solid #764ba2;
+  border-radius: 0 12px 12px 0; padding: 14px 16px;
+  margin: 12px 0; font-size: 0.85rem; line-height: 1.7;
+}
+.highlight-box strong { color: #764ba2; }
+
+.tip-box {
+  background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);
+  border-left: 4px solid #4caf50;
+  border-radius: 0 12px 12px 0; padding: 14px 16px;
+  margin: 12px 0; font-size: 0.85rem; line-height: 1.7;
+}
+
+.warn-box {
+  background: #fff8e1; border-left: 4px solid #ffa000;
+  border-radius: 0 12px 12px 0; padding: 14px 16px;
+  margin: 12px 0; font-size: 0.85rem; line-height: 1.7;
+}
+
+/* ====== Keyword badges ====== */
+.kw-badge {
+  display: inline-block; background: linear-gradient(135deg, #667eea, #764ba2);
+  color: #fff; font-size: 0.75rem; font-weight: 700; padding: 4px 12px;
+  border-radius: 20px; margin: 2px 4px 2px 0;
+}
+
+/* ====== Flow Chart ====== */
+.flow-container {
+  display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+  justify-content: center; padding: 10px 0;
+}
+.flow-step {
+  display: flex; flex-direction: column; align-items: center;
+  background: white; border-radius: 14px; padding: 12px 10px;
+  min-width: 90px; max-width: 110px; text-align: center;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  border-top: 3px solid #764ba2;
+  position: relative;
+  flex: 0 0 auto;
+}
+.flow-step .flow-icon {
+  font-size: 1.5rem; margin-bottom: 6px;
+}
+.flow-step .flow-label {
+  font-size: 0.7rem; font-weight: 700; color: #2c3e50; line-height: 1.3;
+}
+.flow-step .flow-who {
+  font-size: 0.6rem; color: #999; margin-top: 4px; font-weight: 500;
+}
+.flow-arrow {
+  font-size: 1.2rem; color: #764ba2; font-weight: 900;
+  flex-shrink: 0;
+}
+@media (max-width: 576px) {
+  .flow-step { min-width: 75px; max-width: 90px; padding: 10px 6px; }
+  .flow-step .flow-icon { font-size: 1.2rem; }
+  .flow-step .flow-label { font-size: 0.63rem; }
+  .flow-arrow { font-size: 1rem; }
+}
+
+/* ====== Role Cards ====== */
+.role-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 576px) { .role-grid { grid-template-columns: 1fr; } }
+.role-card {
+  background: white; border-radius: 16px; padding: 20px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  border-left: 5px solid #764ba2;
+}
+.role-card h4 {
+  font-size: 0.9rem; font-weight: 900; margin-bottom: 10px; color: #2c3e50;
+  display: flex; align-items: center; gap: 8px;
+}
+.role-card h4 .role-emoji { font-size: 1.3rem; }
+.role-card ul {
+  list-style: none; padding: 0; margin: 0;
+}
+.role-card ul li {
+  font-size: 0.8rem; line-height: 1.8; color: #555;
+  padding-left: 16px; position: relative;
+}
+.role-card ul li::before {
+  content: ''; position: absolute; left: 0; top: 10px;
+  width: 6px; height: 6px; border-radius: 50%;
+}
+.role-employee { border-left-color: #667eea; }
+.role-employee ul li::before { background: #667eea; }
+.role-member { border-left-color: #f2994a; }
+.role-member ul li::before { background: #f2994a; }
+.role-nurse { border-left-color: #11998e; }
+.role-nurse ul li::before { background: #11998e; }
+.role-exec { border-left-color: #eb3349; }
+.role-exec ul li::before { background: #eb3349; }
+
+/* ====== Approval Flow ====== */
+.approval-flow {
+  display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: center;
+  gap: 6px; padding: 10px 0;
+}
+.approval-step {
+  display: flex; flex-direction: column; align-items: center;
+  text-align: center; min-width: 100px; max-width: 130px;
+}
+.approval-num {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: #fff; font-weight: 900; font-size: 0.9rem;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 6px;
+}
+.approval-label {
+  font-size: 0.75rem; font-weight: 700; color: #2c3e50;
+}
+.approval-arrow {
+  font-size: 1.2rem; color: #764ba2; font-weight: 900;
+  margin-top: 8px; flex-shrink: 0;
+}
+@media (max-width: 576px) {
+  .approval-step { min-width: 80px; }
+}
+
+/* ====== Empathy Grid ====== */
+.empathy-grid {
+  display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0;
+}
+.empathy-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: #f8f5ff; border: 1px solid #e0d8f0;
+  border-radius: 20px; padding: 6px 14px;
+  font-size: 0.8rem; font-weight: 600; color: #555;
+}
+.empathy-chip .emp-emoji { font-size: 1.1rem; }
+
+/* ====== Radar Chart (CSS) ====== */
+.radar-container {
+  display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 14px 0;
+}
+.radar-axis {
+  display: flex; flex-direction: column; align-items: center;
+  width: 90px; text-align: center;
+}
+.radar-bar-wrap {
+  width: 40px; height: 100px; background: #f0ecf8; border-radius: 8px;
+  display: flex; flex-direction: column; justify-content: flex-end;
+  overflow: hidden; margin-bottom: 6px;
+}
+.radar-bar {
+  width: 100%; border-radius: 8px 8px 0 0;
+  transition: height 0.6s ease;
+}
+.radar-label {
+  font-size: 0.7rem; font-weight: 700; color: #2c3e50; line-height: 1.3;
+}
+.radar-sub {
+  font-size: 0.6rem; color: #999;
+}
+
+/* ====== Table ====== */
+.guide-table {
+  width: 100%; border-collapse: separate; border-spacing: 0;
+  border-radius: 12px; overflow: hidden; margin: 14px 0; font-size: 0.82rem;
+}
+.guide-table th {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white; padding: 10px 12px; font-weight: 700; text-align: left;
+}
+.guide-table td {
+  padding: 10px 12px; border-bottom: 1px solid #f0f0f0;
+  line-height: 1.6; vertical-align: top;
+}
+.guide-table tr:last-child td { border-bottom: none; }
+.guide-table tr:nth-child(even) td { background: #faf8ff; }
+
+/* ====== FAQ ====== */
+.faq-item {
+  background: white; border-radius: 14px; padding: 16px 18px;
+  margin-bottom: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  border-left: 4px solid #667eea;
+}
+.faq-q {
+  font-size: 0.85rem; font-weight: 800; color: #764ba2; margin-bottom: 6px;
+  display: flex; align-items: flex-start; gap: 6px;
+}
+.faq-a {
+  font-size: 0.82rem; color: #555; line-height: 1.7; padding-left: 24px;
+}
+
+/* ====== Evidence Tags ====== */
+.evidence-tags {
+  display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0;
+}
+.evidence-tag {
+  background: linear-gradient(135deg, #f5f0ff, #eef6ff);
+  border: 1px solid #e0d8f0; border-radius: 12px;
+  padding: 6px 14px; font-size: 0.75rem; font-weight: 600; color: #555;
+}
+
+/* ====== Challenge features ====== */
+.challenge-grid {
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin: 14px 0;
+}
+@media (max-width: 576px) { .challenge-grid { grid-template-columns: 1fr 1fr; } }
+.challenge-item {
+  background: #f8f5ff; border-radius: 14px; padding: 14px 12px;
+  text-align: center;
+}
+.challenge-item .ch-icon { font-size: 1.6rem; margin-bottom: 6px; }
+.challenge-item .ch-label { font-size: 0.75rem; font-weight: 700; color: #2c3e50; }
+.challenge-item .ch-desc { font-size: 0.68rem; color: #888; margin-top: 2px; }
+
+/* ====== Empathy flow diagram ====== */
+.empathy-flow {
+  display: flex; align-items: center; justify-content: center;
+  flex-wrap: wrap; gap: 8px; margin: 14px 0;
+}
+.empathy-flow-box {
+  background: white; border: 2px solid #e0d8f0; border-radius: 14px;
+  padding: 12px 16px; text-align: center; min-width: 120px;
+}
+.empathy-flow-box .ef-icon { font-size: 1.4rem; margin-bottom: 4px; }
+.empathy-flow-box .ef-label { font-size: 0.75rem; font-weight: 700; color: #2c3e50; }
+.empathy-flow-arrow { font-size: 1.2rem; color: #764ba2; font-weight: 900; }
+</style>
+</head>
+<body>
+
+<!-- ====== Header ====== -->
+<header class="kb-header">
+  <div class="kb-header-left">
+    <a href="/admin" class="btn-back"><i class="fas fa-chevron-left"></i> 管理画面</a>
+    <div class="kb-title-group">
+      <div class="kb-title-main">健康プロジェクト システムガイド</div>
+      <div class="kb-title-sub">Health Project v2 System Guide</div>
+    </div>
+  </div>
+</header>
+
+<div class="main-content">
+
+<!-- ====== Intro Banner ====== -->
+<div class="intro-banner">
+  <h2><i class="fas fa-book-open"></i> このガイドについて</h2>
+  <p>健康プロジェクトv2の全体像をまとめたガイドページです。<br>
+  プロジェクトの目的、フロー、役割分担、各機能の仕組みを分かりやすく解説します。</p>
+</div>
+
+<!-- ====== セクション1: プロジェクトの目的 ====== -->
+<div class="guide-card theme-purple" data-keywords="目的 ボトムアップ 全員参加 エビデンス">
+  <div class="guide-card-header">
+    <div class="guide-card-icon"><i class="fas fa-bullseye"></i></div>
+    <div class="guide-card-title">セクション1: プロジェクトの目的</div>
+  </div>
+  <div class="guide-card-body">
+    <p>これまでの健康施策は、会社が決めて社員に伝える<strong>トップダウン型</strong>でした。<br>
+    健康プロジェクトv2では、<strong>社員の声から始まり、みんなで考え・選び・取り組む</strong>「ボトムアップ型」に転換します。</p>
+
+    <div class="highlight-box">
+      <strong>3つのキーワード</strong><br>
+      <span class="kw-badge">ボトムアップ</span>
+      <span class="kw-badge">全員参加</span>
+      <span class="kw-badge">エビデンスベース</span>
+    </div>
+
+    <p>社員一人ひとりの健康に関する悩みや気づきを出発点にし、<br>
+    科学的根拠（エビデンス）に基づいたテーマを全社で選び、<br>
+    楽しみながらチャレンジする仕組みです。</p>
+  </div>
+</div>
+
+<!-- ====== セクション2: 全体フロー図 ====== -->
+<div class="guide-card theme-blue" data-keywords="フロー 流れ ステップ プロセス 全体像">
+  <div class="guide-card-header">
+    <div class="guide-card-icon"><i class="fas fa-project-diagram"></i></div>
+    <div class="guide-card-title">セクション2: 全体フロー図</div>
+  </div>
+  <div class="guide-card-body">
+    <p>社員の投稿からテーマ確定、チャレンジ実行、成果レポートまでの全体の流れです。</p>
+
+    <div class="flow-container">
+      <div class="flow-step" style="border-top-color:#667eea;">
+        <div class="flow-icon">📝</div>
+        <div class="flow-label">社員の投稿</div>
+        <div class="flow-who">一般社員</div>
+      </div>
+      <div class="flow-arrow"><i class="fas fa-chevron-right"></i></div>
+
+      <div class="flow-step" style="border-top-color:#e84393;">
+        <div class="flow-icon">❤️</div>
+        <div class="flow-label">共感<br>(ハートタップ)</div>
+        <div class="flow-who">全社員</div>
+      </div>
+      <div class="flow-arrow"><i class="fas fa-chevron-right"></i></div>
+
+      <div class="flow-step" style="border-top-color:#f2994a;">
+        <div class="flow-icon">💬</div>
+        <div class="flow-label">推進メンバー<br>議論</div>
+        <div class="flow-who">推進メンバー</div>
+      </div>
+      <div class="flow-arrow"><i class="fas fa-chevron-right"></i></div>
+
+      <div class="flow-step" style="border-top-color:#8e2de2;">
+        <div class="flow-icon">🤖</div>
+        <div class="flow-label">AI<br>7軸評価</div>
+        <div class="flow-who">AI + 推進</div>
+      </div>
+      <div class="flow-arrow"><i class="fas fa-chevron-right"></i></div>
+
+      <div class="flow-step" style="border-top-color:#6c5ce7;">
+        <div class="flow-icon">🧩</div>
+        <div class="flow-label">AI<br>テーマ凝集</div>
+        <div class="flow-who">AI自動</div>
+      </div>
+      <div class="flow-arrow"><i class="fas fa-chevron-right"></i></div>
+
+      <div class="flow-step" style="border-top-color:#f2994a;">
+        <div class="flow-icon">🔍</div>
+        <div class="flow-label">推進メンバー<br>精査</div>
+        <div class="flow-who">推進メンバー</div>
+      </div>
+      <div class="flow-arrow"><i class="fas fa-chevron-right"></i></div>
+
+      <div class="flow-step" style="border-top-color:#11998e;">
+        <div class="flow-icon">🩺</div>
+        <div class="flow-label">保健師<br>助言</div>
+        <div class="flow-who">保健師</div>
+      </div>
+      <div class="flow-arrow"><i class="fas fa-chevron-right"></i></div>
+
+      <div class="flow-step" style="border-top-color:#eb3349;">
+        <div class="flow-icon">✅</div>
+        <div class="flow-label">役員承認</div>
+        <div class="flow-who">役員</div>
+      </div>
+      <div class="flow-arrow"><i class="fas fa-chevron-right"></i></div>
+
+      <div class="flow-step" style="border-top-color:#667eea;">
+        <div class="flow-icon">🗳️</div>
+        <div class="flow-label">全社投票</div>
+        <div class="flow-who">全社員</div>
+      </div>
+      <div class="flow-arrow"><i class="fas fa-chevron-right"></i></div>
+
+      <div class="flow-step" style="border-top-color:#00b894;">
+        <div class="flow-icon">🎯</div>
+        <div class="flow-label">テーマ確定</div>
+        <div class="flow-who">自動</div>
+      </div>
+      <div class="flow-arrow"><i class="fas fa-chevron-right"></i></div>
+
+      <div class="flow-step" style="border-top-color:#fdcb6e;">
+        <div class="flow-icon">⚡</div>
+        <div class="flow-label">チャレンジ<br>生成</div>
+        <div class="flow-who">AI自動</div>
+      </div>
+      <div class="flow-arrow"><i class="fas fa-chevron-right"></i></div>
+
+      <div class="flow-step" style="border-top-color:#00cec9;">
+        <div class="flow-icon">🙋</div>
+        <div class="flow-label">エントリー</div>
+        <div class="flow-who">社員任意</div>
+      </div>
+      <div class="flow-arrow"><i class="fas fa-chevron-right"></i></div>
+
+      <div class="flow-step" style="border-top-color:#0984e3;">
+        <div class="flow-icon">📊</div>
+        <div class="flow-label">KPI記録</div>
+        <div class="flow-who">参加者</div>
+      </div>
+      <div class="flow-arrow"><i class="fas fa-chevron-right"></i></div>
+
+      <div class="flow-step" style="border-top-color:#e17055;">
+        <div class="flow-icon">🏆</div>
+        <div class="flow-label">ランキング</div>
+        <div class="flow-who">自動集計</div>
+      </div>
+      <div class="flow-arrow"><i class="fas fa-chevron-right"></i></div>
+
+      <div class="flow-step" style="border-top-color:#a29bfe;">
+        <div class="flow-icon">📋</div>
+        <div class="flow-label">成果レポート</div>
+        <div class="flow-who">AI + 保健師</div>
+      </div>
+      <div class="flow-arrow"><i class="fas fa-chevron-right"></i></div>
+
+      <div class="flow-step" style="border-top-color:#55efc4;">
+        <div class="flow-icon">🔄</div>
+        <div class="flow-label">次サイクルへ</div>
+        <div class="flow-who">継続</div>
+      </div>
+    </div>
+
+    <div class="tip-box">
+      <i class="fas fa-info-circle" style="color:#4caf50;"></i>
+      各ステップの担当者が明確に分かれており、内部統制の観点から承認プロセスが組み込まれています。
+    </div>
+  </div>
+</div>
+
+<!-- ====== セクション3: 役割分担 ====== -->
+<div class="guide-card theme-orange" data-keywords="役割 権限 社員 推進メンバー 保健師 役員 アンバサダー">
+  <div class="guide-card-header">
+    <div class="guide-card-icon"><i class="fas fa-users"></i></div>
+    <div class="guide-card-title">セクション3: 役割分担</div>
+  </div>
+  <div class="guide-card-body">
+    <p>4つの役割それぞれに明確な担当範囲があります。</p>
+
+    <div class="role-grid">
+      <!-- 一般社員 -->
+      <div class="role-card role-employee">
+        <h4><span class="role-emoji">👤</span> 一般社員</h4>
+        <ul>
+          <li>健康相談・食事写真を投稿</li>
+          <li>他の社員の投稿に共感（7種/6種から選ぶだけ）</li>
+          <li>テーマ投票（2票まで）</li>
+          <li>チャレンジにエントリー・KPI記録</li>
+          <li>ランキングで競争</li>
+        </ul>
+      </div>
+
+      <!-- 推進メンバー -->
+      <div class="role-card role-member">
+        <h4><span class="role-emoji">🔧</span> 推進メンバー</h4>
+        <ul>
+          <li>投稿一覧を確認、注目投稿にコメント</li>
+          <li>メンバー同士でチャット議論</li>
+          <li>AI7軸評価を実行</li>
+          <li>テーマ候補を精査・編集</li>
+          <li>チャレンジ内容をレビュー</li>
+          <li>実行中の伴走（声かけ・励まし）</li>
+        </ul>
+      </div>
+
+      <!-- 保健師 -->
+      <div class="role-card role-nurse">
+        <h4><span class="role-emoji">🩺</span> 保健師（アンバサダー）</h4>
+        <ul>
+          <li>テーマ候補への専門的助言（必須）</li>
+          <li>チャレンジ中間チェック</li>
+          <li>最終レポートへの所見</li>
+          <li>/ambassador 画面からアクセス</li>
+        </ul>
+      </div>
+
+      <!-- 役員 -->
+      <div class="role-card role-exec">
+        <h4><span class="role-emoji">👔</span> 役員</h4>
+        <ul>
+          <li>テーマの最終承認（必須・Exec権限）</li>
+          <li>承認者名が記録される</li>
+          <li>差戻し可能</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== セクション4: 承認フロー ====== -->
+<div class="guide-card theme-red" data-keywords="承認 内部統制 フロー 保健師 役員 投票 確定">
+  <div class="guide-card-header">
+    <div class="guide-card-icon"><i class="fas fa-shield-alt"></i></div>
+    <div class="guide-card-title">セクション4: 承認フロー（内部統制）</div>
+  </div>
+  <div class="guide-card-body">
+    <p>テーマが確定するまでに5段階の承認ステップを設けています。</p>
+
+    <div class="approval-flow">
+      <div class="approval-step">
+        <div class="approval-num">1</div>
+        <div class="approval-label">推進メンバー<br>精査</div>
+      </div>
+      <div class="approval-arrow"><i class="fas fa-chevron-right"></i></div>
+      <div class="approval-step">
+        <div class="approval-num">2</div>
+        <div class="approval-label">保健師<br>助言</div>
+      </div>
+      <div class="approval-arrow"><i class="fas fa-chevron-right"></i></div>
+      <div class="approval-step">
+        <div class="approval-num">3</div>
+        <div class="approval-label">役員<br>承認</div>
+      </div>
+      <div class="approval-arrow"><i class="fas fa-chevron-right"></i></div>
+      <div class="approval-step">
+        <div class="approval-num">4</div>
+        <div class="approval-label">全社<br>投票</div>
+      </div>
+      <div class="approval-arrow"><i class="fas fa-chevron-right"></i></div>
+      <div class="approval-step">
+        <div class="approval-num">5</div>
+        <div class="approval-label">テーマ<br>確定</div>
+      </div>
+    </div>
+
+    <div class="warn-box">
+      <strong><i class="fas fa-exclamation-triangle" style="color:#ffa000;"></i> 統制ルール</strong><br>
+      ・保健師助言なしでは役員承認に進めない<br>
+      ・役員承認なしでは投票を開始できない<br>
+      ・Exec権限のアカウントのみ承認可能（なりすまし防止）
+    </div>
+  </div>
+</div>
+
+<!-- ====== セクション5: 共感の仕組み ====== -->
+<div class="guide-card theme-pink" data-keywords="共感 ハート リアクション 投稿 相談 食事">
+  <div class="guide-card-header">
+    <div class="guide-card-icon"><i class="fas fa-heart"></i></div>
+    <div class="guide-card-title">セクション5: 共感の仕組み</div>
+  </div>
+  <div class="guide-card-body">
+    <p><strong>相談投稿への共感（7種）</strong></p>
+    <div class="empathy-grid">
+      <div class="empathy-chip"><span class="emp-emoji">🙋</span> わかる</div>
+      <div class="empathy-chip"><span class="emp-emoji">😰</span> ヤバい</div>
+      <div class="empathy-chip"><span class="emp-emoji">💡</span> 会社が動けば</div>
+      <div class="empathy-chip"><span class="emp-emoji">💪</span> 応援</div>
+      <div class="empathy-chip"><span class="emp-emoji">🤝</span> 一緒に</div>
+      <div class="empathy-chip"><span class="emp-emoji">🏥</span> 専門家に</div>
+      <div class="empathy-chip"><span class="emp-emoji">👀</span> 気になる</div>
+    </div>
+
+    <p style="margin-top:16px;"><strong>食事投稿への共感（6種）</strong></p>
+    <div class="empathy-grid">
+      <div class="empathy-chip"><span class="emp-emoji">🍽️</span> 美味しそう</div>
+      <div class="empathy-chip"><span class="emp-emoji">💪</span> 参考になる</div>
+      <div class="empathy-chip"><span class="emp-emoji">😅</span> 自分も</div>
+      <div class="empathy-chip"><span class="emp-emoji">🌿</span> 健康的</div>
+      <div class="empathy-chip"><span class="emp-emoji">🍺</span> 一緒に改善</div>
+      <div class="empathy-chip"><span class="emp-emoji">📸</span> もっと見たい</div>
+    </div>
+
+    <p style="margin-top:18px;"><strong>共感データの活用フロー</strong></p>
+    <div class="empathy-flow">
+      <div class="empathy-flow-box">
+        <div class="ef-icon">❤️</div>
+        <div class="ef-label">共感データ<br>(種別 + 件数)</div>
+      </div>
+      <div class="empathy-flow-arrow"><i class="fas fa-chevron-right"></i></div>
+      <div class="empathy-flow-box" style="border-color:#f2994a;">
+        <div class="ef-icon">💬</div>
+        <div class="ef-label">メンバー<br>コメント</div>
+      </div>
+      <div class="empathy-flow-arrow"><i class="fas fa-plus"></i></div>
+      <div class="empathy-flow-box" style="border-color:#8e2de2;">
+        <div class="ef-icon">🤖</div>
+        <div class="ef-label">AI分析</div>
+      </div>
+      <div class="empathy-flow-arrow"><i class="fas fa-chevron-right"></i></div>
+      <div class="empathy-flow-box" style="border-color:#11998e;">
+        <div class="ef-icon">📊</div>
+        <div class="ef-label">7軸評価<br>+ テーマ凝集</div>
+      </div>
+    </div>
+
+    <div class="tip-box">
+      共感の種別と件数がAIの7軸評価とテーマ凝集に直接反映されます。<br>
+      「🙋わかる」が多い悩みは<strong>ニーズ(needs)</strong>が高く、「😰ヤバい」が多い悩みは<strong>リスク(risk)</strong>が高く評価されます。
+    </div>
+  </div>
+</div>
+
+<!-- ====== セクション6: AI7軸評価 ====== -->
+<div class="guide-card theme-indigo" data-keywords="AI 7軸 評価 法令 リスク 頻度 緊急 安全 価値 ニーズ レーダー">
+  <div class="guide-card-header">
+    <div class="guide-card-icon"><i class="fas fa-brain"></i></div>
+    <div class="guide-card-title">セクション6: AI 7軸評価</div>
+  </div>
+  <div class="guide-card-body">
+    <p>AIが投稿・共感データ・メンバーコメント・チャット・エビデンス18領域を総合的に分析し、<br>7つの軸でテーマ候補を自動評価します。</p>
+
+    <div class="radar-container">
+      <div class="radar-axis">
+        <div class="radar-bar-wrap">
+          <div class="radar-bar" style="height:85%; background: linear-gradient(180deg, #eb3349, #f45c43);"></div>
+        </div>
+        <div class="radar-label">法令</div>
+        <div class="radar-sub">legal</div>
+      </div>
+      <div class="radar-axis">
+        <div class="radar-bar-wrap">
+          <div class="radar-bar" style="height:75%; background: linear-gradient(180deg, #f2994a, #f2c94c);"></div>
+        </div>
+        <div class="radar-label">リスク</div>
+        <div class="radar-sub">risk</div>
+      </div>
+      <div class="radar-axis">
+        <div class="radar-bar-wrap">
+          <div class="radar-bar" style="height:60%; background: linear-gradient(180deg, #667eea, #764ba2);"></div>
+        </div>
+        <div class="radar-label">頻度</div>
+        <div class="radar-sub">freq</div>
+      </div>
+      <div class="radar-axis">
+        <div class="radar-bar-wrap">
+          <div class="radar-bar" style="height:90%; background: linear-gradient(180deg, #e84393, #fd79a8);"></div>
+        </div>
+        <div class="radar-label">緊急</div>
+        <div class="radar-sub">urgency</div>
+      </div>
+      <div class="radar-axis">
+        <div class="radar-bar-wrap">
+          <div class="radar-bar" style="height:70%; background: linear-gradient(180deg, #00b894, #55efc4);"></div>
+        </div>
+        <div class="radar-label">安全</div>
+        <div class="radar-sub">safety</div>
+      </div>
+      <div class="radar-axis">
+        <div class="radar-bar-wrap">
+          <div class="radar-bar" style="height:65%; background: linear-gradient(180deg, #0984e3, #74b9ff);"></div>
+        </div>
+        <div class="radar-label">価値</div>
+        <div class="radar-sub">value</div>
+      </div>
+      <div class="radar-axis">
+        <div class="radar-bar-wrap">
+          <div class="radar-bar" style="height:80%; background: linear-gradient(180deg, #6c5ce7, #a29bfe);"></div>
+        </div>
+        <div class="radar-label">ニーズ</div>
+        <div class="radar-sub">needs</div>
+      </div>
+    </div>
+
+    <table class="guide-table">
+      <thead>
+        <tr><th>軸</th><th>評価内容</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>法令 (legal)</strong></td><td>法的義務への該当度</td></tr>
+        <tr><td><strong>リスク (risk)</strong></td><td>放置時の健康リスク</td></tr>
+        <tr><td><strong>頻度 (freq)</strong></td><td>組織内での普遍性</td></tr>
+        <tr><td><strong>緊急 (urgency)</strong></td><td>即座の対応必要度</td></tr>
+        <tr><td><strong>安全 (safety)</strong></td><td>身体・精神への影響</td></tr>
+        <tr><td><strong>価値 (value)</strong></td><td>施策の投資対効果</td></tr>
+        <tr><td><strong>ニーズ (needs)</strong></td><td>行動変容への寄与</td></tr>
+      </tbody>
+    </table>
+
+    <div class="highlight-box">
+      <strong>入力ソース:</strong> 共感データ + メンバーコメント + チャット議論 + エビデンス18領域の公的ガイドライン
+    </div>
+  </div>
+</div>
+
+<!-- ====== セクション7: チャレンジの仕組み ====== -->
+<div class="guide-card theme-teal" data-keywords="チャレンジ KPI ランキング バッジ EAST エントリー">
+  <div class="guide-card-header">
+    <div class="guide-card-icon"><i class="fas fa-fire"></i></div>
+    <div class="guide-card-title">セクション7: チャレンジの仕組み</div>
+  </div>
+  <div class="guide-card-body">
+    <p>確定したテーマに基づき、AIがチャレンジ企画書を自動生成します。<br>
+    参加は任意、毎日30秒でKPIを記録、ランキングで楽しく競争できます。</p>
+
+    <div class="challenge-grid">
+      <div class="challenge-item">
+        <div class="ch-icon">🤖</div>
+        <div class="ch-label">AI企画書</div>
+        <div class="ch-desc">EASTフレームワーク準拠</div>
+      </div>
+      <div class="challenge-item">
+        <div class="ch-icon">🙋</div>
+        <div class="ch-label">任意参加</div>
+        <div class="ch-desc">強制しない</div>
+      </div>
+      <div class="challenge-item">
+        <div class="ch-icon">⏱️</div>
+        <div class="ch-label">毎日30秒</div>
+        <div class="ch-desc">KPI記録</div>
+      </div>
+      <div class="challenge-item">
+        <div class="ch-icon">🏆</div>
+        <div class="ch-label">ランキング</div>
+        <div class="ch-desc">総合/連続/記録数</div>
+      </div>
+      <div class="challenge-item">
+        <div class="ch-icon">🎖️</div>
+        <div class="ch-label">バッジ</div>
+        <div class="ch-desc">初参加/7日連続/皆勤賞</div>
+      </div>
+      <div class="challenge-item">
+        <div class="ch-icon">📅</div>
+        <div class="ch-label">期間</div>
+        <div class="ch-desc">約30日間</div>
+      </div>
+    </div>
+
+    <div class="tip-box">
+      <i class="fas fa-lightbulb" style="color:#4caf50;"></i>
+      途中参加・途中離脱もOK。無理なく続けられる設計です。
+    </div>
+  </div>
+</div>
+
+<!-- ====== セクション8: エビデンスベース ====== -->
+<div class="guide-card theme-green" data-keywords="エビデンス ガイドライン 公的 18領域 学習">
+  <div class="guide-card-header">
+    <div class="guide-card-icon"><i class="fas fa-graduation-cap"></i></div>
+    <div class="guide-card-title">セクション8: エビデンスベース</div>
+  </div>
+  <div class="guide-card-body">
+    <p>AI評価の基盤となる全18領域の公的ガイドラインです。</p>
+
+    <div class="evidence-tags">
+      <div class="evidence-tag">腰痛</div>
+      <div class="evidence-tag">睡眠</div>
+      <div class="evidence-tag">食生活</div>
+      <div class="evidence-tag">血糖値</div>
+      <div class="evidence-tag">高血圧</div>
+      <div class="evidence-tag">メンタル</div>
+      <div class="evidence-tag">喫煙</div>
+      <div class="evidence-tag">飲酒</div>
+      <div class="evidence-tag">運動</div>
+      <div class="evidence-tag">熱中症</div>
+      <div class="evidence-tag">過重労働</div>
+      <div class="evidence-tag">化学物質</div>
+      <div class="evidence-tag">女性の健康</div>
+      <div class="evidence-tag">がん</div>
+      <div class="evidence-tag">歯科</div>
+      <div class="evidence-tag">感染症</div>
+      <div class="evidence-tag">特定健診</div>
+      <div class="evidence-tag">運転者健康管理</div>
+    </div>
+
+    <div class="highlight-box">
+      <i class="fas fa-book" style="color:#764ba2;"></i>
+      各領域の詳しい解説は <a href="/knowledge" style="color:#764ba2; font-weight:700;">学習ページ（/knowledge）</a> をご覧ください。
+    </div>
+  </div>
+</div>
+
+<!-- ====== セクション9: 画面一覧 ====== -->
+<div class="guide-card theme-cyan" data-keywords="画面 URL ページ 管理 ユーザー アンバサダー">
+  <div class="guide-card-header">
+    <div class="guide-card-icon"><i class="fas fa-desktop"></i></div>
+    <div class="guide-card-title">セクション9: 画面一覧</div>
+  </div>
+  <div class="guide-card-body">
+    <table class="guide-table">
+      <thead>
+        <tr><th>URL</th><th>画面名</th><th>対象者</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>/</code></td><td>ユーザー画面</td><td>全社員</td></tr>
+        <tr><td><code>/admin</code></td><td>管理画面</td><td>推進メンバー・役員</td></tr>
+        <tr><td><code>/ambassador</code></td><td>アンバサダー画面</td><td>保健師</td></tr>
+        <tr><td><code>/knowledge</code></td><td>学習資料</td><td>全員</td></tr>
+        <tr><td><code>/guide</code></td><td>このガイド</td><td>全員</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ====== セクション10: FAQ ====== -->
+<div class="guide-card theme-gray" data-keywords="FAQ 質問 匿名 共感 チャレンジ 保健師 役員 承認">
+  <div class="guide-card-header">
+    <div class="guide-card-icon"><i class="fas fa-question-circle"></i></div>
+    <div class="guide-card-title">セクション10: よくある質問（FAQ）</div>
+  </div>
+  <div class="guide-card-body">
+    <div class="faq-item">
+      <div class="faq-q"><span>Q.</span> 投稿は匿名ですか？</div>
+      <div class="faq-a">ニックネームで表示されます。実名は管理者のみ確認可能です。</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q"><span>Q.</span> 共感は何回できますか？</div>
+      <div class="faq-a">1つの投稿につき1回です。種別を選んでタップするだけで完了します。</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q"><span>Q.</span> チャレンジは強制ですか？</div>
+      <div class="faq-a">任意参加です。途中参加・途中離脱もOKです。</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q"><span>Q.</span> 保健師はどこからアクセスしますか？</div>
+      <div class="faq-a"><a href="/ambassador" style="color:#764ba2; font-weight:700;">/ambassador</a> のアンバサダー画面からアクセスします。</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q"><span>Q.</span> 役員承認は誰ができますか？</div>
+      <div class="faq-a">メンバー管理で<strong>Exec権限</strong>が設定されたアカウントのみ承認可能です。</div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /main-content -->
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

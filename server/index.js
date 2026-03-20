@@ -121,6 +121,11 @@ app.get('/ambassador', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'public', 'ambassador.html'));
 });
 
+// システムガイド
+app.get('/guide', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'public', 'guide.html'));
+});
+
 // ナレッジベース
 app.get('/knowledge', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'public', 'knowledge.html'));

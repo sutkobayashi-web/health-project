@@ -152,7 +152,7 @@
   .avatar-tab-content { display: none; }
   .avatar-tab-content.active { display: block; }
   .avatar-builder-body { padding: 16px; max-height: 55vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-  .avatar-builder-preview { text-align: center; margin-bottom: 8px; position: sticky; top: 0; z-index: 10; background: white; padding: 10px 0 6px; border-bottom: 1px solid #eee; box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
+  .avatar-builder-preview { text-align: center; margin-bottom: 8px; padding: 10px 0 6px; }
   .avatar-builder-preview canvas { border-radius: 50%; box-shadow: 0 4px 16px rgba(0,0,0,0.12); border: 3px solid #fff; }
   .ab-part-btn { border: 1.5px solid #ddd; background: white; color: #888; border-radius: 8px; padding: 4px 10px; font-size: 0.7rem; font-weight: 700; cursor: pointer; transition: all 0.15s; }
   .ab-part-btn.selected { background: #667eea; color: white; border-color: #667eea; }
@@ -2366,19 +2366,7 @@ function abRenderBuilderUI(containerId, previewCanvasId) {
   var html = '';
   if (!stickyEl) {
     html += '<div class="avatar-builder-preview">';
-    html += '<canvas id="' + previewCanvasId + '" width="400" height="400" style="width:200px;height:200px;cursor:grab;touch-action:none;"></canvas>';
-    html += '<div style="font-size:0.65rem; color:#bbb; margin-top:4px;">👆 タッチでパーツを移動</div>';
-    html += '<div style="font-size:0.62rem; color:#bbb; margin-top:2px;">↕ 位置移動</div>';
-    html += '<div style="display:flex; justify-content:center; gap:4px; margin-top:2px; flex-wrap:wrap;" id="ab-part-selector-' + previewCanvasId + '">';
-    html += '<button class="ab-part-btn selected" data-part="posEye" onclick="abSelectDragPart(this,\'posEye\')">目↕</button>';
-    html += '<button class="ab-part-btn" data-part="eyeSpacing" onclick="abSelectDragPart(this,\'eyeSpacing\')">目↔</button>';
-    html += '<button class="ab-part-btn" data-part="sizeEye" onclick="abSelectDragPart(this,\'sizeEye\')">目⊕</button>';
-    html += '<button class="ab-part-btn" data-part="posBrow" onclick="abSelectDragPart(this,\'posBrow\')">眉↕</button>';
-    html += '<button class="ab-part-btn" data-part="posNose" onclick="abSelectDragPart(this,\'posNose\')">鼻↕</button>';
-    html += '<button class="ab-part-btn" data-part="sizeNose" onclick="abSelectDragPart(this,\'sizeNose\')">鼻⊕</button>';
-    html += '<button class="ab-part-btn" data-part="posMouth" onclick="abSelectDragPart(this,\'posMouth\')">口↕</button>';
-    html += '<button class="ab-part-btn" data-part="sizeMouth" onclick="abSelectDragPart(this,\'sizeMouth\')">口⊕</button>';
-    html += '</div>';
+    html += '<canvas id="' + previewCanvasId + '" width="400" height="400" style="width:180px;height:180px;"></canvas>';
     html += '</div>';
   }
 
@@ -2410,19 +2398,33 @@ function abRenderBuilderUI(containerId, previewCanvasId) {
   });
   html += '</div></div>';
 
+  // スライダーヘルパー
+  function abSlider(key, label, min, max) {
+    return '<div style="display:flex; align-items:center; gap:4px; margin:4px 0;">' +
+      '<span style="font-size:0.65rem; color:#999; width:40px; flex-shrink:0;">' + label + '</span>' +
+      '<input type="range" min="' + min + '" max="' + max + '" value="' + (abState[key] || 0) + '" style="flex:1; height:20px; accent-color:#667eea;" oninput="abState[\'' + key + '\']=parseInt(this.value); _avatarCache={}; abUpdatePreview(\'' + previewCanvasId + '\'); selectedAvatar=abBuildString();">' +
+      '</div>';
+  }
+
   // 眉毛
   html += '<div class="avatar-builder-row"><label>🔲 眉毛</label><div class="avatar-builder-options">';
   AB_EYEBROW_NAMES.forEach(function(name, i) {
     html += '<div class="ab-icon-btn' + (abState.eyebrow === i ? ' selected' : '') + '" onclick="abSelect(\'eyebrow\',' + i + ',\'' + previewCanvasId + '\')">' + name + '</div>';
   });
-  html += '</div></div>';
+  html += '</div>';
+  html += abSlider('posBrow', '高さ', -4, 4);
+  html += '</div>';
 
   // 目
   html += '<div class="avatar-builder-row"><label>👀 目</label><div class="avatar-builder-options">';
   AB_EYE_NAMES.forEach(function(name, i) {
     html += '<div class="ab-icon-btn' + (abState.eye === i ? ' selected' : '') + '" onclick="abSelect(\'eye\',' + i + ',\'' + previewCanvasId + '\')">' + name + '</div>';
   });
-  html += '</div></div>';
+  html += '</div>';
+  html += abSlider('posEye', '高さ', -4, 4);
+  html += abSlider('eyeSpacing', '間隔', -3, 3);
+  html += abSlider('sizeEye', '大きさ', -3, 3);
+  html += '</div>';
 
   // 瞳の色
   html += '<div class="avatar-builder-row"><label>👁 瞳の色</label><div class="avatar-builder-options">';
@@ -2436,14 +2438,20 @@ function abRenderBuilderUI(containerId, previewCanvasId) {
   AB_NOSE_NAMES.forEach(function(name, i) {
     html += '<div class="ab-icon-btn' + (abState.nose === i ? ' selected' : '') + '" onclick="abSelect(\'nose\',' + i + ',\'' + previewCanvasId + '\')">' + name + '</div>';
   });
-  html += '</div></div>';
+  html += '</div>';
+  html += abSlider('posNose', '高さ', -3, 3);
+  html += abSlider('sizeNose', '大きさ', -2, 2);
+  html += '</div>';
 
   // 口
   html += '<div class="avatar-builder-row"><label>👄 口</label><div class="avatar-builder-options">';
   AB_MOUTH_NAMES.forEach(function(name, i) {
     html += '<div class="ab-icon-btn' + (abState.mouth === i ? ' selected' : '') + '" onclick="abSelect(\'mouth\',' + i + ',\'' + previewCanvasId + '\')">' + name + '</div>';
   });
-  html += '</div></div>';
+  html += '</div>';
+  html += abSlider('posMouth', '高さ', -4, 4);
+  html += abSlider('sizeMouth', '大きさ', -2, 2);
+  html += '</div>';
 
   // ヒゲ
   html += '<div class="avatar-builder-row"><label>🧔 ヒゲ</label><div class="avatar-builder-options">';
@@ -2456,27 +2464,6 @@ function abRenderBuilderUI(containerId, previewCanvasId) {
   html += '<div class="avatar-builder-row"><label>🩷 ほっぺた</label><div class="avatar-builder-options">';
   AB_CHEEK_NAMES.forEach(function(name, i) {
     html += '<div class="ab-icon-btn' + (abState.cheek === i ? ' selected' : '') + '" onclick="abSelect(\'cheek\',' + i + ',\'' + previewCanvasId + '\')">' + name + '</div>';
-  });
-  html += '</div></div>';
-
-  // 位置調整
-  html += '<div class="avatar-builder-row" style="border-top:2px solid #eee; padding-top:12px; margin-top:8px;"><label>📐 パーツ位置調整</label>';
-  html += '<div style="display:grid; grid-template-columns:1fr 1fr; gap:6px 12px;">';
-  var posItems = [
-    { key:'posEye', label:'目の高さ', min:-4, max:4 },
-    { key:'eyeSpacing', label:'目の間隔', min:-3, max:3 },
-    { key:'sizeEye', label:'目の大きさ', min:-3, max:3 },
-    { key:'posBrow', label:'眉の高さ', min:-4, max:4 },
-    { key:'posNose', label:'鼻の高さ', min:-3, max:3 },
-    { key:'sizeNose', label:'鼻の大きさ', min:-2, max:2 },
-    { key:'posMouth', label:'口の高さ', min:-4, max:4 },
-    { key:'sizeMouth', label:'口の大きさ', min:-2, max:2 }
-  ];
-  posItems.forEach(function(item) {
-    html += '<div style="display:flex; align-items:center; gap:4px;">';
-    html += '<span style="font-size:0.68rem; color:#888; width:52px; flex-shrink:0;">' + item.label + '</span>';
-    html += '<input type="range" min="' + item.min + '" max="' + item.max + '" value="' + (abState[item.key] || 0) + '" style="flex:1; accent-color:#667eea;" oninput="abState[\'' + item.key + '\']=parseInt(this.value); _avatarCache={}; abUpdatePreview(\'' + previewCanvasId + '\'); selectedAvatar=abBuildString();">';
-    html += '</div>';
   });
   html += '</div></div>';
 

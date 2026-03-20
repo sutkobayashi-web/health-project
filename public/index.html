@@ -4073,12 +4073,12 @@ function selectEmpathyAnswer(el, qIdx, choiceIdx, row) {
 }
 
 function submitEmpathyResponse(row) {
-  console.log('[Empathy] submit row:', row, '_postCache keys:', Object.keys(_postCache), 'type:', _selectedEmpathyType, 'answers:', JSON.stringify(_empathySelectedAnswers));
   var p = _postCache[row];
-  if (!p) { console.error('[Empathy] post not found for row:', row); return; }
-  if (!_selectedEmpathyType) { console.error('[Empathy] no type selected'); return; }
-  var cat = (p.content && p.content.includes('【写真】')) ? 'food' : 'consult';
+  if (!p || !_selectedEmpathyType) return;
+  // タイプからカテゴリを逆引き
+  var cat = _empathyQuestions.food[_selectedEmpathyType] ? 'food' : 'consult';
   var questions = _empathyQuestions[cat][_selectedEmpathyType];
+  if (!questions) return;
   var answers = questions.map(function(q, i) { return q.c[_empathySelectedAnswers[i]] || ''; });
   var freeComment = (document.getElementById('empathy-free-comment') || {}).value || '';
 

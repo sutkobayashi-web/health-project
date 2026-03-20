@@ -150,7 +150,7 @@ function loadData() {
     loadSidebarMembers();
 }
 
-// ハートビート送信（30秒ごと）
+// ハートビート送信（30秒ごと）- 自動更新は廃止
 function startHeartbeat() {
     function sendBeat() {
         if (!currentAdminProfile) return;
@@ -162,15 +162,6 @@ function startHeartbeat() {
     }
     sendBeat();
     setInterval(sendBeat, 30000);
-    // メンバーリストも60秒ごとに更新
-    setInterval(loadSidebarMembers, 60000);
-    // アクティブタブの自動更新（60秒ごと）
-    setInterval(function() {
-        if (!currentAdminProfile) return;
-        var modal = document.getElementById('member-mgmt-modal');
-        if (modal) return; // モーダル操作中はスキップ
-        refreshActiveTab();
-    }, 60000);
 }
 
 function refreshActiveTab() {
@@ -186,6 +177,10 @@ function refreshActiveTab() {
         case 'food': loadFoodUsers(); break;
         case 'members': loadMemberManagement(); break;
         case 'backup': loadBackupTab(); break;
+        case 'v2dash': if(typeof renderV2Dashboard==='function') renderV2Dashboard(); break;
+        case 'v2challenge': if(typeof renderV2Challenges==='function') renderV2Challenges(); break;
+        case 'v2kpi': if(typeof renderV2KpiSelector==='function') renderV2KpiSelector(); break;
+        case 'v2ambassador': if(typeof renderV2Ambassador==='function') renderV2Ambassador(); break;
     }
 }
 
@@ -713,6 +708,7 @@ function openBroadcastModal() {
 function closeBroadcastModal() {
     var el = document.getElementById('broadcast-modal');
     if(el) el.style.display = 'none';
+    refreshActiveTab();
 }
 function sendBroadcastNotice() {
     var bodyEl = document.getElementById('broadcast-body');

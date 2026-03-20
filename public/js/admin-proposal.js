@@ -145,7 +145,7 @@ function archivePlan(id) {
     showLoading("処理中...");
     archiveActionPlan(id).then(function(res) { hideLoading(); alert(res.msg); loadCandidates(); closeProposalModal(); });
 }
-function closeProposalModal() { document.getElementById('proposal-modal').style.display = 'none'; }
+function closeProposalModal() { document.getElementById('proposal-modal').style.display = 'none'; if(typeof refreshActiveTab==='function') refreshActiveTab(); }
 function remandPlan(id) {
     if(!confirm("評価フェーズに戻しますか？")) return;
     showLoading("処理中...");
@@ -309,7 +309,7 @@ function sendHearingNotification(planId, scope) {
 
 // テーマ機能
 function openThemePlanModal() { document.getElementById('theme-plan-modal').style.display = 'flex'; renderThemeSelectionList(); setTimeout(function(){ initThemePreviewChart(); }, 300); }
-function closeThemePlanModal() { document.getElementById('theme-plan-modal').style.display = 'none'; }
+function closeThemePlanModal() { document.getElementById('theme-plan-modal').style.display = 'none'; if(typeof refreshActiveTab==='function') refreshActiveTab(); }
 function renderThemeSelectionList() {
     var container = document.getElementById('theme-selection-list'); selectedThemePostIds = [];
     if(!allPointsData || allPointsData.length === 0) { container.innerHTML = '<div class="text-center p-3 text-muted">読み込み中...</div>'; return; }

@@ -289,3 +289,39 @@ CREATE TABLE IF NOT EXISTS ambassador_advices (
   member_response TEXT,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+
+-- 推進メンバーコメント（投稿への専門コメント）
+CREATE TABLE IF NOT EXISTS member_comments (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  post_id TEXT NOT NULL,
+  member_name TEXT NOT NULL,
+  comment TEXT NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 推進メンバーチャット（投稿に紐づく議論）
+CREATE TABLE IF NOT EXISTS member_chats (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  post_id TEXT NOT NULL,
+  member_name TEXT NOT NULL,
+  message TEXT NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- AI自動7軸評価
+CREATE TABLE IF NOT EXISTS auto_evaluations (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  post_id TEXT UNIQUE NOT NULL,
+  legal INTEGER DEFAULT 1,
+  risk INTEGER DEFAULT 1,
+  freq INTEGER DEFAULT 1,
+  urgency INTEGER DEFAULT 1,
+  safety INTEGER DEFAULT 1,
+  value_score INTEGER DEFAULT 1,
+  needs INTEGER DEFAULT 1,
+  total_score INTEGER DEFAULT 7,
+  reasoning TEXT,
+  guideline_refs TEXT,
+  source_data TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);

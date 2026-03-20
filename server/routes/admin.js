@@ -723,4 +723,135 @@ router.post('/user-delete', (req, res) => {
   } catch (e) { res.json({ success: false, msg: e.message }); }
 });
 
+// 推進メンバーコメント投稿
+router.post('/member-comment', (req, res) => {
+  try {
+    const { postId, memberName, comment } = req.body;
+    if (!postId || !memberName || !comment) return res.json({ success: false, msg: '必須項目不足' });
+    const db = getDb();
+    db.prepare('INSERT INTO member_comments (post_id, member_name, comment) VALUES (?, ?, ?)').run(postId, memberName, comment);
+    const comments = db.prepare('SELECT * FROM member_comments WHERE post_id = ? ORDER BY created_at ASC').all(postId);
+    res.json({ success: true, comments });
+  } catch (e) { res.json({ success: false, msg: e.message }); }
+});
+
+// メンバーコメント取得
+router.get('/member-comments/:postId', (req, res) => {
+  try {
+    const db = getDb();
+    const comments = db.prepare('SELECT * FROM member_comments WHERE post_id = ? ORDER BY created_at ASC').all(req.params.postId);
+    res.json({ success: true, comments });
+  } catch (e) { res.json({ success: false, comments: [] }); }
+});
+
+// メンバーチャット送信
+router.post('/member-chat', (req, res) => {
+  try {
+    const { postId, memberName, message } = req.body;
+    if (!postId || !memberName || !message) return res.json({ success: false, msg: '必須項目不足' });
+    const db = getDb();
+    db.prepare('INSERT INTO member_chats (post_id, member_name, message) VALUES (?, ?, ?)').run(postId, memberName, message);
+    const chats = db.prepare('SELECT * FROM member_chats WHERE post_id = ? ORDER BY created_at ASC').all(postId);
+    res.json({ success: true, chats });
+  } catch (e) { res.json({ success: false, msg: e.message }); }
+});
+
+// メンバーチャット取得
+router.get('/member-chats/:postId', (req, res) => {
+  try {
+    const db = getDb();
+    const chats = db.prepare('SELECT * FROM member_chats WHERE post_id = ? ORDER BY created_at ASC').all(req.params.postId);
+    res.json({ success: true, chats });
+  } catch (e) { res.json({ success: false, chats: [] }); }
+});
+
+// AI自動7軸評価を実行
+router.post('/auto-evaluate', async (req, res) => {
+  try {
+    const { postId } = req.body;
+    const db = getDb();
+    const post = db.prepare('SELECT * FROM posts WHERE post_id = ?').get(postId);
+    if (!post) return res.json({ success: false, msg: '投稿が見つかりません' });
+
+    // 共感データ取得
+    const empathyResponses = db.prepare('SELECT * FROM empathy_responses WHERE post_id = ?').all(postId);
+    const empathySummary = {};
+    empathyResponses.forEach(r => {
+      empathySummary[r.empathy_type] = (empathySummary[r.empathy_type] || 0) + 1;
+    });
+
+    // メンバーコメント取得
+    const memberComments = db.prepare('SELECT member_name, comment FROM member_comments WHERE post_id = ?').all(postId);
+
+    // メンバーチャット取得
+    const memberChats = db.prepare('SELECT member_name, message FROM member_chats WHERE post_id = ?').all(postId);
+
+    // AI に全データを渡して7軸評価
+    const { callGroqApi, EVIDENCE_BASE } = require('../services/ai');
+
+    const prompt = `あなたは健康経営アナリストです。以下の社員の声と、それに対する全社員の共感データ、推進メンバーの専門コメント・議論内容を総合的に分析し、7軸評価をJSON形式で出力してください。
+
+${EVIDENCE_BASE}
+
+【社員の声】
+${post.content}
+
+【カテゴリ】${post.category}
+
+【共感データ（${empathyResponses.length}名が回答）】
+${Object.entries(empathySummary).map(([k, v]) => `  ${k}: ${v}名`).join('\n') || '（共感なし）'}
+
+【共感の詳細回答】
+${empathyResponses.slice(0, 20).map(r => `  ${r.empathy_type} - Q1:${r.answer1} Q2:${r.answer2} Q3:${r.answer3}${r.free_comment ? ' コメント:' + r.free_comment : ''}`).join('\n') || '（なし）'}
+
+【推進メンバーの専門コメント】
+${memberComments.map(c => `  ${c.member_name}: ${c.comment}`).join('\n') || '（なし）'}
+
+【推進メンバー同士の議論】
+${memberChats.map(c => `  ${c.member_name}: ${c.message}`).join('\n') || '（なし）'}
+
+【評価ルール】
+- 共感回答数が多いほど freq を高く
+- 「ヤバい」「深刻」系の共感が多いほど risk, urgency, safety を高く
+- 「会社が動けば」系が多いほど value, needs を高く
+- 推進メンバーが法的リスクに言及していれば legal を高く
+- 推進メンバーの議論で緊急性が指摘されていれば urgency を高く
+- 該当する公的ガイドラインがあればスコアを高めに
+- ★★★マークダウン記法は使わない★★★
+
+【出力形式】JSONのみ。他のテキスト不要。
+{
+  "legal": 3, "risk": 3, "freq": 3, "urgency": 3, "safety": 3, "value": 3, "needs": 3,
+  "reasoning": "評価の根拠を2-3文で説明",
+  "guideline_refs": "該当するガイドライン名（例: 厚労省「職場における腰痛予防対策指針」）"
+}`;
+
+    const aiResult = await callGroqApi('JSON出力専門AI。指定JSON形式のみ出力。', prompt);
+    if (!aiResult) return res.json({ success: false, msg: 'AI評価失敗' });
+
+    const jsonMatch = aiResult.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) return res.json({ success: false, msg: 'AI出力解析失敗' });
+
+    const scores = JSON.parse(jsonMatch[0]);
+    const total = (scores.legal||1) + (scores.risk||1) + (scores.freq||1) + (scores.urgency||1) + (scores.safety||1) + (scores.value||1) + (scores.needs||1);
+
+    // DB保存 (UPSERT)
+    db.prepare(`INSERT INTO auto_evaluations (post_id, legal, risk, freq, urgency, safety, value_score, needs, total_score, reasoning, guideline_refs, source_data)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(post_id) DO UPDATE SET legal=excluded.legal, risk=excluded.risk, freq=excluded.freq, urgency=excluded.urgency, safety=excluded.safety, value_score=excluded.value_score, needs=excluded.needs, total_score=excluded.total_score, reasoning=excluded.reasoning, guideline_refs=excluded.guideline_refs, source_data=excluded.source_data, created_at=CURRENT_TIMESTAMP`)
+      .run(postId, scores.legal||1, scores.risk||1, scores.freq||1, scores.urgency||1, scores.safety||1, scores.value||1, scores.needs||1, total, scores.reasoning||'', scores.guideline_refs||'', JSON.stringify({ empathyCount: empathyResponses.length, memberComments: memberComments.length, memberChats: memberChats.length }));
+
+    res.json({ success: true, scores, total, reasoning: scores.reasoning, guideline_refs: scores.guideline_refs });
+  } catch (e) { res.json({ success: false, msg: e.message }); }
+});
+
+// AI自動評価結果取得
+router.get('/auto-evaluation/:postId', (req, res) => {
+  try {
+    const db = getDb();
+    const eval_ = db.prepare('SELECT * FROM auto_evaluations WHERE post_id = ?').get(req.params.postId);
+    res.json({ success: true, evaluation: eval_ || null });
+  } catch (e) { res.json({ success: false, evaluation: null }); }
+});
+
 module.exports = router;

@@ -380,3 +380,23 @@ function getChallengeDashboard(challengeId) {
 function postAmbassadorAdvice(ambassadorId, challengeId, adviceType, content) {
   return api('/themes/ambassador-advice', { ambassadorId, challengeId, adviceType, content }, getAdminToken());
 }
+
+// ===== Member Comments & Chat =====
+function postMemberComment(postId, memberName, comment) {
+  return api('/admin/member-comment', { postId, memberName, comment }, getAdminToken());
+}
+function getMemberComments(postId) {
+  return api('/admin/member-comments/' + postId, undefined, getAdminToken());
+}
+function postMemberChat(postId, memberName, message) {
+  return api('/admin/member-chat', { postId, memberName, message }, getAdminToken());
+}
+function getMemberChats(postId) {
+  return api('/admin/member-chats/' + postId, undefined, getAdminToken());
+}
+function runAutoEvaluate(postId) {
+  return api('/admin/auto-evaluate', { postId }, getAdminToken());
+}
+function getAutoEvaluation(postId) {
+  return api('/admin/auto-evaluation/' + postId, undefined, getAdminToken());
+}

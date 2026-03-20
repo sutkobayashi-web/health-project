@@ -229,7 +229,7 @@ function renderReportList(data) {
                     '<button class="inbox-tab active" onclick="switchInboxDetailTab(\''+pid+'\',\'content\')" data-tab="content" style="flex:1; padding:8px; border:none; background:transparent; font-size:0.72rem; font-weight:700; color:#667eea; border-bottom:2px solid #667eea; cursor:pointer;">📝 内容</button>' +
                     '<button class="inbox-tab" onclick="switchInboxDetailTab(\''+pid+'\',\'empathy\')" data-tab="empathy" style="flex:1; padding:8px; border:none; background:transparent; font-size:0.72rem; font-weight:700; color:#999; border-bottom:2px solid transparent; cursor:pointer;">❤️ 共感</button>' +
                     '<button class="inbox-tab" onclick="switchInboxDetailTab(\''+pid+'\',\'comments\')" data-tab="comments" style="flex:1; padding:8px; border:none; background:transparent; font-size:0.72rem; font-weight:700; color:#999; border-bottom:2px solid transparent; cursor:pointer;">💬 コメント</button>' +
-                    '<button class="inbox-tab" onclick="switchInboxDetailTab(\''+pid+'\',\'actions\')" data-tab="actions" style="flex:1; padding:8px; border:none; background:transparent; font-size:0.72rem; font-weight:700; color:#999; border-bottom:2px solid transparent; cursor:pointer;">⚡ 操作</button>' +
+                    '<button class="inbox-tab" onclick="switchInboxDetailTab(\''+pid+'\',\'actions\')" data-tab="actions" style="flex:1; padding:8px; border:none; background:transparent; font-size:0.72rem; font-weight:700; color:#999; border-bottom:2px solid transparent; cursor:pointer;">🔥 注目</button>' +
                 '</div>' +
                 // 内容タブ
                 '<div id="inbox-tab-content-'+pid+'" class="inbox-tab-panel" style="padding:12px;">' +
@@ -252,16 +252,31 @@ function renderReportList(data) {
                         '<button class="btn btn-sm btn-primary" style="font-size:0.72rem; padding:4px 10px;" onclick="submitInboxComment(\''+pid+'\')"><i class="fas fa-paper-plane"></i></button>' +
                     '</div>' +
                 '</div>' +
-                // 操作タブ
+                // 注目タブ（推進メンバーコメント＋チャット＋AI評価）
                 '<div id="inbox-tab-actions-'+pid+'" class="inbox-tab-panel" style="padding:12px; display:none;">' +
-                    '<div style="display:flex; flex-direction:column; gap:6px;">' +
-                        '<button class="btn btn-outline-secondary btn-sm fw-bold" onclick="openEvalModal(\''+pid+'\')"><i class="fas fa-search me-1"></i>詳細モーダルを開く</button>' +
-                        '<button class="btn btn-outline-info btn-sm fw-bold" onclick="convertEmpathyScore(\''+pid+'\')"><i class="fas fa-magic me-1"></i>共感→AI7軸スコア変換</button>' +
-                        (isTarget ?
-                            '<button class="btn btn-outline-secondary btn-sm" onclick="toggleTriage(\''+pid+'\', false)"><i class="fas fa-undo me-1"></i>重点から解除</button>'
-                        :
-                            '<button class="btn btn-outline-warning btn-sm fw-bold" onclick="toggleTriage(\''+pid+'\', true)"><i class="fas fa-star me-1"></i>重点検討へ引き上げ</button>'
-                        ) +
+                    '<!-- 推進メンバーコメント -->' +
+                    '<div style="margin-bottom:12px;">' +
+                        '<div style="font-size:0.75rem; font-weight:700; color:#e65100; margin-bottom:6px;"><i class="fas fa-user-shield me-1"></i>推進メンバーコメント</div>' +
+                        '<div id="member-comments-'+pid+'" style="max-height:120px; overflow-y:auto; font-size:0.8rem; margin-bottom:6px;"></div>' +
+                        '<div style="display:flex; gap:4px;">' +
+                            '<input type="text" id="member-comment-input-'+pid+'" placeholder="専門的視点からコメント..." style="flex:1; border:1px solid #ddd; border-radius:8px; padding:6px 10px; font-size:0.78rem; outline:none;">' +
+                            '<button class="btn btn-sm btn-warning" style="font-size:0.72rem; padding:4px 10px;" onclick="doPostMemberComment(\''+pid+'\')"><i class="fas fa-paper-plane"></i></button>' +
+                        '</div>' +
+                    '</div>' +
+                    '<!-- メンバーチャット -->' +
+                    '<div style="margin-bottom:12px;">' +
+                        '<div style="font-size:0.75rem; font-weight:700; color:#d32f2f; margin-bottom:6px;"><i class="fas fa-comments me-1"></i>メンバー議論チャット</div>' +
+                        '<div id="member-chats-'+pid+'" style="max-height:150px; overflow-y:auto; font-size:0.8rem; margin-bottom:6px; background:#fafafa; border-radius:8px; padding:6px;"></div>' +
+                        '<div style="display:flex; gap:4px;">' +
+                            '<input type="text" id="member-chat-input-'+pid+'" placeholder="メンバー同士で議論..." style="flex:1; border:1px solid #ddd; border-radius:8px; padding:6px 10px; font-size:0.78rem; outline:none;" onkeydown="if(event.key===\'Enter\'){event.preventDefault();doPostMemberChat(\''+pid+'\');}">' +
+                            '<button class="btn btn-sm btn-danger" style="font-size:0.72rem; padding:4px 10px;" onclick="doPostMemberChat(\''+pid+'\')"><i class="fas fa-paper-plane"></i></button>' +
+                        '</div>' +
+                    '</div>' +
+                    '<!-- AI自動7軸評価 -->' +
+                    '<div>' +
+                        '<div style="font-size:0.75rem; font-weight:700; color:#1565c0; margin-bottom:6px;"><i class="fas fa-robot me-1"></i>AI自動7軸評価</div>' +
+                        '<div id="auto-eval-'+pid+'" style="font-size:0.8rem;"></div>' +
+                        '<button class="btn btn-sm btn-outline-primary fw-bold mt-2" style="font-size:0.72rem;" onclick="doAutoEvaluate(\''+pid+'\')"><i class="fas fa-magic me-1"></i>AI評価を実行</button>' +
                     '</div>' +
                 '</div>' +
             '</div>';
@@ -484,6 +499,99 @@ function switchInboxDetailTab(pid, tab) {
             }
         });
     }
+    // 注目タブの場合はデータ読み込み
+    if (tab === 'actions') loadAttentionTab(pid);
+}
+
+// 推進メンバーコメント投稿
+function doPostMemberComment(pid) {
+    var input = document.getElementById('member-comment-input-' + pid);
+    if (!input || !input.value.trim()) return;
+    var name = (currentAdminProfile && currentAdminProfile.name) || 'Admin';
+    postMemberComment(pid, name, input.value.trim()).then(function(res) {
+        if (res.success) { input.value = ''; renderMemberComments(pid, res.comments); }
+        else alert(res.msg || 'エラー');
+    });
+}
+
+// メンバーコメント表示
+function renderMemberComments(pid, comments) {
+    var area = document.getElementById('member-comments-' + pid);
+    if (!area) return;
+    if (!comments || comments.length === 0) { area.innerHTML = '<div style="color:#ccc;">まだコメントはありません</div>'; return; }
+    area.innerHTML = comments.map(function(c) {
+        var date = c.created_at ? new Date(c.created_at).toLocaleString('ja-JP', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' }) : '';
+        return '<div style="padding:4px 0; border-bottom:1px solid #f0f0f0;"><span style="font-weight:700; color:#e65100;">' + escapeHtml(c.member_name) + '</span> <span style="color:#bbb; font-size:0.65rem;">' + date + '</span><div style="color:#444;">' + escapeHtml(c.comment) + '</div></div>';
+    }).join('');
+}
+
+// メンバーチャット送信
+function doPostMemberChat(pid) {
+    var input = document.getElementById('member-chat-input-' + pid);
+    if (!input || !input.value.trim()) return;
+    var name = (currentAdminProfile && currentAdminProfile.name) || 'Admin';
+    postMemberChat(pid, name, input.value.trim()).then(function(res) {
+        if (res.success) { input.value = ''; renderMemberChats(pid, res.chats); }
+        else alert(res.msg || 'エラー');
+    });
+}
+
+// メンバーチャット表示
+function renderMemberChats(pid, chats) {
+    var area = document.getElementById('member-chats-' + pid);
+    if (!area) return;
+    if (!chats || chats.length === 0) { area.innerHTML = '<div style="color:#ccc;">まだ議論はありません</div>'; return; }
+    area.innerHTML = chats.map(function(c) {
+        var date = c.created_at ? new Date(c.created_at).toLocaleString('ja-JP', { hour:'2-digit', minute:'2-digit' }) : '';
+        return '<div style="padding:3px 0;"><span style="font-weight:700; color:#d32f2f; font-size:0.75rem;">' + escapeHtml(c.member_name) + '</span> <span style="color:#ccc; font-size:0.6rem;">' + date + '</span><div style="color:#333; font-size:0.8rem;">' + escapeHtml(c.message) + '</div></div>';
+    }).join('');
+    area.scrollTop = area.scrollHeight;
+}
+
+// AI自動7軸評価実行
+function doAutoEvaluate(pid) {
+    if (!confirm('共感データ・メンバーコメント・議論内容からAI7軸評価を実行しますか？')) return;
+    var area = document.getElementById('auto-eval-' + pid);
+    if (area) area.innerHTML = '<div class="text-center"><div class="spinner-border spinner-border-sm"></div> AI評価中...</div>';
+    runAutoEvaluate(pid).then(function(res) {
+        if (res.success) { renderAutoEvaluation(pid, res); }
+        else { if (area) area.innerHTML = '<div class="text-danger">エラー: ' + (res.msg || '') + '</div>'; }
+    });
+}
+
+// AI評価結果表示
+function renderAutoEvaluation(pid, data) {
+    var area = document.getElementById('auto-eval-' + pid);
+    if (!area) return;
+    if (!data || !data.scores) { area.innerHTML = '<div style="color:#ccc;">未評価</div>'; return; }
+    var s = data.scores;
+    var labels = { legal:'法令', risk:'リスク', freq:'頻度', urgency:'緊急', safety:'安全', value:'価値', needs:'ニーズ' };
+    var html = '<div style="display:flex; flex-wrap:wrap; gap:4px; margin-bottom:6px;">';
+    ['legal','risk','freq','urgency','safety','value','needs'].forEach(function(k) {
+        var v = s[k] || 1;
+        var color = v >= 4 ? '#e53935' : v >= 3 ? '#f9a825' : '#999';
+        html += '<span style="background:#f5f5f5; border:1px solid #eee; border-radius:6px; padding:2px 8px; font-size:0.7rem; font-weight:700;"><span style="color:#888;">' + labels[k] + '</span> <span style="color:' + color + ';">' + v + '</span></span>';
+    });
+    html += '</div>';
+    var total = (s.legal||1)+(s.risk||1)+(s.freq||1)+(s.urgency||1)+(s.safety||1)+(s.value||1)+(s.needs||1);
+    html += '<div style="font-size:0.72rem; font-weight:700; color:' + (total >= 21 ? '#e53935' : '#666') + '; margin-bottom:4px;">合計: ' + total + '/35' + (total >= 21 ? ' ⚠️重点候補' : '') + '</div>';
+    if (data.reasoning) html += '<div style="font-size:0.72rem; color:#555; margin-bottom:4px;">💡 ' + escapeHtml(data.reasoning) + '</div>';
+    if (data.guideline_refs) html += '<div style="font-size:0.68rem; color:#1565c0;">📚 ' + escapeHtml(data.guideline_refs) + '</div>';
+    area.innerHTML = html;
+}
+
+// 注目タブを開いた時にデータを読み込む
+function loadAttentionTab(pid) {
+    getMemberComments(pid).then(function(res) { if (res.success) renderMemberComments(pid, res.comments); });
+    getMemberChats(pid).then(function(res) { if (res.success) renderMemberChats(pid, res.chats); });
+    getAutoEvaluation(pid).then(function(res) {
+        if (res.success && res.evaluation) {
+            renderAutoEvaluation(pid, { scores: res.evaluation, reasoning: res.evaluation.reasoning, guideline_refs: res.evaluation.guideline_refs });
+        } else {
+            var area = document.getElementById('auto-eval-' + pid);
+            if (area) area.innerHTML = '<div style="color:#ccc;">まだ評価されていません</div>';
+        }
+    });
 }
 
 function openEvalModal(pid) { if(typeof openPriorityModal === 'function') openPriorityModal(pid); else alert("詳細画面を開けません。リロードしてください。"); }

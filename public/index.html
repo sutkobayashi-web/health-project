@@ -350,7 +350,7 @@
   <!-- 左右分割 -->
   <div style="flex:1; display:flex; overflow:hidden;">
     <!-- 左: プレビュー -->
-    <div id="ab-editor-left" style="width:45%; background:linear-gradient(135deg,#f0f4ff,#e8ecff); display:flex; flex-direction:column; align-items:center; justify-content:flex-end; padding:10px 10px 6px; flex-shrink:0; touch-action:none;">
+    <div id="ab-editor-left" style="width:45%; background:linear-gradient(135deg,#f0f4ff,#e8ecff); display:flex; flex-direction:column; align-items:center; justify-content:center; padding:10px; flex-shrink:0; touch-action:none;">
       <canvas id="ab-editor-canvas" width="400" height="400" style="width:100%; max-width:260px; aspect-ratio:1; border-radius:16px; box-shadow:0 8px 30px rgba(0,0,0,0.15); border:3px solid #fff; cursor:grab;"></canvas>
       <div style="margin-top:8px; display:flex; gap:3px; flex-wrap:wrap; justify-content:center;" id="ab-editor-part-btns">
         <button class="ab-part-btn" data-part="posHair" onclick="abSelectDragPart(this,'posHair')">髪↕</button>
@@ -645,7 +645,7 @@ function renderCustomAvatar(avatarStr, size) {
 
     // 顔（輪郭形状反映）- 少し下寄せで髪との間隔を確保
     var faceR = r * faceSize / 24 * (1 + sizeFaceVal * 0.06);
-    var faceY = cy + r * 0.15;
+    var faceY = cy + r * 0.2;
     drawFace(ctx, cx, faceY, faceR, faceShapeType, skinColor);
 
     // 髪のオフセット

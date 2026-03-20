@@ -50,14 +50,26 @@ var INBOX_AVATAR_MAP = { "メディカル":"🩺","医":"🩺","ヘルス":"💉
 
 /* ── Helper: avatar resolution ── */
 function getInboxAvatar(name, role, currentAvatar) {
-    // カスタムアバター対応
-    if(currentAvatar && String(currentAvatar).startsWith('custom:') && typeof getAvatarHtml === 'function') {
-        return getAvatarHtml(currentAvatar, 36);
+    // カスタムアバター対応 — data-custom-avatar属性で後からCanvas描画
+    if(currentAvatar && String(currentAvatar).startsWith('custom:')) {
+        return '<span data-custom-avatar="' + currentAvatar.replace(/"/g,'&quot;') + '" data-avatar-size="36"></span>';
     }
     if(currentAvatar && currentAvatar.length <= 4 && !currentAvatar.match(/[亜-熙ぁ-んァ-ヶ]/)) return currentAvatar;
     var targetStr = (String(currentAvatar) + String(name) + String(role));
     for(var key in INBOX_AVATAR_MAP) { if(targetStr.includes(key)) return INBOX_AVATAR_MAP[key]; }
     return "🤖";
+}
+
+// DOM追加後にカスタムアバターをCanvas描画
+function renderInboxCustomAvatars() {
+    if(typeof getAvatarHtml !== 'function') return;
+    document.querySelectorAll('[data-custom-avatar]').forEach(function(el) {
+        if(el._rendered) return;
+        el._rendered = true;
+        var av = el.getAttribute('data-custom-avatar');
+        var sz = parseInt(el.getAttribute('data-avatar-size')) || 36;
+        el.innerHTML = getAvatarHtml(av, sz);
+    });
 }
 
 /* ── Helper: image URL normalisation ── */
@@ -221,6 +233,8 @@ function renderReportList(data) {
     var countEl = document.getElementById('report-count'); if(countEl) countEl.innerText = visibleCount + " 件";
     // 重点案件の賛同進捗バッジを更新
     updateVoteProgressBadges();
+    // カスタムアバターをCanvas描画
+    setTimeout(renderInboxCustomAvatars, 100);
 }
 
 function updateVoteProgressBadges() {

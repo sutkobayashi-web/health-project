@@ -352,7 +352,10 @@
     <!-- 左: プレビュー -->
     <div id="ab-editor-left" style="width:45%; background:linear-gradient(135deg,#f0f4ff,#e8ecff); display:flex; flex-direction:column; align-items:center; justify-content:center; padding:10px; flex-shrink:0; touch-action:none;">
       <canvas id="ab-editor-canvas" width="400" height="400" style="width:100%; max-width:280px; aspect-ratio:1; border-radius:50%; box-shadow:0 8px 30px rgba(0,0,0,0.15); border:4px solid #fff; cursor:grab;"></canvas>
-      <div style="margin-top:8px; display:flex; gap:4px; flex-wrap:wrap; justify-content:center;" id="ab-editor-part-btns">
+      <div style="margin-top:8px; display:flex; gap:3px; flex-wrap:wrap; justify-content:center;" id="ab-editor-part-btns">
+        <button class="ab-part-btn" data-part="posHair" onclick="abSelectDragPart(this,'posHair')">髪↕</button>
+        <button class="ab-part-btn" data-part="sizeHair" onclick="abSelectDragPart(this,'sizeHair')">髪⊕</button>
+        <button class="ab-part-btn" data-part="sizeFace" onclick="abSelectDragPart(this,'sizeFace')">顔⊕</button>
         <button class="ab-part-btn selected" data-part="posEye" onclick="abSelectDragPart(this,'posEye')">目↕</button>
         <button class="ab-part-btn" data-part="eyeSpacing" onclick="abSelectDragPart(this,'eyeSpacing')">目↔</button>
         <button class="ab-part-btn" data-part="sizeEye" onclick="abSelectDragPart(this,'sizeEye')">目⊕</button>
@@ -628,6 +631,9 @@ function renderCustomAvatar(avatarStr, size) {
     var sizeEyeVal = parseInt(parts[19]) || 0;
     var sizeNoseVal = parseInt(parts[20]) || 0;
     var sizeMouthVal = parseInt(parts[21]) || 0;
+    var posHairVal = parseInt(parts[22]) || 0;
+    var sizeHairVal = parseInt(parts[23]) || 0;
+    var sizeFaceVal = parseInt(parts[24]) || 0;
 
     var canvas = document.createElement('canvas');
     canvas.width = size; canvas.height = size;
@@ -638,12 +644,16 @@ function renderCustomAvatar(avatarStr, size) {
     ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fillStyle = bgColor; ctx.fill();
 
     // 顔（輪郭形状反映）- 少し下寄せで髪との間隔を確保
-    var faceR = r * faceSize / 24;
+    var faceR = r * faceSize / 24 * (1 + sizeFaceVal * 0.06);
     var faceY = cy + r * 0.15;
     drawFace(ctx, cx, faceY, faceR, faceShapeType, skinColor);
 
+    // 髪のオフセット
+    var hairYOff = posHairVal * faceR * 0.04;
+    var hairScale = 1 + sizeHairVal * 0.08;
+
     // 髪（後ろ部分 - ロング・ボブなどのサイド）
-    drawHairBack(ctx, cx, faceY, faceR, hairType, hairColor);
+    drawHairBack(ctx, cx, faceY + hairYOff, faceR * hairScale, hairType, hairColor);
 
     // 位置オフセット計算（1単位 = faceR * 0.04）
     var eyeYOff = posEyeVal * faceR * 0.04;
@@ -680,7 +690,7 @@ function renderCustomAvatar(avatarStr, size) {
     drawCheeks(ctx, cx, eyeY, eyeSpacing, faceR, cheekType);
 
     // 髪（前部分）
-    drawHair(ctx, cx, faceY, faceR, hairType, hairColor);
+    drawHair(ctx, cx, faceY + hairYOff, faceR * hairScale, hairType, hairColor);
 
     // アクセサリー
     accessories.forEach(function(acc) {
@@ -2265,12 +2275,12 @@ function getAvatarHtml(avatarStr, size) {
 }
 
 // ====== アバタービルダー状態 ======
-var abState = { skin: 2, hair: 0, hairColor: 0, eye: 0, mouth: 0, accessories: [0], bg: 0, faceSize: 1, eyebrow: 0, nose: 0, beard: 0, cheek: 0, faceShape: 0, eyeColor: 0, posEye: 0, posMouth: 0, posNose: 0, posBrow: 0, eyeSpacing: 0, sizeEye: 0, sizeNose: 0, sizeMouth: 0 };
+var abState = { skin: 2, hair: 0, hairColor: 0, eye: 0, mouth: 0, accessories: [0], bg: 0, faceSize: 1, eyebrow: 0, nose: 0, beard: 0, cheek: 0, faceShape: 0, eyeColor: 0, posEye: 0, posMouth: 0, posNose: 0, posBrow: 0, eyeSpacing: 0, sizeEye: 0, sizeNose: 0, sizeMouth: 0, posHair: 0, sizeHair: 0, sizeFace: 0 };
 
 function abBuildString() {
   var accs = abState.accessories.filter(function(a) { return a > 0; });
   if (accs.length === 0) accs = [0];
-  return 'custom:' + AB_SKINS[abState.skin] + '|' + AB_HAIRS[abState.hairColor] + '|' + AB_BGS[abState.bg] + '|' + AB_FACES[abState.faceSize] + '|' + abState.eye + '|' + abState.mouth + '|' + accs.join(',') + '|' + abState.hair + '|' + abState.eyebrow + '|' + abState.nose + '|' + abState.beard + '|' + abState.cheek + '|' + abState.faceShape + '|' + abState.eyeColor + '|' + abState.posEye + '|' + abState.posMouth + '|' + abState.posNose + '|' + abState.posBrow + '|' + abState.eyeSpacing + '|' + abState.sizeEye + '|' + abState.sizeNose + '|' + abState.sizeMouth;
+  return 'custom:' + AB_SKINS[abState.skin] + '|' + AB_HAIRS[abState.hairColor] + '|' + AB_BGS[abState.bg] + '|' + AB_FACES[abState.faceSize] + '|' + abState.eye + '|' + abState.mouth + '|' + accs.join(',') + '|' + abState.hair + '|' + abState.eyebrow + '|' + abState.nose + '|' + abState.beard + '|' + abState.cheek + '|' + abState.faceShape + '|' + abState.eyeColor + '|' + abState.posEye + '|' + abState.posMouth + '|' + abState.posNose + '|' + abState.posBrow + '|' + abState.eyeSpacing + '|' + abState.sizeEye + '|' + abState.sizeNose + '|' + abState.sizeMouth + '|' + abState.posHair + '|' + abState.sizeHair + '|' + abState.sizeFace;
 }
 
 function abParseString(str) {
@@ -2300,6 +2310,9 @@ function abParseString(str) {
     abState.sizeEye = parseInt(parts[19]) || 0;
     abState.sizeNose = parseInt(parts[20]) || 0;
     abState.sizeMouth = parseInt(parts[21]) || 0;
+    abState.posHair = parseInt(parts[22]) || 0;
+    abState.sizeHair = parseInt(parts[23]) || 0;
+    abState.sizeFace = parseInt(parts[24]) || 0;
   } catch(e) {}
 }
 
@@ -2362,7 +2375,7 @@ function abInitDrag(canvas) {
     if (_abDragStartY === null) return;
     e.preventDefault();
     var isHorizontal = (_abDragPart === 'eyeSpacing');
-    var isSize = (_abDragPart === 'sizeEye' || _abDragPart === 'sizeNose' || _abDragPart === 'sizeMouth');
+    var isSize = (_abDragPart === 'sizeEye' || _abDragPart === 'sizeNose' || _abDragPart === 'sizeMouth' || _abDragPart === 'sizeHair' || _abDragPart === 'sizeFace');
     var delta;
     if (isHorizontal) {
       delta = (getX(e) - _abDragStartX) / 15;
@@ -2371,7 +2384,7 @@ function abInitDrag(canvas) {
     } else {
       delta = (getY(e) - _abDragStartY) / 15;
     }
-    var limits = { posEye:[-4,4], posBrow:[-4,4], posNose:[-3,3], posMouth:[-4,4], eyeSpacing:[-3,3], sizeEye:[-3,3], sizeNose:[-2,2], sizeMouth:[-2,2] };
+    var limits = { posEye:[-4,4], posBrow:[-4,4], posNose:[-3,3], posMouth:[-4,4], eyeSpacing:[-3,3], sizeEye:[-3,3], sizeNose:[-2,2], sizeMouth:[-2,2], posHair:[-4,4], sizeHair:[-3,3], sizeFace:[-3,3] };
     var lim = limits[_abDragPart] || [-4,4];
     var newVal = Math.round(Math.max(lim[0], Math.min(lim[1], _abDragStartVal + delta)));
     if (abState[_abDragPart] !== newVal) {
@@ -2409,7 +2422,7 @@ function openAbEditor(initialAvatar, onSave) {
   if (initialAvatar && initialAvatar.startsWith('custom:')) {
     abParseString(initialAvatar);
   } else {
-    abState = { skin: 2, hair: 0, hairColor: 0, eye: 0, mouth: 0, accessories: [0], bg: 0, faceSize: 1, eyebrow: 0, nose: 0, beard: 0, cheek: 0, faceShape: 0, eyeColor: 0, posEye: 0, posMouth: 0, posNose: 0, posBrow: 0, eyeSpacing: 0, sizeEye: 0, sizeNose: 0, sizeMouth: 0 };
+    abState = { skin: 2, hair: 0, hairColor: 0, eye: 0, mouth: 0, accessories: [0], bg: 0, faceSize: 1, eyebrow: 0, nose: 0, beard: 0, cheek: 0, faceShape: 0, eyeColor: 0, posEye: 0, posMouth: 0, posNose: 0, posBrow: 0, eyeSpacing: 0, sizeEye: 0, sizeNose: 0, sizeMouth: 0, posHair: 0, sizeHair: 0, sizeFace: 0 };
   }
   abRenderBuilderUI('ab-editor-parts-container', 'ab-editor-preview-canvas');
   document.getElementById('ab-editor-modal').style.display = 'flex';
@@ -2457,7 +2470,10 @@ function abRenderBuilderUI(containerId, previewCanvasId) {
   AB_HAIR_NAMES.forEach(function(name, i) {
     html += '<div class="ab-icon-btn' + (abState.hair === i ? ' selected' : '') + '" onclick="abSelect(\'hair\',' + i + ',\'' + previewCanvasId + '\')">' + name + '</div>';
   });
-  html += '</div></div>';
+  html += '</div>';
+  html += abSlider('posHair', '位置', -4, 4);
+  html += abSlider('sizeHair', '大きさ', -3, 3);
+  html += '</div>';
 
   // 髪の色
   html += '<div class="avatar-builder-row"><label>🎨 髪の色</label><div class="avatar-builder-options">';
@@ -2471,7 +2487,9 @@ function abRenderBuilderUI(containerId, previewCanvasId) {
   AB_FACE_SHAPE_NAMES.forEach(function(name, i) {
     html += '<div class="ab-icon-btn' + (abState.faceShape === i ? ' selected' : '') + '" onclick="abSelect(\'faceShape\',' + i + ',\'' + previewCanvasId + '\')">' + name + '</div>';
   });
-  html += '</div></div>';
+  html += '</div>';
+  html += abSlider('sizeFace', '顔の大きさ', -3, 3);
+  html += '</div>';
 
   // スライダーヘルパー
   function abSlider(key, label, min, max) {
@@ -2657,7 +2675,7 @@ function showStep(step) {
 
 var selectedAvatar = null;
 function initAvatarGrid() {
-  abState = { skin: 2, hair: 0, hairColor: 0, eye: 0, mouth: 0, accessories: [0], bg: 0, faceSize: 1, eyebrow: 0, nose: 0, beard: 0, cheek: 0, faceShape: 0, eyeColor: 0, posEye: 0, posMouth: 0, posNose: 0, posBrow: 0, eyeSpacing: 0, sizeEye: 0, sizeNose: 0, sizeMouth: 0 };
+  abState = { skin: 2, hair: 0, hairColor: 0, eye: 0, mouth: 0, accessories: [0], bg: 0, faceSize: 1, eyebrow: 0, nose: 0, beard: 0, cheek: 0, faceShape: 0, eyeColor: 0, posEye: 0, posMouth: 0, posNose: 0, posBrow: 0, eyeSpacing: 0, sizeEye: 0, sizeNose: 0, sizeMouth: 0, posHair: 0, sizeHair: 0, sizeFace: 0 };
   selectedAvatar = abBuildString();
   var el = document.getElementById('reg-avatar-preview');
   if (el) el.innerHTML = getAvatarHtml(selectedAvatar, 58);
@@ -2691,7 +2709,7 @@ function openAvatarSheet() {
   if (currentUser.avatar && currentUser.avatar.startsWith('custom:')) {
     abParseString(currentUser.avatar);
   } else {
-    abState = { skin: 2, hair: 0, hairColor: 0, eye: 0, mouth: 0, accessories: [0], bg: 0, faceSize: 1, eyebrow: 0, nose: 0, beard: 0, cheek: 0, faceShape: 0, eyeColor: 0, posEye: 0, posMouth: 0, posNose: 0, posBrow: 0, eyeSpacing: 0, sizeEye: 0, sizeNose: 0, sizeMouth: 0 };
+    abState = { skin: 2, hair: 0, hairColor: 0, eye: 0, mouth: 0, accessories: [0], bg: 0, faceSize: 1, eyebrow: 0, nose: 0, beard: 0, cheek: 0, faceShape: 0, eyeColor: 0, posEye: 0, posMouth: 0, posNose: 0, posBrow: 0, eyeSpacing: 0, sizeEye: 0, sizeNose: 0, sizeMouth: 0, posHair: 0, sizeHair: 0, sizeFace: 0 };
   }
   abRenderBuilderUI('change-builder-container', 'change-preview-canvas');
   var overlay = document.getElementById('avatar-change-overlay');

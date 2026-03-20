@@ -200,6 +200,33 @@ ${postSummaries}
 });
 
 // 管理者: テーマ候補を修正
+// 投票なしで直接テーマ決定
+router.post('/direct-decide', (req, res) => {
+  try {
+    const { cycleNumber, themeId } = req.body;
+    const db = getDb();
+    db.prepare("UPDATE vote_cycles SET status = 'finalized', selected_theme_id = ? WHERE cycle_number = ?").run(themeId, cycleNumber);
+    db.prepare("UPDATE themes SET status = 'selected' WHERE theme_id = ?").run(themeId);
+    db.prepare("UPDATE themes SET status = 'archived' WHERE cycle_number = ? AND theme_id != ?").run(cycleNumber, themeId);
+    res.json({ success: true });
+  } catch (e) {
+    res.json({ success: false, msg: e.message });
+  }
+});
+
+// テーマ削除
+router.post('/delete-theme', (req, res) => {
+  try {
+    const { themeId } = req.body;
+    const db = getDb();
+    db.prepare("DELETE FROM theme_votes WHERE theme_id = ?").run(themeId);
+    db.prepare("DELETE FROM themes WHERE theme_id = ?").run(themeId);
+    res.json({ success: true });
+  } catch (e) {
+    res.json({ success: false, msg: e.message });
+  }
+});
+
 router.post('/update-theme', (req, res) => {
   try {
     const { themeId, name, description, icon } = req.body;

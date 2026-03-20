@@ -43,7 +43,8 @@ function renderV2Dashboard() {
     // アクションボタン
     var btns = '';
     if (cycle.status === 'candidate') {
-      btns += '<button class="btn btn-primary fw-bold" onclick="doStartVoting(' + cycle.cycle_number + ')"><i class="fas fa-play me-1"></i>投票を開始（7日間）</button>';
+      btns += '<button class="btn btn-primary fw-bold" onclick="doStartVoting(' + cycle.cycle_number + ')"><i class="fas fa-play me-1"></i>全社投票を開始</button>';
+      btns += '<button class="btn btn-success fw-bold" onclick="doDirectDecide(' + cycle.cycle_number + ')"><i class="fas fa-gavel me-1"></i>投票で決定</button>';
       btns += '<button class="btn btn-outline-warning fw-bold" onclick="doGenerateThemes()"><i class="fas fa-redo me-1"></i>テーマを再生成</button>';
     } else if (cycle.status === 'voting') {
       btns += '<button class="btn btn-success fw-bold" onclick="doFinalizeVoting(' + cycle.cycle_number + ')"><i class="fas fa-check me-1"></i>投票を締め切り・テーマ確定</button>';
@@ -68,27 +69,88 @@ function renderV2Dashboard() {
       var selected = t.status === 'selected';
       var keywords = []; try { keywords = JSON.parse(t.keywords || '[]'); } catch(e) {}
       var voices = []; try { voices = JSON.parse(t.representative_voices || '[]'); } catch(e) {}
+      var deptDist = {}; try { deptDist = JSON.parse(t.dept_distribution || '{}'); } catch(e) {}
+      var deptText = Object.keys(deptDist).map(function(k) { return k + ':' + deptDist[k] + '件'; }).join(' / ');
+
       html += '<div class="col-md-6"><div class="plan-card' + (selected ? ' border-success border-2' : '') + '">';
+      // ヘッダー
       html += '<div class="d-flex justify-content-between align-items-start mb-2">';
-      html += '<div class="d-flex align-items-center gap-2"><span style="font-size:1.5rem;">' + (t.icon || '💡') + '</span><div><div class="fw-bold">' + escapeHtml(t.name) + '</div><div class="small text-muted">' + t.post_count + '件の声</div></div></div>';
+      html += '<div class="d-flex align-items-center gap-2"><span style="font-size:1.5rem;">' + (t.icon || '💡') + '</span><div><div class="fw-bold">' + escapeHtml(t.name) + '</div><div class="small text-muted">' + t.post_count + '件の声' + (deptText ? '（' + deptText + '）' : '') + '</div></div></div>';
       html += '<div class="text-end"><div style="font-size:1.3rem; font-weight:900; color:#667eea;">' + t.vote_count + '</div><div style="font-size:0.65rem; color:#999;">票</div></div>';
       html += '</div>';
-      if (t.description) html += '<div class="small text-muted mb-2">' + escapeHtml(t.description) + '</div>';
+      // 根拠・説明
+      if (t.description) html += '<div style="font-size:0.8rem; color:#555; line-height:1.5; margin-bottom:8px; padding:8px; background:#f8f9fa; border-radius:8px; border-left:3px solid #667eea;">' + escapeHtml(t.description) + '</div>';
+      // キーワード
       if (keywords.length > 0) {
         html += '<div class="mb-2">';
-        keywords.forEach(function(k) { html += '<span class="badge bg-light text-dark me-1" style="font-size:0.7rem;">' + escapeHtml(k) + '</span>'; });
+        keywords.forEach(function(k) { html += '<span class="badge bg-light text-dark me-1" style="font-size:0.7rem;">#' + escapeHtml(k) + '</span>'; });
         html += '</div>';
       }
+      // 代表的な声
       if (voices.length > 0) {
-        html += '<div style="font-size:0.75rem; color:#888;">';
-        voices.slice(0, 2).forEach(function(v) { html += '<div>💬 ' + escapeHtml(v) + '</div>'; });
+        html += '<div style="font-size:0.73rem; color:#888; margin-bottom:8px;">';
+        voices.slice(0, 3).forEach(function(v) { html += '<div>💬 ' + escapeHtml(v) + '</div>'; });
         html += '</div>';
       }
-      if (selected) html += '<div class="mt-2"><span class="badge bg-success"><i class="fas fa-check me-1"></i>選出テーマ</span></div>';
+      // 深刻度
+      if (t.severity_avg) {
+        var sevColor = t.severity_avg >= 4 ? '#e53935' : t.severity_avg >= 3 ? '#f9a825' : '#999';
+        html += '<div style="font-size:0.7rem; margin-bottom:8px;"><span style="color:' + sevColor + '; font-weight:700;">重要度: ' + t.severity_avg + '/5</span></div>';
+      }
+      // 選出バッジ
+      if (selected) html += '<div class="mb-2"><span class="badge bg-success"><i class="fas fa-check me-1"></i>選出テーマ</span></div>';
+      // 操作ボタン
+      if (cycle.status === 'candidate' || cycle.status === 'voting') {
+        html += '<div class="d-flex gap-2 mt-2">';
+        html += '<button class="btn btn-sm btn-outline-primary" style="font-size:0.68rem;" onclick="doEditTheme(\'' + t.theme_id + '\',\'' + escapeHtml(t.name).replace(/'/g,"\\'") + '\',\'' + escapeHtml(t.description || '').replace(/'/g,"\\'").replace(/\n/g,' ') + '\',\'' + (t.icon||'💡') + '\')"><i class="fas fa-edit me-1"></i>編集</button>';
+        html += '<button class="btn btn-sm btn-outline-danger" style="font-size:0.68rem;" onclick="doDeleteTheme(\'' + t.theme_id + '\',\'' + escapeHtml(t.name).replace(/'/g,"\\'") + '\')"><i class="fas fa-trash me-1"></i>削除</button>';
+        html += '</div>';
+      }
       html += '</div></div>';
     });
     html += '</div>';
     themesArea.innerHTML = html;
+  });
+}
+
+function doDirectDecide(cycleNum) {
+  getCurrentCycle('').then(function(res) {
+    if (!res.success || !res.themes || res.themes.length === 0) { alert('テーマがありません'); return; }
+    var themes = res.themes;
+    var msg = 'テーマを1つ選んで直接決定します。番号を入力してください:\n\n';
+    themes.forEach(function(t, i) { msg += (i+1) + '. ' + (t.icon||'') + ' ' + t.name + '（' + t.post_count + '件, 共感' + t.vote_count + '）\n'; });
+    var choice = prompt(msg);
+    if (!choice) return;
+    var idx = parseInt(choice) - 1;
+    if (isNaN(idx) || idx < 0 || idx >= themes.length) { alert('無効な番号です'); return; }
+    var selected = themes[idx];
+    if (!confirm('「' + selected.name + '」に決定しますか？')) return;
+    // 直接finalize（投票をスキップ）
+    api('/themes/direct-decide', { cycleNumber: cycleNum, themeId: selected.theme_id }, getAdminToken()).then(function(r) {
+      if (r.success) { alert('「' + selected.name + '」に決定しました'); renderV2Dashboard(); }
+      else alert('エラー: ' + r.msg);
+    });
+  });
+}
+
+function doEditTheme(themeId, name, description, icon) {
+  var newName = prompt('テーマ名:', name);
+  if (newName === null) return;
+  var newDesc = prompt('説明（重要な理由）:', description);
+  if (newDesc === null) return;
+  var newIcon = prompt('アイコン（絵文字1つ）:', icon);
+  if (newIcon === null) return;
+  updateTheme(themeId, newName, newDesc, newIcon).then(function(res) {
+    if (res.success) renderV2Dashboard();
+    else alert('エラー: ' + res.msg);
+  });
+}
+
+function doDeleteTheme(themeId, name) {
+  if (!confirm('テーマ「' + name + '」を削除しますか？')) return;
+  api('/themes/delete-theme', { themeId: themeId }, getAdminToken()).then(function(res) {
+    if (res.success) renderV2Dashboard();
+    else alert('エラー: ' + res.msg);
   });
 }
 

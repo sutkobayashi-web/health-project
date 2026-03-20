@@ -448,40 +448,46 @@
 
     <!-- 相談セクション -->
     <div class="card-section honne-area">
-      <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+      <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="toggleAccordion('honne-body','honne-chevron')">
         <div style="display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#e0f7fa,#b2ebf2);flex-shrink:0;"><i class="fas fa-heartbeat" style="font-size:22px;color:#e91e63;"></i></div>
         <div style="flex:1; min-width:0;">
           <div class="section-title" style="margin-bottom:2px;"><i class="far fa-comment-dots"></i> 健康のお悩み・提案</div>
           <div class="honne-area section-sub">AIヘルスアドバイザーが親身にお答えします</div>
         </div>
+        <i class="fas fa-chevron-down" id="honne-chevron" style="color:#d63384; font-size:0.9rem; transition:transform 0.3s;"></i>
       </div>
-      <textarea id="honne-input" placeholder="最近の体調や気になること、職場環境への提案など、なんでもどうぞ（匿名で届きます）"></textarea>
-      <button class="btn-submit" onclick="submitPost()"><i class="fas fa-paper-plane" style="margin-right:6px;"></i> 健康推進メンバーへ相談する</button>
+      <div id="honne-body" style="display:none; margin-top:12px;">
+        <textarea id="honne-input" placeholder="最近の体調や気になること、職場環境への提案など、なんでもどうぞ（匿名で届きます）"></textarea>
+        <button class="btn-submit" onclick="submitPost()"><i class="fas fa-paper-plane" style="margin-right:6px;"></i> 健康推進メンバーへ相談する</button>
+      </div>
     </div>
 
     <!-- 食事セクション -->
     <div class="card-section food-section">
-      <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+      <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="toggleAccordion('food-body','food-chevron')">
         <div style="display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#f1f8e9,#dcedc8);flex-shrink:0;"><i class="fas fa-apple-whole" style="font-size:22px;color:#4caf50;"></i></div>
         <div style="flex:1; min-width:0;">
           <div class="section-title" style="margin-bottom:2px;"><i class="fas fa-utensils"></i> 食事チェック</div>
           <div class="food-section section-sub">AI食事アドバイザーがバランスを分析します</div>
         </div>
+        <i class="fas fa-chevron-down" id="food-chevron" style="color:#20c997; font-size:0.9rem; transition:transform 0.3s;"></i>
       </div>
-      <div class="food-upload-area" onclick="document.getElementById('file-input').click()">
-        <i class="fas fa-camera"></i>
-        <div style="margin-top:8px; font-size:0.88rem; color:#666; font-weight:600;">タップして食事写真を撮影・選択</div>
+      <div id="food-body" style="display:none; margin-top:12px;">
+        <div class="food-upload-area" onclick="document.getElementById('file-input').click()">
+          <i class="fas fa-camera"></i>
+          <div style="margin-top:8px; font-size:0.88rem; color:#666; font-weight:600;">タップして食事写真を撮影・選択</div>
+        </div>
+        <input type="file" id="file-input" accept="image/*" capture="environment" style="display:none;" onchange="handleFileSelect(this)">
+        <div id="food-preview-area">
+          <img id="food-preview-img" src="">
+          <textarea id="food-comment" class="form-control mt-2" rows="2" placeholder="ひとこと（任意）"></textarea>
+        </div>
+        <div style="display:flex; align-items:center; justify-content:center; gap:6px; margin-top:8px;">
+          <input type="checkbox" id="food-confirm" checked onchange="toggleFoodSubmit()" style="width:16px; height:16px; accent-color:#20c997; cursor:pointer;">
+          <label for="food-confirm" style="font-size:0.82rem; color:#555; cursor:pointer; margin:0;">AI食事アドバイザーに診断してもらう</label>
+        </div>
+        <button class="btn-food-submit" id="btn-food-submit" onclick="submitFoodPost()"><i class="fas fa-notes-medical" style="margin-right:6px;"></i>食事診断を受ける</button>
       </div>
-      <input type="file" id="file-input" accept="image/*" capture="environment" style="display:none;" onchange="handleFileSelect(this)">
-      <div id="food-preview-area">
-        <img id="food-preview-img" src="">
-        <textarea id="food-comment" class="form-control mt-2" rows="2" placeholder="ひとこと（任意）"></textarea>
-      </div>
-      <div style="display:flex; align-items:center; justify-content:center; gap:6px; margin-top:8px;">
-        <input type="checkbox" id="food-confirm" checked onchange="toggleFoodSubmit()" style="width:16px; height:16px; accent-color:#20c997; cursor:pointer;">
-        <label for="food-confirm" style="font-size:0.82rem; color:#555; cursor:pointer; margin:0;">AI食事アドバイザーに診断してもらう</label>
-      </div>
-      <button class="btn-food-submit" id="btn-food-submit" onclick="submitFoodPost()"><i class="fas fa-notes-medical" style="margin-right:6px;"></i>食事診断を受ける</button>
     </div>
 
     <!-- タイムライン -->

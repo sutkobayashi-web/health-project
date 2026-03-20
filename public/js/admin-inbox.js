@@ -62,13 +62,25 @@ function getInboxAvatar(name, role, currentAvatar) {
 
 // DOM追加後にカスタムアバターをCanvas描画
 function renderInboxCustomAvatars() {
-    if(typeof getAvatarHtml !== 'function') return;
-    document.querySelectorAll('[data-custom-avatar]').forEach(function(el) {
+    var els = document.querySelectorAll('[data-custom-avatar]');
+    console.log('[Avatar Debug] Found custom avatar elements:', els.length, 'getAvatarHtml exists:', typeof getAvatarHtml);
+    if(typeof getAvatarHtml !== 'function') {
+        console.error('[Avatar Debug] getAvatarHtml is NOT defined! avatar-render.js failed to load?');
+        return;
+    }
+    els.forEach(function(el) {
         if(el._rendered) return;
         el._rendered = true;
         var av = el.getAttribute('data-custom-avatar');
         var sz = parseInt(el.getAttribute('data-avatar-size')) || 36;
-        el.innerHTML = getAvatarHtml(av, sz);
+        try {
+            var html = getAvatarHtml(av, sz);
+            console.log('[Avatar Debug] Rendered:', html.substring(0, 60));
+            el.innerHTML = html;
+        } catch(e) {
+            console.error('[Avatar Debug] Render error:', e.message);
+            el.innerHTML = '⚠️';
+        }
     });
 }
 

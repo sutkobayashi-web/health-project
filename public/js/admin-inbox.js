@@ -153,8 +153,10 @@ function renderReportList(data) {
         var rawContent = String(r[INBOX_COLS.CONTENT]||""); var analysisText = String(r[INBOX_COLS.ANALYSIS]||"");
         var isTarget = false;
         if(analysisText.includes("///SCORE///")) { try { var s = JSON.parse(analysisText.split("///SCORE///")[1]); if(s.is_target) isTarget = true; } catch(e){} }
+        var dbCat = String(r[INBOX_COLS.CAT]||"");
+        var isFood = dbCat.includes("食事") || dbCat.includes("栄養");
         catCount.all++;
-        if(isTarget) catCount.target++; else if(rawContent.includes("食事") || analysisText.includes("栄養")) catCount.food++; else catCount.consult++;
+        if(isTarget) catCount.target++; else if(isFood) catCount.food++; else catCount.consult++;
     });
     var filterBar = document.createElement('div'); filterBar.className = 'inbox-filter-bar';
     ['all','consult','food','target'].forEach(function(cat) {
@@ -171,6 +173,7 @@ function renderReportList(data) {
     var visibleCount = 0;
     data.forEach(function(r) {
         var pid = r[1]; var rawContent = String(r[INBOX_COLS.CONTENT]||""); var analysisText = String(r[INBOX_COLS.ANALYSIS]||"");
+        var dbCat = String(r[INBOX_COLS.CAT]||"");
         var isTarget = false;
         if(analysisText.includes("///SCORE///")) { try { var s = JSON.parse(analysisText.split("///SCORE///")[1]); if(s.is_target) isTarget = true; } catch(e){} analysisText = analysisText.split("///SCORE///")[0]; }
         rawContent = rawContent.replace(/^【写真】/, '').split("///SCORE///")[0];
@@ -182,7 +185,7 @@ function renderReportList(data) {
         if(isTarget) { headerClass="header-target"; icon="fas fa-star"; catName="重点検討案件"; cardCat="target";
             // 重点案件の賛同進捗バッジを後で設定するためのフラグ
         }
-        else if(rawContent.includes("食事") || analysisText.includes("栄養")) { headerClass="header-food"; icon="fas fa-utensils"; catName="食事チェック"; cardCat="food"; }
+        else if(dbCat.includes("食事") || dbCat.includes("栄養")) { headerClass="header-food"; icon="fas fa-utensils"; catName="食事チェック"; cardCat="food"; }
         else { headerClass="header-consult"; icon="far fa-comment-dots"; catName="相談・提案"; cardCat="consult"; }
         var imgUrl = r[INBOX_COLS.IMG]; var displayUrl = getPostImageUrl(imgUrl);
         var thumbTag = displayUrl ? '<img src="'+displayUrl+'" class="post-thumb" onclick="event.stopPropagation();" onerror="this.style.display=\'none\'">' : '';

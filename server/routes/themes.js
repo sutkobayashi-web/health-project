@@ -262,8 +262,15 @@ router.post('/submit-advisor-advice', (req, res) => {
 // 役員承認/差戻し
 router.post('/exec-approve', (req, res) => {
   try {
-    const { cycleNumber, execComment, decision } = req.body;
+    const { cycleNumber, execComment, decision, approverEmail } = req.body;
     const db = getDb();
+    // 役員権限チェック
+    if (approverEmail) {
+      const member = db.prepare('SELECT is_exec FROM core_members WHERE email = ?').get(approverEmail);
+      if (!member || !member.is_exec) {
+        return res.json({ success: false, msg: '役員権限がありません。Exec権限のアカウントでログインしてください。' });
+      }
+    }
     if (decision === 'approved') {
       // 承認→投票開始可能状態（votingではなくapprovedにして手動で投票開始）
       db.prepare("UPDATE vote_cycles SET status = 'voting', exec_comment = ? WHERE cycle_number = ?").run(execComment || '', cycleNumber);

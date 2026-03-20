@@ -74,8 +74,12 @@ function renderV2Dashboard() {
       btns += '<button class="btn btn-success fw-bold" onclick="doSubmitAdvisorAdvice(' + cycle.cycle_number + ')"><i class="fas fa-check me-1"></i>助言を確認・役員承認へ</button>';
       btns += '<button class="btn btn-outline-secondary fw-bold" onclick="doBackToCandidate(' + cycle.cycle_number + ')"><i class="fas fa-undo me-1"></i>精査に戻す</button>';
     } else if (cycle.status === 'exec_approval') {
-      btns += '<button class="btn btn-danger fw-bold" onclick="doExecApprove(' + cycle.cycle_number + ')"><i class="fas fa-gavel me-1"></i>役員承認</button>';
-      btns += '<button class="btn btn-outline-warning fw-bold" onclick="doExecReject(' + cycle.cycle_number + ')"><i class="fas fa-times me-1"></i>差戻し</button>';
+      if (currentAdminProfile && currentAdminProfile.isExec) {
+        btns += '<button class="btn btn-danger fw-bold" onclick="doExecApprove(' + cycle.cycle_number + ')"><i class="fas fa-gavel me-1"></i>役員承認</button>';
+        btns += '<button class="btn btn-outline-warning fw-bold" onclick="doExecReject(' + cycle.cycle_number + ')"><i class="fas fa-times me-1"></i>差戻し</button>';
+      } else {
+        btns += '<div class="alert alert-warning py-2 mb-0" style="font-size:0.8rem;"><i class="fas fa-lock me-1"></i>役員権限（Exec）のアカウントでログインすると承認できます</div>';
+      }
     } else if (cycle.status === 'voting') {
       btns += '<button class="btn btn-success fw-bold" onclick="doFinalizeVoting(' + cycle.cycle_number + ')"><i class="fas fa-check me-1"></i>投票を締め切り・テーマ確定</button>';
     } else if (cycle.status === 'finalized') {
@@ -235,20 +239,26 @@ function doBackToCandidate(cycleNum) {
 
 // 役員承認
 function doExecApprove(cycleNum) {
+  if (!currentAdminProfile || !currentAdminProfile.isExec) { alert('役員権限がありません'); return; }
   var comment = prompt('役員コメント（任意）:');
   if (comment === null) return;
-  api('/themes/exec-approve', { cycleNumber: cycleNum, execComment: comment, decision: 'approved' }, getAdminToken()).then(function(res) {
-    if (res.success) { alert('役員承認完了。全社投票を開始できます。'); renderV2Dashboard(); }
+  var approverName = currentAdminProfile.name || 'Unknown';
+  var fullComment = '【承認: ' + approverName + '】' + (comment || '承認');
+  api('/themes/exec-approve', { cycleNumber: cycleNum, execComment: fullComment, decision: 'approved', approverEmail: currentAdminProfile.email }, getAdminToken()).then(function(res) {
+    if (res.success) { alert('役員承認完了（承認者: ' + approverName + '）。全社投票が開始されました。'); renderV2Dashboard(); }
     else alert('エラー: ' + res.msg);
   });
 }
 
 // 役員差戻し
 function doExecReject(cycleNum) {
+  if (!currentAdminProfile || !currentAdminProfile.isExec) { alert('役員権限がありません'); return; }
   var reason = prompt('差戻し理由:');
   if (!reason) return;
-  api('/themes/exec-approve', { cycleNumber: cycleNum, execComment: reason, decision: 'rejected' }, getAdminToken()).then(function(res) {
-    if (res.success) { alert('差戻しました。テーマを再精査してください。'); renderV2Dashboard(); }
+  var approverName = currentAdminProfile.name || 'Unknown';
+  var fullReason = '【差戻し: ' + approverName + '】' + reason;
+  api('/themes/exec-approve', { cycleNumber: cycleNum, execComment: fullReason, decision: 'rejected', approverEmail: currentAdminProfile.email }, getAdminToken()).then(function(res) {
+    if (res.success) { alert('差戻しました（' + approverName + '）。テーマを再精査してください。'); renderV2Dashboard(); }
     else alert('エラー: ' + res.msg);
   });
 }

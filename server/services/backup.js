@@ -59,40 +59,45 @@ async function uploadToBox(token, filePath, fileName, folderId) {
   const fileData = fs.readFileSync(filePath);
   const boundary = '----BoxUpload' + Date.now();
 
+  let uploadUrl, uploadBody;
+
   if (existing) {
     // 上書きアップロード
-    const body = Buffer.concat([
+    uploadUrl = `https://upload.box.com/api/2.0/files/${existing.id}/content`;
+    uploadBody = Buffer.concat([
       Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="${fileName}"\r\nContent-Type: application/octet-stream\r\n\r\n`),
       fileData,
       Buffer.from(`\r\n--${boundary}--\r\n`)
     ]);
-    const res = await fetch(`https://upload.box.com/api/2.0/files/${existing.id}/content`, {
-      method: 'POST',
-      headers: {
-        'Authorization': 'Bearer ' + token,
-        'Content-Type': 'multipart/form-data; boundary=' + boundary
-      },
-      body
-    });
-    return res.json();
   } else {
     // 新規アップロード
+    uploadUrl = 'https://upload.box.com/api/2.0/files/content';
     const attributes = JSON.stringify({ name: fileName, parent: { id: folderId } });
-    const body = Buffer.concat([
+    uploadBody = Buffer.concat([
       Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="attributes"\r\n\r\n${attributes}\r\n`),
       Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="${fileName}"\r\nContent-Type: application/octet-stream\r\n\r\n`),
       fileData,
       Buffer.from(`\r\n--${boundary}--\r\n`)
     ]);
-    const res = await fetch('https://upload.box.com/api/2.0/files/content', {
-      method: 'POST',
-      headers: {
-        'Authorization': 'Bearer ' + token,
-        'Content-Type': 'multipart/form-data; boundary=' + boundary
-      },
-      body
-    });
-    return res.json();
+  }
+
+  const res = await fetch(uploadUrl, {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer ' + token,
+      'Content-Type': 'multipart/form-data; boundary=' + boundary
+    },
+    body: uploadBody
+  });
+
+  const resText = await res.text();
+  if (!res.ok) {
+    throw new Error('Boxアップロード失敗 (HTTP ' + res.status + '): ' + resText.substring(0, 200));
+  }
+  try {
+    return JSON.parse(resText);
+  } catch (e) {
+    throw new Error('Box応答の解析失敗 (HTTP ' + res.status + '): ' + resText.substring(0, 200));
   }
 }
 

@@ -645,7 +645,7 @@ function renderCustomAvatar(avatarStr, size) {
 
     // 顔（輪郭形状反映）- 少し下寄せで髪との間隔を確保
     var faceR = r * faceSize / 24 * (1 + sizeFaceVal * 0.06);
-    var faceY = cy + r * 0.2;
+    var faceY = cy + r * 0.28;
     drawFace(ctx, cx, faceY, faceR, faceShapeType, skinColor);
 
     // 髪のオフセット
@@ -2275,7 +2275,7 @@ function getAvatarHtml(avatarStr, size) {
 }
 
 // ====== アバタービルダー状態 ======
-var abState = { skin: 2, hair: 0, hairColor: 0, eye: 0, mouth: 0, accessories: [0], bg: 0, faceSize: 1, eyebrow: 0, nose: 0, beard: 0, cheek: 0, faceShape: 0, eyeColor: 0, posEye: 0, posMouth: 0, posNose: 0, posBrow: 0, eyeSpacing: 0, sizeEye: 0, sizeNose: 0, sizeMouth: 0, posHair: 0, sizeHair: 0, sizeFace: 0 };
+var abState = { skin: 2, hair: 1, hairColor: 0, eye: 0, mouth: 0, accessories: [0], bg: 0, faceSize: 1, eyebrow: 0, nose: 0, beard: 0, cheek: 0, faceShape: 0, eyeColor: 0, posEye: 0, posMouth: 0, posNose: 0, posBrow: 0, eyeSpacing: 0, sizeEye: 0, sizeNose: 0, sizeMouth: 0, posHair: 0, sizeHair: 0, sizeFace: 0 };
 
 function abBuildString() {
   var accs = abState.accessories.filter(function(a) { return a > 0; });
@@ -2422,7 +2422,7 @@ function openAbEditor(initialAvatar, onSave) {
   if (initialAvatar && initialAvatar.startsWith('custom:')) {
     abParseString(initialAvatar);
   } else {
-    abState = { skin: 2, hair: 0, hairColor: 0, eye: 0, mouth: 0, accessories: [0], bg: 0, faceSize: 1, eyebrow: 0, nose: 0, beard: 0, cheek: 0, faceShape: 0, eyeColor: 0, posEye: 0, posMouth: 0, posNose: 0, posBrow: 0, eyeSpacing: 0, sizeEye: 0, sizeNose: 0, sizeMouth: 0, posHair: 0, sizeHair: 0, sizeFace: 0 };
+    abState = { skin: 2, hair: 1, hairColor: 0, eye: 0, mouth: 0, accessories: [0], bg: 0, faceSize: 1, eyebrow: 0, nose: 0, beard: 0, cheek: 0, faceShape: 0, eyeColor: 0, posEye: 0, posMouth: 0, posNose: 0, posBrow: 0, eyeSpacing: 0, sizeEye: 0, sizeNose: 0, sizeMouth: 0, posHair: 0, sizeHair: 0, sizeFace: 0 };
   }
   abRenderBuilderUI('ab-editor-parts-container', 'ab-editor-preview-canvas');
   document.getElementById('ab-editor-modal').style.display = 'flex';
@@ -2675,7 +2675,7 @@ function showStep(step) {
 
 var selectedAvatar = null;
 function initAvatarGrid() {
-  abState = { skin: 2, hair: 0, hairColor: 0, eye: 0, mouth: 0, accessories: [0], bg: 0, faceSize: 1, eyebrow: 0, nose: 0, beard: 0, cheek: 0, faceShape: 0, eyeColor: 0, posEye: 0, posMouth: 0, posNose: 0, posBrow: 0, eyeSpacing: 0, sizeEye: 0, sizeNose: 0, sizeMouth: 0, posHair: 0, sizeHair: 0, sizeFace: 0 };
+  abState = { skin: 2, hair: 1, hairColor: 0, eye: 0, mouth: 0, accessories: [0], bg: 0, faceSize: 1, eyebrow: 0, nose: 0, beard: 0, cheek: 0, faceShape: 0, eyeColor: 0, posEye: 0, posMouth: 0, posNose: 0, posBrow: 0, eyeSpacing: 0, sizeEye: 0, sizeNose: 0, sizeMouth: 0, posHair: 0, sizeHair: 0, sizeFace: 0 };
   selectedAvatar = abBuildString();
   var el = document.getElementById('reg-avatar-preview');
   if (el) el.innerHTML = getAvatarHtml(selectedAvatar, 58);
@@ -2709,7 +2709,7 @@ function openAvatarSheet() {
   if (currentUser.avatar && currentUser.avatar.startsWith('custom:')) {
     abParseString(currentUser.avatar);
   } else {
-    abState = { skin: 2, hair: 0, hairColor: 0, eye: 0, mouth: 0, accessories: [0], bg: 0, faceSize: 1, eyebrow: 0, nose: 0, beard: 0, cheek: 0, faceShape: 0, eyeColor: 0, posEye: 0, posMouth: 0, posNose: 0, posBrow: 0, eyeSpacing: 0, sizeEye: 0, sizeNose: 0, sizeMouth: 0, posHair: 0, sizeHair: 0, sizeFace: 0 };
+    abState = { skin: 2, hair: 1, hairColor: 0, eye: 0, mouth: 0, accessories: [0], bg: 0, faceSize: 1, eyebrow: 0, nose: 0, beard: 0, cheek: 0, faceShape: 0, eyeColor: 0, posEye: 0, posMouth: 0, posNose: 0, posBrow: 0, eyeSpacing: 0, sizeEye: 0, sizeNose: 0, sizeMouth: 0, posHair: 0, sizeHair: 0, sizeFace: 0 };
   }
   abRenderBuilderUI('change-builder-container', 'change-preview-canvas');
   var overlay = document.getElementById('avatar-change-overlay');

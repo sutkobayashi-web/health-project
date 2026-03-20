@@ -154,6 +154,8 @@
   .avatar-builder-body { padding: 16px; max-height: 55vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
   .avatar-builder-preview { text-align: center; margin-bottom: 16px; }
   .avatar-builder-preview canvas { border-radius: 50%; box-shadow: 0 4px 16px rgba(0,0,0,0.12); border: 3px solid #fff; }
+  .ab-part-btn { border: 1.5px solid #ddd; background: white; color: #888; border-radius: 8px; padding: 4px 10px; font-size: 0.7rem; font-weight: 700; cursor: pointer; transition: all 0.15s; }
+  .ab-part-btn.selected { background: #667eea; color: white; border-color: #667eea; }
   .avatar-builder-sticky-preview {
     position: sticky; top: 0; z-index: 10; background: linear-gradient(135deg, #fce4ec, #f3e5f5);
     padding: 12px 0; text-align: center; border-bottom: 1px solid #eee;
@@ -1392,8 +1394,9 @@ function abParseString(str) {
 function abUpdatePreview(canvasId) {
   var canvas = document.getElementById(canvasId);
   if (!canvas) return;
+  abInitDrag(canvas);
   var str = abBuildString();
-  var size = 320;
+  var size = 400;
   canvas.width = size; canvas.height = size;
   // Draw directly
   var dataUrl = renderCustomAvatar(str, size);
@@ -1409,6 +1412,76 @@ function abUpdatePreview(canvasId) {
   Object.keys(_avatarCache).forEach(function(k) { if (k.startsWith(str + '_')) delete _avatarCache[k]; });
 }
 
+// ====== タッチドラッグでパーツ位置調整 ======
+var _abDragPart = 'posEye';
+var _abDragStartY = null;
+var _abDragStartX = null;
+var _abDragStartVal = 0;
+var _abDragCanvas = null;
+
+function abSelectDragPart(el, part) {
+  _abDragPart = part;
+  var parent = el.parentElement;
+  parent.querySelectorAll('.ab-part-btn').forEach(function(b) { b.classList.remove('selected'); });
+  el.classList.add('selected');
+}
+
+function abInitDrag(canvas) {
+  if (canvas._abDragBound) return;
+  canvas._abDragBound = true;
+
+  function getY(e) { return e.touches ? e.touches[0].clientY : e.clientY; }
+  function getX(e) { return e.touches ? e.touches[0].clientX : e.clientX; }
+
+  function onStart(e) {
+    e.preventDefault();
+    _abDragStartY = getY(e);
+    _abDragStartX = getX(e);
+    _abDragStartVal = abState[_abDragPart] || 0;
+    _abDragCanvas = canvas.id;
+    canvas.style.cursor = 'grabbing';
+  }
+  function onMove(e) {
+    if (_abDragStartY === null) return;
+    e.preventDefault();
+    var isHorizontal = (_abDragPart === 'eyeSpacing');
+    var delta;
+    if (isHorizontal) {
+      delta = (getX(e) - _abDragStartX) / 15;
+    } else {
+      delta = (getY(e) - _abDragStartY) / 15;
+    }
+    var limits = { posEye:[-4,4], posBrow:[-4,4], posNose:[-3,3], posMouth:[-4,4], eyeSpacing:[-3,3] };
+    var lim = limits[_abDragPart] || [-4,4];
+    var newVal = Math.round(Math.max(lim[0], Math.min(lim[1], _abDragStartVal + delta)));
+    if (abState[_abDragPart] !== newVal) {
+      abState[_abDragPart] = newVal;
+      _avatarCache = {};
+      abUpdatePreview(_abDragCanvas);
+      selectedAvatar = abBuildString();
+      // スライダーも同期
+      var sliders = document.querySelectorAll('input[type=range]');
+      sliders.forEach(function(s) {
+        if (s.oninput && s.oninput.toString().indexOf(_abDragPart) !== -1) {
+          s.value = newVal;
+        }
+      });
+    }
+  }
+  function onEnd() {
+    _abDragStartY = null;
+    _abDragStartX = null;
+    canvas.style.cursor = 'grab';
+  }
+
+  canvas.addEventListener('mousedown', onStart);
+  canvas.addEventListener('touchstart', onStart, { passive: false });
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('touchmove', onMove, { passive: false });
+  document.addEventListener('mouseup', onEnd);
+  document.addEventListener('touchend', onEnd);
+}
+
 function abRenderBuilderUI(containerId, previewCanvasId) {
   var c = document.getElementById(containerId);
   if (!c) return;
@@ -1416,11 +1489,21 @@ function abRenderBuilderUI(containerId, previewCanvasId) {
   var stickyId = containerId === 'change-builder-container' ? 'change-sticky-preview' : null;
   var stickyEl = stickyId ? document.getElementById(stickyId) : null;
   if (stickyEl) {
-    stickyEl.innerHTML = '<canvas id="' + previewCanvasId + '" width="320" height="320" style="width:140px;height:140px;"></canvas>';
+    stickyEl.innerHTML = '<canvas id="' + previewCanvasId + '" width="400" height="400" style="width:200px;height:200px;"></canvas>';
   }
   var html = '';
   if (!stickyEl) {
-    html += '<div class="avatar-builder-preview"><canvas id="' + previewCanvasId + '" width="320" height="320" style="width:140px;height:140px;"></canvas></div>';
+    html += '<div class="avatar-builder-preview">';
+    html += '<canvas id="' + previewCanvasId + '" width="400" height="400" style="width:200px;height:200px;cursor:grab;touch-action:none;"></canvas>';
+    html += '<div style="font-size:0.65rem; color:#bbb; margin-top:4px;">👆 タッチでパーツを移動</div>';
+    html += '<div style="display:flex; justify-content:center; gap:6px; margin-top:4px;" id="ab-part-selector-' + previewCanvasId + '">';
+    html += '<button class="ab-part-btn selected" data-part="posEye" onclick="abSelectDragPart(this,\'posEye\')">目</button>';
+    html += '<button class="ab-part-btn" data-part="posBrow" onclick="abSelectDragPart(this,\'posBrow\')">眉</button>';
+    html += '<button class="ab-part-btn" data-part="posNose" onclick="abSelectDragPart(this,\'posNose\')">鼻</button>';
+    html += '<button class="ab-part-btn" data-part="posMouth" onclick="abSelectDragPart(this,\'posMouth\')">口</button>';
+    html += '<button class="ab-part-btn" data-part="eyeSpacing" onclick="abSelectDragPart(this,\'eyeSpacing\')">目幅</button>';
+    html += '</div>';
+    html += '</div>';
   }
 
   // 肌の色

@@ -1285,7 +1285,7 @@ function renderPost(p) {
   var isOwn = currentUser && p.authorUid === currentUser.uid;
   var ownBtns = isOwn ? '<span class="post-own-btns" data-postid="' + p.id + '"><span class="post-edit-btn" title="修正">✏️</span><span class="post-del-btn" title="削除">🗑️</span></span>' : '';
   var avatarHtml = getAvatarHtml(p.avatar, 28);
-  var thumbHtml = (p.imageUrl && p.imageUrl.startsWith('/uploads/'))
+  var thumbHtml = (p.imageUrl && p.imageUrl.length > 1)
     ? '<img src="' + p.imageUrl + '" style="width:48px;height:48px;object-fit:cover;border-radius:8px;border:1px solid #eee;flex-shrink:0;" onerror="this.style.display=\'none\'">'
     : '';
   return '<div class="post-card" data-row="' + p.row + '">' +

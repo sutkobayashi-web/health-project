@@ -239,6 +239,48 @@ router.post('/update-theme', (req, res) => {
 });
 
 // 管理者: 投票開始
+// ステータス変更（汎用）
+router.post('/change-status', (req, res) => {
+  try {
+    const { cycleNumber, status } = req.body;
+    const db = getDb();
+    db.prepare("UPDATE vote_cycles SET status = ? WHERE cycle_number = ?").run(status, cycleNumber);
+    res.json({ success: true });
+  } catch (e) { res.json({ success: false, msg: e.message }); }
+});
+
+// 保健師助言を確認→役員承認へ
+router.post('/submit-advisor-advice', (req, res) => {
+  try {
+    const { cycleNumber, advisorComment } = req.body;
+    const db = getDb();
+    db.prepare("UPDATE vote_cycles SET status = 'exec_approval', advisor_comment = ? WHERE cycle_number = ?").run(advisorComment || '', cycleNumber);
+    res.json({ success: true });
+  } catch (e) { res.json({ success: false, msg: e.message }); }
+});
+
+// 役員承認/差戻し
+router.post('/exec-approve', (req, res) => {
+  try {
+    const { cycleNumber, execComment, decision } = req.body;
+    const db = getDb();
+    if (decision === 'approved') {
+      // 承認→投票開始可能状態（votingではなくapprovedにして手動で投票開始）
+      db.prepare("UPDATE vote_cycles SET status = 'voting', exec_comment = ? WHERE cycle_number = ?").run(execComment || '', cycleNumber);
+      // テーマも投票状態に
+      db.prepare("UPDATE themes SET status = 'voting' WHERE cycle_number = ?").run(cycleNumber);
+      // 投票期間を設定（7日間）
+      const now = new Date().toISOString();
+      const end = new Date(Date.now() + 7 * 86400000).toISOString();
+      db.prepare("UPDATE vote_cycles SET voting_start = ?, voting_end = ? WHERE cycle_number = ?").run(now, end, cycleNumber);
+    } else {
+      // 差戻し→候補に戻す
+      db.prepare("UPDATE vote_cycles SET status = 'candidate', exec_comment = ? WHERE cycle_number = ?").run(execComment || '', cycleNumber);
+    }
+    res.json({ success: true });
+  } catch (e) { res.json({ success: false, msg: e.message }); }
+});
+
 router.post('/start-voting', (req, res) => {
   try {
     const { cycleNumber, durationDays } = req.body;

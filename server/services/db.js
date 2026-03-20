@@ -19,6 +19,14 @@ function getDb() {
     if (!cols.find(c => c.name === 'status')) {
       db.exec("ALTER TABLE core_members ADD COLUMN status TEXT DEFAULT 'approved'");
     }
+    // マイグレーション: vote_cycles に advisor_comment, exec_comment カラムを追加
+    const vcCols = db.prepare("PRAGMA table_info(vote_cycles)").all();
+    if (!vcCols.find(c => c.name === 'advisor_comment')) {
+      db.exec("ALTER TABLE vote_cycles ADD COLUMN advisor_comment TEXT DEFAULT ''");
+    }
+    if (!vcCols.find(c => c.name === 'exec_comment')) {
+      db.exec("ALTER TABLE vote_cycles ADD COLUMN exec_comment TEXT DEFAULT ''");
+    }
   }
   return db;
 }

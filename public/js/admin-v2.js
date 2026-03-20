@@ -27,24 +27,55 @@ function renderV2Dashboard() {
 
     // サイクル状態表示
     var statusColor = cycle.status === 'voting' ? '#667eea' : cycle.status === 'finalized' ? '#43a047' : '#f39c12';
-    var statusLabel = cycle.status === 'collecting' ? '候補準備中' : cycle.status === 'candidate' ? 'テーマ候補準備完了' : cycle.status === 'voting' ? '投票中' : cycle.status === 'finalized' ? '確定済み' : cycle.status;
+    var statusMap = {
+      'collecting': { label:'候補準備中', color:'#f39c12' },
+      'candidate': { label:'① 推進メンバー精査中', color:'#f39c12' },
+      'advisor_review': { label:'② 保健師助言待ち', color:'#9c27b0' },
+      'exec_approval': { label:'③ 役員承認待ち', color:'#e53935' },
+      'voting': { label:'④ 全社投票中', color:'#667eea' },
+      'finalized': { label:'⑤ テーマ確定', color:'#43a047' }
+    };
+    var st = statusMap[cycle.status] || { label:cycle.status, color:'#999' };
     var endInfo = cycle.voting_end ? ' (〜' + new Date(cycle.voting_end).toLocaleDateString('ja-JP') + ')' : '';
 
+    // ステータス進捗バー
+    var steps = ['candidate','advisor_review','exec_approval','voting','finalized'];
+    var stepLabels = ['精査','助言','承認','投票','確定'];
+    var currentIdx = steps.indexOf(cycle.status);
+    var progressHtml = '<div style="display:flex; gap:2px; margin-top:8px;">';
+    steps.forEach(function(s, i) {
+      var active = i <= currentIdx;
+      progressHtml += '<div style="flex:1; text-align:center;">' +
+        '<div style="height:4px; border-radius:2px; background:' + (active ? st.color : '#e0e0e0') + ';"></div>' +
+        '<div style="font-size:0.55rem; color:' + (active ? st.color : '#bbb') + '; margin-top:2px; font-weight:' + (i === currentIdx ? '700' : '400') + ';">' + stepLabels[i] + '</div>' +
+      '</div>';
+    });
+    progressHtml += '</div>';
+
     statusArea.innerHTML =
-      '<div class="plan-card" style="border-left:4px solid ' + statusColor + ';">' +
+      '<div class="plan-card" style="border-left:4px solid ' + st.color + ';">' +
         '<div class="d-flex justify-content-between align-items-center">' +
           '<div><div class="fw-bold">' + escapeHtml(cycle.title || '第' + cycle.cycle_number + '回') + '</div>' +
           '<div class="small text-muted">サイクル #' + cycle.cycle_number + '</div></div>' +
-          '<span class="badge" style="background:' + statusColor + '; font-size:0.8rem; padding:6px 14px;">' + statusLabel + endInfo + '</span>' +
+          '<span class="badge" style="background:' + st.color + '; font-size:0.75rem; padding:5px 12px;">' + st.label + endInfo + '</span>' +
         '</div>' +
+        progressHtml +
         (cycle.status === 'voting' ? '<div class="mt-2 small"><i class="fas fa-users text-primary me-1"></i>投票済み: <strong>' + (res.totalVoters || 0) + '</strong> / ' + (res.totalUsers || 0) + '名</div>' : '') +
+        (cycle.advisor_comment ? '<div class="mt-2 small" style="background:#f3e5f5; padding:6px 10px; border-radius:8px;"><i class="fas fa-user-md text-purple me-1"></i><strong>保健師助言:</strong> ' + escapeHtml(cycle.advisor_comment) + '</div>' : '') +
+        (cycle.exec_comment ? '<div class="mt-2 small" style="background:#ffebee; padding:6px 10px; border-radius:8px;"><i class="fas fa-gavel text-danger me-1"></i><strong>役員コメント:</strong> ' + escapeHtml(cycle.exec_comment) + '</div>' : '') +
       '</div>';
 
-    // アクションボタン
+    // アクションボタン（ステータスごと）
     var btns = '';
     if (cycle.status === 'candidate') {
-      btns += '<button class="btn btn-primary fw-bold" onclick="doStartVoting(' + cycle.cycle_number + ')"><i class="fas fa-play me-1"></i>全社投票を開始</button>';
+      btns += '<button class="btn btn-primary fw-bold" onclick="doRequestAdvisorReview(' + cycle.cycle_number + ')"><i class="fas fa-user-md me-1"></i>保健師に助言を依頼</button>';
       btns += '<button class="btn btn-outline-warning fw-bold" onclick="doGenerateThemes()"><i class="fas fa-redo me-1"></i>テーマを再生成</button>';
+    } else if (cycle.status === 'advisor_review') {
+      btns += '<button class="btn btn-success fw-bold" onclick="doSubmitAdvisorAdvice(' + cycle.cycle_number + ')"><i class="fas fa-check me-1"></i>助言を確認・役員承認へ</button>';
+      btns += '<button class="btn btn-outline-secondary fw-bold" onclick="doBackToCandidate(' + cycle.cycle_number + ')"><i class="fas fa-undo me-1"></i>精査に戻す</button>';
+    } else if (cycle.status === 'exec_approval') {
+      btns += '<button class="btn btn-danger fw-bold" onclick="doExecApprove(' + cycle.cycle_number + ')"><i class="fas fa-gavel me-1"></i>役員承認</button>';
+      btns += '<button class="btn btn-outline-warning fw-bold" onclick="doExecReject(' + cycle.cycle_number + ')"><i class="fas fa-times me-1"></i>差戻し</button>';
     } else if (cycle.status === 'voting') {
       btns += '<button class="btn btn-success fw-bold" onclick="doFinalizeVoting(' + cycle.cycle_number + ')"><i class="fas fa-check me-1"></i>投票を締め切り・テーマ確定</button>';
     } else if (cycle.status === 'finalized') {
@@ -54,7 +85,6 @@ function renderV2Dashboard() {
       }
       btns += '<button class="btn btn-outline-primary fw-bold" onclick="doGenerateThemes()"><i class="fas fa-plus me-1"></i>次のサイクルを開始</button>';
     }
-    // 全ステータス共通: 削除ボタン
     btns += '<button class="btn btn-outline-danger fw-bold" onclick="doDeleteCycle(' + cycle.cycle_number + ')"><i class="fas fa-trash me-1"></i>サイクル削除</button>';
     actionsArea.innerHTML = btns;
 
@@ -171,6 +201,54 @@ function doDeleteCycle(cycleNum) {
   if (!confirm('サイクル #' + cycleNum + ' を削除しますか？テーマ・投票・チャレンジも全て削除されます。')) return;
   api('/themes/delete-cycle', { cycleNumber: cycleNum }, getAdminToken()).then(function(res) {
     if (res.success) { alert('削除しました'); renderV2Dashboard(); }
+    else alert('エラー: ' + res.msg);
+  });
+}
+
+// 保健師に助言を依頼
+function doRequestAdvisorReview(cycleNum) {
+  if (!confirm('テーマ候補を保健師に助言依頼しますか？')) return;
+  api('/themes/change-status', { cycleNumber: cycleNum, status: 'advisor_review' }, getAdminToken()).then(function(res) {
+    if (res.success) { alert('保健師助言待ちに移行しました。アンバサダー画面またはこの画面から助言を入力してください。'); renderV2Dashboard(); }
+    else alert('エラー: ' + res.msg);
+  });
+}
+
+// 助言確認→役員承認へ
+function doSubmitAdvisorAdvice(cycleNum) {
+  var advice = prompt('保健師からの助言内容を入力（または確認済みならそのままOK）:');
+  if (advice === null) return;
+  api('/themes/submit-advisor-advice', { cycleNumber: cycleNum, advisorComment: advice }, getAdminToken()).then(function(res) {
+    if (res.success) { alert('役員承認待ちに移行しました'); renderV2Dashboard(); }
+    else alert('エラー: ' + res.msg);
+  });
+}
+
+// 精査に戻す
+function doBackToCandidate(cycleNum) {
+  if (!confirm('精査段階に戻しますか？')) return;
+  api('/themes/change-status', { cycleNumber: cycleNum, status: 'candidate' }, getAdminToken()).then(function(res) {
+    if (res.success) renderV2Dashboard();
+    else alert('エラー: ' + res.msg);
+  });
+}
+
+// 役員承認
+function doExecApprove(cycleNum) {
+  var comment = prompt('役員コメント（任意）:');
+  if (comment === null) return;
+  api('/themes/exec-approve', { cycleNumber: cycleNum, execComment: comment, decision: 'approved' }, getAdminToken()).then(function(res) {
+    if (res.success) { alert('役員承認完了。全社投票を開始できます。'); renderV2Dashboard(); }
+    else alert('エラー: ' + res.msg);
+  });
+}
+
+// 役員差戻し
+function doExecReject(cycleNum) {
+  var reason = prompt('差戻し理由:');
+  if (!reason) return;
+  api('/themes/exec-approve', { cycleNumber: cycleNum, execComment: reason, decision: 'rejected' }, getAdminToken()).then(function(res) {
+    if (res.success) { alert('差戻しました。テーマを再精査してください。'); renderV2Dashboard(); }
     else alert('エラー: ' + res.msg);
   });
 }

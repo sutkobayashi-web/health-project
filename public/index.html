@@ -3732,7 +3732,6 @@ function updateHeaderStats() {
     if (!res || !res.success) return;
     document.getElementById('stat-rank').innerHTML = '<i class="fas fa-medal"></i> ' + res.rank;
     document.getElementById('stat-posts').innerHTML = '<i class="fas fa-pen"></i> ' + res.postCount;
-    document.getElementById('stat-invites').innerHTML = '<i class="fas fa-user-plus"></i> ' + (res.inviteCount || 0);
     // プロフィールカード更新
     var prRank = document.getElementById('profile-rank');
     if (prRank) prRank.innerHTML = '<i class="fas fa-medal"></i> ' + res.rank;

@@ -684,11 +684,38 @@ function loadEmpathyDisplay(pid) {
       '😅 自分もこんな感じ…': { emoji:'😅', label:'自分も' }
     };
     var html = '';
+    // タイプ別バッジ
+    html += '<div style="display:flex; flex-wrap:wrap; gap:4px; margin-bottom:8px;">';
     Object.keys(s.typeCounts).forEach(function(type) {
       var info = typeMap[type] || { emoji:'❓', label:type };
       var count = s.typeCounts[type];
-      html += '<span style="display:inline-flex; align-items:center; gap:3px; margin:2px 3px; padding:4px 10px; border-radius:12px; font-size:0.72rem; font-weight:700; background:#f0f0ff; border:1px solid #e0e0ff;">' + info.emoji + ' ' + info.label + ' <span style="background:#667eea; color:white; border-radius:8px; padding:0 6px; font-size:0.65rem;">' + count + '</span></span>';
+      html += '<span style="display:inline-flex; align-items:center; gap:3px; padding:4px 10px; border-radius:12px; font-size:0.72rem; font-weight:700; background:#f0f0ff; border:1px solid #e0e0ff;">' + info.emoji + ' ' + info.label + ' <span style="background:#667eea; color:white; border-radius:8px; padding:0 6px; font-size:0.65rem;">' + count + '</span></span>';
     });
+    html += '</div>';
+    // 回答集計（各タイプの3問の回答分布）
+    if (s.answerAggregation) {
+      Object.keys(s.answerAggregation).forEach(function(type) {
+        var info = typeMap[type] || { emoji:'❓', label:type };
+        var agg = s.answerAggregation[type];
+        html += '<div style="margin-bottom:8px; padding:8px; background:#fafbff; border-radius:8px; border:1px solid #eef0f5;">';
+        html += '<div style="font-size:0.7rem; font-weight:700; color:#667eea; margin-bottom:4px;">' + info.emoji + ' ' + info.label + ' の回答傾向</div>';
+        ['q1','q2','q3'].forEach(function(qKey, qi) {
+          var answers = agg[qKey];
+          if (!answers) return;
+          var total = 0;
+          Object.values(answers).forEach(function(v) { total += v; });
+          html += '<div style="font-size:0.68rem; color:#666; margin-bottom:3px;">Q' + (qi+1) + ': ';
+          Object.keys(answers).forEach(function(ans, ai) {
+            var cnt = answers[ans];
+            var pct = total > 0 ? Math.round(cnt / total * 100) : 0;
+            if (ai > 0) html += ' / ';
+            html += '<span style="font-weight:700;">' + escapeHtml(ans) + '</span> <span style="color:#667eea;">' + cnt + '票(' + pct + '%)</span>';
+          });
+          html += '</div>';
+        });
+        html += '</div>';
+      });
+    }
     summaryArea.innerHTML = html || '<span style="color:#ccc;">共感なし</span>';
     if (countArea) countArea.innerHTML = '<span style="font-weight:700;">' + s.totalCount + '名が共感</span>';
 

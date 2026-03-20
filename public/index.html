@@ -374,6 +374,20 @@
   </div>
 </div>
 
+<!-- バッジ情報ポップアップ -->
+<div id="badge-info-popup" style="display:none; position:fixed; bottom:0; left:0; width:100%; z-index:6000; padding:0 12px 12px;">
+  <div style="background:white; border-radius:16px; box-shadow:0 -4px 20px rgba(0,0,0,0.15); padding:18px; max-width:420px; margin:0 auto; animation:badgePopIn 0.25s ease-out;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+      <div style="font-weight:800; font-size:0.9rem; color:#2c3e50;"><i class="fas fa-info-circle" style="color:#667eea; margin-right:4px;"></i>ステータス情報</div>
+      <button onclick="document.getElementById('badge-info-popup').style.display='none'" style="background:none; border:none; font-size:1rem; color:#aaa; cursor:pointer;"><i class="fas fa-times"></i></button>
+    </div>
+    <div id="badge-info-content"></div>
+  </div>
+</div>
+<style>
+@keyframes badgePopIn { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+</style>
+
 <!-- プロフィール編集モーダル -->
 <div id="profile-edit-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:5000; justify-content:center; align-items:center; padding:16px; overflow-y:auto;">
   <div style="background:white; border-radius:20px; max-width:420px; width:100%; padding:24px; box-shadow:0 20px 60px rgba(0,0,0,0.25); margin:auto;">
@@ -437,7 +451,7 @@
         <div id="profile-avatar" style="width:64px; height:64px; border-radius:50%; overflow:hidden; border:3px solid #fff; box-shadow:0 4px 12px rgba(0,0,0,0.1); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:2rem; background:#f0f0f0;"></div>
         <div style="flex:1; text-align:left;">
           <div style="font-weight:800; font-size:1.05rem; color:#2c3e50;" id="profile-nickname">--</div>
-          <div style="display:flex; align-items:center; gap:8px; margin-top:6px; flex-wrap:wrap;">
+          <div style="display:flex; align-items:center; gap:8px; margin-top:6px; flex-wrap:wrap; cursor:pointer;" onclick="showProfileBadgeInfo()">
             <span id="profile-rank"></span>
             <span style="font-size:0.68rem; font-weight:700; color:#555; background:#f0f0f0; padding:3px 10px; border-radius:12px; display:inline-flex; align-items:center; gap:3px;" id="profile-posts"><i class="fas fa-pen" style="font-size:0.6rem;"></i> 投稿 0</span>
             <span style="font-size:0.68rem; font-weight:700; color:#555; background:#f0f0f0; padding:3px 10px; border-radius:12px; display:inline-flex; align-items:center; gap:3px;" id="profile-dept"></span>
@@ -3754,6 +3768,77 @@ function getRankBadgeHtml(rank) {
   };
   var c = configs[rank] || configs['Beginner'];
   return '<span style="display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; background:' + c.bg + '; color:' + c.color + '; font-size:0.85rem; border-radius:50%; box-shadow:0 2px 6px rgba(0,0,0,0.15);" title="' + (rank || '') + '"><i class="' + c.icon + '"></i></span>';
+}
+
+function showProfileBadgeInfo() {
+  var popup = document.getElementById('badge-info-popup');
+  var content = document.getElementById('badge-info-content');
+  if (!popup || !content) return;
+
+  var rankDescs = {
+    'Beginner': { icon:'🌱', desc:'投稿を始めたばかり。まずは5回投稿を目指そう！' },
+    'Bronze':   { icon:'🥉', desc:'投稿5回達成！健康意識が芽生えています' },
+    'Silver':   { icon:'🥈', desc:'投稿10回達成！継続は力なり' },
+    'Gold':     { icon:'🥇', desc:'投稿30回達成！健康マスターへの道' },
+    'Platinum': { icon:'👑', desc:'投稿50回達成！みんなのお手本です' },
+    'Black':    { icon:'💎', desc:'投稿80回達成！健康の伝道師！' }
+  };
+
+  var postCount = 0;
+  try { postCount = parseInt(document.getElementById('profile-posts').innerText.match(/\d+/)[0]) || 0; } catch(e) {}
+  var rankEl = document.getElementById('profile-rank');
+  var currentRank = 'Beginner';
+  if (rankEl) {
+    var titleSpan = rankEl.querySelector('[title]');
+    if (titleSpan) currentRank = titleSpan.getAttribute('title');
+    else if (rankEl.querySelector('span')) currentRank = rankEl.querySelector('span').getAttribute('title') || 'Beginner';
+  }
+  var rd = rankDescs[currentRank] || rankDescs['Beginner'];
+
+  var nextRanks = [
+    { name:'Bronze', need:5 }, { name:'Silver', need:10 }, { name:'Gold', need:30 },
+    { name:'Platinum', need:50 }, { name:'Black', need:80 }
+  ];
+  var nextRank = nextRanks.find(function(r) { return postCount < r.need; });
+  var progressHtml = '';
+  if (nextRank) {
+    var pct = Math.round(postCount / nextRank.need * 100);
+    progressHtml = '<div style="margin-top:8px; font-size:0.72rem; color:#888;">次のランク <strong>' + nextRank.name + '</strong> まであと <strong>' + (nextRank.need - postCount) + '</strong> 投稿</div>' +
+      '<div style="height:6px; background:#f0f0f0; border-radius:3px; margin-top:4px; overflow:hidden;"><div style="height:100%; width:' + pct + '%; background:linear-gradient(90deg,#667eea,#764ba2); border-radius:3px;"></div></div>';
+  } else {
+    progressHtml = '<div style="margin-top:8px; font-size:0.72rem; color:#ffd700; font-weight:700;">最高ランク達成！</div>';
+  }
+
+  var html = '';
+  html += '<div style="display:flex; align-items:center; gap:10px; padding:10px; background:#f8f9fa; border-radius:10px; margin-bottom:10px;">';
+  html += '<span style="font-size:1.5rem;">' + rd.icon + '</span>';
+  html += '<div><div style="font-weight:700; font-size:0.85rem;">' + currentRank + '</div><div style="font-size:0.72rem; color:#888;">' + rd.desc + '</div></div>';
+  html += '</div>';
+  html += progressHtml;
+
+  html += '<div style="margin-top:12px; font-size:0.75rem; color:#555;">';
+  html += '<div style="font-weight:700; margin-bottom:6px;">ランク一覧</div>';
+  var allRanks = [
+    { name:'Beginner', icon:'🌱', need:'0〜', color:'#bdbdbd' },
+    { name:'Bronze', icon:'🥉', need:'5回〜', color:'#d7a86e' },
+    { name:'Silver', icon:'🥈', need:'10回〜', color:'#c0c0c0' },
+    { name:'Gold', icon:'🥇', need:'30回〜', color:'#ffd700' },
+    { name:'Platinum', icon:'👑', need:'50回〜', color:'#8e9aaf' },
+    { name:'Black', icon:'💎', need:'80回〜', color:'#333' }
+  ];
+  allRanks.forEach(function(r) {
+    var isCurrent = r.name === currentRank;
+    html += '<div style="display:flex; align-items:center; gap:8px; padding:4px 0;' + (isCurrent ? ' font-weight:700; color:#667eea;' : '') + '">';
+    html += '<span style="font-size:1rem;">' + r.icon + '</span>';
+    html += '<span style="flex:1;">' + r.name + '</span>';
+    html += '<span style="font-size:0.68rem; color:#999;">投稿' + r.need + '</span>';
+    if (isCurrent) html += '<span style="font-size:0.6rem; background:#667eea; color:white; padding:1px 6px; border-radius:8px;">現在</span>';
+    html += '</div>';
+  });
+  html += '</div>';
+
+  content.innerHTML = html;
+  popup.style.display = 'block';
 }
 
 function updateHeaderStats() {

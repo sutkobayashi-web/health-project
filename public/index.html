@@ -154,9 +154,9 @@
   .avatar-builder-body { padding: 16px; max-height: 55vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
   .avatar-builder-preview { display: none; }
   .avatar-builder-preview canvas { border-radius: 50%; box-shadow: 0 4px 16px rgba(0,0,0,0.12); border: 3px solid #fff; }
-  .ab-float-preview { position: fixed; bottom: 16px; right: 16px; z-index: 9000; background: white; border-radius: 50%; box-shadow: 0 6px 24px rgba(0,0,0,0.25); border: 3px solid #667eea; display: none; cursor: pointer; }
+  .ab-float-preview { position: fixed; bottom: 16px; right: 16px; z-index: 9000; background: white; border-radius: 50%; box-shadow: 0 6px 24px rgba(0,0,0,0.25); border: 3px solid #667eea; display: none; touch-action: none; }
   .ab-float-preview canvas { border-radius: 50%; display: block; }
-  .ab-float-preview .ab-float-label { position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%); background: #667eea; color: white; font-size: 0.6rem; font-weight: 700; padding: 1px 8px; border-radius: 8px; white-space: nowrap; }
+  .ab-float-preview .ab-float-resize { position: absolute; top: -4px; right: -4px; width: 26px; height: 26px; border-radius: 50%; background: #667eea; color: white; border: 2px solid white; font-size: 0.65rem; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
   .ab-part-btn { border: 1.5px solid #ddd; background: white; color: #888; border-radius: 8px; padding: 4px 10px; font-size: 0.7rem; font-weight: 700; cursor: pointer; transition: all 0.15s; }
   .ab-part-btn.selected { background: #667eea; color: white; border-color: #667eea; }
   .avatar-builder-sticky-preview {
@@ -335,8 +335,50 @@
 <!-- フロートアバタープレビュー -->
 <div class="ab-float-preview" id="ab-float-preview">
   <canvas id="ab-float-canvas" width="400" height="400" style="width:100px;height:100px;"></canvas>
-  <div class="ab-float-label">プレビュー</div>
+  <div class="ab-float-resize" onclick="abToggleFloatSize(event)"><i class="fas fa-expand"></i></div>
 </div>
+<script>
+// フロートプレビューのドラッグ移動
+(function() {
+  var el = document.getElementById('ab-float-preview');
+  var startX, startY, origLeft, origTop, dragging = false;
+  function getPos(e) { return e.touches ? { x: e.touches[0].clientX, y: e.touches[0].clientY } : { x: e.clientX, y: e.clientY }; }
+  function onStart(e) {
+    if (e.target.closest('.ab-float-resize')) return;
+    e.preventDefault(); dragging = true;
+    var p = getPos(e);
+    startX = p.x; startY = p.y;
+    var rect = el.getBoundingClientRect();
+    origLeft = rect.left; origTop = rect.top;
+  }
+  function onMove(e) {
+    if (!dragging) return;
+    e.preventDefault();
+    var p = getPos(e);
+    el.style.left = (origLeft + p.x - startX) + 'px';
+    el.style.top = (origTop + p.y - startY) + 'px';
+    el.style.right = 'auto'; el.style.bottom = 'auto';
+  }
+  function onEnd() { dragging = false; }
+  el.addEventListener('mousedown', onStart);
+  el.addEventListener('touchstart', onStart, { passive: false });
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('touchmove', onMove, { passive: false });
+  document.addEventListener('mouseup', onEnd);
+  document.addEventListener('touchend', onEnd);
+})();
+
+var _abFloatSize = 0; // 0=小, 1=中, 2=大
+function abToggleFloatSize(e) {
+  e.stopPropagation();
+  var canvas = document.getElementById('ab-float-canvas');
+  var sizes = [100, 160, 220];
+  _abFloatSize = (_abFloatSize + 1) % 3;
+  var s = sizes[_abFloatSize];
+  canvas.style.width = s + 'px';
+  canvas.style.height = s + 'px';
+}
+</script>
 
 <!-- プロフィール編集モーダル -->
 <div id="profile-edit-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:5000; justify-content:center; align-items:center; padding:16px; overflow-y:auto;">

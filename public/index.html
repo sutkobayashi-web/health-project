@@ -380,9 +380,9 @@
         <img id="food-preview-img" src="">
         <textarea id="food-comment" class="form-control mt-2" rows="2" placeholder="ひとこと（任意）"></textarea>
       </div>
-      <div class="form-check mt-2" style="text-align:left;">
-        <input class="form-check-input" type="checkbox" id="food-confirm" checked onchange="toggleFoodSubmit()">
-        <label class="form-check-label small" for="food-confirm">AI食事アドバイザーに診断してもらう</label>
+      <div style="display:flex; align-items:center; justify-content:center; gap:6px; margin-top:8px;">
+        <input type="checkbox" id="food-confirm" checked onchange="toggleFoodSubmit()" style="width:16px; height:16px; accent-color:#20c997; cursor:pointer;">
+        <label for="food-confirm" style="font-size:0.82rem; color:#555; cursor:pointer; margin:0;">AI食事アドバイザーに診断してもらう</label>
       </div>
       <button class="btn-food-submit" id="btn-food-submit" onclick="submitFoodPost()"><i class="fas fa-salad"></i> 食事診断を受ける</button>
     </div>
@@ -428,7 +428,7 @@
     </div>
 
     <!-- 健康メモ -->
-    <div class="card-section" id="health-memo-section" style="display:none; border-top:4px solid #ff9800; background:linear-gradient(135deg, #fffde7 0%, #fff8e1 100%);">
+    <div class="card-section" id="health-memo-section" style="border-top:4px solid #ff9800; background:linear-gradient(135deg, #fffde7 0%, #fff8e1 100%);">
       <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
         <div style="display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#fff3e0,#ffe0b2);flex-shrink:0;"><i class="fas fa-bookmark" style="font-size:22px;color:#e65100;"></i></div>
         <div>
@@ -2139,10 +2139,9 @@ function loadHealthMemos() {
   if (!list) return;
   getChatMemos(currentUser.uid).then(function(res) {
     if (!res || !res.success || !res.memos || res.memos.length === 0) {
-      section.style.display = 'none';
+      list.innerHTML = '<div class="health-memo-empty-msg"><i class="fas fa-info-circle" style="margin-right:4px;"></i>AIアドバイザーとのチャットで<br>気になった回答を保存できます</div>';
       return;
     }
-    section.style.display = 'block';
     list.innerHTML = '';
     res.memos.forEach(function(m) {
       var safe = m.memo_text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');

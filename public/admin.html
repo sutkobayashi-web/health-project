@@ -301,6 +301,12 @@ if(localStorage.getItem('co_heart_admin_email') && localStorage.getItem('co_hear
 
 <div class="main-container">
   <div class="sidebar">
+    <!-- 投稿一覧（最上部） -->
+    <div class="nav-item" onclick="switchTab('evaluation')" id="nav-eval">
+      <i class="fas fa-inbox nav-icon"></i><div class="nav-label" style="font-size:0.55rem; line-height:1.2;">投稿<br>一覧</div>
+    </div>
+    <!-- 区切り -->
+    <div style="border-top:1px solid rgba(255,255,255,0.1); margin:4px 0;"></div>
     <!-- v2: 凝集型スキーム -->
     <div class="nav-item active" onclick="switchTab('v2dash')" id="nav-v2dash">
       <i class="fas fa-chart-pie nav-icon" style="color:#667eea;"></i><div class="nav-label" style="font-size:0.55rem; line-height:1.2;">ダッシュ<br>ボード</div>
@@ -316,10 +322,6 @@ if(localStorage.getItem('co_heart_admin_email') && localStorage.getItem('co_hear
     </div>
     <!-- 区切り -->
     <div style="border-top:1px solid rgba(255,255,255,0.1); margin:4px 0;"></div>
-    <!-- 既存機能（縮小） -->
-    <div class="nav-item" onclick="switchTab('evaluation')" id="nav-eval">
-      <i class="fas fa-inbox nav-icon"></i><div class="nav-label" style="font-size:0.55rem; line-height:1.2;">投稿<br>一覧</div>
-    </div>
     <div class="nav-item position-relative" onclick="switchTab('personal')" id="nav-personal">
       <i class="fas fa-envelope-open-text nav-icon"></i><div class="nav-label" style="font-size:0.55rem;">メール</div>
       <span id="personal-badge" class="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-danger border border-light" style="display:none; font-size:0.6rem;">!</span>

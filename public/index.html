@@ -1331,7 +1331,7 @@ function like(row, likeId) {
 function openPostDetail(row) {
   var p = _postCache[row];
   if (!p) return;
-  var imgHtml = (p.imageUrl && p.imageUrl.startsWith('http')) ? '<img src="' + p.imageUrl + '" style="width:100%;border-radius:12px;margin-bottom:12px;">' : '';
+  var imgHtml = (p.imageUrl && p.imageUrl.length > 1) ? '<img src="' + p.imageUrl + '" style="width:100%;border-radius:12px;margin-bottom:12px;" onerror="this.style.display=\'none\'">' : '';
   var analysisHtml = p.analysis ? '<div class="ai-reply"><i class="fas fa-robot text-primary"></i> ' + p.analysis.replace(/\n/g, '<br>') + '</div>' : '';
   var sheet = document.getElementById('post-detail-sheet');
   var detailAvHtml = getAvatarHtml(p.avatar, 28);

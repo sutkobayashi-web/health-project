@@ -490,18 +490,6 @@
       </div>
     </div>
 
-    <!-- タイムライン -->
-    <div class="timeline-toggle">
-      <button class="btn-timeline" id="btn-toggle-tl" onclick="toggleTimeline()"><i class="fas fa-stream"></i> みんなの投稿を見る</button>
-    </div>
-    <div class="timeline-container" id="timeline-wrapper">
-      <div id="timeline-content"></div>
-      <div class="paging-area">
-        <button class="btn-more" onclick="loadMore()"><i class="fas fa-chevron-down"></i> もっと見る</button>
-        <button class="btn-close-timeline" onclick="toggleTimeline()">閉じる</button>
-      </div>
-    </div>
-
     <!-- テーマ投票 -->
     <div class="card-section" id="theme-vote-section" style="display:none; border-top:4px solid #667eea; background:linear-gradient(135deg, #f0f4ff 0%, #e8ecff 100%);">
       <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="toggleAccordion('vote-body','vote-chevron')">
@@ -550,11 +538,31 @@
     </div>
 
     <!-- QR招待 -->
-    <div class="card-section" style="text-align:center; border-top:4px solid #6c5ce7; background:linear-gradient(135deg, #faf8ff 0%, #f3f0ff 100%);">
-      <div class="section-title" style="justify-content:center;"><i class="fas fa-qrcode" style="color:#6c5ce7;"></i> 仲間を招待しよう！</div>
-      <div style="font-size:0.8rem; color:#999; margin-bottom:12px;">QRコードを同僚に見せて<br>みんなで健康になりましょう</div>
-      <div id="qr-area"></div>
-      <div style="margin-top:10px; font-size:0.75rem; color:#bbb;"><i class="fas fa-users" style="margin-right:4px;"></i> 招待するとランクがアップ！</div>
+    <div class="card-section" style="border-top:4px solid #6c5ce7; background:linear-gradient(135deg, #faf8ff 0%, #f3f0ff 100%);">
+      <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="toggleAccordion('qr-body','qr-chevron')">
+        <div style="display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#6c5ce7,#a29bfe);flex-shrink:0;"><i class="fas fa-qrcode" style="font-size:22px;color:#fff;"></i></div>
+        <div style="flex:1;">
+          <div class="section-title" style="margin-bottom:2px;"><i class="fas fa-user-plus"></i> 仲間を招待しよう！</div>
+          <div style="font-size:0.75rem; color:#999;">QRコードを同僚に見せて参加してもらおう</div>
+        </div>
+        <i class="fas fa-chevron-down" id="qr-chevron" style="color:#6c5ce7; font-size:0.9rem; transition:transform 0.3s;"></i>
+      </div>
+      <div id="qr-body" style="display:none; margin-top:12px; text-align:center;">
+        <div id="qr-area"></div>
+        <div style="margin-top:10px; font-size:0.75rem; color:#bbb;"><i class="fas fa-users" style="margin-right:4px;"></i> 招待するとランクがアップ！</div>
+      </div>
+    </div>
+
+    <!-- みんなの投稿 -->
+    <div class="timeline-toggle">
+      <button class="btn-timeline" id="btn-toggle-tl" onclick="toggleTimeline()"><i class="fas fa-stream"></i> みんなの投稿を見る</button>
+    </div>
+    <div class="timeline-container" id="timeline-wrapper">
+      <div id="timeline-content"></div>
+      <div class="paging-area">
+        <button class="btn-more" onclick="loadMore()"><i class="fas fa-chevron-down"></i> もっと見る</button>
+        <button class="btn-close-timeline" onclick="toggleTimeline()">閉じる</button>
+      </div>
     </div>
 
     <div class="app-footer" style="color:#bbb;">健康プロジェクト v2.0 &copy; 2026 <span style="color:#d63384;">❤</span></div>

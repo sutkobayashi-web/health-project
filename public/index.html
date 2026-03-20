@@ -517,14 +517,15 @@
 
     <!-- チャレンジ -->
     <div class="card-section" id="challenge-section" style="display:none; border-top:4px solid #ff6b35; background:linear-gradient(135deg, #fff5f0 0%, #ffe8de 100%);">
-      <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+      <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="toggleAccordion('challenge-body','challenge-chevron')">
         <div style="display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#ff6b35,#ff9a5c);flex-shrink:0;" id="challenge-icon-circle"><i class="fas fa-fire" style="font-size:22px;color:#fff;"></i></div>
         <div style="flex:1;">
           <div class="section-title" style="margin-bottom:2px;" id="challenge-title-display"></div>
           <div style="font-size:0.75rem; color:#999;" id="challenge-subtitle-display"></div>
         </div>
+        <i class="fas fa-chevron-down" id="challenge-chevron" style="color:#ff6b35; font-size:0.9rem; transition:transform 0.3s;"></i>
       </div>
-      <div id="challenge-body"></div>
+      <div id="challenge-body" style="display:none; margin-top:12px;"></div>
     </div>
 
     <!-- 健康メモ -->
@@ -5311,7 +5312,11 @@ function loadActiveChallenge() {
     if (!active) {
       // エントリー受付中のチャレンジがあるかチェック
       var recruiting = res.challenges.find(function(c) { return c.status === 'recruiting'; });
-      if (recruiting) { renderChallengeEntry(recruiting); return; }
+      if (recruiting) {
+        currentChallengeId = recruiting.challenge_id;
+        loadChallengeDetail(recruiting.challenge_id);
+        return;
+      }
       document.getElementById('challenge-section').style.display = 'none';
       return;
     }

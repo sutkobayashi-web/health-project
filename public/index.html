@@ -3939,51 +3939,69 @@ function like(row, likeId) {
 }
 
 var _empathyAnsweredPosts = {};
+
+// 投稿詳細（読むだけ）
 function openPostDetail(row) {
   var p = _postCache[row];
   if (!p) return;
-  var isOwn = currentUser && p.authorUid === currentUser.uid;
-  var isAnswered = _empathyAnsweredPosts[p.id];
   var sheet = document.getElementById('post-detail-sheet');
   var detailAvHtml = getAvatarHtml(p.avatar, 40);
-
-  // ヘッダー
-  var html = '<div style="padding:12px 18px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #eee;flex-shrink:0;">' +
-    '<div class="avatar" style="width:32px;height:32px;font-size:1rem;">' + detailAvHtml + '</div>' +
-    '<div style="flex:1;"><div class="nick" style="font-size:0.85rem;">' + p.nickname + ' <span class="rank">' + p.authorRank + '</span></div><div style="font-size:0.65rem;color:#999;">' + p.date + '</div></div>' +
-  '</div>';
-
-  // 本文
   var imgHtml = (p.imageUrl && p.imageUrl.length > 1) ? '<img src="' + p.imageUrl + '" style="width:100%;border-radius:12px;margin-bottom:12px;" onerror="this.style.display=\'none\'">' : '';
   var analysisHtml = p.analysis ? '<div class="ai-reply"><i class="fas fa-robot text-primary"></i> ' + p.analysis.replace(/\n/g, '<br>') + '</div>' : '';
-  html += '<div id="post-detail-body" style="padding:14px 18px;">' +
-    '<div style="font-size:0.92rem;line-height:1.8;color:#333;white-space:pre-wrap;margin-bottom:14px;">' + p.content + '</div>' +
-    imgHtml + analysisHtml +
+
+  sheet.innerHTML =
+    '<div style="padding:12px 18px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #eee;flex-shrink:0;">' +
+      '<div class="avatar" style="width:32px;height:32px;font-size:1rem;">' + detailAvHtml + '</div>' +
+      '<div style="flex:1;"><div class="nick" style="font-size:0.85rem;">' + p.nickname + ' <span class="rank">' + p.authorRank + '</span></div><div style="font-size:0.65rem;color:#999;">' + p.date + '</div></div>' +
+    '</div>' +
+    '<div id="post-detail-body" style="padding:14px 18px; flex:1; overflow-y:auto;">' +
+      '<div style="font-size:0.92rem;line-height:1.8;color:#333;white-space:pre-wrap;margin-bottom:14px;">' + p.content + '</div>' +
+      imgHtml + analysisHtml +
+    '</div>' +
+    '<div id="post-detail-footer" style="padding:12px 18px;">' +
+      '<button id="post-detail-close-btn" style="width:60%;padding:10px;background:linear-gradient(135deg,#6c5ce7,#a29bfe);color:white;border:none;border-radius:12px;font-weight:700;font-size:0.82rem;cursor:pointer;display:block;margin:0 auto;box-shadow:0 2px 8px rgba(108,92,231,0.2);">閉じる</button>' +
+    '</div>';
+  document.getElementById('post-detail-modal').classList.add('active');
+  lockScroll();
+}
+
+// 共感フォーム（ハートタップで開く）
+function openEmpathyModal(row) {
+  var p = _postCache[row];
+  if (!p) return;
+  var isOwn = currentUser && p.authorUid === currentUser.uid;
+  if (isOwn) { openPostDetail(row); return; }
+  var isAnswered = _empathyAnsweredPosts[p.id];
+  if (isAnswered) { openPostDetail(row); return; }
+
+  var sheet = document.getElementById('post-detail-sheet');
+  var detailAvHtml = getAvatarHtml(p.avatar, 40);
+  var isFood = (p.content && p.content.includes('【写真】')) || (p.analysis && p.analysis.includes('栄養'));
+
+  // ヘッダー + 投稿プレビュー
+  var html = '<div style="padding:12px 18px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #eee;flex-shrink:0;">' +
+    '<div class="avatar" style="width:32px;height:32px;font-size:1rem;">' + detailAvHtml + '</div>' +
+    '<div style="flex:1;"><div class="nick" style="font-size:0.85rem;">' + p.nickname + '</div>' +
+    '<div style="font-size:0.75rem; color:#888; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:220px;">' + escapeHtml(p.content).substring(0, 40) + '…</div></div>' +
   '</div>';
 
-  // 共感フォーム（自分の投稿でなく、未回答の場合）
-  if (!isOwn && !isAnswered) {
-    var isFood = (p.content && p.content.includes('【写真】')) || (p.analysis && p.analysis.includes('栄養'));
-    var types = isFood ?
-      [{ key:'oishii', emoji:'🍽️', label:'美味しそう！' }, { key:'sankou', emoji:'💪', label:'参考になる！' }, { key:'onaji', emoji:'😅', label:'自分もこんな感じ…' }] :
-      [{ key:'wakaru', emoji:'🙋', label:'わかる、自分も' }, { key:'yabai', emoji:'😰', label:'これヤバくない？' }, { key:'kaisha', emoji:'💡', label:'会社が動けば変わる' }];
+  // 共感タイプ選択
+  var types = isFood ?
+    [{ key:'oishii', emoji:'🍽️', label:'美味しそう！' }, { key:'sankou', emoji:'💪', label:'参考になる！' }, { key:'onaji', emoji:'😅', label:'自分もこんな感じ…' }] :
+    [{ key:'wakaru', emoji:'🙋', label:'わかる、自分も' }, { key:'yabai', emoji:'😰', label:'これヤバくない？' }, { key:'kaisha', emoji:'💡', label:'会社が動けば変わる' }];
 
-    html += '<div style="padding:14px 18px; border-top:1px solid #eee;">';
-    html += '<div style="font-size:0.85rem; font-weight:700; color:#667eea; text-align:center; margin-bottom:10px;">この投稿にどう思いますか？</div>';
-    html += '<div style="display:flex; flex-direction:column; gap:8px;" id="empathy-type-area">';
-    types.forEach(function(t) {
-      html += '<button class="empathy-type-select" data-type="' + t.key + '" onclick="selectEmpathyType(this,\'' + t.key + '\',' + row + ',' + (isFood ? 'true' : 'false') + ')" style="display:flex; align-items:center; justify-content:center; gap:8px; padding:12px; border-radius:14px; border:2px solid #e0e0e0; background:white; font-size:0.9rem; font-weight:700; color:#444; cursor:pointer; transition:all 0.2s;">';
-      html += t.emoji + ' ' + t.label + '</button>';
-    });
-    html += '</div>';
-    html += '<div id="empathy-questions-area" style="display:none; margin-top:12px;"></div>';
-    html += '</div>';
-  } else if (isAnswered) {
-    html += '<div style="padding:14px 18px; border-top:1px solid #eee; text-align:center; color:#43a047; font-size:0.85rem; font-weight:700;"><i class="fas fa-check-circle me-1"></i>共感済み</div>';
-  }
+  html += '<div style="padding:14px 18px; flex:1; overflow-y:auto;">';
+  html += '<div style="font-size:0.9rem; font-weight:700; color:#667eea; text-align:center; margin-bottom:12px;">この投稿への共感を選んでください</div>';
+  html += '<div style="display:flex; flex-direction:column; gap:8px;" id="empathy-type-area">';
+  types.forEach(function(t) {
+    html += '<button class="empathy-type-select" data-type="' + t.key + '" onclick="selectEmpathyType(this,\'' + t.key + '\',' + row + ',' + (isFood ? 'true' : 'false') + ')" style="display:flex; align-items:center; justify-content:center; gap:8px; padding:12px; border-radius:14px; border:2px solid #e0e0e0; background:white; font-size:0.9rem; font-weight:700; color:#444; cursor:pointer; transition:all 0.2s;">';
+    html += t.emoji + ' ' + t.label + '</button>';
+  });
+  html += '</div>';
+  html += '<div id="empathy-questions-area" style="display:none; margin-top:12px;"></div>';
+  html += '</div>';
 
-  // 閉じるボタン
-  html += '<div id="post-detail-footer" style="padding:12px 18px;">' +
+  html += '<div style="padding:12px 18px;">' +
     '<button id="post-detail-close-btn" style="width:60%;padding:10px;background:linear-gradient(135deg,#6c5ce7,#a29bfe);color:white;border:none;border-radius:12px;font-weight:700;font-size:0.82rem;cursor:pointer;display:block;margin:0 auto;box-shadow:0 2px 8px rgba(108,92,231,0.2);">閉じる</button>' +
   '</div>';
 
@@ -4130,8 +4148,8 @@ document.addEventListener('click', function(e) {
   }
   // いいね
   var likeEl = e.target.closest('.post-like-btn');
-  if (likeEl) { e.stopPropagation(); e.preventDefault(); var row = parseInt(likeEl.getAttribute('data-row')); if (row) like(row, likeEl.id); return; }
-  // カードタップ → 詳細
+  if (likeEl) { e.stopPropagation(); e.preventDefault(); var row = parseInt(likeEl.getAttribute('data-row')); if (row) openEmpathyModal(row); return; }
+  // カードタップ → 詳細（読むだけ）
   var card = e.target.closest('.post-card');
   if (card) { var row2 = parseInt(card.getAttribute('data-row')); if (row2) openPostDetail(row2); return; }
 });

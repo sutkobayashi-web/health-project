@@ -152,8 +152,11 @@
   .avatar-tab-content { display: none; }
   .avatar-tab-content.active { display: block; }
   .avatar-builder-body { padding: 16px; max-height: 55vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-  .avatar-builder-preview { text-align: center; margin-bottom: 8px; padding: 10px 0 6px; }
+  .avatar-builder-preview { display: none; }
   .avatar-builder-preview canvas { border-radius: 50%; box-shadow: 0 4px 16px rgba(0,0,0,0.12); border: 3px solid #fff; }
+  .ab-float-preview { position: fixed; bottom: 16px; right: 16px; z-index: 9000; background: white; border-radius: 50%; box-shadow: 0 6px 24px rgba(0,0,0,0.25); border: 3px solid #667eea; display: none; cursor: pointer; }
+  .ab-float-preview canvas { border-radius: 50%; display: block; }
+  .ab-float-preview .ab-float-label { position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%); background: #667eea; color: white; font-size: 0.6rem; font-weight: 700; padding: 1px 8px; border-radius: 8px; white-space: nowrap; }
   .ab-part-btn { border: 1.5px solid #ddd; background: white; color: #888; border-radius: 8px; padding: 4px 10px; font-size: 0.7rem; font-weight: 700; cursor: pointer; transition: all 0.15s; }
   .ab-part-btn.selected { background: #667eea; color: white; border-color: #667eea; }
   .avatar-builder-sticky-preview {
@@ -329,6 +332,12 @@
 </div>
 
 <!-- メインコンテンツ -->
+<!-- フロートアバタープレビュー -->
+<div class="ab-float-preview" id="ab-float-preview">
+  <canvas id="ab-float-canvas" width="400" height="400" style="width:100px;height:100px;"></canvas>
+  <div class="ab-float-label">プレビュー</div>
+</div>
+
 <!-- プロフィール編集モーダル -->
 <div id="profile-edit-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:5000; justify-content:center; align-items:center; padding:16px; overflow-y:auto;">
   <div style="background:white; border-radius:20px; max-width:420px; width:100%; padding:24px; box-shadow:0 20px 60px rgba(0,0,0,0.25); margin:auto;">
@@ -2263,7 +2272,6 @@ function abParseString(str) {
 function abUpdatePreview(canvasId) {
   var canvas = document.getElementById(canvasId);
   if (!canvas) return;
-  abInitDrag(canvas);
   var str = abBuildString();
   var size = 400;
   canvas.width = size; canvas.height = size;
@@ -2274,6 +2282,12 @@ function abUpdatePreview(canvasId) {
     img.onload = function() {
       canvas.getContext('2d').clearRect(0, 0, size, size);
       canvas.getContext('2d').drawImage(img, 0, 0, size, size);
+      // フロートプレビューも更新
+      var floatCanvas = document.getElementById('ab-float-canvas');
+      if (floatCanvas) {
+        floatCanvas.width = size; floatCanvas.height = size;
+        floatCanvas.getContext('2d').drawImage(img, 0, 0, size, size);
+      }
     };
     img.src = dataUrl;
   }
@@ -2357,6 +2371,9 @@ function abInitDrag(canvas) {
 function abRenderBuilderUI(containerId, previewCanvasId) {
   var c = document.getElementById(containerId);
   if (!c) return;
+  // フロートプレビュー表示
+  var floatEl = document.getElementById('ab-float-preview');
+  if (floatEl) floatEl.style.display = 'block';
   // sticky preview area (change-tab only)
   var stickyId = containerId === 'change-builder-container' ? 'change-sticky-preview' : null;
   var stickyEl = stickyId ? document.getElementById(stickyId) : null;
@@ -2851,6 +2868,8 @@ function doAdminLogin() {
 function onLoginSuccess() {
   document.getElementById('auth-modal').style.display = 'none';
   document.getElementById('main-app').style.display = 'block';
+  var floatEl = document.getElementById('ab-float-preview');
+  if (floatEl) floatEl.style.display = 'none';
   updateStatAvatar();
   document.getElementById('stat-nickname').innerText = currentUser.nickname || '--';
   updateProfileCard();
@@ -2894,6 +2913,8 @@ function openProfileEditModal() {
 
 function closeProfileEditModal() {
   document.getElementById('profile-edit-modal').style.display = 'none';
+  var floatEl = document.getElementById('ab-float-preview');
+  if (floatEl) floatEl.style.display = 'none';
 }
 
 function savePasswordChange() {

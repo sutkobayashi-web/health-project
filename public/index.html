@@ -523,6 +523,12 @@ function renderCustomAvatar(avatarStr, size) {
     var faceShapeType = parseInt(parts[12]) || 0;
     var eyeColorIdx = parseInt(parts[13]) || 0;
     var eyeColor = AB_EYE_COLORS[eyeColorIdx] || AB_EYE_COLORS[0];
+    // 位置調整パラメータ（-3〜+3 → faceRの割合に変換）
+    var posEyeVal = parseInt(parts[14]) || 0;
+    var posMouthVal = parseInt(parts[15]) || 0;
+    var posNoseVal = parseInt(parts[16]) || 0;
+    var posBrowVal = parseInt(parts[17]) || 0;
+    var eyeSpacingVal = parseInt(parts[18]) || 0;
 
     var canvas = document.createElement('canvas');
     canvas.width = size; canvas.height = size;
@@ -540,20 +546,27 @@ function renderCustomAvatar(avatarStr, size) {
     // 髪（後ろ部分 - ロング・ボブなどのサイド）
     drawHairBack(ctx, cx, faceY, faceR, hairType, hairColor);
 
+    // 位置オフセット計算（1単位 = faceR * 0.04）
+    var eyeYOff = posEyeVal * faceR * 0.04;
+    var mouthYOff = posMouthVal * faceR * 0.04;
+    var noseYOff = posNoseVal * faceR * 0.04;
+    var browYOff = posBrowVal * faceR * 0.04;
+    var spacingOff = eyeSpacingVal * faceR * 0.03;
+
     // 目 - 顔の中心よりやや上
-    var eyeY = faceY + faceR * 0.05;
-    var eyeSpacing = faceR * 0.35;
+    var eyeY = faceY + faceR * 0.05 + eyeYOff;
+    var eyeSpacing = faceR * 0.35 + spacingOff;
     var eyeSize = faceR * 0.08;
 
     // 眉毛
-    drawEyebrows(ctx, cx, eyeY, eyeSpacing, faceR, eyebrowType);
+    drawEyebrows(ctx, cx, eyeY + browYOff, eyeSpacing, faceR, eyebrowType);
 
     // 目
     drawEyes(ctx, cx, eyeY, eyeSpacing, eyeSize, eyeType, faceR, eyeColor);
 
     // 鼻
-    var mouthY = faceY + faceR * 0.35;
-    var noseY = (eyeY + mouthY) / 2;
+    var mouthY = faceY + faceR * 0.35 + mouthYOff;
+    var noseY = (eyeY + mouthY) / 2 + noseYOff;
     drawNose(ctx, cx, noseY, faceR, noseType);
 
     // 口
@@ -1341,12 +1354,12 @@ function getAvatarHtml(avatarStr, size) {
 }
 
 // ====== アバタービルダー状態 ======
-var abState = { skin: 2, hair: 0, hairColor: 0, eye: 0, mouth: 0, accessories: [0], bg: 0, faceSize: 1, eyebrow: 0, nose: 0, beard: 0, cheek: 0, faceShape: 0, eyeColor: 0 };
+var abState = { skin: 2, hair: 0, hairColor: 0, eye: 0, mouth: 0, accessories: [0], bg: 0, faceSize: 1, eyebrow: 0, nose: 0, beard: 0, cheek: 0, faceShape: 0, eyeColor: 0, posEye: 0, posMouth: 0, posNose: 0, posBrow: 0, eyeSpacing: 0 };
 
 function abBuildString() {
   var accs = abState.accessories.filter(function(a) { return a > 0; });
   if (accs.length === 0) accs = [0];
-  return 'custom:' + AB_SKINS[abState.skin] + '|' + AB_HAIRS[abState.hairColor] + '|' + AB_BGS[abState.bg] + '|' + AB_FACES[abState.faceSize] + '|' + abState.eye + '|' + abState.mouth + '|' + accs.join(',') + '|' + abState.hair + '|' + abState.eyebrow + '|' + abState.nose + '|' + abState.beard + '|' + abState.cheek + '|' + abState.faceShape + '|' + abState.eyeColor;
+  return 'custom:' + AB_SKINS[abState.skin] + '|' + AB_HAIRS[abState.hairColor] + '|' + AB_BGS[abState.bg] + '|' + AB_FACES[abState.faceSize] + '|' + abState.eye + '|' + abState.mouth + '|' + accs.join(',') + '|' + abState.hair + '|' + abState.eyebrow + '|' + abState.nose + '|' + abState.beard + '|' + abState.cheek + '|' + abState.faceShape + '|' + abState.eyeColor + '|' + abState.posEye + '|' + abState.posMouth + '|' + abState.posNose + '|' + abState.posBrow + '|' + abState.eyeSpacing;
 }
 
 function abParseString(str) {
@@ -1368,6 +1381,11 @@ function abParseString(str) {
     abState.cheek = parseInt(parts[11]) || 0;
     abState.faceShape = parseInt(parts[12]) || 0;
     abState.eyeColor = parseInt(parts[13]) || 0;
+    abState.posEye = parseInt(parts[14]) || 0;
+    abState.posMouth = parseInt(parts[15]) || 0;
+    abState.posNose = parseInt(parts[16]) || 0;
+    abState.posBrow = parseInt(parts[17]) || 0;
+    abState.eyeSpacing = parseInt(parts[18]) || 0;
   } catch(e) {}
 }
 
@@ -1375,7 +1393,7 @@ function abUpdatePreview(canvasId) {
   var canvas = document.getElementById(canvasId);
   if (!canvas) return;
   var str = abBuildString();
-  var size = 160;
+  var size = 320;
   canvas.width = size; canvas.height = size;
   // Draw directly
   var dataUrl = renderCustomAvatar(str, size);
@@ -1398,11 +1416,11 @@ function abRenderBuilderUI(containerId, previewCanvasId) {
   var stickyId = containerId === 'change-builder-container' ? 'change-sticky-preview' : null;
   var stickyEl = stickyId ? document.getElementById(stickyId) : null;
   if (stickyEl) {
-    stickyEl.innerHTML = '<canvas id="' + previewCanvasId + '" width="160" height="160" style="width:80px;height:80px;"></canvas>';
+    stickyEl.innerHTML = '<canvas id="' + previewCanvasId + '" width="320" height="320" style="width:140px;height:140px;"></canvas>';
   }
   var html = '';
   if (!stickyEl) {
-    html += '<div class="avatar-builder-preview"><canvas id="' + previewCanvasId + '" width="160" height="160" style="width:80px;height:80px;"></canvas></div>';
+    html += '<div class="avatar-builder-preview"><canvas id="' + previewCanvasId + '" width="320" height="320" style="width:140px;height:140px;"></canvas></div>';
   }
 
   // 肌の色
@@ -1479,6 +1497,24 @@ function abRenderBuilderUI(containerId, previewCanvasId) {
   html += '<div class="avatar-builder-row"><label>🩷 ほっぺた</label><div class="avatar-builder-options">';
   AB_CHEEK_NAMES.forEach(function(name, i) {
     html += '<div class="ab-icon-btn' + (abState.cheek === i ? ' selected' : '') + '" onclick="abSelect(\'cheek\',' + i + ',\'' + previewCanvasId + '\')">' + name + '</div>';
+  });
+  html += '</div></div>';
+
+  // 位置調整
+  html += '<div class="avatar-builder-row" style="border-top:2px solid #eee; padding-top:12px; margin-top:8px;"><label>📐 パーツ位置調整</label>';
+  html += '<div style="display:grid; grid-template-columns:1fr 1fr; gap:6px 12px;">';
+  var posItems = [
+    { key:'posEye', label:'目の高さ', min:-4, max:4 },
+    { key:'eyeSpacing', label:'目の間隔', min:-3, max:3 },
+    { key:'posBrow', label:'眉の高さ', min:-4, max:4 },
+    { key:'posNose', label:'鼻の高さ', min:-3, max:3 },
+    { key:'posMouth', label:'口の高さ', min:-4, max:4 }
+  ];
+  posItems.forEach(function(item) {
+    html += '<div style="display:flex; align-items:center; gap:4px;">';
+    html += '<span style="font-size:0.68rem; color:#888; width:52px; flex-shrink:0;">' + item.label + '</span>';
+    html += '<input type="range" min="' + item.min + '" max="' + item.max + '" value="' + (abState[item.key] || 0) + '" style="flex:1; accent-color:#667eea;" oninput="abState[\'' + item.key + '\']=parseInt(this.value); _avatarCache={}; abUpdatePreview(\'' + previewCanvasId + '\'); selectedAvatar=abBuildString();">';
+    html += '</div>';
   });
   html += '</div></div>';
 
@@ -1597,7 +1633,7 @@ function showStep(step) {
 
 var selectedAvatar = null;
 function initAvatarGrid() {
-  abState = { skin: 2, hair: 0, hairColor: 0, eye: 0, mouth: 0, accessories: [0], bg: 0, faceSize: 1, eyebrow: 0, nose: 0, beard: 0, cheek: 0, faceShape: 0, eyeColor: 0 };
+  abState = { skin: 2, hair: 0, hairColor: 0, eye: 0, mouth: 0, accessories: [0], bg: 0, faceSize: 1, eyebrow: 0, nose: 0, beard: 0, cheek: 0, faceShape: 0, eyeColor: 0, posEye: 0, posMouth: 0, posNose: 0, posBrow: 0, eyeSpacing: 0 };
   abRenderBuilderUI('reg-builder-container', 'reg-preview-canvas');
   selectedAvatar = abBuildString();
 }
@@ -1630,7 +1666,7 @@ function openAvatarSheet() {
   if (currentUser.avatar && currentUser.avatar.startsWith('custom:')) {
     abParseString(currentUser.avatar);
   } else {
-    abState = { skin: 2, hair: 0, hairColor: 0, eye: 0, mouth: 0, accessories: [0], bg: 0, faceSize: 1, eyebrow: 0, nose: 0, beard: 0, cheek: 0, faceShape: 0, eyeColor: 0 };
+    abState = { skin: 2, hair: 0, hairColor: 0, eye: 0, mouth: 0, accessories: [0], bg: 0, faceSize: 1, eyebrow: 0, nose: 0, beard: 0, cheek: 0, faceShape: 0, eyeColor: 0, posEye: 0, posMouth: 0, posNose: 0, posBrow: 0, eyeSpacing: 0 };
   }
   abRenderBuilderUI('change-builder-container', 'change-preview-canvas');
   var overlay = document.getElementById('avatar-change-overlay');

@@ -86,15 +86,66 @@ router.post('/generate-themes', async (req, res) => {
     `).all();
     if (posts.length < 3) return res.json({ success: false, msg: '投稿が少なすぎます（最低3件必要）' });
 
-    // 投稿テキストをAIに渡してクラスタリング
+    // 共感データを集計（投稿ごと）
+    const empathyByPost = {};
+    db.prepare('SELECT post_id, empathy_type, COUNT(*) as cnt FROM empathy_responses GROUP BY post_id, empathy_type').all()
+      .forEach(r => {
+        if (!empathyByPost[r.post_id]) empathyByPost[r.post_id] = { total: 0, types: {} };
+        empathyByPost[r.post_id].types[r.empathy_type] = r.cnt;
+        empathyByPost[r.post_id].total += r.cnt;
+      });
+
+    // 推進メンバーコメント（投稿ごと）
+    const memberCommentsByPost = {};
+    try {
+      db.prepare('SELECT post_id, member_name, comment FROM member_comments ORDER BY created_at ASC').all()
+        .forEach(r => {
+          if (!memberCommentsByPost[r.post_id]) memberCommentsByPost[r.post_id] = [];
+          memberCommentsByPost[r.post_id].push(`${r.member_name}: ${r.comment}`);
+        });
+    } catch(e) {}
+
+    // メンバーチャット（投稿ごと）
+    const memberChatsByPost = {};
+    try {
+      db.prepare('SELECT post_id, member_name, message FROM member_chats ORDER BY created_at ASC').all()
+        .forEach(r => {
+          if (!memberChatsByPost[r.post_id]) memberChatsByPost[r.post_id] = [];
+          memberChatsByPost[r.post_id].push(`${r.member_name}: ${r.message}`);
+        });
+    } catch(e) {}
+
+    // AI自動7軸評価（投稿ごと）
+    const autoEvalByPost = {};
+    try {
+      db.prepare('SELECT post_id, legal, risk, freq, urgency, safety, value_score, needs, total_score, reasoning FROM auto_evaluations').all()
+        .forEach(r => { autoEvalByPost[r.post_id] = r; });
+    } catch(e) {}
+
+    // 投稿サマリー（全データ統合）
     const postSummaries = posts.slice(0, 100).map((p, i) => {
-      const content = (p.content || '').replace(/^【写真】/, '').substring(0, 200);
-      return `[${i+1}] ${p.department || '不明'}部署 | ${content}`;
+      const content = (p.content || '').replace(/^【写真】/, '').substring(0, 150);
+      const emp = empathyByPost[p.post_id];
+      const empStr = emp ? `共感${emp.total}件(${Object.entries(emp.types).map(([k,v])=>`${k}:${v}`).join(',')})` : '共感0';
+      const mc = memberCommentsByPost[p.post_id];
+      const mcStr = mc ? `メンバーコメント${mc.length}件: ${mc.slice(0,2).join(' / ').substring(0, 80)}` : '';
+      const chat = memberChatsByPost[p.post_id];
+      const chatStr = chat ? `メンバー議論${chat.length}件: ${chat.slice(0,2).join(' / ').substring(0, 80)}` : '';
+      const ev = autoEvalByPost[p.post_id];
+      const evStr = ev ? `AI評価:合計${ev.total_score}/35(法${ev.legal}危${ev.risk}頻${ev.freq}急${ev.urgency}安${ev.safety}値${ev.value_score}需${ev.needs}) ${(ev.reasoning||'').substring(0,50)}` : '';
+      return `[${i+1}] ${p.department || '不明'}部署 | ${content} | ${empStr}${mcStr ? ' | ' + mcStr : ''}${chatStr ? ' | ' + chatStr : ''}${evStr ? ' | ' + evStr : ''}`;
     }).join('\n');
 
-    const prompt = `あなたは健康経営アナリストです。以下の社員の声を分析し、3〜5個の健康テーマに分類してください。
+    const prompt = `あなたは健康経営アナリストです。以下の社員の声を、共感データ・推進メンバーの議論・AI評価を総合的に考慮して、3〜5個の健康テーマに分類してください。
 
-【社員の声（${posts.length}件）】
+★★★重要★★★
+- 共感数が多い投稿ほど重要度が高い
+- 「ヤバい(yabai)」「専門家に相談すべき(senmon)」の共感が多い投稿は緊急性が高い
+- 「会社が動けば(kaisha)」「一緒に取り組みたい(issho)」の共感が多いテーマは施策効果が高い
+- 推進メンバーのコメントや議論で指摘された課題を優先的にテーマ化
+- AI7軸評価の合計スコアが高い投稿を含むテーマのseverityを高く
+
+【社員の声（${posts.length}件・共感データ・メンバー議論・AI評価付き）】
 ${postSummaries}
 
 【出力形式】JSON配列のみ。他のテキスト不要。
@@ -102,7 +153,7 @@ ${postSummaries}
   {
     "name": "テーマ名（短く）",
     "icon": "絵文字1つ",
-    "description": "このテーマが重要な理由（2〜3文）",
+    "description": "このテーマが重要な理由（共感データやメンバー議論を踏まえて2〜3文）",
     "keywords": ["キーワード1", "キーワード2", "キーワード3"],
     "post_indices": [1, 3, 7],
     "severity": 3.5,

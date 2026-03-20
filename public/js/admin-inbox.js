@@ -75,8 +75,9 @@ function renderInboxCustomAvatars() {
         var sz = parseInt(el.getAttribute('data-avatar-size')) || 36;
         try {
             var html = getAvatarHtml(av, sz);
-            console.log('[Avatar Debug] Rendered:', html.substring(0, 60));
             el.innerHTML = html;
+            var img = el.querySelector('img');
+            if(img) { img.style.borderRadius = '50%'; img.style.display = 'block'; }
         } catch(e) {
             console.error('[Avatar Debug] Render error:', e.message);
             el.innerHTML = '⚠️';

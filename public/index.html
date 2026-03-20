@@ -497,10 +497,15 @@ var AB_SKINS = ['#FDEBD0','#F5CBA7','#D08B5B','#A0522D','#614335','#3E2723'];
 var AB_HAIRS = ['#1A1A1A','#4A3728','#8B4513','#FFD700','#FF6347','#C0C0C0'];
 var AB_BGS = ['#E8F5E9','#E3F2FD','#FFF3E0','#FCE4EC','#F3E5F5','#E0F7FA','#FFF9C4','#EFEBE9'];
 var AB_FACES = [14,16,18];
-var AB_EYE_NAMES = ['ドット','ライン','まんまる','ウインク','閉じ目'];
-var AB_MOUTH_NAMES = ['にっこり','わーい','一文字','ぽかん'];
-var AB_HAIR_NAMES = ['なし','ショート','ミディアム','ロング','スパイキー','ひよこ','チカラ'];
+var AB_EYE_NAMES = ['ドット','ライン','まんまる','ウインク','閉じ目','たれ目','つり目','キラキラ','ジト目'];
+var AB_MOUTH_NAMES = ['にっこり','わーい','一文字','ぽかん','むすっ','にやり','べー'];
+var AB_HAIR_NAMES = ['なし','ショート','ミディアム','ロング','スパイキー','ひよこ','チカラ','ポニテ','ボブ','おだんご'];
 var AB_ACC_NAMES = ['なし','メガネ','帽子','リボン','ヘアバンド'];
+var AB_FACE_SHAPE_NAMES = ['まるがお','おもなが','しかくめ'];
+var AB_EYEBROW_NAMES = ['ナチュラル','太め','キリッと','ハの字','ほそめ','なし'];
+var AB_NOSE_NAMES = ['ちょこん','まるい','たかい','なし'];
+var AB_BEARD_NAMES = ['なし','ちょびひげ','あごひげ','フルひげ'];
+var AB_CHEEK_NAMES = ['なし','うすく','しっかり'];
 var _avatarCache = {};
 
 // ====== カスタムアバター描画 ======
@@ -519,6 +524,11 @@ function renderCustomAvatar(avatarStr, size) {
     var accStr = parts[6] || '0';
     var accessories = accStr.split(',').map(Number);
     var hairType = parseInt(parts[7]) || 0;
+    var eyebrowType = parseInt(parts[8]) || 0;
+    var noseType = parseInt(parts[9]) || 0;
+    var beardType = parseInt(parts[10]) || 0;
+    var cheekType = parseInt(parts[11]) || 0;
+    var faceShapeType = parseInt(parts[12]) || 0;
 
     var canvas = document.createElement('canvas');
     canvas.width = size; canvas.height = size;
@@ -528,22 +538,45 @@ function renderCustomAvatar(avatarStr, size) {
     // 背景円
     ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fillStyle = bgColor; ctx.fill();
 
-    // 顔（肌色円）- 少し下寄せで髪との間隔を確保
+    // 顔（輪郭形状反映）- 少し下寄せで髪との間隔を確保
     var faceR = r * faceSize / 24;
     var faceY = cy + r * 0.15;
-    ctx.beginPath(); ctx.arc(cx, faceY, faceR, 0, Math.PI * 2); ctx.fillStyle = skinColor; ctx.fill();
+    drawFace(ctx, cx, faceY, faceR, faceShapeType, skinColor);
+
+    // 耳
+    ctx.fillStyle = skinColor;
+    ctx.beginPath(); ctx.arc(cx - faceR * 0.95, faceY, faceR * 0.15, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx + faceR * 0.95, faceY, faceR * 0.15, 0, Math.PI * 2); ctx.fill();
+
+    // 髪（後ろ部分 - ロング・ボブなどのサイド）
+    drawHairBack(ctx, cx, faceY, faceR, hairType, hairColor);
 
     // 目 - 顔の中心よりやや上
     var eyeY = faceY + faceR * 0.05;
     var eyeSpacing = faceR * 0.35;
     var eyeSize = faceR * 0.08;
+
+    // 眉毛
+    drawEyebrows(ctx, cx, eyeY, eyeSpacing, faceR, eyebrowType);
+
+    // 目
     drawEyes(ctx, cx, eyeY, eyeSpacing, eyeSize, eyeType, faceR);
 
-    // 口
+    // 鼻
     var mouthY = faceY + faceR * 0.35;
+    var noseY = (eyeY + mouthY) / 2;
+    drawNose(ctx, cx, noseY, faceR, noseType);
+
+    // 口
     drawMouth(ctx, cx, mouthY, faceR, mouthType);
 
-    // 髪
+    // ヒゲ
+    drawBeard(ctx, cx, mouthY, faceR, beardType, hairColor);
+
+    // チーク
+    drawCheeks(ctx, cx, eyeY, eyeSpacing, faceR, cheekType);
+
+    // 髪（前部分）
     drawHair(ctx, cx, faceY, faceR, hairType, hairColor);
 
     // アクセサリー
@@ -555,6 +588,165 @@ function renderCustomAvatar(avatarStr, size) {
     _avatarCache[cacheKey] = dataUrl;
     return dataUrl;
   } catch(e) { console.error('Avatar render error:', e); return null; }
+}
+
+function drawFace(ctx, cx, faceY, faceR, shapeType, skinColor) {
+  ctx.fillStyle = skinColor;
+  switch(shapeType) {
+    case 0: // まるがお - 正円
+      ctx.beginPath(); ctx.arc(cx, faceY, faceR, 0, Math.PI * 2); ctx.fill();
+      break;
+    case 1: // おもなが - 縦長楕円
+      ctx.beginPath(); ctx.ellipse(cx, faceY, faceR * 0.85, faceR * 1.1, 0, 0, Math.PI * 2); ctx.fill();
+      break;
+    case 2: // しかくめ - 角丸四角形
+      var w = faceR * 0.9, h = faceR * 1.0, rad = faceR * 0.3;
+      ctx.beginPath();
+      ctx.moveTo(cx - w + rad, faceY - h);
+      ctx.lineTo(cx + w - rad, faceY - h);
+      ctx.arcTo(cx + w, faceY - h, cx + w, faceY - h + rad, rad);
+      ctx.lineTo(cx + w, faceY + h - rad);
+      ctx.arcTo(cx + w, faceY + h, cx + w - rad, faceY + h, rad);
+      ctx.lineTo(cx - w + rad, faceY + h);
+      ctx.arcTo(cx - w, faceY + h, cx - w, faceY + h - rad, rad);
+      ctx.lineTo(cx - w, faceY - h + rad);
+      ctx.arcTo(cx - w, faceY - h, cx - w + rad, faceY - h, rad);
+      ctx.closePath(); ctx.fill();
+      break;
+    default:
+      ctx.beginPath(); ctx.arc(cx, faceY, faceR, 0, Math.PI * 2); ctx.fill();
+  }
+}
+
+function drawHairBack(ctx, cx, faceY, faceR, type, color) {
+  ctx.fillStyle = color;
+  switch(type) {
+    case 3: // ロング - サイドの髪（後ろレイヤー）
+      ctx.beginPath();
+      ctx.ellipse(cx - faceR * 0.85, faceY + faceR * 0.05, faceR * 0.18, faceR * 0.55, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(cx + faceR * 0.85, faceY + faceR * 0.05, faceR * 0.18, faceR * 0.55, 0, 0, Math.PI * 2);
+      ctx.fill();
+      break;
+    case 7: // ポニテ - 後ろの尻尾
+      ctx.beginPath();
+      ctx.moveTo(cx + faceR * 0.5, faceY - faceR * 0.7);
+      ctx.quadraticCurveTo(cx + faceR * 1.3, faceY - faceR * 0.3, cx + faceR * 1.1, faceY + faceR * 0.5);
+      ctx.quadraticCurveTo(cx + faceR * 1.0, faceY + faceR * 0.6, cx + faceR * 0.7, faceY + faceR * 0.3);
+      ctx.quadraticCurveTo(cx + faceR * 0.9, faceY - faceR * 0.1, cx + faceR * 0.5, faceY - faceR * 0.7);
+      ctx.closePath(); ctx.fill();
+      break;
+    case 8: // ボブ - 顎ラインまでのサイド（後ろ）
+      ctx.beginPath();
+      ctx.ellipse(cx - faceR * 0.8, faceY + faceR * 0.1, faceR * 0.25, faceR * 0.6, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(cx + faceR * 0.8, faceY + faceR * 0.1, faceR * 0.25, faceR * 0.6, 0, 0, Math.PI * 2);
+      ctx.fill();
+      break;
+    case 9: // おだんご - 頭上のお団子（後ろ）
+      var topY = faceY - faceR - faceR * 0.12;
+      ctx.beginPath(); ctx.arc(cx, topY - faceR * 0.35, faceR * 0.3, 0, Math.PI * 2); ctx.fill();
+      break;
+  }
+}
+
+function drawEyebrows(ctx, cx, eyeY, eyeSpacing, faceR, type) {
+  if (type === 5) return; // なし
+  var lx = cx - eyeSpacing, rx = cx + eyeSpacing;
+  var browY = eyeY - faceR * 0.22;
+  var bw = faceR * 0.15;
+  ctx.strokeStyle = '#333'; ctx.lineCap = 'round';
+  switch(type) {
+    case 0: // ナチュラル
+      ctx.lineWidth = faceR * 0.04;
+      ctx.beginPath(); ctx.moveTo(lx - bw, browY + faceR * 0.02); ctx.quadraticCurveTo(lx, browY - faceR * 0.04, lx + bw, browY + faceR * 0.02); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(rx - bw, browY + faceR * 0.02); ctx.quadraticCurveTo(rx, browY - faceR * 0.04, rx + bw, browY + faceR * 0.02); ctx.stroke();
+      break;
+    case 1: // 太め
+      ctx.lineWidth = faceR * 0.08;
+      ctx.beginPath(); ctx.moveTo(lx - bw, browY); ctx.quadraticCurveTo(lx, browY - faceR * 0.05, lx + bw, browY); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(rx - bw, browY); ctx.quadraticCurveTo(rx, browY - faceR * 0.05, rx + bw, browY); ctx.stroke();
+      break;
+    case 2: // キリッと（つり上がり）
+      ctx.lineWidth = faceR * 0.05;
+      ctx.beginPath(); ctx.moveTo(lx + bw, browY + faceR * 0.03); ctx.lineTo(lx - bw, browY - faceR * 0.06); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(rx - bw, browY + faceR * 0.03); ctx.lineTo(rx + bw, browY - faceR * 0.06); ctx.stroke();
+      break;
+    case 3: // ハの字（困り眉）
+      ctx.lineWidth = faceR * 0.04;
+      ctx.beginPath(); ctx.moveTo(lx - bw, browY - faceR * 0.05); ctx.lineTo(lx + bw, browY + faceR * 0.03); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(rx + bw, browY - faceR * 0.05); ctx.lineTo(rx - bw, browY + faceR * 0.03); ctx.stroke();
+      break;
+    case 4: // ほそめ
+      ctx.lineWidth = faceR * 0.025;
+      ctx.beginPath(); ctx.moveTo(lx - bw, browY); ctx.lineTo(lx + bw, browY); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(rx - bw, browY); ctx.lineTo(rx + bw, browY); ctx.stroke();
+      break;
+  }
+}
+
+function drawNose(ctx, cx, noseY, faceR, type) {
+  if (type === 3) return; // なし
+  ctx.fillStyle = '#333'; ctx.strokeStyle = '#333';
+  switch(type) {
+    case 0: // ちょこん
+      ctx.beginPath(); ctx.arc(cx, noseY, faceR * 0.03, 0, Math.PI * 2); ctx.fill();
+      break;
+    case 1: // まるい
+      ctx.lineWidth = faceR * 0.03;
+      ctx.beginPath(); ctx.arc(cx, noseY, faceR * 0.07, 0, Math.PI * 2); ctx.stroke();
+      break;
+    case 2: // たかい
+      ctx.lineWidth = faceR * 0.03; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(cx, noseY - faceR * 0.08); ctx.lineTo(cx, noseY + faceR * 0.08); ctx.stroke();
+      break;
+  }
+}
+
+function drawBeard(ctx, cx, mouthY, faceR, type, color) {
+  if (type === 0) return; // なし
+  ctx.fillStyle = color; ctx.strokeStyle = color;
+  switch(type) {
+    case 1: // ちょびひげ
+      ctx.lineWidth = faceR * 0.04; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(cx - faceR * 0.02, mouthY - faceR * 0.06); ctx.quadraticCurveTo(cx - faceR * 0.12, mouthY - faceR * 0.12, cx - faceR * 0.2, mouthY - faceR * 0.06); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx + faceR * 0.02, mouthY - faceR * 0.06); ctx.quadraticCurveTo(cx + faceR * 0.12, mouthY - faceR * 0.12, cx + faceR * 0.2, mouthY - faceR * 0.06); ctx.stroke();
+      break;
+    case 2: // あごひげ
+      ctx.beginPath(); ctx.arc(cx, mouthY + faceR * 0.25, faceR * 0.2, 0, Math.PI); ctx.fill();
+      break;
+    case 3: // フルひげ
+      ctx.lineWidth = faceR * 0.04; ctx.lineCap = 'round';
+      // ちょびひげ部分
+      ctx.beginPath(); ctx.moveTo(cx - faceR * 0.02, mouthY - faceR * 0.06); ctx.quadraticCurveTo(cx - faceR * 0.15, mouthY - faceR * 0.13, cx - faceR * 0.25, mouthY - faceR * 0.06); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx + faceR * 0.02, mouthY - faceR * 0.06); ctx.quadraticCurveTo(cx + faceR * 0.15, mouthY - faceR * 0.13, cx + faceR * 0.25, mouthY - faceR * 0.06); ctx.stroke();
+      // あご部分
+      ctx.beginPath(); ctx.arc(cx, mouthY + faceR * 0.2, faceR * 0.25, 0, Math.PI); ctx.fill();
+      // サイド
+      ctx.beginPath();
+      ctx.ellipse(cx - faceR * 0.3, mouthY + faceR * 0.1, faceR * 0.08, faceR * 0.18, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(cx + faceR * 0.3, mouthY + faceR * 0.1, faceR * 0.08, faceR * 0.18, 0, 0, Math.PI * 2);
+      ctx.fill();
+      break;
+  }
+}
+
+function drawCheeks(ctx, cx, eyeY, eyeSpacing, faceR, type) {
+  if (type === 0) return; // なし
+  var cheekY = eyeY + faceR * 0.18;
+  var cheekX = eyeSpacing + faceR * 0.12;
+  var cheekR = faceR * 0.13;
+  var alpha = type === 1 ? 0.15 : 0.3;
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = '#FF69B4';
+  ctx.beginPath(); ctx.arc(cx - cheekX, cheekY, cheekR, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(cx + cheekX, cheekY, cheekR, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
 }
 
 function drawEyes(ctx, cx, eyeY, spacing, sz, type, faceR) {
@@ -587,6 +779,41 @@ function drawEyes(ctx, cx, eyeY, spacing, sz, type, faceR) {
       ctx.beginPath(); ctx.arc(lx, eyeY, sz * 2, 0, Math.PI); ctx.stroke();
       ctx.beginPath(); ctx.arc(rx, eyeY, sz * 2, 0, Math.PI); ctx.stroke();
       break;
+    case 5: // たれ目
+      ctx.lineWidth = sz;
+      ctx.beginPath(); ctx.arc(lx, eyeY, sz * 2, 0, Math.PI * 2); ctx.stroke();
+      ctx.beginPath(); ctx.arc(lx, eyeY + sz * 0.3, sz * 0.8, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(lx + sz * 2, eyeY); ctx.quadraticCurveTo(lx + sz * 2.5, eyeY + sz * 1.5, lx + sz * 3, eyeY + sz * 1.2); ctx.stroke();
+      ctx.beginPath(); ctx.arc(rx, eyeY, sz * 2, 0, Math.PI * 2); ctx.stroke();
+      ctx.beginPath(); ctx.arc(rx, eyeY + sz * 0.3, sz * 0.8, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(rx - sz * 2, eyeY); ctx.quadraticCurveTo(rx - sz * 2.5, eyeY + sz * 1.5, rx - sz * 3, eyeY + sz * 1.2); ctx.stroke();
+      break;
+    case 6: // つり目
+      ctx.lineWidth = sz * 1.2; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(lx - sz * 2.5, eyeY + sz * 0.5); ctx.quadraticCurveTo(lx, eyeY - sz * 0.5, lx + sz * 2.5, eyeY - sz * 1); ctx.stroke();
+      ctx.beginPath(); ctx.arc(lx + sz * 0.3, eyeY - sz * 0.2, sz * 0.7, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(rx + sz * 2.5, eyeY + sz * 0.5); ctx.quadraticCurveTo(rx, eyeY - sz * 0.5, rx - sz * 2.5, eyeY - sz * 1); ctx.stroke();
+      ctx.beginPath(); ctx.arc(rx - sz * 0.3, eyeY - sz * 0.2, sz * 0.7, 0, Math.PI * 2); ctx.fill();
+      break;
+    case 7: // キラキラ
+      ctx.beginPath(); ctx.arc(lx, eyeY, sz * 2.5, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.beginPath(); ctx.arc(lx + sz * 0.8, eyeY - sz * 0.8, sz * 0.9, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(lx - sz * 0.5, eyeY + sz * 0.5, sz * 0.5, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#333';
+      ctx.beginPath(); ctx.arc(rx, eyeY, sz * 2.5, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.beginPath(); ctx.arc(rx + sz * 0.8, eyeY - sz * 0.8, sz * 0.9, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(rx - sz * 0.5, eyeY + sz * 0.5, sz * 0.5, 0, Math.PI * 2); ctx.fill();
+      break;
+    case 8: // ジト目
+      ctx.lineWidth = sz;
+      // 上半分を隠した半目
+      ctx.beginPath(); ctx.arc(lx, eyeY, sz * 2, 0, Math.PI); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(lx - sz * 2.2, eyeY); ctx.lineTo(lx + sz * 2.2, eyeY); ctx.stroke();
+      ctx.beginPath(); ctx.arc(rx, eyeY, sz * 2, 0, Math.PI); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(rx - sz * 2.2, eyeY); ctx.lineTo(rx + sz * 2.2, eyeY); ctx.stroke();
+      break;
   }
 }
 
@@ -608,6 +835,18 @@ function drawMouth(ctx, cx, my, faceR, type) {
     case 3: // ぽかん
       ctx.beginPath(); ctx.arc(cx, my, mw * 0.35, 0, Math.PI * 2); ctx.stroke();
       break;
+    case 4: // むすっ
+      ctx.beginPath(); ctx.arc(cx, my + mw * 0.4, mw, 1.1 * Math.PI, 1.9 * Math.PI); ctx.stroke();
+      break;
+    case 5: // にやり
+      ctx.beginPath(); ctx.moveTo(cx - mw * 0.7, my + mw * 0.1); ctx.quadraticCurveTo(cx + mw * 0.2, my + mw * 0.3, cx + mw * 0.7, my - mw * 0.3); ctx.stroke();
+      break;
+    case 6: // べー
+      ctx.beginPath(); ctx.arc(cx, my - mw * 0.2, mw, 0.1 * Math.PI, 0.9 * Math.PI); ctx.stroke();
+      // 舌
+      ctx.fillStyle = '#FF6B81';
+      ctx.beginPath(); ctx.ellipse(cx, my + mw * 0.2, mw * 0.25, mw * 0.35, 0, 0, Math.PI); ctx.fill();
+      break;
   }
 }
 
@@ -624,13 +863,6 @@ function drawHair(ctx, cx, faceY, faceR, type, color) {
       break;
     case 3: // ロング
       ctx.beginPath(); ctx.arc(cx, topY + faceR * 0.12, faceR * 0.85, Math.PI * 0.7, Math.PI * 2.3); ctx.fill();
-      // サイドの髪
-      ctx.beginPath();
-      ctx.ellipse(cx - faceR * 0.85, faceY + faceR * 0.05, faceR * 0.18, faceR * 0.55, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.ellipse(cx + faceR * 0.85, faceY + faceR * 0.05, faceR * 0.18, faceR * 0.55, 0, 0, Math.PI * 2);
-      ctx.fill();
       break;
     case 4: // スパイキー
       var spikes = 7;
@@ -686,6 +918,17 @@ function drawHair(ctx, cx, faceY, faceR, type, color) {
       ctx.rect(cx + faceR * 0.66, topY + faceR * 0.15, faceR * 0.12, faceR * 0.5);
       ctx.fill();
       ctx.globalAlpha = 1.0;
+      break;
+    case 7: // ポニテ - ショートベース + 後ろの尻尾はdrawHairBackで描画済み
+      ctx.beginPath(); ctx.arc(cx, topY + faceR * 0.1, faceR * 0.65, Math.PI, 2 * Math.PI); ctx.fill();
+      // 結び目
+      ctx.beginPath(); ctx.arc(cx + faceR * 0.45, topY + faceR * 0.05, faceR * 0.1, 0, Math.PI * 2); ctx.fill();
+      break;
+    case 8: // ボブ - 丸いトップ（サイドはdrawHairBackで描画済み）
+      ctx.beginPath(); ctx.arc(cx, topY + faceR * 0.12, faceR * 0.8, Math.PI * 0.8, Math.PI * 2.2); ctx.fill();
+      break;
+    case 9: // おだんご - ミディアムベース + お団子はdrawHairBackで描画済み
+      ctx.beginPath(); ctx.arc(cx, topY + faceR * 0.12, faceR * 0.8, Math.PI * 0.85, Math.PI * 2.15); ctx.fill();
       break;
   }
 }
@@ -743,12 +986,12 @@ function getAvatarHtml(avatarStr, size) {
 }
 
 // ====== アバタービルダー状態 ======
-var abState = { skin: 2, hair: 0, hairColor: 0, eye: 0, mouth: 0, accessories: [0], bg: 0, faceSize: 1 };
+var abState = { skin: 2, hair: 0, hairColor: 0, eye: 0, mouth: 0, accessories: [0], bg: 0, faceSize: 1, eyebrow: 0, nose: 0, beard: 0, cheek: 0, faceShape: 0 };
 
 function abBuildString() {
   var accs = abState.accessories.filter(function(a) { return a > 0; });
   if (accs.length === 0) accs = [0];
-  return 'custom:' + AB_SKINS[abState.skin] + '|' + AB_HAIRS[abState.hairColor] + '|' + AB_BGS[abState.bg] + '|' + AB_FACES[abState.faceSize] + '|' + abState.eye + '|' + abState.mouth + '|' + accs.join(',') + '|' + abState.hair;
+  return 'custom:' + AB_SKINS[abState.skin] + '|' + AB_HAIRS[abState.hairColor] + '|' + AB_BGS[abState.bg] + '|' + AB_FACES[abState.faceSize] + '|' + abState.eye + '|' + abState.mouth + '|' + accs.join(',') + '|' + abState.hair + '|' + abState.eyebrow + '|' + abState.nose + '|' + abState.beard + '|' + abState.cheek + '|' + abState.faceShape;
 }
 
 function abParseString(str) {
@@ -764,6 +1007,11 @@ function abParseString(str) {
     var accStr = parts[6] || '0';
     abState.accessories = accStr.split(',').map(Number);
     abState.hair = parseInt(parts[7]) || 0;
+    abState.eyebrow = parseInt(parts[8]) || 0;
+    abState.nose = parseInt(parts[9]) || 0;
+    abState.beard = parseInt(parts[10]) || 0;
+    abState.cheek = parseInt(parts[11]) || 0;
+    abState.faceShape = parseInt(parts[12]) || 0;
   } catch(e) {}
 }
 
@@ -822,6 +1070,20 @@ function abRenderBuilderUI(containerId, previewCanvasId) {
   });
   html += '</div></div>';
 
+  // 輪郭
+  html += '<div class="avatar-builder-row"><label>🫥 輪郭</label><div class="avatar-builder-options">';
+  AB_FACE_SHAPE_NAMES.forEach(function(name, i) {
+    html += '<div class="ab-icon-btn' + (abState.faceShape === i ? ' selected' : '') + '" onclick="abSelect(\'faceShape\',' + i + ',\'' + previewCanvasId + '\')">' + name + '</div>';
+  });
+  html += '</div></div>';
+
+  // 眉毛
+  html += '<div class="avatar-builder-row"><label>🔲 眉毛</label><div class="avatar-builder-options">';
+  AB_EYEBROW_NAMES.forEach(function(name, i) {
+    html += '<div class="ab-icon-btn' + (abState.eyebrow === i ? ' selected' : '') + '" onclick="abSelect(\'eyebrow\',' + i + ',\'' + previewCanvasId + '\')">' + name + '</div>';
+  });
+  html += '</div></div>';
+
   // 目
   html += '<div class="avatar-builder-row"><label>👀 目</label><div class="avatar-builder-options">';
   AB_EYE_NAMES.forEach(function(name, i) {
@@ -829,10 +1091,31 @@ function abRenderBuilderUI(containerId, previewCanvasId) {
   });
   html += '</div></div>';
 
+  // 鼻
+  html += '<div class="avatar-builder-row"><label>👃 鼻</label><div class="avatar-builder-options">';
+  AB_NOSE_NAMES.forEach(function(name, i) {
+    html += '<div class="ab-icon-btn' + (abState.nose === i ? ' selected' : '') + '" onclick="abSelect(\'nose\',' + i + ',\'' + previewCanvasId + '\')">' + name + '</div>';
+  });
+  html += '</div></div>';
+
   // 口
   html += '<div class="avatar-builder-row"><label>👄 口</label><div class="avatar-builder-options">';
   AB_MOUTH_NAMES.forEach(function(name, i) {
     html += '<div class="ab-icon-btn' + (abState.mouth === i ? ' selected' : '') + '" onclick="abSelect(\'mouth\',' + i + ',\'' + previewCanvasId + '\')">' + name + '</div>';
+  });
+  html += '</div></div>';
+
+  // ヒゲ
+  html += '<div class="avatar-builder-row"><label>🧔 ヒゲ</label><div class="avatar-builder-options">';
+  AB_BEARD_NAMES.forEach(function(name, i) {
+    html += '<div class="ab-icon-btn' + (abState.beard === i ? ' selected' : '') + '" onclick="abSelect(\'beard\',' + i + ',\'' + previewCanvasId + '\')">' + name + '</div>';
+  });
+  html += '</div></div>';
+
+  // ほっぺた
+  html += '<div class="avatar-builder-row"><label>🩷 ほっぺた</label><div class="avatar-builder-options">';
+  AB_CHEEK_NAMES.forEach(function(name, i) {
+    html += '<div class="ab-icon-btn' + (abState.cheek === i ? ' selected' : '') + '" onclick="abSelect(\'cheek\',' + i + ',\'' + previewCanvasId + '\')">' + name + '</div>';
   });
   html += '</div></div>';
 
@@ -954,7 +1237,7 @@ function initAvatarGrid() {
     return '<div class="avatar-option' + (a === selectedAvatar ? ' selected' : '') + '" onclick="selectAvatar(this, \'' + a + '\')">' + a + '</div>';
   }).join('');
   // Init custom builder for registration too
-  abState = { skin: 2, hair: 0, hairColor: 0, eye: 0, mouth: 0, accessories: [0], bg: 0, faceSize: 1 };
+  abState = { skin: 2, hair: 0, hairColor: 0, eye: 0, mouth: 0, accessories: [0], bg: 0, faceSize: 1, eyebrow: 0, nose: 0, beard: 0, cheek: 0, faceShape: 0 };
   abRenderBuilderUI('reg-builder-container', 'reg-preview-canvas');
 }
 
@@ -998,7 +1281,7 @@ function openAvatarSheet() {
   if (currentUser.avatar && currentUser.avatar.startsWith('custom:')) {
     abParseString(currentUser.avatar);
   } else {
-    abState = { skin: 2, hair: 0, hairColor: 0, eye: 0, mouth: 0, accessories: [0], bg: 0, faceSize: 1 };
+    abState = { skin: 2, hair: 0, hairColor: 0, eye: 0, mouth: 0, accessories: [0], bg: 0, faceSize: 1, eyebrow: 0, nose: 0, beard: 0, cheek: 0, faceShape: 0 };
   }
   var overlay = document.getElementById('avatar-change-overlay');
   var sheet = document.getElementById('avatar-change-sheet');

@@ -4,7 +4,7 @@ var AB_BGS = ['#E8F5E9','#E3F2FD','#FFF3E0','#FCE4EC','#F3E5F5','#E0F7FA','#FFF9
 var AB_FACES = [14,16,18];
 var AB_EYE_NAMES = ['ドット','ライン','まんまる','ウインク','閉じ目','たれ目','つり目','キラキラ','ジト目'];
 var AB_MOUTH_NAMES = ['にっこり','わーい','一文字','ぽかん','むすっ','にやり','べー'];
-var AB_HAIR_NAMES = ['なし','ショート','ミディアム','ロング','スパイキー','ひよこ','チカラ','ポニテ','ボブ','おだんご','ツインテ','ウェーブ','ワンレン','ハーフアップ','マッシュ','センター分け','外ハネ','ベリーショート','ゆるふわ','姫カット','オールバック'];
+var AB_HAIR_NAMES = ['なし','ショート','ミディアム','ロング','スパイキー','ひよこ','チカラ','ポニテ','ボブ','おだんご','ツインテ','ウェーブ','ワンレン','ハーフアップ','マッシュ','センター分け','外ハネ','ベリーショート','ゆるふわ','姫カット','オールバック','クレオ'];
 var AB_ACC_NAMES = ['なし','丸メガネ','四角メガネ','アンダーリム','サングラス','帽子','リボン','ヘアバンド'];
 var AB_FACE_SHAPE_NAMES = ['まるがお','おもなが','しかくめ','たまご','ホームベース','おにぎり','ほそおも','えら張り'];
 var AB_EYEBROW_NAMES = ['ナチュラル','太め','キリッと','ハの字','ほそめ','なし'];
@@ -829,6 +829,34 @@ function drawHairBack(ctx, cx, faceY, faceR, type, color) {
       ctx.restore();
       break;
     case 20: // オールバック - 後ろ髪なし（短い）
+      break;
+    case 21: // クレオ — クレオパトラ風の後ろ髪（肩まで直線的）
+      ctx.save();
+      [-1, 1].forEach(function(s) {
+        var cleoBackGrad = ctx.createLinearGradient(cx + s * faceR * 0.5, faceY - faceR * 0.3, cx + s * faceR * 0.8, faceY + faceR * 0.9);
+        cleoBackGrad.addColorStop(0, darker); cleoBackGrad.addColorStop(0.4, color); cleoBackGrad.addColorStop(0.7, lighter); cleoBackGrad.addColorStop(1, darker);
+        ctx.fillStyle = cleoBackGrad;
+        ctx.beginPath();
+        ctx.moveTo(cx + s * faceR * 0.7, faceY - faceR * 0.5);
+        ctx.bezierCurveTo(cx + s * faceR * 0.92, faceY - faceR * 0.2, cx + s * faceR * 0.9, faceY + faceR * 0.3, cx + s * faceR * 0.85, faceY + faceR * 0.7);
+        // 毛先は直線的にスパッと切り揃え
+        ctx.lineTo(cx + s * faceR * 0.55, faceY + faceR * 0.72);
+        ctx.bezierCurveTo(cx + s * faceR * 0.58, faceY + faceR * 0.3, cx + s * faceR * 0.6, faceY - faceR * 0.1, cx + s * faceR * 0.7, faceY - faceR * 0.5);
+        ctx.closePath(); ctx.fill();
+        // ストランドライン
+        if (detail) {
+          ctx.strokeStyle = darker; ctx.globalAlpha = 0.12; ctx.lineWidth = Math.max(0.5, faceR * 0.01);
+          for (var ci = 0; ci < 4; ci++) {
+            var coff = (ci - 1.5) * faceR * 0.03;
+            ctx.beginPath();
+            ctx.moveTo(cx + s * faceR * 0.72 + coff, faceY - faceR * 0.4);
+            ctx.bezierCurveTo(cx + s * faceR * 0.88 + coff, faceY, cx + s * faceR * 0.86 + coff, faceY + faceR * 0.4, cx + s * faceR * 0.7 + coff, faceY + faceR * 0.7);
+            ctx.stroke();
+          }
+          ctx.globalAlpha = 1;
+        }
+      });
+      ctx.restore();
       break;
   }
 }
@@ -2676,6 +2704,79 @@ function drawHair(ctx, cx, faceY, faceR, type, color) {
         });
         ctx.globalAlpha = 1.0;
       }
+      break;
+    case 21: // クレオ — クレオパトラ風（ぱっつん前髪＋直線的サイド＋肩で切り揃え）
+      // ベースの頭頂部（滑らかで広い）
+      ctx.fillStyle = hairGrad(topY - faceR * 0.3, topY + faceR * 0.5);
+      ctx.beginPath(); ctx.arc(cx, topY + faceR * 0.1, faceR * 0.85, Math.PI * 0.75, Math.PI * 2.25); ctx.fill();
+      // サイドの直線的な髪（クレオパトラの特徴：ストレートで肩まで）
+      [-1, 1].forEach(function(s) {
+        var cleoGrad = ctx.createLinearGradient(cx + s * faceR * 0.5, topY, cx + s * faceR * 0.85, faceY + faceR * 0.7);
+        cleoGrad.addColorStop(0, darker); cleoGrad.addColorStop(0.3, color); cleoGrad.addColorStop(0.6, lighter); cleoGrad.addColorStop(1, darker);
+        ctx.fillStyle = cleoGrad;
+        ctx.beginPath();
+        ctx.moveTo(cx + s * faceR * 0.7, topY + faceR * 0.1);
+        // 外側ライン — 直線的に下へ、やや外に広がる
+        ctx.bezierCurveTo(cx + s * faceR * 0.88, topY + faceR * 0.3, cx + s * faceR * 0.9, faceY + faceR * 0.1, cx + s * faceR * 0.85, faceY + faceR * 0.6);
+        // 毛先のカットライン — まっすぐスパッと（クレオパトラの特徴）
+        ctx.lineTo(cx + s * faceR * 0.82, faceY + faceR * 0.7);
+        ctx.lineTo(cx + s * faceR * 0.52, faceY + faceR * 0.7);
+        // 内側ライン — 顔に沿って上へ
+        ctx.bezierCurveTo(cx + s * faceR * 0.55, faceY + faceR * 0.3, cx + s * faceR * 0.58, topY + faceR * 0.5, cx + s * faceR * 0.62, topY + faceR * 0.1);
+        ctx.closePath(); ctx.fill();
+      });
+      // ぱっつん前髪（クレオパトラの象徴 — 眉上で水平に切り揃え）
+      ctx.fillStyle = hairGrad(topY - faceR * 0.15, topY + faceR * 0.42);
+      ctx.beginPath();
+      // 頭頂部のカーブ
+      ctx.moveTo(cx - faceR * 0.68, topY + faceR * 0.08);
+      ctx.bezierCurveTo(cx - faceR * 0.55, topY - faceR * 0.2, cx + faceR * 0.55, topY - faceR * 0.2, cx + faceR * 0.68, topY + faceR * 0.08);
+      // 右側から前髪の下端を水平に
+      ctx.lineTo(cx + faceR * 0.65, topY + faceR * 0.35);
+      // 前髪の下端ライン（ほぼ水平、わずかにアーチ）
+      ctx.lineTo(cx + faceR * 0.55, topY + faceR * 0.38);
+      ctx.lineTo(cx + faceR * 0.35, topY + faceR * 0.39);
+      ctx.lineTo(cx + faceR * 0.15, topY + faceR * 0.4);
+      ctx.lineTo(cx - faceR * 0.15, topY + faceR * 0.4);
+      ctx.lineTo(cx - faceR * 0.35, topY + faceR * 0.39);
+      ctx.lineTo(cx - faceR * 0.55, topY + faceR * 0.38);
+      ctx.lineTo(cx - faceR * 0.65, topY + faceR * 0.35);
+      ctx.closePath(); ctx.fill();
+      // 前髪の下端の影ライン（切り揃え感を強調）
+      if (detail) {
+        ctx.save();
+        ctx.strokeStyle = _skinDarker(color, 45);
+        ctx.lineWidth = Math.max(0.8, faceR * 0.02);
+        ctx.globalAlpha = 0.35;
+        ctx.lineCap = 'butt';
+        ctx.beginPath();
+        ctx.moveTo(cx - faceR * 0.62, topY + faceR * 0.37);
+        ctx.lineTo(cx - faceR * 0.35, topY + faceR * 0.39);
+        ctx.lineTo(cx, topY + faceR * 0.4);
+        ctx.lineTo(cx + faceR * 0.35, topY + faceR * 0.39);
+        ctx.lineTo(cx + faceR * 0.62, topY + faceR * 0.37);
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+        ctx.restore();
+      }
+      // シャイン（頭頂部の天使の輪）
+      _drawHairShine(ctx, cx, topY, faceR, color, [
+        [cx - faceR * 0.45, topY + faceR * 0.05, cx - faceR * 0.15, topY - faceR * 0.22, cx + faceR * 0.15, topY - faceR * 0.18],
+        [cx - faceR * 0.05, topY + faceR * 0.08, cx + faceR * 0.2, topY - faceR * 0.2, cx + faceR * 0.5, topY - faceR * 0.08]
+      ]);
+      // ストランド（縦方向の直線的な流れ）
+      _drawStrands([
+        [cx - faceR * 0.55, topY + faceR * 0.1, cx - faceR * 0.52, topY + faceR * 0.25, cx - faceR * 0.5, topY + faceR * 0.38],
+        [cx - faceR * 0.38, topY + faceR * 0.08, cx - faceR * 0.36, topY + faceR * 0.22, cx - faceR * 0.35, topY + faceR * 0.38],
+        [cx - faceR * 0.18, topY + faceR * 0.08, cx - faceR * 0.17, topY + faceR * 0.22, cx - faceR * 0.16, topY + faceR * 0.39],
+        [cx + faceR * 0.02, topY + faceR * 0.08, cx + faceR * 0.02, topY + faceR * 0.22, cx + faceR * 0.02, topY + faceR * 0.4],
+        [cx + faceR * 0.2, topY + faceR * 0.08, cx + faceR * 0.2, topY + faceR * 0.22, cx + faceR * 0.2, topY + faceR * 0.39],
+        [cx + faceR * 0.38, topY + faceR * 0.08, cx + faceR * 0.39, topY + faceR * 0.22, cx + faceR * 0.39, topY + faceR * 0.38],
+        [cx + faceR * 0.55, topY + faceR * 0.1, cx + faceR * 0.55, topY + faceR * 0.25, cx + faceR * 0.55, topY + faceR * 0.37],
+        // 頭頂部→左右への放射状
+        [cx - faceR * 0.1, topY - faceR * 0.1, cx - faceR * 0.3, topY - faceR * 0.05, cx - faceR * 0.5, topY + faceR * 0.05],
+        [cx + faceR * 0.1, topY - faceR * 0.1, cx + faceR * 0.3, topY - faceR * 0.05, cx + faceR * 0.5, topY + faceR * 0.05]
+      ]);
       break;
   }
   ctx.restore();

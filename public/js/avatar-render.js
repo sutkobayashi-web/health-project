@@ -56,6 +56,7 @@ function renderCustomAvatar(avatarStr, size) {
     var earType = parseInt(parts[26]) || 0;
     var posEarVal = parseInt(parts[27]) || 0;
     var sizeEarVal = parseInt(parts[28]) || 0;
+    var earSpacingVal = parseInt(parts[29]) || 0;
 
     var canvas = document.createElement('canvas');
     canvas.width = size; canvas.height = size;
@@ -68,7 +69,7 @@ function renderCustomAvatar(avatarStr, size) {
     // 顔（輪郭形状反映）- 少し下寄せで髪との間隔を確保
     var faceR = r * faceSize / 24 * (1 + sizeFaceVal * 0.06);
     var faceY = cy + r * 0.08;
-    drawFace(ctx, cx, faceY, faceR, faceShapeType, skinColor, earType, posEarVal, sizeEarVal);
+    drawFace(ctx, cx, faceY, faceR, faceShapeType, skinColor, earType, posEarVal, sizeEarVal, earSpacingVal);
 
     // 髪のオフセット
     var hairYOff = posHairVal * faceR * 0.08;
@@ -234,10 +235,11 @@ function _facePath(ctx, cx, faceY, faceR, shapeType) {
       ctx.beginPath(); ctx.arc(cx, faceY, faceR, 0, Math.PI * 2);
   }
 }
-function drawFace(ctx, cx, faceY, faceR, shapeType, skinColor, earType, posEarVal, sizeEarVal) {
+function drawFace(ctx, cx, faceY, faceR, shapeType, skinColor, earType, posEarVal, sizeEarVal, earSpacingVal) {
   earType = earType || 0;
   posEarVal = posEarVal || 0;
   sizeEarVal = sizeEarVal || 0;
+  earSpacingVal = earSpacingVal || 0;
   var lighter = _skinLighter(skinColor, 25);
   var darker = _skinDarker(skinColor, 30);
   var darkest = _skinDarker(skinColor, 50);
@@ -289,7 +291,7 @@ function drawFace(ctx, cx, faceY, faceR, shapeType, skinColor, earType, posEarVa
   var earSizeScale = [1.0, 0.7, 1.35, 1.1, 1.15, 1.25][earType] || 1.0;
   earSizeScale *= (1 + sizeEarVal * 0.12);
   var earR = faceR * 0.15 * earSizeScale;
-  var earX = faceR * 0.95;
+  var earX = faceR * 0.95 + earSpacingVal * faceR * 0.06;
   var earYOff = posEarVal * faceR * 0.05;
   var earCy = faceY + earYOff;
   ctx.save();

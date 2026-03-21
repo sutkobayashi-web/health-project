@@ -87,9 +87,48 @@ router.post('/create-theme', async (req, res) => {
       });
     }
 
+    // 関連投稿の原文・共感データを収集
+    let postContext = '';
+    if (postIds && postIds.length > 0) {
+      const postDetails = postIds.map(pid => {
+        const p = db.prepare('SELECT content, nickname, category FROM posts WHERE post_id = ?').get(pid);
+        if (!p) return null;
+        let empathy = '';
+        try {
+          const responses = db.prepare('SELECT empathy_type, answer1, answer2, answer3, free_comment FROM empathy_responses WHERE post_id = ?').all(pid);
+          if (responses.length > 0) {
+            const typeCounts = {};
+            const comments = [];
+            responses.forEach(r => {
+              typeCounts[r.empathy_type] = (typeCounts[r.empathy_type] || 0) + 1;
+              if (r.free_comment) comments.push(r.free_comment);
+            });
+            empathy = `共感${responses.length}件(${Object.entries(typeCounts).map(([k,v]) => k + ':' + v).join(', ')})`;
+            if (comments.length > 0) empathy += ` コメント:${comments.slice(0, 5).join('／')}`;
+          }
+        } catch (e) {}
+        return `- [${p.nickname}] ${p.content.substring(0, 100)}${empathy ? ' → ' + empathy : ''}`;
+      }).filter(Boolean);
+      if (postDetails.length > 0) postContext = `\n\n【社員の生の声（関連投稿）】\n${postDetails.join('\n')}`;
+    }
+
+    // 既存プラン一覧（重複回避）
+    let existingPlans = '';
+    try {
+      const existing = db.prepare('SELECT title FROM action_plans WHERE status != ?').all('done');
+      if (existing.length > 0) {
+        existingPlans = `\n\n【既存プラン（これらと重複しない独自の切り口で作成すること）】\n${existing.map(p => '- ' + p.title).join('\n')}`;
+      }
+    } catch (e) {}
+
     // AI企画書生成
     const sysPrompt = `あなたはプロの健康経営コンサルタントです。以下のデータに基づき、統合型の健康アクションプラン企画書を作成してください。Markdown形式。
-・プラン名: ${planTitle}\n・テーマ: ${theme}\n・背景: ${background}\n・スコア: ${JSON.stringify(scores)}
+・プラン名: ${planTitle}\n・テーマ: ${theme}\n・背景: ${background}\n・スコア: ${JSON.stringify(scores)}${postContext}${existingPlans}
+
+【重要な指示】
+- 社員の生の声がある場合、その具体的な状況・悩みに即した施策にすること（汎用的な内容にしない）
+- 既存プランと切り口・アプローチが重複しないようにすること
+
 構成: 1.現状分析 2.経営的意義 3.アクションプラン詳細 4.実行ロードマップ 5.KPI・効果測定指標`;
     let proposalText = await callGroqApi(sysPrompt, '企画書を作成してください');
     if (!proposalText) proposalText = 'AI生成に失敗しました';
@@ -378,9 +417,17 @@ router.post('/save-ai-log', (req, res) => {
 router.post('/brainstorm', async (req, res) => {
   try {
     const { theme, background } = req.body;
+    const db = getDb();
+    let existingInfo = '';
+    try {
+      const existing = db.prepare('SELECT title FROM action_plans WHERE status != ?').all('done');
+      if (existing.length > 0) {
+        existingInfo = `\n\n【既存プラン（これらと異なる切り口で提案すること）】\n${existing.map(p => '- ' + p.title).join('\n')}`;
+      }
+    } catch (e) {}
     const sysPrompt = `あなたは日本トップクラスの健康経営コンサルタントです。クライアントは専門知識のない事務職中心です。
 以下の【課題テーマ】と【背景】をもとに、3つの異なるアプローチ（スモールスタート案、ゲーミフィケーション案、根本解決案）で具体的な「健康施策アイデア」を提案してください。
-【課題テーマ】: "${theme}"\n【背景】: "${background}"`;
+【課題テーマ】: "${theme}"\n【背景】: "${background}"${existingInfo}`;
     const result = await callGroqApi(sysPrompt, 'この課題に対する施策アイデアを3パターン提案してください。');
     res.json({ success: true, idea: result || 'アイデア生成に失敗しました' });
   } catch (e) { res.json({ success: false, msg: 'アイデア生成エラー: ' + e.message }); }

@@ -51,7 +51,7 @@ router.get('/public', (req, res) => {
         content: (p.content || '').replace(/^【写真】/, ''),
         analysis: parsed.text,
         nickname: p.nickname || '匿名', avatar: p.avatar || '🙂',
-        imageUrl: p.image_url || '', authorRank: rank,
+        imageUrl: p.image_url || '', category: p.category || '相談', authorRank: rank,
         likeCount: likesArr.length,
         isLiked: likesArr.includes(viewerUid),
         authorUid: p.user_id,

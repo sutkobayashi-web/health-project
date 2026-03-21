@@ -3889,7 +3889,7 @@ var _postCache = {};
 function renderPost(p) {
   _postCache[p.row] = p;
   var headerClass = "header-consult"; var icon = "far fa-comment-dots"; var catName = "相談・提案";
-  if (p.content.includes("【写真】") || (p.analysis && p.analysis.includes("栄養"))) { headerClass = "header-food"; icon = "fas fa-utensils"; catName = "食事チェック"; }
+  if (p.category === '🍱 食事・栄養' || p.imageUrl) { headerClass = "header-food"; icon = "fas fa-utensils"; catName = "食事チェック"; }
   var likeId = 'like-' + p.row;
   var liked = p.isLiked;
   var isOwn = currentUser && p.authorUid === currentUser.uid;
@@ -3979,7 +3979,7 @@ function openEmpathyModal(row) {
 
   var sheet = document.getElementById('post-detail-sheet');
   var detailAvHtml = getAvatarHtml(p.avatar, 40);
-  var isFood = (p.content && p.content.includes('【写真】')) || (p.analysis && p.analysis.includes('栄養'));
+  var isFood = p.category === '🍱 食事・栄養' || !!p.imageUrl;
 
   // ヘッダー + 投稿プレビュー
   var html = '<div style="padding:12px 18px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #eee;flex-shrink:0;">' +
@@ -4102,7 +4102,7 @@ function selectEmpathyAnswer(el, qIdx, choiceIdx, row) {
   });
   el.style.borderColor = '#667eea'; el.style.background = '#667eea'; el.style.color = 'white';
   // 全問回答チェック
-  var cat = (_postCache[row] && _postCache[row].content && _postCache[row].content.includes('【写真】')) ? 'food' : 'consult';
+  var cat = (_postCache[row] && (_postCache[row].category === '🍱 食事・栄養' || _postCache[row].imageUrl)) ? 'food' : 'consult';
   var totalQ = _empathyQuestions[cat][_selectedEmpathyType] ? _empathyQuestions[cat][_selectedEmpathyType].length : 3;
   var answered = Object.keys(_empathySelectedAnswers).length;
   var btn = document.getElementById('empathy-submit-btn');

@@ -12,6 +12,39 @@ function hashPasswordSHA256(raw) {
   return crypto.createHash('sha256').update(raw.toString()).digest('hex');
 }
 
+// bcryptハッシュ生成
+function hashPasswordBcrypt(raw) {
+  return bcrypt.hashSync(raw.toString(), 10);
+}
+
+// パスワード検証（bcrypt / SHA256 / 平文に対応、一致したらbcryptに自動移行）
+function verifyAndMigratePassword(db, table, idColumn, id, inputPassword, storedHash) {
+  if (!storedHash || storedHash.length === 0) return true; // ハッシュ未設定はスキップ
+
+  // bcryptハッシュの場合（$2a$ or $2b$ で始まる）
+  if (storedHash.startsWith('$2')) {
+    return bcrypt.compareSync(inputPassword, storedHash);
+  }
+
+  // SHA256ハッシュの場合
+  const sha = hashPasswordSHA256(inputPassword);
+  if (storedHash === sha) {
+    // 自動移行: bcryptに書き換え
+    const newHash = hashPasswordBcrypt(inputPassword);
+    db.prepare(`UPDATE ${table} SET password_hash = ? WHERE ${idColumn} = ?`).run(newHash, id);
+    return true;
+  }
+
+  // 平文の場合（レガシー互換）
+  if (storedHash === inputPassword) {
+    const newHash = hashPasswordBcrypt(inputPassword);
+    db.prepare(`UPDATE ${table} SET password_hash = ? WHERE ${idColumn} = ?`).run(newHash, id);
+    return true;
+  }
+
+  return false;
+}
+
 // ユーザー登録
 router.post('/register', (req, res) => {
   try {
@@ -24,7 +57,7 @@ router.post('/register', (req, res) => {
     if (existing) return res.json({ success: false, msg: '使用済みニックネーム' });
 
     const uid = uuidv4();
-    const passwordHash = hashPasswordSHA256(password.trim());
+    const passwordHash = hashPasswordBcrypt(password.trim());
     db.prepare(`INSERT INTO users (id, nickname, password_hash, avatar, inviter_id, real_name, department, birth_date)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`).run(uid, nickname.trim(), passwordHash, avatar || '😀', inviterId || '', realName || '', department || '', birthDate || '');
 
@@ -44,8 +77,7 @@ router.post('/login', (req, res) => {
     const user = db.prepare('SELECT * FROM users WHERE nickname = ?').get(nickname.trim());
     if (!user) return res.json({ success: false, msg: '認証失敗' });
 
-    const ph = hashPasswordSHA256(password.trim());
-    if (user.password_hash !== ph && user.password_hash !== password.trim()) {
+    if (!verifyAndMigratePassword(db, 'users', 'id', user.id, password.trim(), user.password_hash)) {
       return res.json({ success: false, msg: '認証失敗' });
     }
     const inviteCount = db.prepare('SELECT COUNT(*) as cnt FROM users WHERE inviter_id = ?').get(user.id).cnt;
@@ -64,7 +96,7 @@ router.post('/admin-register', (req, res) => {
     const db = getDb();
     const existing = db.prepare('SELECT id FROM core_members WHERE email = ?').get(email.trim().toLowerCase());
     if (existing) return res.json({ success: false, msg: '既に登録されているメールアドレスです' });
-    const passwordHash = hashPasswordSHA256(password.trim());
+    const passwordHash = hashPasswordBcrypt(password.trim());
     const role = isUniversity ? 'observer' : 'member';
     db.prepare(`INSERT INTO core_members (name, dept, email, password_hash, avatar, role, is_exec, is_university, university_org, status)
       VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?, 'pending')`).run(name.trim(), dept || '', email.trim().toLowerCase(), passwordHash, '🛡️', role, isUniversity ? 1 : 0, universityOrg || '');
@@ -95,12 +127,9 @@ router.post('/admin-login', (req, res) => {
     const member = db.prepare('SELECT * FROM core_members WHERE email = ?').get(email.trim().toLowerCase());
     if (!member) return res.json({ success: false, msg: '認証失敗' });
 
-    // パスワード検証（ハッシュ or 平文 or 空の場合はスキップ）
-    if (member.password_hash && member.password_hash.length > 0) {
-      const ph = hashPasswordSHA256(password.trim());
-      if (member.password_hash !== ph && member.password_hash !== password.trim()) {
-        return res.json({ success: false, msg: '認証失敗' });
-      }
+    // パスワード検証（bcrypt/SHA256/平文に対応、自動移行）
+    if (!verifyAndMigratePassword(db, 'core_members', 'id', member.id, password.trim(), member.password_hash)) {
+      return res.json({ success: false, msg: '認証失敗' });
     }
     // 承認チェック
     if (member.status === 'pending') {
@@ -133,7 +162,7 @@ router.post('/admin-reset-password', (req, res) => {
     const db = getDb();
     const member = db.prepare('SELECT * FROM core_members WHERE email = ? AND name = ?').get(email.trim().toLowerCase(), name.trim());
     if (!member) return res.json({ success: false, msg: '入力情報が一致するアカウントが見つかりません' });
-    const newHash = hashPasswordSHA256(newPassword.trim());
+    const newHash = hashPasswordBcrypt(newPassword.trim());
     db.prepare('UPDATE core_members SET password_hash = ? WHERE id = ?').run(newHash, member.id);
     res.json({ success: true, msg: 'パスワードを再設定しました。新しいパスワードでログインしてください。' });
   } catch (e) {
@@ -150,7 +179,7 @@ router.post('/reset-password', (req, res) => {
     const db = getDb();
     const user = db.prepare('SELECT * FROM users WHERE nickname = ? AND department = ? AND birth_date = ?').get(nickname.trim(), department, birthDate);
     if (!user) return res.json({ success: false, msg: '入力情報が一致するアカウントが見つかりません' });
-    const newHash = hashPasswordSHA256(newPassword.trim());
+    const newHash = hashPasswordBcrypt(newPassword.trim());
     db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(newHash, user.id);
     res.json({ success: true, msg: 'パスワードを再設定しました。新しいパスワードでログインしてください。' });
   } catch (e) {

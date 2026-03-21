@@ -242,6 +242,11 @@ router.post('/empathy', async (req, res) => {
     const responses = db.prepare('SELECT * FROM empathy_responses WHERE post_id = ?').all(postId);
     const summary = buildEmpathySummary(responses);
     res.json({ success: true, summary });
+
+    // 共感3件以上で非同期スコア再計算（レスポンスをブロックしない）
+    if (responses.length >= 3) {
+      updateScoreFromEmpathy(db, postId, responses).catch(e => console.error('empathy score update:', e.message));
+    }
   } catch (e) {
     res.json({ success: false, msg: e.message });
   }
@@ -336,6 +341,47 @@ ${responses.filter(r => r.free_comment).map(r => `「${r.free_comment}」`).join
     res.json({ success: false, msg: e.message });
   }
 });
+
+// 共感データから投稿スコアを非同期更新
+async function updateScoreFromEmpathy(db, postId, responses) {
+  const post = db.prepare('SELECT * FROM posts WHERE post_id = ?').get(postId);
+  if (!post || !post.analysis) return;
+
+  const summary = buildEmpathySummary(responses);
+  const isFood = post.category === '🍱 食事・栄養';
+
+  const prompt = `社員の共感回答データから7軸スコア(各1-5)をJSON形式で算出。
+
+【投稿内容】${post.content.substring(0, 200)}
+【カテゴリ】${isFood ? '食事・栄養' : '相談・提案'}
+【共感】回答${summary.totalCount}名 タイプ:${Object.entries(summary.typeCounts).map(([k,v]) => k+':'+v).join(',')}
+【コメント】${responses.filter(r => r.free_comment).slice(0, 5).map(r => r.free_comment).join('／') || 'なし'}
+
+ルール: 回答者が多い→freq高い。yabai/senmon多い→risk,urgency,safety高い。kaisha/issho多い→value,needs高い。食事→legal低め(1-2)。
+出力:JSONのみ。例:{"is_target":true,"legal":2,"risk":3,"freq":4,"urgency":2,"safety":3,"value":4,"needs":3}`;
+
+  const aiResult = await callGroqApi('JSON出力専門AI。指定JSON形式のみ出力。', prompt);
+  if (!aiResult) return;
+  const jsonMatch = aiResult.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) return;
+
+  try {
+    const newScores = JSON.parse(jsonMatch[0]);
+    // 既存のAIコメント部分は保持し、スコアのみ差し替え
+    const parts = post.analysis.split('///SCORE///');
+    const textPart = parts[0].trim();
+
+    // 既存スコアとマージ（is_planned等のフラグを保持）
+    let existingFlags = {};
+    try { existingFlags = JSON.parse(parts[1].trim()); } catch (e) {}
+    const merged = { ...existingFlags, ...newScores };
+
+    db.prepare('UPDATE posts SET analysis = ? WHERE post_id = ?')
+      .run(textPart + '\n///SCORE///\n' + JSON.stringify(merged), postId);
+  } catch (e) {
+    console.error('empathy score parse error:', e.message);
+  }
+}
 
 // 共感サマリー構築ヘルパー
 function buildEmpathySummary(responses) {

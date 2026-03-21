@@ -1,6 +1,7 @@
 const express = require('express');
+const { v4: uuidv4 } = require('uuid');
 const { getDb } = require('../services/db');
-const { callGroqApi } = require('../services/ai');
+const { callGroqApi, EVIDENCE_BASE } = require('../services/ai');
 
 const router = express.Router();
 
@@ -268,6 +269,10 @@ router.post('/set-execution', (req, res) => {
       .run(STATUS.IN_EXECUTION, owner, deadline, kpiTarget, JSON.stringify(execLog), planId);
     // 投稿者へ展開開始を通知
     notifyOriginalPoster(db, planId, `全社展開が始まりました！\n担当: ${owner}\n期限: ${deadline}`);
+
+    // 承認済みプランからチャレンジを自動生成（非同期）
+    generateChallengeFromPlan(db, planId).catch(e => console.error('auto challenge generation:', e.message));
+
     res.json({ success: true, msg: '全社展開を開始しました！' });
   } catch (e) { res.json({ success: false, msg: e.message }); }
 });
@@ -294,7 +299,7 @@ router.post('/send-hearing', (req, res) => {
     const plan = db.prepare('SELECT title, source_post_id FROM action_plans WHERE plan_id = ?').get(planId);
     if (!plan) return res.json({ success: false, msg: 'プランが見つかりません' });
 
-    const hearingMsg = `【効果ヒアリング】\n「${plan.title}」が始まって変化はありましたか？\n\n良かった点・まだ足りない点・新たな気づきなど、あなたの声を聞かせてください。\n\n※投稿画面から自由にコメントできます`;
+    const hearingMsg = `【効果ヒアリング:${planId}】\n「${plan.title}」が始まって変化はありましたか？\n\n良かった点・まだ足りない点・新たな気づきなど、あなたの声を聞かせてください。\n\n※投稿画面から自由にコメントできます`;
 
     if (targetScope === 'all') {
       // 全ユーザーに送信
@@ -319,6 +324,57 @@ router.post('/send-hearing', (req, res) => {
       }
       res.json({ success: true, msg: `${count}名の関連投稿者にヒアリング通知を送信しました` });
     }
+  } catch (e) { res.json({ success: false, msg: e.message }); }
+});
+
+// 効果ヒアリング回答の集計（ヒアリング送信後に投稿された声を紐付けて集計）
+router.get('/hearing-results/:planId', async (req, res) => {
+  try {
+    const db = getDb();
+    const planId = req.params.planId;
+    const plan = db.prepare('SELECT * FROM action_plans WHERE plan_id = ?').get(planId);
+    if (!plan) return res.json({ success: false, msg: 'プランが見つかりません' });
+
+    // ヒアリング通知の送信日時を取得
+    let hearingSentAt = null;
+    try {
+      const notice = db.prepare("SELECT created_at FROM notices WHERE content LIKE ? ORDER BY created_at DESC LIMIT 1")
+        .get(`%効果ヒアリング:${planId}%`);
+      if (notice) hearingSentAt = notice.created_at;
+    } catch (e) {}
+
+    if (!hearingSentAt) return res.json({ success: true, responses: [], summary: null, msg: 'ヒアリング未送信です' });
+
+    // ヒアリング送信後の投稿を収集（全投稿から関連しそうなものを取得）
+    const recentPosts = db.prepare(`
+      SELECT post_id, content, nickname, analysis, created_at
+      FROM posts WHERE created_at >= ? AND status IN ('open','public')
+      ORDER BY created_at DESC LIMIT 50
+    `).all(hearingSentAt);
+
+    if (recentPosts.length === 0) return res.json({ success: true, responses: [], summary: '回答はまだありません' });
+
+    // AIで関連する投稿をフィルタ＆サマリ生成
+    const postsText = recentPosts.map((p, i) => `[${i+1}] ${p.nickname}: ${(p.content || '').substring(0, 100)}`).join('\n');
+    const aiPrompt = `以下はヒアリング送信後の社員投稿です。プラン「${plan.title}」に対する効果フィードバックに該当するものを抽出し、要約してください。
+
+【投稿一覧】
+${postsText}
+
+出力形式:JSONのみ。
+{"related_indices": [該当する投稿番号], "positive": ["良かった点1", "良かった点2"], "negative": ["改善点1"], "summary": "全体要約（2〜3文）"}`;
+
+    const aiResult = await callGroqApi('JSON出力専門AI。指定JSON形式のみ出力。', aiPrompt);
+    let summary = { related_indices: [], positive: [], negative: [], summary: '集計中' };
+    if (aiResult) {
+      const jsonMatch = aiResult.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        try { summary = JSON.parse(jsonMatch[0]); } catch (e) {}
+      }
+    }
+
+    const relatedPosts = (summary.related_indices || []).map(i => recentPosts[i - 1]).filter(Boolean);
+    res.json({ success: true, responses: relatedPosts, summary, hearingSentAt });
   } catch (e) { res.json({ success: false, msg: e.message }); }
 });
 
@@ -470,5 +526,73 @@ router.post('/refine', async (req, res) => {
     res.json({ success: true, newTitle, newDraft, aiComment, msg: 'タイトルと本文を書き直しました！' });
   } catch (e) { res.json({ success: false, msg: 'AIエラー: ' + e.message }); }
 });
+
+// 承認済みプランからチャレンジを自動生成
+async function generateChallengeFromPlan(db, planId) {
+  const plan = db.prepare('SELECT * FROM action_plans WHERE plan_id = ?').get(planId);
+  if (!plan) return;
+
+  // 関連投稿の声を取得
+  let voices = '';
+  if (plan.source_post_id && plan.source_post_id !== 'Theme_Based') {
+    const postIds = plan.source_post_id.split(',').map(s => s.trim());
+    const posts = postIds.map(pid => db.prepare('SELECT content, department FROM posts WHERE post_id = ?').get(pid)).filter(Boolean);
+    voices = posts.map(p => `- ${p.department || ''}部署: ${(p.content || '').substring(0, 100)}`).join('\n');
+  }
+
+  const prompt = `承認済みアクションプランに基づき、全社員向けの参加型チャレンジを設計してください。
+
+${EVIDENCE_BASE}
+
+【プラン名】${plan.title}
+【企画書概要】${(plan.proposal_draft || '').substring(0, 500)}
+【社員の声】
+${voices || '（なし）'}
+
+【設計要件】
+- 期間: 30日間
+- 任意参加、楽しく続けられる設計
+- 毎日30秒で完了する記録項目（選択式2〜3問）
+- ランキングで競争要素
+- EASTフレームワーク＋COM-Bモデル準拠
+
+【出力形式】JSONのみ。
+{
+  "title": "キャッチーなチャレンジ名",
+  "description": "概要（3〜4文）",
+  "icon": "絵文字1つ",
+  "evidence_based": "設計根拠",
+  "kpi_definitions": [
+    {"question": "質問文", "type": "choice", "options": ["選択肢1","選択肢2","選択肢3","選択肢4"], "is_ranking": true, "ranking_type": "cumulative"},
+    {"question": "質問文", "type": "choice", "options": ["😫","😐","😊","🤩"], "is_ranking": false}
+  ],
+  "badges": [
+    {"type": "first_record", "name": "初記録", "condition": "初めて記録した"},
+    {"type": "streak_7", "name": "7日連続", "condition": "7日連続で記録"},
+    {"type": "streak_14", "name": "14日連続", "condition": "14日連続で記録"},
+    {"type": "perfect", "name": "皆勤賞", "condition": "全日記録達成"},
+    {"type": "comeback", "name": "カムバック", "condition": "3日以上休んで復帰"}
+  ]
+}`;
+
+  const aiResult = await callGroqApi('JSON出力専門AI。指定JSON形式のみ出力。', prompt);
+  if (!aiResult) return;
+  const jsonMatch = aiResult.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) return;
+
+  const challenge = JSON.parse(jsonMatch[0]);
+  const cid = 'ch_' + uuidv4().substring(0, 8);
+
+  db.prepare(`INSERT INTO challenges (challenge_id, theme_id, cycle_number, title, description, icon, duration_days, kpi_definitions, badge_config, ai_draft, status)
+    VALUES (?, ?, 0, ?, ?, ?, 30, ?, ?, ?, 'draft')`)
+    .run(cid, planId, challenge.title, challenge.description, challenge.icon || '💪',
+      JSON.stringify(challenge.kpi_definitions || []),
+      JSON.stringify(challenge.badges || []),
+      JSON.stringify(challenge));
+
+  // プランにチャレンジIDを紐付け
+  db.prepare('UPDATE action_plans SET ai_log = ? WHERE plan_id = ?')
+    .run(JSON.stringify({ challengeId: cid, generatedAt: new Date().toISOString() }), planId);
+}
 
 module.exports = router;

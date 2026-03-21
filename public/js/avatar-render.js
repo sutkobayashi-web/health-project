@@ -105,7 +105,7 @@ function renderCustomAvatar(avatarStr, size) {
     // 目 - にがおえ風の大きめ配置
     var eyeY = faceY + faceR * 0.02 + eyeYOff;
     var eyeSpacing = faceR * 0.33 + spacingOff;
-    var eyeSize = faceR * (0.115 + sizeEyeVal * 0.015);
+    var eyeSize = faceR * (0.09 + sizeEyeVal * 0.015);
 
     // 眉毛
     drawEyebrows(ctx, cx, eyeY + browYOff, eyeSpacing, faceR, eyebrowType);

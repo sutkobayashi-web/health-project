@@ -14,6 +14,14 @@ var AB_CHEEK_NAMES = ['なし','うすく','しっかり'];
 var AB_EAR_NAMES = ['ふつう','ちいさめ','おおきめ','とがり','まるい','エルフ'];
 var AB_EYE_COLORS = ['#3B2F2F','#5D4037','#1B5E20','#0D47A1','#4A148C','#37474F'];
 var AB_EYE_COLOR_NAMES = ['こげ茶','茶','緑','青','紫','グレー'];
+// 化粧パラメータ
+var AB_LIP_COLORS = ['#D4636A','#C74B6F','#CC2936','#E87461','#8E3553','#BE8B78'];
+var AB_LIP_COLOR_NAMES = ['ナチュラル','ローズ','レッド','コーラル','ベリー','ヌード'];
+var AB_EYESHADOW_COLORS = [null,'rgba(220,160,180,0.25)','rgba(160,120,100,0.25)','rgba(160,130,200,0.3)','rgba(120,160,210,0.25)','rgba(200,170,100,0.25)'];
+var AB_EYESHADOW_NAMES = ['なし','ピンク','ブラウン','パープル','ブルー','ゴールド'];
+var AB_LASH_NAMES = ['ナチュラル','ロング','ボリューム'];
+var AB_CHEEK_COLORS = ['rgba(255,120,160,','rgba(255,140,120,','rgba(200,100,140,','rgba(240,150,100,'];
+var AB_CHEEK_COLOR_NAMES = ['ピンク','コーラル','ローズ','オレンジ'];
 var _avatarCache = {};
 
 // ====== カスタムアバター描画 ======
@@ -57,6 +65,11 @@ function renderCustomAvatar(avatarStr, size) {
     var posEarVal = parseInt(parts[27]) || 0;
     var sizeEarVal = parseInt(parts[28]) || 0;
     var earSpacingVal = parseInt(parts[29]) || 0;
+    // 化粧パラメータ（v3追加）
+    var lipColorIdx = parseInt(parts[30]) || 0;
+    var eyeshadowType = parseInt(parts[31]) || 0;
+    var lashType = parseInt(parts[32]) || 0;
+    var cheekColorIdx = parseInt(parts[33]) || 0;
 
     var canvas = document.createElement('canvas');
     canvas.width = size; canvas.height = size;
@@ -97,8 +110,13 @@ function renderCustomAvatar(avatarStr, size) {
     // 眉毛
     drawEyebrows(ctx, cx, eyeY + browYOff, eyeSpacing, faceR, eyebrowType);
 
+    // アイシャドウ（目の前に描画）
+    if (eyeshadowType > 0 && AB_EYESHADOW_COLORS[eyeshadowType]) {
+      drawEyeshadow(ctx, cx, eyeY, eyeSpacing, eyeSize, faceR, eyeshadowType);
+    }
+
     // 目
-    drawEyes(ctx, cx, eyeY, eyeSpacing, eyeSize, eyeType, faceR, eyeColor);
+    drawEyes(ctx, cx, eyeY, eyeSpacing, eyeSize, eyeType, faceR, eyeColor, lashType);
 
     // 鼻
     var mouthY = faceY + faceR * 0.35 + mouthYOff;
@@ -106,15 +124,15 @@ function renderCustomAvatar(avatarStr, size) {
     var noseFaceR = faceR * (1 + sizeNoseVal * 0.12);
     drawNose(ctx, cx, noseY, noseFaceR, noseType);
 
-    // 口
+    // 口（リップカラー対応）
     var mouthFaceR = faceR * (1 + sizeMouthVal * 0.1);
-    drawMouth(ctx, cx, mouthY, mouthFaceR, mouthType);
+    drawMouth(ctx, cx, mouthY, mouthFaceR, mouthType, lipColorIdx);
 
     // ヒゲ
     drawBeard(ctx, cx, mouthY, faceR, beardType, hairColor);
 
-    // チーク
-    drawCheeks(ctx, cx, eyeY, eyeSpacing, faceR, cheekType);
+    // チーク（カラー対応）
+    drawCheeks(ctx, cx, eyeY, eyeSpacing, faceR, cheekType, cheekColorIdx);
 
     // 髪（前部分）
     ctx.save();
@@ -1178,39 +1196,64 @@ function drawBeard(ctx, cx, mouthY, faceR, type, color) {
   }
 }
 
-function drawCheeks(ctx, cx, eyeY, eyeSpacing, faceR, type) {
-  if (type === 0) return; // なし
-  // 頬の位置を目の下やや外側に正確に配置
+// アイシャドウ描画
+function drawEyeshadow(ctx, cx, eyeY, eyeSpacing, eyeSize, faceR, shadowType) {
+  if (shadowType <= 0 || !AB_EYESHADOW_COLORS[shadowType]) return;
+  var baseColor = AB_EYESHADOW_COLORS[shadowType];
+  var lx = cx - eyeSpacing, rx = cx + eyeSpacing;
+  var eW = eyeSize * 3.0, eH = eyeSize * 2.5;
+  ctx.save();
+  [lx, rx].forEach(function(ex) {
+    // 下層：広いぼかし
+    var sg1 = ctx.createRadialGradient(ex, eyeY - eH * 0.3, eW * 0.1, ex, eyeY - eH * 0.2, eW * 1.2);
+    sg1.addColorStop(0, baseColor.replace('0.25)', '0.2)').replace('0.3)', '0.25)'));
+    sg1.addColorStop(0.6, baseColor.replace('0.25)', '0.1)').replace('0.3)', '0.12)'));
+    sg1.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = sg1;
+    ctx.beginPath(); ctx.ellipse(ex, eyeY - eH * 0.2, eW * 1.2, eH * 0.9, 0, Math.PI, 2 * Math.PI); ctx.fill();
+    // 上層：濃いアクセント（まぶた際）
+    var sg2 = ctx.createLinearGradient(ex, eyeY - eH * 0.1, ex, eyeY - eH * 0.7);
+    sg2.addColorStop(0, baseColor);
+    sg2.addColorStop(0.4, baseColor.replace('0.25)', '0.12)').replace('0.3)', '0.15)'));
+    sg2.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = sg2;
+    ctx.beginPath(); ctx.ellipse(ex, eyeY - eH * 0.15, eW * 0.9, eH * 0.5, 0, Math.PI, 2 * Math.PI); ctx.fill();
+  });
+  ctx.restore();
+}
+
+function drawCheeks(ctx, cx, eyeY, eyeSpacing, faceR, type, colorIdx) {
+  if (type === 0) return;
   var cheekY = eyeY + faceR * 0.2;
   var cheekX = eyeSpacing + faceR * 0.08;
-  var cheekR = faceR * 0.16; // より大きい半径でぼかし
-  var alpha = type === 1 ? 0.13 : 0.25; // alpha値を下げてより自然に
+  var cheekR = faceR * 0.16;
+  var alpha = type === 1 ? 0.13 : 0.25;
+  var baseRgba = AB_CHEEK_COLORS[colorIdx || 0] || AB_CHEEK_COLORS[0];
   ctx.save();
   [cx - cheekX, cx + cheekX].forEach(function(x) {
-    // 内側のコア
     var cg = ctx.createRadialGradient(x, cheekY, 0, x, cheekY, cheekR);
-    cg.addColorStop(0, 'rgba(255,120,160,' + alpha + ')');
-    cg.addColorStop(0.3, 'rgba(255,120,160,' + (alpha * 0.7) + ')');
-    cg.addColorStop(0.6, 'rgba(255,120,160,' + (alpha * 0.3) + ')');
-    cg.addColorStop(1, 'rgba(255,120,160,0)');
+    cg.addColorStop(0, baseRgba + alpha + ')');
+    cg.addColorStop(0.3, baseRgba + (alpha * 0.7) + ')');
+    cg.addColorStop(0.6, baseRgba + (alpha * 0.3) + ')');
+    cg.addColorStop(1, baseRgba + '0)');
     ctx.fillStyle = cg;
-    ctx.shadowColor = 'rgba(255,120,160,' + (alpha * 0.3) + ')';
+    ctx.shadowColor = baseRgba + (alpha * 0.3) + ')';
     ctx.shadowBlur = cheekR * 1.2;
     ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
     ctx.beginPath(); ctx.ellipse(x, cheekY, cheekR, cheekR * 0.7, 0, 0, Math.PI * 2); ctx.fill();
-    // 二重レイヤーでよりソフトなぼかし
     ctx.shadowBlur = 0;
     var cg2 = ctx.createRadialGradient(x, cheekY, 0, x, cheekY, cheekR * 1.4);
-    cg2.addColorStop(0, 'rgba(255,140,170,' + (alpha * 0.4) + ')');
-    cg2.addColorStop(0.5, 'rgba(255,140,170,' + (alpha * 0.15) + ')');
-    cg2.addColorStop(1, 'rgba(255,140,170,0)');
+    cg2.addColorStop(0, baseRgba + (alpha * 0.4) + ')');
+    cg2.addColorStop(0.5, baseRgba + (alpha * 0.15) + ')');
+    cg2.addColorStop(1, baseRgba + '0)');
     ctx.fillStyle = cg2;
     ctx.beginPath(); ctx.ellipse(x, cheekY, cheekR * 1.4, cheekR * 1.0, 0, 0, Math.PI * 2); ctx.fill();
   });
   ctx.restore();
 }
 
-function _drawRealisticEye(ctx, ex, ey, sz, faceR, eyeColor, scaleX, scaleY, lidDroop) {
+function _drawRealisticEye(ctx, ex, ey, sz, faceR, eyeColor, scaleX, scaleY, lidDroop, lashType) {
+  lashType = lashType || 0;
   var eW = sz * 2.5 * scaleX, eH = sz * 1.9 * scaleY;
   var irisR = sz * 1.45 * Math.min(scaleX, scaleY);
   var pupilR = irisR * 0.4;
@@ -1335,21 +1378,22 @@ function _drawRealisticEye(ctx, ex, ey, sz, faceR, eyeColor, scaleX, scaleY, lid
   ctx.stroke();
   ctx.restore();
 
-  // 上まつ毛（カーブした柔らかいライン）
+  // 上まつ毛（lashTypeで本数・長さ・太さを変化）
   if (detail) {
     ctx.save();
     ctx.strokeStyle = '#1a1a1a';
     ctx.lineCap = 'round';
-    var lashCount = 5;
+    var lashCount = [5, 7, 9][lashType] || 5;
+    var lashLenMul = [1.0, 1.4, 1.2][lashType] || 1.0;
+    var lashWidthMul = [1.0, 1.0, 1.6][lashType] || 1.0;
     for (var li = 0; li < lashCount; li++) {
       var lt = (li + 0.5) / lashCount;
       var lashX = ex - eW * 1.05 + lt * eW * 2.1;
       var cpY = ey - eH * 1.2;
       var lashY = (1-lt)*(1-lt)*(ey + lidDroop * sz * 0.8) + 2*(1-lt)*lt*cpY + lt*lt*(ey - lidDroop * sz * 0.8);
       var lashAngle = -Math.PI * 0.5 + (lt - 0.5) * Math.PI * 0.5;
-      var lashLen = sz * (0.5 + Math.sin(lt * Math.PI) * 0.4);
-      // カーブしたまつ毛（直線→曲線）
-      ctx.lineWidth = Math.max(0.5, sz * 0.1 * (1 + Math.sin(lt * Math.PI) * 0.5));
+      var lashLen = sz * (0.5 + Math.sin(lt * Math.PI) * 0.4) * lashLenMul;
+      ctx.lineWidth = Math.max(0.5, sz * 0.1 * (1 + Math.sin(lt * Math.PI) * 0.5) * lashWidthMul);
       ctx.beginPath();
       ctx.moveTo(lashX, lashY);
       var endX = lashX + Math.cos(lashAngle) * lashLen;
@@ -1359,16 +1403,18 @@ function _drawRealisticEye(ctx, ex, ey, sz, faceR, eyeColor, scaleX, scaleY, lid
       ctx.quadraticCurveTo(cpX, cpLY, endX, endY);
       ctx.stroke();
     }
-    // 下まつ毛（控えめ2本）
-    ctx.strokeStyle = 'rgba(30,30,30,0.2)';
-    ctx.lineWidth = Math.max(0.3, sz * 0.06);
-    for (var di = 0; di < 2; di++) {
-      var dt = 0.35 + di * 0.3;
+    // 下まつ毛（lashType 1,2で追加）
+    var downCount = [2, 3, 4][lashType] || 2;
+    ctx.strokeStyle = 'rgba(30,30,30,' + (lashType >= 2 ? '0.3' : '0.2') + ')';
+    ctx.lineWidth = Math.max(0.3, sz * 0.06 * lashWidthMul);
+    for (var di = 0; di < downCount; di++) {
+      var dt = 0.25 + di * (0.5 / downCount);
       var dlx = ex - eW * 0.6 + dt * eW * 1.2;
       var dly = ey + eH * 0.75;
+      var dlLen = sz * 0.25 * lashLenMul;
       ctx.beginPath();
       ctx.moveTo(dlx, dly);
-      ctx.quadraticCurveTo(dlx + (dt - 0.5) * sz * 0.15, dly + sz * 0.15, dlx + (dt - 0.5) * sz * 0.25, dly + sz * 0.25);
+      ctx.quadraticCurveTo(dlx + (dt - 0.5) * sz * 0.15, dly + dlLen * 0.6, dlx + (dt - 0.5) * sz * 0.25, dly + dlLen);
       ctx.stroke();
     }
     ctx.restore();
@@ -1388,7 +1434,8 @@ function _drawRealisticEye(ctx, ex, ey, sz, faceR, eyeColor, scaleX, scaleY, lid
   }
 }
 
-function _drawClosedEye(ctx, ex, ey, sz, faceR) {
+function _drawClosedEye(ctx, ex, ey, sz, faceR, lashType) {
+  lashType = lashType || 0;
   var eW = sz * 2.5;
   var detail = faceR >= 20;
 
@@ -1443,39 +1490,40 @@ function _drawClosedEye(ctx, ex, ey, sz, faceR) {
   }
 }
 
-function drawEyes(ctx, cx, eyeY, spacing, sz, type, faceR, eyeColor) {
+function drawEyes(ctx, cx, eyeY, spacing, sz, type, faceR, eyeColor, lashType) {
   var lx = cx - spacing, rx = cx + spacing;
   if (!eyeColor) eyeColor = AB_EYE_COLORS[0];
+  lashType = lashType || 0;
   var detail = faceR >= 20;
   ctx.save();
   switch(type) {
-    case 0: // ドット → 標準的な目
-      _drawRealisticEye(ctx, lx, eyeY, sz, faceR, eyeColor, 1, 1, 0);
-      _drawRealisticEye(ctx, rx, eyeY, sz, faceR, eyeColor, 1, 1, 0);
+    case 0:
+      _drawRealisticEye(ctx, lx, eyeY, sz, faceR, eyeColor, 1, 1, 0, lashType);
+      _drawRealisticEye(ctx, rx, eyeY, sz, faceR, eyeColor, 1, 1, 0, lashType);
       break;
-    case 1: // ライン → 細い切れ長
-      _drawRealisticEye(ctx, lx, eyeY, sz, faceR, eyeColor, 1.2, 0.6, 0);
-      _drawRealisticEye(ctx, rx, eyeY, sz, faceR, eyeColor, 1.2, 0.6, 0);
+    case 1:
+      _drawRealisticEye(ctx, lx, eyeY, sz, faceR, eyeColor, 1.2, 0.6, 0, lashType);
+      _drawRealisticEye(ctx, rx, eyeY, sz, faceR, eyeColor, 1.2, 0.6, 0, lashType);
       break;
-    case 2: // まんまる → 大きな丸い目
-      _drawRealisticEye(ctx, lx, eyeY, sz, faceR, eyeColor, 1.3, 1.3, 0);
-      _drawRealisticEye(ctx, rx, eyeY, sz, faceR, eyeColor, 1.3, 1.3, 0);
+    case 2:
+      _drawRealisticEye(ctx, lx, eyeY, sz, faceR, eyeColor, 1.3, 1.3, 0, lashType);
+      _drawRealisticEye(ctx, rx, eyeY, sz, faceR, eyeColor, 1.3, 1.3, 0, lashType);
       break;
-    case 3: // ウインク → 片方閉じ
-      _drawRealisticEye(ctx, lx, eyeY, sz, faceR, eyeColor, 1, 1, 0);
-      _drawClosedEye(ctx, rx, eyeY, sz, faceR);
+    case 3:
+      _drawRealisticEye(ctx, lx, eyeY, sz, faceR, eyeColor, 1, 1, 0, lashType);
+      _drawClosedEye(ctx, rx, eyeY, sz, faceR, lashType);
       break;
-    case 4: // 閉じ目
-      _drawClosedEye(ctx, lx, eyeY, sz, faceR);
-      _drawClosedEye(ctx, rx, eyeY, sz, faceR);
+    case 4:
+      _drawClosedEye(ctx, lx, eyeY, sz, faceR, lashType);
+      _drawClosedEye(ctx, rx, eyeY, sz, faceR, lashType);
       break;
-    case 5: // たれ目
-      _drawRealisticEye(ctx, lx, eyeY, sz, faceR, eyeColor, 1, 1, 0.6);
-      _drawRealisticEye(ctx, rx, eyeY, sz, faceR, eyeColor, 1, 1, 0.6);
+    case 5:
+      _drawRealisticEye(ctx, lx, eyeY, sz, faceR, eyeColor, 1, 1, 0.6, lashType);
+      _drawRealisticEye(ctx, rx, eyeY, sz, faceR, eyeColor, 1, 1, 0.6, lashType);
       break;
     case 6: // つり目
-      _drawRealisticEye(ctx, lx, eyeY, sz, faceR, eyeColor, 1.1, 0.9, -0.7);
-      _drawRealisticEye(ctx, rx, eyeY, sz, faceR, eyeColor, 1.1, 0.9, -0.7);
+      _drawRealisticEye(ctx, lx, eyeY, sz, faceR, eyeColor, 1.1, 0.9, -0.7, lashType);
+      _drawRealisticEye(ctx, rx, eyeY, sz, faceR, eyeColor, 1.1, 0.9, -0.7, lashType);
       break;
     case 7: // キラキラ → 特大 + 複数ハイライト
       var bigScale = 1.5;
@@ -1646,11 +1694,12 @@ function drawEyes(ctx, cx, eyeY, spacing, sz, type, faceR, eyeColor) {
   ctx.restore();
 }
 
-function drawMouth(ctx, cx, my, faceR, type) {
+function drawMouth(ctx, cx, my, faceR, type, lipColorIdx) {
   var mw = faceR * 0.32;
-  var lipTop = '#D4636A';
-  var lipBot = '#E08880';
-  var lipDark = '#A03840';
+  var baseLip = AB_LIP_COLORS[lipColorIdx || 0] || AB_LIP_COLORS[0];
+  var lipTop = baseLip;
+  var lipBot = _skinLighter(baseLip, 25);
+  var lipDark = _skinDarker(baseLip, 40);
   var detail = faceR >= 20;
   ctx.lineCap = 'round'; ctx.lineJoin = 'round';
   ctx.save();

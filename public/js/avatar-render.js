@@ -72,7 +72,7 @@ function renderCustomAvatar(avatarStr, size) {
     drawFace(ctx, cx, faceY, faceR, faceShapeType, skinColor, earType, posEarVal, sizeEarVal, earSpacingVal);
 
     // 髪のオフセット
-    var hairYOff = posHairVal * faceR * 0.08;
+    var hairYOff = posHairVal * faceR * 0.12;
     var hairScale = 1 + sizeHairVal * 0.08;
     var hairWidthScale = 1 + widthHairVal * 0.08;
 
@@ -83,11 +83,11 @@ function renderCustomAvatar(avatarStr, size) {
     ctx.restore();
 
     // 位置オフセット計算（1単位 = faceR * 0.04）
-    var eyeYOff = posEyeVal * faceR * 0.04;
-    var mouthYOff = posMouthVal * faceR * 0.04;
-    var noseYOff = posNoseVal * faceR * 0.04;
-    var browYOff = posBrowVal * faceR * 0.04;
-    var spacingOff = eyeSpacingVal * faceR * 0.03;
+    var eyeYOff = posEyeVal * faceR * 0.06;
+    var mouthYOff = posMouthVal * faceR * 0.06;
+    var noseYOff = posNoseVal * faceR * 0.06;
+    var browYOff = posBrowVal * faceR * 0.06;
+    var spacingOff = eyeSpacingVal * faceR * 0.045;
 
     // 目 - にがおえ風の大きめ配置
     var eyeY = faceY + faceR * 0.02 + eyeYOff;
@@ -291,8 +291,8 @@ function drawFace(ctx, cx, faceY, faceR, shapeType, skinColor, earType, posEarVa
   var earSizeScale = [1.0, 0.7, 1.35, 1.1, 1.15, 1.25][earType] || 1.0;
   earSizeScale *= (1 + sizeEarVal * 0.12);
   var earR = faceR * 0.15 * earSizeScale;
-  var earX = faceR * 0.95 + earSpacingVal * faceR * 0.06;
-  var earYOff = posEarVal * faceR * 0.05;
+  var earX = faceR * 0.95 + earSpacingVal * faceR * 0.09;
+  var earYOff = posEarVal * faceR * 0.075;
   var earCy = faceY + earYOff;
   ctx.save();
 

@@ -51,7 +51,7 @@ function escapeHtml(str) {
 function showLoading(msg) { const ol = document.getElementById('global-loading-overlay'); if(ol) { ol.style.display='flex'; if(msg) document.getElementById('loading-text').innerText = msg; } }
 function hideLoading() { const ol = document.getElementById('global-loading-overlay'); if(ol) ol.style.display='none'; const txt = document.getElementById('loading-text'); if(txt) txt.innerText = ""; }
 
-function logoutAdmin() { if(!confirm("ログアウトしますか？")) return; localStorage.removeItem('co_heart_admin_email'); localStorage.removeItem('co_heart_admin_pass'); localStorage.removeItem('co_heart_admin_profile'); localStorage.removeItem('co_heart_admin_token'); window.location.href = '/'; }
+function logoutAdmin() { if(!confirm("ログアウトしますか？")) return; localStorage.removeItem('co_heart_admin_email'); localStorage.removeItem('co_heart_admin_pass'); localStorage.removeItem('co_heart_admin_profile'); localStorage.removeItem('co_heart_admin_token'); window.location.href = '/admin'; }
 
 // ★ 認証処理
 function doAdminAuth() {
@@ -66,15 +66,14 @@ function doAdminAuth() {
         if(res.success) {
             setAdminToken(res.token);
             currentAdminProfile = res.profile;
+            localStorage.setItem('co_heart_admin_profile', JSON.stringify(res.profile));
             if(remember) {
                 localStorage.setItem('co_heart_admin_email', email);
-                localStorage.setItem('co_heart_admin_pass', pass);
-                localStorage.setItem('co_heart_admin_profile', JSON.stringify(res.profile));
             } else {
                 localStorage.removeItem('co_heart_admin_email');
-                localStorage.removeItem('co_heart_admin_pass');
-                localStorage.removeItem('co_heart_admin_profile');
             }
+            // 平文パスワードは保存しない
+            localStorage.removeItem('co_heart_admin_pass');
             document.getElementById('admin-auth-overlay').style.display = 'none';
             renderHeaderInfo();
             loadData();
@@ -83,36 +82,21 @@ function doAdminAuth() {
 }
 
 window.onload = function() {
-    // 保存済み認証チェック
-    const savedEmail = localStorage.getItem('co_heart_admin_email');
-    const savedPass = localStorage.getItem('co_heart_admin_pass');
+    // トークンベースの認証チェック
+    const savedToken = getAdminToken();
     const savedProfile = localStorage.getItem('co_heart_admin_profile');
 
-    if(savedEmail && savedPass) {
-        if(savedProfile) { try { currentAdminProfile = JSON.parse(savedProfile); } catch(e) {} }
-        // 保存済みの場合はAPI再認証してからロード
+    if(savedToken && savedProfile) {
+        // トークンが存在すればそのまま使う（JWT有効期限は7日間）
+        try { currentAdminProfile = JSON.parse(savedProfile); } catch(e) {}
         document.getElementById('admin-auth-overlay').style.display = 'none';
-        loginCoreMember(savedEmail, savedPass).then(function(res) {
-            if(res && res.success) {
-                setAdminToken(res.token);
-                currentAdminProfile = res.profile;
-                localStorage.setItem('co_heart_admin_profile', JSON.stringify(res.profile));
-                renderHeaderInfo();
-                loadData();
-            } else {
-                // 認証失敗 → ログイン画面に戻す
-                localStorage.removeItem('co_heart_admin_email');
-                localStorage.removeItem('co_heart_admin_pass');
-                localStorage.removeItem('co_heart_admin_profile');
-                localStorage.removeItem('co_heart_admin_token');
-                document.getElementById('admin-auth-overlay').style.display = 'flex';
-            }
-        }).catch(function() {
-            renderHeaderInfo();
-            loadData();
-        });
+        renderHeaderInfo();
+        loadData();
     } else {
-        // 未保存の場合はフォームを表示（前回入力を復元）
+        // トークンなし → ログイン画面を表示
+        document.getElementById('admin-auth-overlay').style.display = 'flex';
+        // メールアドレスだけ復元
+        var savedEmail = localStorage.getItem('co_heart_admin_email');
         var el = document.getElementById('admin-login-email');
         if(el && savedEmail) { el.value = savedEmail; }
     }

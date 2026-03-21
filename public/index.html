@@ -211,7 +211,7 @@
       <button class="auth-menu-btn btn-new-user" onclick="showStep('register')"><i class="fas fa-user-plus"></i><div><span class="auth-menu-title">はじめての方</span><span class="auth-menu-desc">新規登録して参加する</span></div></button>
       <button class="auth-menu-btn btn-exist-user" onclick="showStep('login')"><i class="fas fa-sign-in-alt"></i><div><span class="auth-menu-title">登録済みの方</span><span class="auth-menu-desc">ログインして続ける</span></div></button>
       <div style="text-align:center; margin-top:5px;">
-        <a class="admin-link-small" onclick="showStep('admin-login')"><i class="fas fa-lock"></i> 管理者ログイン</a>
+        <a class="admin-link-small" href="/admin"><i class="fas fa-lock"></i> 管理者ログイン</a>
       </div>
     </div>
 
@@ -3402,10 +3402,7 @@ function showStep(step) {
   }
   if (step === 'admin-login') {
     var savedEmail = localStorage.getItem('co_heart_admin_email');
-    var savedAdminPass = localStorage.getItem('co_heart_admin_pass');
     if (savedEmail) { document.getElementById('admin-email').value = savedEmail; }
-    if (savedAdminPass) { document.getElementById('admin-pass').value = savedAdminPass; }
-    if (savedEmail && savedAdminPass) { document.getElementById('admin-remember').checked = true; }
   }
 }
 
@@ -3650,8 +3647,8 @@ function doAdminRegister() {
         alert(res.msg);
         setAdminToken(res.token);
         localStorage.setItem('co_heart_admin_email', email);
-        localStorage.setItem('co_heart_admin_pass', pass);
         localStorage.setItem('co_heart_admin_profile', JSON.stringify(res.profile));
+        localStorage.removeItem('co_heart_admin_pass');
         window.location.href = "/admin";
       }
     } else alert(res.msg);
@@ -3661,7 +3658,6 @@ function doAdminRegister() {
 function doAdminLogin() {
   var em = document.getElementById('admin-email').value.trim();
   var pw = document.getElementById('admin-pass').value.trim();
-  var remember = document.getElementById('admin-remember').checked;
   if (!em || !pw) return alert("入力してください");
   showLoading("認証中...");
   loginCoreMember(em, pw).then(function(res) {
@@ -3669,10 +3665,9 @@ function doAdminLogin() {
     if (!res) { alert("サーバー応答がnullです。デプロイを更新してください。"); return; }
     if (res.success) {
       setAdminToken(res.token);
-      // admin画面の自動認証に必要なため常に保存
       localStorage.setItem('co_heart_admin_email', em);
-      localStorage.setItem('co_heart_admin_pass', pw);
       localStorage.setItem('co_heart_admin_profile', JSON.stringify(res.profile));
+      localStorage.removeItem('co_heart_admin_pass');
       window.location.href = "/admin";
     } else alert(res.msg);
   }).catch(function(e) { hideLoading(); alert("エラー: " + e.message); });

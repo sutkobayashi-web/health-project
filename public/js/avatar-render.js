@@ -71,7 +71,7 @@ function renderCustomAvatar(avatarStr, size) {
     drawFace(ctx, cx, faceY, faceR, faceShapeType, skinColor, earType, posEarVal, sizeEarVal);
 
     // 髪のオフセット
-    var hairYOff = posHairVal * faceR * 0.04;
+    var hairYOff = posHairVal * faceR * 0.08;
     var hairScale = 1 + sizeHairVal * 0.08;
     var hairWidthScale = 1 + widthHairVal * 0.08;
 

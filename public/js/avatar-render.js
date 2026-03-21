@@ -11,6 +11,7 @@ var AB_EYEBROW_NAMES = ['ナチュラル','太め','キリッと','ハの字','�
 var AB_NOSE_NAMES = ['ちょこん','まるい','たかい','なし'];
 var AB_BEARD_NAMES = ['なし','ちょびひげ','あごひげ','フルひげ'];
 var AB_CHEEK_NAMES = ['なし','うすく','しっかり'];
+var AB_EAR_NAMES = ['ふつう','ちいさめ','おおきめ','とがり','まるい','エルフ'];
 var AB_EYE_COLORS = ['#3B2F2F','#5D4037','#1B5E20','#0D47A1','#4A148C','#37474F'];
 var AB_EYE_COLOR_NAMES = ['こげ茶','茶','緑','青','紫','グレー'];
 var _avatarCache = {};
@@ -51,6 +52,10 @@ function renderCustomAvatar(avatarStr, size) {
     var sizeHairVal = parseInt(parts[23]) || 0;
     var sizeFaceVal = parseInt(parts[24]) || 0;
     var widthHairVal = parseInt(parts[25]) || 0;
+    // 耳パラメータ（v2追加、後方互換）
+    var earType = parseInt(parts[26]) || 0;
+    var posEarVal = parseInt(parts[27]) || 0;
+    var sizeEarVal = parseInt(parts[28]) || 0;
 
     var canvas = document.createElement('canvas');
     canvas.width = size; canvas.height = size;
@@ -63,7 +68,7 @@ function renderCustomAvatar(avatarStr, size) {
     // 顔（輪郭形状反映）- 少し下寄せで髪との間隔を確保
     var faceR = r * faceSize / 24 * (1 + sizeFaceVal * 0.06);
     var faceY = cy + r * 0.08;
-    drawFace(ctx, cx, faceY, faceR, faceShapeType, skinColor);
+    drawFace(ctx, cx, faceY, faceR, faceShapeType, skinColor, earType, posEarVal, sizeEarVal);
 
     // 髪のオフセット
     var hairYOff = posHairVal * faceR * 0.04;
@@ -137,6 +142,37 @@ function _skinDarker(hex, amt) {
   r = Math.max(0, r - amt); g = Math.max(0, g - amt); b = Math.max(0, b - amt);
   return '#' + ((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1);
 }
+// 耳の形状描画ヘルパー
+function _drawEarShape(ctx, ex, ey, earR, earType, side, scaleW, scaleH) {
+  var w = earR * scaleW, h = earR * scaleH;
+  ctx.beginPath();
+  switch(earType) {
+    case 1: // ちいさめ（小さい楕円）
+      ctx.ellipse(ex, ey, w * 0.85, h * 0.85, 0, 0, Math.PI * 2);
+      break;
+    case 2: // おおきめ（大きい楕円）
+      ctx.ellipse(ex, ey, w * 1.1, h * 1.15, 0, 0, Math.PI * 2);
+      break;
+    case 3: // とがり（上が尖った耳）
+      ctx.moveTo(ex - side * w * 0.1, ey + h);
+      ctx.bezierCurveTo(ex + side * w * 0.3, ey + h * 0.5, ex + side * w * 1.1, ey + h * 0.1, ex + side * w * 0.5, ey - h * 1.3);
+      ctx.bezierCurveTo(ex - side * w * 0.2, ey - h * 0.6, ex - side * w * 0.5, ey + h * 0.3, ex - side * w * 0.1, ey + h);
+      ctx.closePath();
+      break;
+    case 4: // まるい（まん丸）
+      ctx.arc(ex, ey, Math.max(w, h), 0, Math.PI * 2);
+      break;
+    case 5: // エルフ（長く尖った）
+      ctx.moveTo(ex - side * w * 0.1, ey + h * 1.1);
+      ctx.bezierCurveTo(ex + side * w * 0.4, ey + h * 0.4, ex + side * w * 1.5, ey - h * 0.3, ex + side * w * 1.2, ey - h * 1.8);
+      ctx.bezierCurveTo(ex + side * w * 0.2, ey - h * 1.0, ex - side * w * 0.3, ey - h * 0.2, ex - side * w * 0.1, ey + h * 1.1);
+      ctx.closePath();
+      break;
+    default: // ふつう（楕円）
+      ctx.ellipse(ex, ey, w, h, 0, 0, Math.PI * 2);
+  }
+}
+
 function _facePath(ctx, cx, faceY, faceR, shapeType) {
   switch(shapeType) {
     case 1: // おもなが
@@ -198,7 +234,10 @@ function _facePath(ctx, cx, faceY, faceR, shapeType) {
       ctx.beginPath(); ctx.arc(cx, faceY, faceR, 0, Math.PI * 2);
   }
 }
-function drawFace(ctx, cx, faceY, faceR, shapeType, skinColor) {
+function drawFace(ctx, cx, faceY, faceR, shapeType, skinColor, earType, posEarVal, sizeEarVal) {
+  earType = earType || 0;
+  posEarVal = posEarVal || 0;
+  sizeEarVal = sizeEarVal || 0;
   var lighter = _skinLighter(skinColor, 25);
   var darker = _skinDarker(skinColor, 30);
   var darkest = _skinDarker(skinColor, 50);
@@ -246,46 +285,48 @@ function drawFace(ctx, cx, faceY, faceR, shapeType, skinColor) {
     ctx.restore();
   }
 
-  // 耳（影付き + 内側ディテール）
-  var earR = faceR * 0.15, earX = faceR * 0.95;
+  // 耳（種類・サイズ・位置カスタマイズ対応）
+  var earSizeScale = [1.0, 0.7, 1.35, 1.1, 1.15, 1.25][earType] || 1.0;
+  earSizeScale *= (1 + sizeEarVal * 0.12);
+  var earR = faceR * 0.15 * earSizeScale;
+  var earX = faceR * 0.95;
+  var earYOff = posEarVal * faceR * 0.05;
+  var earCy = faceY + earYOff;
   ctx.save();
-  // 耳の影（外側）
-  ctx.fillStyle = darkest;
-  ctx.beginPath(); ctx.ellipse(cx - earX, faceY, earR * 1.08, earR * 1.25, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.beginPath(); ctx.ellipse(cx + earX, faceY, earR * 1.08, earR * 1.25, 0, 0, Math.PI * 2); ctx.fill();
-  // 耳本体 - 左
-  var earGrad = ctx.createRadialGradient(cx - earX, faceY - earR * 0.2, earR * 0.1, cx - earX, faceY, earR);
-  earGrad.addColorStop(0, lighter);
-  earGrad.addColorStop(0.7, skinColor);
-  earGrad.addColorStop(1, darker);
-  ctx.fillStyle = earGrad;
-  ctx.beginPath(); ctx.ellipse(cx - earX, faceY, earR * 0.9, earR * 1.05, 0, 0, Math.PI * 2); ctx.fill();
-  // 耳本体 - 右
-  var earGrad2 = ctx.createRadialGradient(cx + earX, faceY - earR * 0.2, earR * 0.1, cx + earX, faceY, earR);
-  earGrad2.addColorStop(0, lighter);
-  earGrad2.addColorStop(0.7, skinColor);
-  earGrad2.addColorStop(1, darker);
-  ctx.fillStyle = earGrad2;
-  ctx.beginPath(); ctx.ellipse(cx + earX, faceY, earR * 0.9, earR * 1.05, 0, 0, Math.PI * 2); ctx.fill();
-  // 耳の内側ディテール（影と赤み）
-  if (detail) {
-    [-1, 1].forEach(function(side) {
-      var ex = cx + side * earX;
-      // 内側の窪み影
-      var innerGrad = ctx.createRadialGradient(ex + side * earR * 0.1, faceY, earR * 0.05, ex + side * earR * 0.1, faceY, earR * 0.55);
+
+  [-1, 1].forEach(function(side) {
+    var ex = cx + side * earX;
+
+    // 耳の影（外側）
+    ctx.fillStyle = darkest;
+    _drawEarShape(ctx, ex, earCy, earR, earType, side, 1.08, 1.25);
+    ctx.fill();
+
+    // 耳本体（グラデーション）
+    var eGrad = ctx.createRadialGradient(ex, earCy - earR * 0.2, earR * 0.1, ex, earCy, earR * 1.2);
+    eGrad.addColorStop(0, lighter);
+    eGrad.addColorStop(0.7, skinColor);
+    eGrad.addColorStop(1, darker);
+    ctx.fillStyle = eGrad;
+    _drawEarShape(ctx, ex, earCy, earR, earType, side, 0.9, 1.05);
+    ctx.fill();
+
+    // 耳の内側ディテール
+    if (detail) {
+      var innerGrad = ctx.createRadialGradient(ex + side * earR * 0.1, earCy, earR * 0.05, ex + side * earR * 0.1, earCy, earR * 0.55);
       innerGrad.addColorStop(0, 'rgba(180,100,100,0.25)');
       innerGrad.addColorStop(0.6, 'rgba(160,80,80,0.1)');
       innerGrad.addColorStop(1, 'rgba(0,0,0,0)');
       ctx.fillStyle = innerGrad;
-      ctx.beginPath(); ctx.ellipse(ex + side * earR * 0.1, faceY, earR * 0.55, earR * 0.7, 0, 0, Math.PI * 2); ctx.fill();
-      // 耳の軟骨ライン
+      ctx.beginPath(); ctx.ellipse(ex + side * earR * 0.1, earCy, earR * 0.55, earR * 0.7, 0, 0, Math.PI * 2); ctx.fill();
+      // 軟骨ライン
       ctx.strokeStyle = 'rgba(0,0,0,0.08)';
       ctx.lineWidth = Math.max(0.5, faceR * 0.01);
       ctx.beginPath();
-      ctx.ellipse(ex + side * earR * 0.15, faceY - earR * 0.1, earR * 0.35, earR * 0.6, side * 0.15, 0, Math.PI * 2);
+      ctx.ellipse(ex + side * earR * 0.15, earCy - earR * 0.1, earR * 0.35, earR * 0.6, side * 0.15, 0, Math.PI * 2);
       ctx.stroke();
-    });
-  }
+    }
+  });
   ctx.restore();
 
   // 顔本体（精密グラデーション）

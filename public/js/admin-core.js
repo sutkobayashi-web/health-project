@@ -142,10 +142,21 @@ function loadData() {
     showLoading("データ取得中...");
     getReportData().then(function(data) {
         hideLoading();
-        allPostData = data;
-        // v2ダッシュボードがデフォルト表示
+        if (!Array.isArray(data)) {
+            // 認証失敗等でオブジェクトが返った場合
+            if (data && data.msg && data.msg.indexOf('401') !== -1) {
+                localStorage.removeItem('co_heart_admin_token');
+                localStorage.removeItem('co_heart_admin_profile');
+                document.getElementById('admin-auth-overlay').style.display = 'flex';
+                alert('セッションの有効期限が切れました。再ログインしてください。');
+                return;
+            }
+            allPostData = [];
+        } else {
+            allPostData = data;
+        }
         if (typeof renderV2Dashboard === 'function') renderV2Dashboard();
-    }).catch(function(err) { hideLoading(); alert("通信エラー: " + err.message); });
+    }).catch(function(err) { hideLoading(); alert("データ取得エラー: " + err.message); });
     // メンバーリスト＆ハートビート開始
     startHeartbeat();
     loadSidebarMembers();

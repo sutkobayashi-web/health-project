@@ -3,7 +3,7 @@ var AB_HAIRS = ['#1A1A1A','#4A3728','#8B4513','#FFD700','#FF6347','#C0C0C0'];
 var AB_BGS = ['#E8F5E9','#E3F2FD','#FFF3E0','#FCE4EC','#F3E5F5','#E0F7FA','#FFF9C4','#EFEBE9'];
 var AB_FACES = [14,16,18];
 var AB_EYE_NAMES = ['ドット','ライン','まんまる','ウインク','閉じ目','たれ目','つり目','キラキラ','ジト目','ぱっちり','ネコ目','三白眼','笑い目','涙目'];
-var AB_MOUTH_NAMES = ['にっこり','わーい','一文字','ぽかん','むすっ','にやり','べー'];
+var AB_MOUTH_NAMES = ['にっこり','わーい','一文字','ぽかん','むすっ','にやり','べー','アヒル口','への字','ω口','キス','歯見せ'];
 var AB_HAIR_NAMES = ['なし','ショート','ミディアム','ロング','スパイキー','ひよこ','チカラ','ポニテ','ボブ','おだんご','ツインテ','ウェーブ','ワンレン','ハーフアップ','マッシュ','センター分け','外ハネ','ベリーショート','ゆるふわ','姫カット','オールバック','クレオ','アフロ','モヒカン','三つ編み','カーリー','ソフモヒ'];
 var AB_ACC_NAMES = ['なし','丸メガネ','四角メガネ','アンダーリム','サングラス','帽子','リボン','ヘアバンド','ピアス','ネックレス','花冠','ベレー帽','ヘッドフォン'];
 var AB_FACE_SHAPE_NAMES = ['まるがお','おもなが','しかくめ','たまご','ホームベース','おにぎり','ほそおも','えら張り','ハート','ダイヤ','洋なし'];
@@ -2280,6 +2280,128 @@ function drawMouth(ctx, cx, my, faceR, type, lipColorIdx) {
       ctx.stroke();
       _drawCornerShadow(cx - mw * 0.68, my + mw * 0.02);
       _drawCornerShadow(cx + mw * 0.68, my + mw * 0.02);
+      break;
+    case 7: // アヒル口 — ぷっくり突き出した唇
+      // 上唇（大きくぷっくり）
+      ctx.beginPath();
+      ctx.moveTo(cx - mw * 0.5, my);
+      ctx.bezierCurveTo(cx - mw * 0.3, my - mw * 0.25, cx - mw * 0.08, my - mw * 0.3, cx, my - mw * 0.18);
+      ctx.bezierCurveTo(cx + mw * 0.08, my - mw * 0.3, cx + mw * 0.3, my - mw * 0.25, cx + mw * 0.5, my);
+      var ahiruTopGrad = ctx.createLinearGradient(cx, my - mw * 0.3, cx, my);
+      ahiruTopGrad.addColorStop(0, lipTop); ahiruTopGrad.addColorStop(1, lipDark);
+      ctx.fillStyle = ahiruTopGrad; ctx.fill();
+      // 下唇（さらにぷっくり）
+      ctx.beginPath();
+      ctx.moveTo(cx - mw * 0.5, my + mw * 0.02);
+      ctx.bezierCurveTo(cx - mw * 0.25, my + mw * 0.4, cx + mw * 0.25, my + mw * 0.4, cx + mw * 0.5, my + mw * 0.02);
+      var ahiruBotGrad = ctx.createLinearGradient(cx, my, cx, my + mw * 0.4);
+      ahiruBotGrad.addColorStop(0, lipBot); ahiruBotGrad.addColorStop(0.6, _skinLighter(lipBot, 15)); ahiruBotGrad.addColorStop(1, lipDark);
+      ctx.fillStyle = ahiruBotGrad; ctx.fill();
+      _drawLipHighlight(my + mw * 0.18, mw * 0.8);
+      // 口の線
+      ctx.beginPath();
+      ctx.moveTo(cx - mw * 0.48, my + mw * 0.01);
+      ctx.bezierCurveTo(cx - mw * 0.15, my + mw * 0.08, cx + mw * 0.15, my + mw * 0.08, cx + mw * 0.48, my + mw * 0.01);
+      ctx.strokeStyle = lipDark; ctx.lineWidth = faceR * 0.02; ctx.stroke();
+      _drawCornerShadow(cx - mw * 0.52, my + mw * 0.02);
+      _drawCornerShadow(cx + mw * 0.52, my + mw * 0.02);
+      break;
+    case 8: // への字 — 不満げな下がり口
+      ctx.beginPath();
+      ctx.moveTo(cx - mw * 0.55, my - mw * 0.12);
+      ctx.bezierCurveTo(cx - mw * 0.2, my - mw * 0.05, cx + mw * 0.1, my + mw * 0.08, cx + mw * 0.55, my + mw * 0.15);
+      ctx.strokeStyle = lipDark; ctx.lineWidth = faceR * 0.04; ctx.stroke();
+      // 上唇の薄い影
+      ctx.beginPath();
+      ctx.moveTo(cx - mw * 0.45, my - mw * 0.16);
+      ctx.bezierCurveTo(cx - mw * 0.15, my - mw * 0.12, cx + mw * 0.1, my + mw * 0.02, cx + mw * 0.45, my + mw * 0.1);
+      ctx.strokeStyle = 'rgba(180,80,80,0.25)'; ctx.lineWidth = faceR * 0.02; ctx.stroke();
+      _drawCornerShadow(cx - mw * 0.58, my - mw * 0.1);
+      _drawCornerShadow(cx + mw * 0.58, my + mw * 0.17);
+      break;
+    case 9: // ω口 — 猫口
+      // 上唇の中央がへこんでω型
+      ctx.beginPath();
+      ctx.moveTo(cx - mw * 0.55, my);
+      ctx.bezierCurveTo(cx - mw * 0.35, my + mw * 0.18, cx - mw * 0.1, my + mw * 0.08, cx, my + mw * 0.15);
+      ctx.bezierCurveTo(cx + mw * 0.1, my + mw * 0.08, cx + mw * 0.35, my + mw * 0.18, cx + mw * 0.55, my);
+      ctx.strokeStyle = lipDark; ctx.lineWidth = faceR * 0.035; ctx.stroke();
+      // 下の丸み
+      ctx.beginPath();
+      ctx.moveTo(cx - mw * 0.4, my + mw * 0.1);
+      ctx.bezierCurveTo(cx - mw * 0.15, my + mw * 0.3, cx + mw * 0.15, my + mw * 0.3, cx + mw * 0.4, my + mw * 0.1);
+      var omegaGrad = ctx.createLinearGradient(cx, my + mw * 0.1, cx, my + mw * 0.3);
+      omegaGrad.addColorStop(0, 'rgba(196,116,110,0.25)');
+      omegaGrad.addColorStop(1, 'rgba(180,100,95,0.1)');
+      ctx.fillStyle = omegaGrad; ctx.fill();
+      _drawLipHighlight(my + mw * 0.18, mw * 0.5);
+      _drawCornerShadow(cx - mw * 0.58, my + mw * 0.02);
+      _drawCornerShadow(cx + mw * 0.58, my + mw * 0.02);
+      break;
+    case 10: // キス — すぼめた唇
+      // 小さな丸い口
+      ctx.beginPath();
+      ctx.ellipse(cx, my + mw * 0.05, mw * 0.18, mw * 0.22, 0, 0, Math.PI * 2);
+      var kissGrad = ctx.createRadialGradient(cx, my + mw * 0.05, mw * 0.03, cx, my + mw * 0.05, mw * 0.22);
+      kissGrad.addColorStop(0, '#1a0a0b'); kissGrad.addColorStop(1, '#2D1517');
+      ctx.fillStyle = kissGrad; ctx.fill();
+      // 唇リング（ぷっくり）
+      ctx.beginPath();
+      ctx.ellipse(cx, my + mw * 0.05, mw * 0.22, mw * 0.26, 0, 0, Math.PI * 2);
+      var kissLipGrad = ctx.createLinearGradient(cx, my - mw * 0.2, cx, my + mw * 0.3);
+      kissLipGrad.addColorStop(0, lipTop); kissLipGrad.addColorStop(0.5, lipBot); kissLipGrad.addColorStop(1, lipDark);
+      ctx.strokeStyle = kissLipGrad; ctx.lineWidth = faceR * 0.045; ctx.stroke();
+      // ハイライト
+      if (detail) {
+        ctx.fillStyle = 'rgba(255,255,255,0.3)';
+        ctx.beginPath(); ctx.ellipse(cx - mw * 0.05, my - mw * 0.08, mw * 0.08, mw * 0.05, -0.3, 0, Math.PI * 2); ctx.fill();
+      }
+      break;
+    case 11: // 歯見せ — 上歯が見える笑顔
+      // 口内
+      ctx.beginPath();
+      ctx.moveTo(cx - mw * 0.7, my);
+      ctx.bezierCurveTo(cx - mw * 0.3, my + mw * 0.45, cx + mw * 0.3, my + mw * 0.45, cx + mw * 0.7, my);
+      ctx.bezierCurveTo(cx + mw * 0.3, my - mw * 0.08, cx - mw * 0.3, my - mw * 0.08, cx - mw * 0.7, my);
+      ctx.closePath();
+      var teethMouthGrad = ctx.createLinearGradient(cx, my, cx, my + mw * 0.45);
+      teethMouthGrad.addColorStop(0, '#1a0a0b'); teethMouthGrad.addColorStop(1, '#2D1517');
+      ctx.fillStyle = teethMouthGrad; ctx.fill();
+      // 歯（上の白い四角群）
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(cx - mw * 0.7, my);
+      ctx.bezierCurveTo(cx - mw * 0.3, my + mw * 0.45, cx + mw * 0.3, my + mw * 0.45, cx + mw * 0.7, my);
+      ctx.bezierCurveTo(cx + mw * 0.3, my - mw * 0.08, cx - mw * 0.3, my - mw * 0.08, cx - mw * 0.7, my);
+      ctx.closePath(); ctx.clip();
+      ctx.fillStyle = '#F8F8F0';
+      var tw = mw * 0.2, th = mw * 0.2;
+      for (var ti = -2; ti <= 2; ti++) {
+        var tx = cx + ti * tw - tw * 0.5;
+        ctx.beginPath();
+        ctx.roundRect(tx + mw * 0.02, my - mw * 0.02, tw - mw * 0.04, th, faceR * 0.01);
+        ctx.fill();
+      }
+      // 歯の隙間線
+      ctx.strokeStyle = 'rgba(200,190,180,0.4)'; ctx.lineWidth = Math.max(0.3, faceR * 0.008);
+      for (var tl = -2; tl <= 2; tl++) {
+        var tlx = cx + tl * tw - tw * 0.5 + tw;
+        ctx.beginPath(); ctx.moveTo(tlx, my - mw * 0.02); ctx.lineTo(tlx, my + th - mw * 0.02); ctx.stroke();
+      }
+      ctx.restore();
+      // 上唇
+      ctx.beginPath();
+      ctx.moveTo(cx - mw * 0.75, my);
+      ctx.bezierCurveTo(cx - mw * 0.4, my - mw * 0.15, cx - mw * 0.12, my - mw * 0.22, cx, my - mw * 0.1);
+      ctx.bezierCurveTo(cx + mw * 0.12, my - mw * 0.22, cx + mw * 0.4, my - mw * 0.15, cx + mw * 0.75, my);
+      ctx.strokeStyle = lipTop; ctx.lineWidth = faceR * 0.035; ctx.stroke();
+      // 下唇
+      ctx.beginPath();
+      ctx.moveTo(cx - mw * 0.6, my + mw * 0.02);
+      ctx.bezierCurveTo(cx - mw * 0.2, my + mw * 0.45, cx + mw * 0.2, my + mw * 0.45, cx + mw * 0.6, my + mw * 0.02);
+      ctx.strokeStyle = lipBot; ctx.lineWidth = faceR * 0.03; ctx.stroke();
+      _drawCornerShadow(cx - mw * 0.73, my + mw * 0.02);
+      _drawCornerShadow(cx + mw * 0.73, my + mw * 0.02);
       break;
   }
   ctx.restore();

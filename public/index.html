@@ -814,6 +814,23 @@ function abRenderBuilderUI(containerId, previewCanvasId) {
     html += '</div>';
   }
 
+  // スライダーヘルパー（先頭で定義）
+  function abSlider(key, label, min, max) {
+    return '<div style="display:flex; align-items:center; gap:4px; margin:4px 0;">' +
+      '<span style="font-size:0.65rem; color:#999; width:40px; flex-shrink:0;">' + label + '</span>' +
+      '<input type="range" min="' + min + '" max="' + max + '" value="' + (abState[key] || 0) + '" style="flex:1; height:20px; accent-color:#667eea;" oninput="abState[\'' + key + '\']=parseInt(this.value); _avatarCache={}; abUpdatePreview(\'' + previewCanvasId + '\'); selectedAvatar=abBuildString();">' +
+      '</div>';
+  }
+
+  // 輪郭（最初に選択）
+  html += '<div class="avatar-builder-row"><label>🫥 輪郭</label><div class="avatar-builder-options">';
+  AB_FACE_SHAPE_NAMES.forEach(function(name, i) {
+    html += '<div class="ab-icon-btn' + (abState.faceShape === i ? ' selected' : '') + '" onclick="abSelect(\'faceShape\',' + i + ',\'' + previewCanvasId + '\')">' + name + '</div>';
+  });
+  html += '</div>';
+  html += abSlider('sizeFace', '大きさ', -3, 3);
+  html += '</div>';
+
   // 肌の色
   html += '<div class="avatar-builder-row"><label>🎨 肌の色</label><div class="avatar-builder-options">';
   AB_SKINS.forEach(function(col, i) {
@@ -838,21 +855,6 @@ function abRenderBuilderUI(containerId, previewCanvasId) {
     html += '<div class="ab-color-circle' + (abState.hairColor === i ? ' selected' : '') + '" style="background:' + col + ';" onclick="abSelect(\'hairColor\',' + i + ',\'' + previewCanvasId + '\')"></div>';
   });
   html += '</div></div>';
-
-  // 輪郭
-  html += '<div class="avatar-builder-row"><label>🫥 輪郭</label><div class="avatar-builder-options">';
-  AB_FACE_SHAPE_NAMES.forEach(function(name, i) {
-    html += '<div class="ab-icon-btn' + (abState.faceShape === i ? ' selected' : '') + '" onclick="abSelect(\'faceShape\',' + i + ',\'' + previewCanvasId + '\')">' + name + '</div>';
-  });
-  html += '</div></div>';
-
-  // スライダーヘルパー
-  function abSlider(key, label, min, max) {
-    return '<div style="display:flex; align-items:center; gap:4px; margin:4px 0;">' +
-      '<span style="font-size:0.65rem; color:#999; width:40px; flex-shrink:0;">' + label + '</span>' +
-      '<input type="range" min="' + min + '" max="' + max + '" value="' + (abState[key] || 0) + '" style="flex:1; height:20px; accent-color:#667eea;" oninput="abState[\'' + key + '\']=parseInt(this.value); _avatarCache={}; abUpdatePreview(\'' + previewCanvasId + '\'); selectedAvatar=abBuildString();">' +
-      '</div>';
-  }
 
   // 耳
   html += '<div class="avatar-builder-row"><label>👂 耳</label><div class="avatar-builder-options">';

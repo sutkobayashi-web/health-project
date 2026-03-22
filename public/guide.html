@@ -933,11 +933,77 @@ body {
   </div>
 </div>
 
-<!-- ====== セクション12: セキュリティ対策 ====== -->
+<!-- ====== セクション12: AI プロンプト一覧 ====== -->
+<div class="guide-card theme-indigo" data-keywords="AI プロンプト Groq Gemini LLM モデル チャット 評価 分析">
+  <div class="guide-card-header">
+    <div class="guide-card-icon"><i class="fas fa-robot"></i></div>
+    <div class="guide-card-title">セクション12: AIプロンプト一覧</div>
+  </div>
+  <div class="guide-card-body">
+    <p>本システムでは<strong>22種のAIプロンプト</strong>を使用しています。<br>
+    テキスト処理には<strong>Groq（Llama 3.3 70B）</strong>、画像分析には<strong>Gemini Vision</strong>を使用。<br>
+    全プロンプトは<strong>18領域の公的ガイドライン</strong>をエビデンス基盤として参照しています。</p>
+
+    <div class="highlight-box">
+      <strong>共通ルール（全プロンプト）</strong><br>
+      ・エビデンスのない助言は絶対にしない<br>
+      ・マークダウン記法（**太字**や###見出し）は使用禁止。強調は【】で囲む<br>
+      ・助言時は必ず「📚 出典:」として根拠ガイドラインを明記<br>
+      ・行動変容フレームワーク: EAST / CAN / COM-B / ゴール&スモールステップを活用
+    </div>
+
+    <p style="margin-top:18px;"><strong>ユーザー向けAI（5種）</strong></p>
+    <table class="guide-table">
+      <thead><tr><th>機能</th><th>モデル</th><th>概要</th></tr></thead>
+      <tbody>
+        <tr><td><strong>AIヘルスアドバイザー（チャット）</strong></td><td>Groq</td><td>エビデンスに基づく健康相談チャット。コーチング重視、ティーチングより質問で気づきを促す</td></tr>
+        <tr><td><strong>初回あいさつ生成</strong></td><td>Groq</td><td>新規チャット開始時の自己紹介と健康に関するオープンな質問</td></tr>
+        <tr><td><strong>画像分析（食事・健診）</strong></td><td>Gemini Vision + Groq</td><td>食事写真の栄養分析（推定カロリー/PFC/良い点/不足/ちょい足し提案）。健診結果の数値解説</td></tr>
+        <tr><td><strong>投稿ケアコメント生成</strong></td><td>Groq</td><td>健康相談投稿に対するAIからの温かいケアコメント + 7軸自動評価スコア</td></tr>
+        <tr><td><strong>健康ナレッジBot</strong></td><td>Groq</td><td>健康経営の専門知識を平易な言葉で解説。ナッジ/EAST/CAN等のフレームワークも教育</td></tr>
+      </tbody>
+    </table>
+
+    <p style="margin-top:18px;"><strong>管理者向けAI（9種）</strong></p>
+    <table class="guide-table">
+      <thead><tr><th>機能</th><th>モデル</th><th>概要</th></tr></thead>
+      <tbody>
+        <tr><td><strong>7軸AI評価</strong></td><td>Groq</td><td>投稿をCOM-Bモデル準拠の7軸（法令/リスク/頻度/緊急/安全/価値/ニーズ）で1-5点評価</td></tr>
+        <tr><td><strong>総合7軸評価</strong></td><td>Groq</td><td>共感データ + メンバーコメント + 議論を統合した多角的7軸評価</td></tr>
+        <tr><td><strong>共感→スコア変換</strong></td><td>Groq</td><td>ハートリアクションの種別・件数から7軸スコアを自動算出</td></tr>
+        <tr><td><strong>AI会議シミュレーション</strong></td><td>Groq</td><td>11人のペルソナ（20代ドライバー/50代役員/保健師等）による議論を自動生成</td></tr>
+        <tr><td><strong>AIリアクション</strong></td><td>Groq</td><td>人間のコメントに対するAI会議メンバーの反応を1-2件生成</td></tr>
+        <tr><td><strong>専門家アドバイス</strong></td><td>Groq</td><td>健康経営コンサルタントとしての専門的助言</td></tr>
+        <tr><td><strong>栄養レポート生成</strong></td><td>Groq</td><td>ユーザーの食事履歴を分析し、傾向/良い点/改善点/目標のレポートを生成</td></tr>
+        <tr><td><strong>類似投稿検索</strong></td><td>Groq</td><td>テーマが似ている投稿をAIが分析してグルーピング</td></tr>
+        <tr><td><strong>テーマ自動凝集</strong></td><td>Groq</td><td>全投稿から3-5個の健康テーマを自動クラスタリング。共感データ・評価スコアを重み付け</td></tr>
+      </tbody>
+    </table>
+
+    <p style="margin-top:18px;"><strong>企画・チャレンジ生成AI（4種）</strong></p>
+    <table class="guide-table">
+      <thead><tr><th>機能</th><th>モデル</th><th>概要</th></tr></thead>
+      <tbody>
+        <tr><td><strong>アクションプラン生成</strong></td><td>Groq</td><td>現状分析/経営根拠/実行計画/KPI指標を含む企画書をMarkdownで自動生成</td></tr>
+        <tr><td><strong>3パターンアイデア</strong></td><td>Groq</td><td>小さく始める案/ゲーミフィケーション案/根本解決案の3パターンを提案</td></tr>
+        <tr><td><strong>企画書リファイン</strong></td><td>Groq</td><td>フィードバックを反映して企画書を改善。セクションごとの修正意図も出力</td></tr>
+        <tr><td><strong>チャレンジ自動設計</strong></td><td>Groq</td><td>30日間の任意参加プログラムを自動設計。EAST/COM-Bフレームワーク準拠、KPI定義、バッジシステム（初記録/7日連続/皆勤賞等）を含む</td></tr>
+      </tbody>
+    </table>
+
+    <div class="tip-box" style="margin-top:16px;">
+      <i class="fas fa-lightbulb" style="color:#4caf50;"></i>
+      全プロンプトは厚労省ガイドライン・日本糖尿病学会・日本高血圧学会等の<strong>18領域の公的エビデンス</strong>を共通基盤として参照しています。
+      詳細は <a href="/knowledge" style="color:#764ba2; font-weight:700;">学習ページ</a> をご覧ください。
+    </div>
+  </div>
+</div>
+
+<!-- ====== セクション13: セキュリティ対策 ====== -->
 <div class="guide-card theme-red" data-keywords="セキュリティ 認証 暗号化 HTTPS CORS レート制限 JWT">
   <div class="guide-card-header">
     <div class="guide-card-icon"><i class="fas fa-shield-alt"></i></div>
-    <div class="guide-card-title">セクション12: セキュリティ対策</div>
+    <div class="guide-card-title">セクション13: セキュリティ対策</div>
   </div>
   <div class="guide-card-body">
     <p>本システムは外部アクセス（大学関係者・保健師等）を想定し、以下のセキュリティ対策を実装しています。</p>

@@ -27,7 +27,6 @@ function getDb() {
     if (!vcCols.find(c => c.name === 'exec_comment')) {
       db.exec("ALTER TABLE vote_cycles ADD COLUMN exec_comment TEXT DEFAULT ''");
     }
-  }
     // マイグレーション: AI使用量ログテーブル
     db.exec(`CREATE TABLE IF NOT EXISTS ai_usage_log (
       id INTEGER PRIMARY KEY AUTOINCREMENT,

@@ -3529,10 +3529,6 @@ function renderAvatarGallery(data) {
     html += '</div>';
   });
   html += '</div>';
-  // アバター編集への導線
-  html += '<div style="margin-top:12px; text-align:center;">';
-  html += '<button onclick="openAbEditor(currentUser.avatar, saveAvatarChange)" style="background:linear-gradient(135deg,#ff9800,#f57c00); color:white; border:none; border-radius:12px; padding:10px 20px; font-weight:700; font-size:0.82rem; cursor:pointer; box-shadow:0 2px 8px rgba(255,152,0,0.3);"><i class="fas fa-edit" style="margin-right:6px;"></i>自分のアバターを編集</button>';
-  html += '</div>';
   document.getElementById('avatar-gallery-content').innerHTML = html;
 }
 

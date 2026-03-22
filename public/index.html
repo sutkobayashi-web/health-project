@@ -1430,6 +1430,22 @@ function onLoginSuccess() {
   loadThemeVoting();
   loadActiveChallenge();
   loadEmpathyAnswered();
+  checkUnreadNotices();
+  setInterval(checkUnreadNotices, 60000);
+}
+
+function checkUnreadNotices() {
+  if (!currentUser) return;
+  getAllNotices(currentUser.uid).then(function(notices) {
+    if (!notices || notices.length === 0) { updateInboxBadge(0); return; }
+    var readBroadcastIds = getReadBroadcastIds();
+    var unread = 0;
+    notices.forEach(function(n) {
+      var isRead = n.target_id === 'ALL' ? readBroadcastIds.indexOf(n.id) !== -1 : n.status === 'read';
+      if (!isRead) unread++;
+    });
+    updateInboxBadge(unread);
+  });
 }
 
 function updateProfileCard() {

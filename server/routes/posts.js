@@ -12,11 +12,16 @@ router.get('/public', (req, res) => {
   try {
     const pageIndex = parseInt(req.query.page) || 0;
     const viewerUid = req.query.uid || '';
+    const catFilter = req.query.cat || '';
     const limit = 10;
     const offset = pageIndex * limit;
     const db = getDb();
 
-    const posts = db.prepare(`SELECT * FROM posts WHERE status IN ('open','public','resolved','planned') ORDER BY created_at DESC LIMIT ? OFFSET ?`).all(limit + 1, offset);
+    let catWhere = '';
+    if (catFilter === 'consult') catWhere = " AND category = '相談'";
+    else if (catFilter === 'food') catWhere = " AND category LIKE '%食事%'";
+
+    const posts = db.prepare(`SELECT * FROM posts WHERE status IN ('open','public','resolved','planned')${catWhere} ORDER BY created_at DESC LIMIT ? OFFSET ?`).all(limit + 1, offset);
     const hasNext = posts.length > limit;
     const pagedPosts = posts.slice(0, limit);
 

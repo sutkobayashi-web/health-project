@@ -74,8 +74,8 @@ function getLatestUserStats(uid) {
 }
 
 // ===== Posts =====
-function getPublicPosts(page, viewerUid) {
-  return api('/posts/public?page=' + page + '&uid=' + (viewerUid || ''));
+function getPublicPosts(page, viewerUid, cat) {
+  return api('/posts/public?page=' + page + '&uid=' + (viewerUid || '') + (cat ? '&cat=' + cat : ''));
 }
 function processForm(data) {
   return api('/posts/submit', data);

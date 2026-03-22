@@ -502,6 +502,8 @@
       <div id="honne-body" style="display:none; margin-top:12px; padding-top:12px; border-top:1px solid rgba(214,51,132,0.2);">
         <textarea id="honne-input" placeholder="最近の体調や気になること、健康の悩みなど、なんでもどうぞ（みんなと共有されます）"></textarea>
         <button class="btn-submit" onclick="submitPost()"><i class="fas fa-paper-plane" style="margin-right:6px;"></i> 健康推進メンバーへ相談する</button>
+        <button style="width:100%; margin-top:8px; padding:12px; background:white; border:2px solid #d63384; color:#d63384; border-radius:14px; font-weight:700; font-size:0.88rem; cursor:pointer;" onclick="toggleCatTimeline('consult')"><i class="fas fa-stream" style="margin-right:6px;"></i>相談の投稿を見る</button>
+        <div id="cat-timeline-consult" style="display:none; margin-top:12px;"><div id="cat-tl-consult-content"></div><div style="display:flex; gap:8px; margin-top:8px;"><button style="flex:1; padding:10px; background:#f8f8f8; border:1px solid #ddd; border-radius:10px; font-size:0.8rem; font-weight:700; color:#555; cursor:pointer;" onclick="loadMoreCat('consult')">もっと見る</button><button style="flex:1; padding:10px; background:#fce4ec; border:none; border-radius:10px; font-size:0.8rem; font-weight:700; color:#d63384; cursor:pointer;" onclick="toggleCatTimeline('consult')">閉じる</button></div></div>
       </div>
     </div>
 
@@ -530,6 +532,8 @@
           <label for="food-confirm" style="font-size:0.82rem; color:#555; cursor:pointer; margin:0;">AI食事アドバイザーに診断してもらう</label>
         </div>
         <button class="btn-food-submit" id="btn-food-submit" onclick="submitFoodPost()"><i class="fas fa-notes-medical" style="margin-right:6px;"></i>食事診断を受ける</button>
+        <button style="width:100%; margin-top:8px; padding:12px; background:white; border:2px solid #20c997; color:#20c997; border-radius:14px; font-weight:700; font-size:0.88rem; cursor:pointer;" onclick="toggleCatTimeline('food')"><i class="fas fa-stream" style="margin-right:6px;"></i>食事の投稿を見る</button>
+        <div id="cat-timeline-food" style="display:none; margin-top:12px;"><div id="cat-tl-food-content"></div><div style="display:flex; gap:8px; margin-top:8px;"><button style="flex:1; padding:10px; background:#f8f8f8; border:1px solid #ddd; border-radius:10px; font-size:0.8rem; font-weight:700; color:#555; cursor:pointer;" onclick="loadMoreCat('food')">もっと見る</button><button style="flex:1; padding:10px; background:#e0f7ed; border:none; border-radius:10px; font-size:0.8rem; font-weight:700; color:#20c997; cursor:pointer;" onclick="toggleCatTimeline('food')">閉じる</button></div></div>
       </div>
     </div>
 
@@ -1706,6 +1710,38 @@ function generateQR() {
 }
 
 // ====== タイムライン ======
+// カテゴリ別タイムライン
+var catTimelinePages = { consult: 0, food: 0 };
+function toggleCatTimeline(cat) {
+  var el = document.getElementById('cat-timeline-' + cat);
+  if (!el) return;
+  if (el.style.display === 'none') {
+    el.style.display = 'block';
+    catTimelinePages[cat] = 0;
+    loadCatTimeline(cat, 0, true);
+  } else {
+    el.style.display = 'none';
+  }
+}
+function loadCatTimeline(cat, page, isReset) {
+  var contentEl = document.getElementById('cat-tl-' + cat + '-content');
+  if (!contentEl) return;
+  if (isReset) contentEl.innerHTML = '<div class="text-center p-3"><div class="spinner-border text-secondary" role="status"></div></div>';
+  getPublicPosts(page, currentUser.uid, cat).then(function(res) {
+    if (isReset) contentEl.innerHTML = '';
+    if (!res.posts || res.posts.length === 0) {
+      if (isReset) contentEl.innerHTML = '<div class="text-center text-muted py-4" style="font-size:0.85rem;">まだ投稿はありません</div>';
+      return;
+    }
+    var html = res.posts.map(function(p) { return renderPost(p); }).join('');
+    contentEl.insertAdjacentHTML('beforeend', html);
+  });
+}
+function loadMoreCat(cat) {
+  catTimelinePages[cat]++;
+  loadCatTimeline(cat, catTimelinePages[cat], false);
+}
+
 function toggleTimeline() {
   isTimelineOpen = !isTimelineOpen;
   var wrapper = document.getElementById('timeline-wrapper');

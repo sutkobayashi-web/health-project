@@ -108,7 +108,7 @@ function renderCustomAvatar(avatarStr, size) {
 
     // 位置オフセット計算（1単位 = faceR * 0.04）
     var eyeYOff = posEyeVal * faceR * 0.06;
-    var mouthYOff = posMouthVal * faceR * 0.12;
+    var mouthYOff = posMouthVal * faceR * 0.08;
     var noseYOff = posNoseVal * faceR * 0.06;
     var browYOff = posBrowVal * faceR * 0.06;
     var spacingOff = eyeSpacingVal * faceR * 0.045;
@@ -136,7 +136,8 @@ function renderCustomAvatar(avatarStr, size) {
     drawEyes(ctx, cx, eyeY, eyeSpacing, eyeSize, eyeType, faceR, eyeColor, lashType);
 
     // 鼻 — faceYベースで独立（口の位置に依存しない）
-    var mouthY = faceY + faceR * 0.35 + mouthYOff;
+    var mouthYRaw = faceY + faceR * 0.35 + mouthYOff;
+    var mouthY = Math.max(faceY + faceR * 0.05, mouthYRaw);
     var noseY = faceY + faceR * 0.18 + noseYOff;
     var noseFaceR = faceR * (1.5 + sizeNoseVal * 0.15);
     drawNose(ctx, cx, noseY, noseFaceR, noseType);

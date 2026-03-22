@@ -618,14 +618,7 @@ var avatarList = [
 <script>
 var _AVATAR_RENDER_LOADED = true; // 外部ファイルから読み込み済み
 
-function getAvatarHtml(avatarStr, size) {
-  if (!avatarStr) avatarStr = '😀';
-  if (avatarStr.startsWith('custom:')) {
-    var dataUrl = renderCustomAvatar(avatarStr, size * 2); // 2x for retina
-    if (dataUrl) return '<img src="' + dataUrl + '" class="avatar-img-inline" style="width:' + size + 'px;height:' + size + 'px;" alt="avatar">';
-  }
-  return '<span style="font-size:' + Math.round(size * 0.7) + 'px;line-height:1;">' + avatarStr + '</span>';
-}
+// getAvatarHtml は avatar-render.js 側で定義済み
 
 // ====== アバタービルダー状態 ======
 var abState = { skin: 2, hair: 1, hairColor: 0, eye: 0, mouth: 0, accessories: [0], bg: 0, faceSize: 0, eyebrow: 0, nose: 0, beard: 0, cheek: 0, faceShape: 0, eyeColor: 0, posEye: 0, posMouth: 0, posNose: 0, posBrow: 0, eyeSpacing: 0, sizeEye: 0, sizeNose: 0, sizeMouth: 0, posHair: 0, sizeHair: 0, widthHair: 0, sizeFace: 0, ear: 0, posEar: 0, sizeEar: 0, earSpacing: 0, lipColor: 0, eyeshadow: 0, lash: 0, cheekColor: 0 };

@@ -950,7 +950,7 @@ body {
         <tr><td><strong>HTTPS強制</strong></td><td>全通信をSSL/TLS（Let's Encrypt + Cloudflare）で暗号化。HTTP接続は自動的にHTTPSへリダイレクト</td></tr>
         <tr><td><strong>CORS制限</strong></td><td>APIへのアクセスを health.biz-terrace.org からのリクエストのみに限定。外部サイトからの不正呼び出しを防止</td></tr>
         <tr><td><strong>CSPヘッダー</strong></td><td>Content Security Policy により、XSS（クロスサイトスクリプティング）やクリックジャッキング攻撃を防止</td></tr>
-        <tr><td><strong>レート制限</strong></td><td>API全体: 15分あたり300リクエストまで。認証系（ログイン・登録）: 15分あたり15回まで。ブルートフォース攻撃を防止</td></tr>
+        <tr><td><strong>レート制限</strong></td><td>API全体: 15分あたり500リクエストまで。認証系（ログイン・登録）: 15分あたり50回まで。ブルートフォース攻撃を防止</td></tr>
         <tr><td><strong>JWT認証</strong></td><td>ログイン後に発行されるトークンで本人確認。有効期限24時間。秘密鍵は環境変数で厳格管理</td></tr>
         <tr><td><strong>管理API認証</strong></td><td>全ての管理操作（承認・評価・議論・バックアップ等）に管理者トークン認証が必須</td></tr>
         <tr><td><strong>パスワード保護</strong></td><td>bcryptハッシュで保存。平文パスワードはサーバーに保存されません</td></tr>

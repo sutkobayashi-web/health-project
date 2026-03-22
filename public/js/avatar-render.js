@@ -94,18 +94,20 @@ function renderCustomAvatar(avatarStr, size) {
     // 顔（輪郭形状反映）- 少し下寄せで髪との間隔を確保
     var faceR = r * faceSize / 24 * (1 + sizeFaceVal * 0.06);
     var faceY = cy + r * 0.08;
-    drawFace(ctx, cx, faceY, faceR, faceShapeType, skinColor, earType, posEarVal, sizeEarVal, earSpacingVal);
 
     // 髪のオフセット
     var hairYOff = posHairVal * faceR * 0.12;
     var hairScale = 1 + sizeHairVal * 0.08;
     var hairWidthScale = 1 + widthHairVal * 0.08;
 
-    // 髪（後ろ部分 - ロング・ボブなどのサイド）
+    // 髪（後ろ部分 - ポニテのテール等は顔の後ろに描画）
     ctx.save();
     ctx.translate(cx, 0); ctx.scale(hairWidthScale, 1); ctx.translate(-cx, 0);
     drawHairBack(ctx, cx, faceY + hairYOff, faceR * hairScale, hairType, hairColor);
     ctx.restore();
+
+    // 顔（後ろ髪の上に描画）
+    drawFace(ctx, cx, faceY, faceR, faceShapeType, skinColor, earType, posEarVal, sizeEarVal, earSpacingVal);
 
     // 位置オフセット計算（1単位 = faceR * 0.04）
     var eyeYOff = posEyeVal * faceR * 0.06;

@@ -529,7 +529,7 @@ function openEditUserModal(u) {
         { key: 'password', label: 'パスワード（変更時のみ）', type: 'password', placeholder: '未入力なら変更なし' },
         { key: 'avatar', label: 'アバター絵文字', value: u.avatar || '😀' },
         { key: 'real_name', label: '本名', value: u.real_name || '' },
-        { key: 'department', label: '部署', type: 'select', value: u.department || 'その他', options: [{ value: 'その他', label: 'その他' }, { value: '管理者', label: '管理者' }, { value: '事務', label: '事務' }, { value: '倉庫作業', label: '倉庫作業' }, { value: '営業', label: '営業' }, { value: '配送', label: '配送' }] },
+        { key: 'department', label: '部署', type: 'select', value: u.department || 'その他', options: [{ value: '管理者', label: '管理者' }, { value: '事務スタッフ', label: '事務スタッフ' }, { value: '配送スタッフ', label: '配送スタッフ' }, { value: '製造スタッフ', label: '製造スタッフ' }, { value: '倉庫スタッフ', label: '倉庫スタッフ' }, { value: 'その他', label: 'その他' }] },
         { key: 'birth_date', label: '生年月日', type: 'date', value: u.birth_date || '' }
     ], function() {
         var data = {

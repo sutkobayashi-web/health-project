@@ -1550,7 +1550,7 @@ function showRanking() {
   if (!popup || !content) return;
   content.innerHTML = '<div style="text-align:center; padding:16px;"><div class="spinner-border text-secondary" role="status"></div></div>';
   popup.style.display = 'block';
-  fetch('/auth/ranking').then(function(r){return r.json();}).then(function(res) {
+  fetch('/api/auth/ranking').then(function(r){return r.json();}).then(function(res) {
     if (!res || !res.success) { content.innerHTML = '<p style="color:#999;">データを取得できませんでした</p>'; return; }
     var medals = ['🥇','🥈','🥉','4','5'];
     function renderRankList(title, icon, list) {

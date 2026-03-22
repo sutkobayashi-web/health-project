@@ -143,9 +143,8 @@ AvatarAssets.preloadAll();
 // ====== メイン描画関数（モンタージュ優先、フォールバックで旧Canvas） ======
 function renderCustomAvatar(avatarStr, size) {
   if (!avatarStr || !avatarStr.startsWith('custom:')) return null;
-  // モンタージュ式が利用可能ならそちらを使う
-  if (AvatarAssets.isLoaded) return renderMontageAvatar(avatarStr, size);
-  // フォールバック: 旧Canvas描画
+  // TODO: モンタージュ式は開発中。旧Canvas描画を使用
+  // if (AvatarAssets.isLoaded) return renderMontageAvatar(avatarStr, size);
   return renderLegacyAvatar(avatarStr, size);
 }
 

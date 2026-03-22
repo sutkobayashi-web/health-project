@@ -380,12 +380,12 @@
 
 <!-- バッジ情報ポップアップ -->
 <div id="badge-info-popup" style="display:none; position:fixed; bottom:0; left:0; width:100%; z-index:6000; padding:0 12px 12px;">
-  <div style="background:white; border-radius:16px; box-shadow:0 -4px 20px rgba(0,0,0,0.15); padding:18px; max-width:420px; margin:0 auto; animation:badgePopIn 0.25s ease-out;">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+  <div style="background:white; border-radius:16px; box-shadow:0 -4px 20px rgba(0,0,0,0.15); padding:18px; max-width:420px; margin:0 auto; animation:badgePopIn 0.25s ease-out; max-height:75vh; display:flex; flex-direction:column;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-shrink:0;">
       <div style="font-weight:800; font-size:0.9rem; color:#2c3e50;"><i class="fas fa-info-circle" style="color:#667eea; margin-right:4px;"></i>ステータス情報</div>
       <button onclick="document.getElementById('badge-info-popup').style.display='none'" style="background:none; border:none; font-size:1rem; color:#aaa; cursor:pointer;"><i class="fas fa-times"></i></button>
     </div>
-    <div id="badge-info-content"></div>
+    <div id="badge-info-content" style="overflow-y:auto; -webkit-overflow-scrolling:touch; flex:1;"></div>
   </div>
 </div>
 <style>

@@ -135,9 +135,9 @@ function renderCustomAvatar(avatarStr, size) {
     // 目
     drawEyes(ctx, cx, eyeY, eyeSpacing, eyeSize, eyeType, faceR, eyeColor, lashType);
 
-    // 鼻
+    // 鼻 — faceYベースで独立（口の位置に依存しない）
     var mouthY = faceY + faceR * 0.35 + mouthYOff;
-    var noseY = (eyeY + mouthY) / 2 + noseYOff;
+    var noseY = faceY + faceR * 0.18 + noseYOff;
     var noseFaceR = faceR * (1.5 + sizeNoseVal * 0.15);
     drawNose(ctx, cx, noseY, noseFaceR, noseType);
 

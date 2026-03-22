@@ -454,7 +454,7 @@
     <!-- プロフィールカード -->
     <div class="card-section" style="background:linear-gradient(135deg, #f0f4ff 0%, #e8ecff 100%); text-align:center; padding:18px;">
       <div style="display:flex; align-items:center; gap:14px;">
-        <div id="profile-avatar" onclick="showRanking()" style="width:64px; height:64px; border-radius:50%; overflow:hidden; border:3px solid #fff; box-shadow:0 4px 12px rgba(0,0,0,0.1); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:2rem; background:#f0f0f0; cursor:pointer;"></div>
+        <div id="profile-avatar" onclick="showRanking()" style="width:80px; height:80px; border-radius:50%; overflow:hidden; border:3px solid #fff; box-shadow:0 4px 12px rgba(0,0,0,0.1); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:2.5rem; background:#f0f0f0; cursor:pointer;"></div>
         <div style="flex:1; text-align:left;">
           <div style="display:flex; align-items:center; gap:8px;">
             <span style="font-weight:800; font-size:1.05rem; color:#2c3e50;" id="profile-nickname">--</span>
@@ -1431,7 +1431,7 @@ function onLoginSuccess() {
 function updateProfileCard() {
   if (!currentUser) return;
   var avEl = document.getElementById('profile-avatar');
-  if (avEl) avEl.innerHTML = getAvatarHtml(currentUser.avatar, 58);
+  if (avEl) avEl.innerHTML = getAvatarHtml(currentUser.avatar, 74);
   var nickEl = document.getElementById('profile-nickname');
   if (nickEl) nickEl.innerText = currentUser.nickname || '--';
   var deptEl = document.getElementById('profile-dept');

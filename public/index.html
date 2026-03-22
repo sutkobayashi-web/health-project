@@ -751,7 +751,7 @@ function abInitDrag(canvas) {
     } else {
       delta = (getY(e) - _abDragStartY) / 15;
     }
-    var limits = { posEye:[-4,4], posBrow:[-4,4], posNose:[-3,3], posMouth:[-4,4], eyeSpacing:[-3,3], sizeEye:[-3,3], sizeNose:[-2,2], sizeMouth:[-2,2], posHair:[-4,4], sizeHair:[-3,3], widthHair:[-3,3], sizeFace:[-3,3], posAcc:[-4,4], sizeAcc:[-3,3], sizeBrow:[-3,3], posBeard:[-4,4], sizeBeard:[-3,3], posCheek:[-4,4], sizeCheek:[-3,3], posLip:[-4,4], sizeLip:[-3,3] };
+    var limits = { posEye:[-4,4], posBrow:[-4,4], posNose:[-3,3], posMouth:[-6,6], eyeSpacing:[-3,3], sizeEye:[-3,3], sizeNose:[-2,2], sizeMouth:[-2,2], posHair:[-4,4], sizeHair:[-3,3], widthHair:[-3,3], sizeFace:[-3,3], posAcc:[-4,4], sizeAcc:[-3,3], sizeBrow:[-3,3], posBeard:[-4,4], sizeBeard:[-3,3], posCheek:[-4,4], sizeCheek:[-3,3], posLip:[-4,4], sizeLip:[-3,3] };
     var lim = limits[_abDragPart] || [-4,4];
     var newVal = Math.round(Math.max(lim[0], Math.min(lim[1], _abDragStartVal + delta)));
     if (abState[_abDragPart] !== newVal) {
@@ -920,7 +920,7 @@ function abRenderBuilderUI(containerId, previewCanvasId) {
     html += '<div class="ab-icon-btn' + (abState.mouth === i ? ' selected' : '') + '" onclick="abSelect(\'mouth\',' + i + ',\'' + previewCanvasId + '\')">' + name + '</div>';
   });
   html += '</div>';
-  html += abSlider('posMouth', '高さ', -4, 4);
+  html += abSlider('posMouth', '高さ', -6, 6);
   html += abSlider('sizeMouth', '大きさ', -2, 2);
   html += '</div>';
 

@@ -108,7 +108,7 @@ function renderCustomAvatar(avatarStr, size) {
 
     // 位置オフセット計算（1単位 = faceR * 0.04）
     var eyeYOff = posEyeVal * faceR * 0.06;
-    var mouthYOff = posMouthVal * faceR * 0.06;
+    var mouthYOff = posMouthVal * faceR * 0.12;
     var noseYOff = posNoseVal * faceR * 0.06;
     var browYOff = posBrowVal * faceR * 0.06;
     var spacingOff = eyeSpacingVal * faceR * 0.045;

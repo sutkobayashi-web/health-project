@@ -980,11 +980,16 @@ function abRenderBuilderUI(containerId, previewCanvasId) {
   setTimeout(function() { abUpdatePreview(previewCanvasId); }, 50);
 }
 
+function _getContainerId(previewCanvasId) {
+  if (previewCanvasId === 'reg-preview-canvas') return 'reg-builder-container';
+  if (previewCanvasId === 'profile-edit-preview-canvas') return 'profile-edit-builder-container';
+  if (previewCanvasId === 'ab-editor-preview-canvas') return 'ab-editor-parts-container';
+  return 'change-builder-container';
+}
 function abSelect(prop, val, previewCanvasId) {
   abState[prop] = val;
   _avatarCache = {};
-  var containerId = previewCanvasId === 'reg-preview-canvas' ? 'reg-builder-container' : previewCanvasId === 'profile-edit-preview-canvas' ? 'profile-edit-builder-container' : 'change-builder-container';
-  abRenderBuilderUI(containerId, previewCanvasId);
+  abRenderBuilderUI(_getContainerId(previewCanvasId), previewCanvasId);
   selectedAvatar = abBuildString();
 }
 
@@ -999,8 +1004,7 @@ function abToggleAcc(idx, previewCanvasId) {
     if (abState.accessories.length === 0) abState.accessories = [0];
   }
   _avatarCache = {};
-  var containerId = previewCanvasId === 'reg-preview-canvas' ? 'reg-builder-container' : previewCanvasId === 'profile-edit-preview-canvas' ? 'profile-edit-builder-container' : 'change-builder-container';
-  abRenderBuilderUI(containerId, previewCanvasId);
+  abRenderBuilderUI(_getContainerId(previewCanvasId), previewCanvasId);
   selectedAvatar = abBuildString();
 }
 

@@ -219,14 +219,14 @@ router.post('/update-profile', (req, res) => {
 // パスワード変更
 router.post('/change-password', (req, res) => {
   try {
-    const { uid, currentPassword, newPassword } = req.body;
-    if (!uid || !currentPassword || !newPassword) return res.json({ success: false, msg: '必須項目が不足しています' });
-    if (newPassword.length < 4) return res.json({ success: false, msg: 'パスワードは4文字以上で設定してください' });
+    const { uid, birthDate, newPassword } = req.body;
+    if (!uid || !birthDate) return res.json({ success: false, msg: '生年月日を入力してください' });
+    if (!newPassword || newPassword.length < 4) return res.json({ success: false, msg: 'パスワードは4文字以上で設定してください' });
     const db = getDb();
-    const user = db.prepare('SELECT password_hash FROM users WHERE id = ?').get(uid);
+    const user = db.prepare('SELECT birth_date FROM users WHERE id = ?').get(uid);
     if (!user) return res.json({ success: false, msg: 'ユーザーが見つかりません' });
-    if (!bcrypt.compareSync(currentPassword, user.password_hash)) {
-      return res.json({ success: false, msg: '現在のパスワードが正しくありません' });
+    if (!user.birth_date || user.birth_date !== birthDate) {
+      return res.json({ success: false, msg: '生年月日が一致しません' });
     }
     const newHash = bcrypt.hashSync(newPassword, 10);
     db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(newHash, uid);

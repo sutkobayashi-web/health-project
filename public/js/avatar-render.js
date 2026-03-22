@@ -95,38 +95,29 @@ function renderMontageAvatar(avatarStr, size) {
   baseCanvas.width = 400; baseCanvas.height = 400;
   var ctx = baseCanvas.getContext('2d');
 
-  var drawLayer = function(type, index, color, offsetY) {
+  var drawLayer = function(type, index, offsetY) {
     if (index === null || index === undefined || index < 0) return;
     var img = AvatarAssets.images[type + '_' + index];
-    if (img) {
-      var renderImg = getTintedImage(img, color || null);
-      if (renderImg) ctx.drawImage(renderImg, 0, offsetY || 0, 400, 400);
-    }
+    if (img) ctx.drawImage(img, 0, offsetY || 0, 400, 400);
   };
-
-  var skinColor = (typeof AB_SKINS !== 'undefined') ? AB_SKINS[state.skin] : null;
-  var hairColor = (typeof AB_HAIRS !== 'undefined') ? AB_HAIRS[state.hairColor] : null;
-  var eyeColor = (typeof AB_EYE_COLORS !== 'undefined') ? AB_EYE_COLORS[state.eyeColor] : null;
-  var cheekColor = (typeof AB_CHEEK_COLORS !== 'undefined') ? AB_CHEEK_COLORS[state.cheekColor] : null;
-  if (cheekColor && cheekColor.endsWith(',')) cheekColor += '0.5)';
 
   var eyeOffset = (state.posEye || 0) * 5;
   var browOffset = (state.posBrow || 0) * 5;
   var mouthOffset = (state.posMouth || 0) * 5;
 
   drawLayer('bg', state.bg);
-  drawLayer('face', state.faceShape, skinColor);
-  drawLayer('ear', state.ear, skinColor);
+  drawLayer('face', state.faceShape);
+  drawLayer('ear', state.ear);
   drawLayer('eyeshadow', state.eyeshadow);
-  drawLayer('eyes', state.eye, eyeColor, eyeOffset);
-  drawLayer('lash', state.lash, null, eyeOffset);
-  drawLayer('eyebrow', state.eyebrow, hairColor, browOffset);
+  drawLayer('eyes', state.eye, eyeOffset);
+  drawLayer('lash', state.lash, eyeOffset);
+  drawLayer('eyebrow', state.eyebrow, browOffset);
   drawLayer('nose', state.nose);
-  drawLayer('mouth', state.mouth, null, mouthOffset);
-  drawLayer('lip', state.lipColor, null, mouthOffset);
-  drawLayer('cheek', state.cheek, cheekColor);
-  drawLayer('beard', state.beard, hairColor);
-  drawLayer('hair', state.hair, hairColor);
+  drawLayer('mouth', state.mouth, mouthOffset);
+  drawLayer('lip', state.lipColor, mouthOffset);
+  drawLayer('cheek', state.cheek);
+  drawLayer('beard', state.beard);
+  drawLayer('hair', state.hair);
   if (Array.isArray(state.accessories)) {
     state.accessories.forEach(function(accIndex) { drawLayer('acc', accIndex); });
   }

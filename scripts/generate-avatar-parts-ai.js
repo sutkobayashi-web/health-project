@@ -13,7 +13,7 @@ const path = require('path');
 
 const API_KEY = process.env.GEMINI_API_KEY;
 const OUTPUT_DIR = path.join(__dirname, '..', 'public', 'img', 'avatar');
-const MODEL = 'gemini-2.0-flash-exp';
+const MODEL = 'gemini-2.5-flash-image';
 
 // 生成間隔（レート制限対策、ミリ秒）
 const DELAY_MS = 3000;
@@ -168,8 +168,7 @@ async function generateImage(prompt) {
     body: JSON.stringify({
       contents: [{ parts: [{ text: prompt }] }],
       generationConfig: {
-        responseModalities: ['IMAGE', 'TEXT'],
-        imageMimeType: 'image/png'
+        responseModalities: ['IMAGE', 'TEXT']
       }
     })
   });

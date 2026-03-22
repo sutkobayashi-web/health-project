@@ -3246,7 +3246,7 @@ function updateInboxBadge(count) {
   if (dot) dot.style.display = count > 0 ? 'block' : 'none';
   var fabBadge = document.getElementById('fab-inbox-badge');
   if (fabBadge) {
-    if (count > 0) { fabBadge.style.display = 'inline'; fabBadge.innerText = count + '件'; }
+    if (count > 0) { fabBadge.style.display = 'inline'; fabBadge.innerText = '新着あり'; }
     else { fabBadge.style.display = 'none'; }
   }
 }

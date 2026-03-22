@@ -70,6 +70,9 @@ function renderCustomAvatar(avatarStr, size) {
     var eyeshadowType = parseInt(parts[31]) || 0;
     var lashType = parseInt(parts[32]) || 0;
     var cheekColorIdx = parseInt(parts[33]) || 0;
+    // アクセサリー位置・大きさ（v4追加、後方互換）
+    var posAccVal = parseInt(parts[34]) || 0;
+    var sizeAccVal = parseInt(parts[35]) || 0;
 
     var canvas = document.createElement('canvas');
     canvas.width = size; canvas.height = size;
@@ -141,8 +144,10 @@ function renderCustomAvatar(avatarStr, size) {
     ctx.restore();
 
     // アクセサリー
+    var accYOff = posAccVal * faceR * 0.06;
+    var accScale = 1 + sizeAccVal * 0.08;
     accessories.forEach(function(acc) {
-      drawAccessory(ctx, cx, faceY, eyeY, faceR, eyeSpacing, acc, hairColor);
+      drawAccessory(ctx, cx, faceY, eyeY, faceR, eyeSpacing, acc, hairColor, accYOff, accScale);
     });
 
     var dataUrl = canvas.toDataURL('image/png');
@@ -3466,11 +3471,18 @@ function drawHair(ctx, cx, faceY, faceR, type, color) {
   ctx.restore();
 }
 
-function drawAccessory(ctx, cx, faceY, eyeY, faceR, eyeSpacing, acc, hairColor) {
+function drawAccessory(ctx, cx, faceY, eyeY, faceR, eyeSpacing, acc, hairColor, accYOff, accScale) {
   if (acc === 0) return;
+  accYOff = accYOff || 0;
+  accScale = accScale || 1;
   var lx = cx - eyeSpacing, rx = cx + eyeSpacing;
   var detail = faceR >= 20;
   ctx.save();
+  // 位置・大きさ調整を適用
+  ctx.translate(cx, eyeY + accYOff);
+  ctx.scale(accScale, accScale);
+  ctx.translate(-cx, -(eyeY + accYOff));
+  ctx.translate(0, accYOff);
   switch(acc) {
     case 1: // 丸メガネ
       var gr = faceR * 0.18;

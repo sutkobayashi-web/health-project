@@ -141,16 +141,16 @@ function renderCustomAvatar(avatarStr, size) {
     var noseFaceR = faceR * (1.5 + sizeNoseVal * 0.15);
     drawNose(ctx, cx, noseY, noseFaceR, noseType);
 
-    // 口（リップカラー対応）— 口の位置は独立
+    // 口（リップ含む）— mouthYOffで位置調整、リップスライダーで追加オフセット
     var lipYOff = posLipVal * faceR * 0.05;
     var lipScale = 1 + sizeLipVal * 0.1;
     var mouthFaceR = faceR * (1 + sizeMouthVal * 0.1);
-    var lipBaseY = faceY + faceR * 0.35 + lipYOff;
+    var finalMouthY = mouthY + lipYOff;
     ctx.save();
-    ctx.translate(cx, lipBaseY);
+    ctx.translate(cx, finalMouthY);
     ctx.scale(lipScale, lipScale);
-    ctx.translate(-cx, -lipBaseY);
-    drawMouth(ctx, cx, lipBaseY, mouthFaceR, mouthType, lipColorIdx);
+    ctx.translate(-cx, -finalMouthY);
+    drawMouth(ctx, cx, finalMouthY, mouthFaceR, mouthType, lipColorIdx);
     ctx.restore();
 
     // ヒゲ — 独立した位置制御

@@ -2233,9 +2233,11 @@ function hideLoading() { document.getElementById('loading-overlay').style.displa
 }
 #fab-main-btn.open { transform: rotate(45deg); }
 #fab-main-btn .fab-notify {
-  position: absolute; top: -2px; right: -2px;
-  width: 16px; height: 16px; background: #ff1744;
-  border-radius: 50%; border: 2px solid white;
+  position: absolute; top: -8px; right: -30px;
+  background: #ff1744; color: white;
+  font-size: 0.55rem; font-weight: 800;
+  padding: 2px 6px; border-radius: 8px;
+  border: 2px solid white; white-space: nowrap;
   display: none; animation: nPulse 1.5s infinite;
 }
 #fab-speed-items {
@@ -3243,7 +3245,7 @@ function updateInboxBadge(count) {
   }
   // スピードダイヤルの通知ドットとバッジ
   var dot = document.getElementById('fab-notify-dot');
-  if (dot) dot.style.display = count > 0 ? 'block' : 'none';
+  if (dot) { dot.style.display = count > 0 ? 'block' : 'none'; dot.innerText = count > 0 ? '新着あり' : ''; }
   var fabBadge = document.getElementById('fab-inbox-badge');
   if (fabBadge) {
     if (count > 0) { fabBadge.style.display = 'inline'; fabBadge.innerText = '新着あり'; }

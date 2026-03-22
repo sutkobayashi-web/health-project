@@ -621,12 +621,12 @@ var _AVATAR_RENDER_LOADED = true; // 外部ファイルから読み込み済み
 // getAvatarHtml は avatar-render.js 側で定義済み
 
 // ====== アバタービルダー状態 ======
-var abState = { skin: 2, hair: 1, hairColor: 0, eye: 0, mouth: 0, accessories: [0], bg: 0, faceSize: 0, eyebrow: 0, nose: 0, beard: 0, cheek: 0, faceShape: 0, eyeColor: 0, posEye: 0, posMouth: 0, posNose: 0, posBrow: 0, eyeSpacing: 0, sizeEye: 0, sizeNose: 0, sizeMouth: 0, posHair: 0, sizeHair: 0, widthHair: 0, sizeFace: 0, ear: 0, posEar: 0, sizeEar: 0, earSpacing: 0, lipColor: 0, eyeshadow: 0, lash: 0, cheekColor: 0, posAcc: 0, sizeAcc: 0 };
+var abState = { skin: 2, hair: 1, hairColor: 0, eye: 0, mouth: 0, accessories: [0], bg: 0, faceSize: 0, eyebrow: 0, nose: 0, beard: 0, cheek: 0, faceShape: 0, eyeColor: 0, posEye: 0, posMouth: 0, posNose: 0, posBrow: 0, eyeSpacing: 0, sizeEye: 0, sizeNose: 0, sizeMouth: 0, posHair: 0, sizeHair: 0, widthHair: 0, sizeFace: 0, ear: 0, posEar: 0, sizeEar: 0, earSpacing: 0, lipColor: 0, eyeshadow: 0, lash: 0, cheekColor: 0, posAcc: 0, sizeAcc: 0, sizeBrow: 0, posBeard: 0, sizeBeard: 0, posCheek: 0, sizeCheek: 0, posLip: 0, sizeLip: 0 };
 
 function abBuildString() {
   var accs = abState.accessories.filter(function(a) { return a > 0; });
   if (accs.length === 0) accs = [0];
-  return 'custom:' + AB_SKINS[abState.skin] + '|' + AB_HAIRS[abState.hairColor] + '|' + AB_BGS[abState.bg] + '|' + AB_FACES[abState.faceSize] + '|' + abState.eye + '|' + abState.mouth + '|' + accs.join(',') + '|' + abState.hair + '|' + abState.eyebrow + '|' + abState.nose + '|' + abState.beard + '|' + abState.cheek + '|' + abState.faceShape + '|' + abState.eyeColor + '|' + abState.posEye + '|' + abState.posMouth + '|' + abState.posNose + '|' + abState.posBrow + '|' + abState.eyeSpacing + '|' + abState.sizeEye + '|' + abState.sizeNose + '|' + abState.sizeMouth + '|' + abState.posHair + '|' + abState.sizeHair + '|' + abState.sizeFace + '|' + abState.widthHair + '|' + abState.ear + '|' + abState.posEar + '|' + abState.sizeEar + '|' + abState.earSpacing + '|' + abState.lipColor + '|' + abState.eyeshadow + '|' + abState.lash + '|' + abState.cheekColor + '|' + abState.posAcc + '|' + abState.sizeAcc;
+  return 'custom:' + AB_SKINS[abState.skin] + '|' + AB_HAIRS[abState.hairColor] + '|' + AB_BGS[abState.bg] + '|' + AB_FACES[abState.faceSize] + '|' + abState.eye + '|' + abState.mouth + '|' + accs.join(',') + '|' + abState.hair + '|' + abState.eyebrow + '|' + abState.nose + '|' + abState.beard + '|' + abState.cheek + '|' + abState.faceShape + '|' + abState.eyeColor + '|' + abState.posEye + '|' + abState.posMouth + '|' + abState.posNose + '|' + abState.posBrow + '|' + abState.eyeSpacing + '|' + abState.sizeEye + '|' + abState.sizeNose + '|' + abState.sizeMouth + '|' + abState.posHair + '|' + abState.sizeHair + '|' + abState.sizeFace + '|' + abState.widthHair + '|' + abState.ear + '|' + abState.posEar + '|' + abState.sizeEar + '|' + abState.earSpacing + '|' + abState.lipColor + '|' + abState.eyeshadow + '|' + abState.lash + '|' + abState.cheekColor + '|' + abState.posAcc + '|' + abState.sizeAcc + '|' + abState.sizeBrow + '|' + abState.posBeard + '|' + abState.sizeBeard + '|' + abState.posCheek + '|' + abState.sizeCheek + '|' + abState.posLip + '|' + abState.sizeLip;
 }
 
 function abParseString(str) {
@@ -670,6 +670,13 @@ function abParseString(str) {
     abState.cheekColor = parseInt(parts[33]) || 0;
     abState.posAcc = parseInt(parts[34]) || 0;
     abState.sizeAcc = parseInt(parts[35]) || 0;
+    abState.sizeBrow = parseInt(parts[36]) || 0;
+    abState.posBeard = parseInt(parts[37]) || 0;
+    abState.sizeBeard = parseInt(parts[38]) || 0;
+    abState.posCheek = parseInt(parts[39]) || 0;
+    abState.sizeCheek = parseInt(parts[40]) || 0;
+    abState.posLip = parseInt(parts[41]) || 0;
+    abState.sizeLip = parseInt(parts[42]) || 0;
   } catch(e) {}
 }
 
@@ -873,6 +880,7 @@ function abRenderBuilderUI(containerId, previewCanvasId) {
   });
   html += '</div>';
   html += abSlider('posBrow', '高さ', -4, 4);
+  html += abSlider('sizeBrow', '大きさ', -3, 3);
   html += '</div>';
 
   // 目
@@ -918,14 +926,20 @@ function abRenderBuilderUI(containerId, previewCanvasId) {
   AB_BEARD_NAMES.forEach(function(name, i) {
     html += '<div class="ab-icon-btn' + (abState.beard === i ? ' selected' : '') + '" onclick="abSelect(\'beard\',' + i + ',\'' + previewCanvasId + '\')">' + name + '</div>';
   });
-  html += '</div></div>';
+  html += '</div>';
+  html += abSlider('posBeard', '高さ', -4, 4);
+  html += abSlider('sizeBeard', '大きさ', -3, 3);
+  html += '</div>';
 
   // ほっぺた
   html += '<div class="avatar-builder-row"><label>🩷 ほっぺた</label><div class="avatar-builder-options">';
   AB_CHEEK_NAMES.forEach(function(name, i) {
     html += '<div class="ab-icon-btn' + (abState.cheek === i ? ' selected' : '') + '" onclick="abSelect(\'cheek\',' + i + ',\'' + previewCanvasId + '\')">' + name + '</div>';
   });
-  html += '</div></div>';
+  html += '</div>';
+  html += abSlider('posCheek', '高さ', -4, 4);
+  html += abSlider('sizeCheek', '大きさ', -3, 3);
+  html += '</div>';
 
   // --- 化粧セクション ---
   html += '<div style="margin:10px 0 6px; padding:6px 10px; background:linear-gradient(135deg,#fce4ec,#f3e5f5); border-radius:10px; font-size:0.75rem; font-weight:700; color:#c2185b; text-align:center;">💄 メイク</div>';
@@ -935,7 +949,10 @@ function abRenderBuilderUI(containerId, previewCanvasId) {
   AB_LIP_COLOR_NAMES.forEach(function(name, i) {
     html += '<div class="ab-icon-btn' + (abState.lipColor === i ? ' selected' : '') + '" style="position:relative;" onclick="abSelect(\'lipColor\',' + i + ',\'' + previewCanvasId + '\')"><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:' + AB_LIP_COLORS[i] + ';margin-right:3px;vertical-align:middle;"></span>' + name + '</div>';
   });
-  html += '</div></div>';
+  html += '</div>';
+  html += abSlider('posLip', '高さ', -4, 4);
+  html += abSlider('sizeLip', '大きさ', -3, 3);
+  html += '</div>';
 
   // アイシャドウ
   html += '<div class="avatar-builder-row"><label>👁 アイシャドウ</label><div class="avatar-builder-options">';

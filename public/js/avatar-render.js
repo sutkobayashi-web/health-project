@@ -73,6 +73,14 @@ function renderCustomAvatar(avatarStr, size) {
     // アクセサリー位置・大きさ（v4追加、後方互換）
     var posAccVal = parseInt(parts[34]) || 0;
     var sizeAccVal = parseInt(parts[35]) || 0;
+    // v5追加パラメータ
+    var sizeBrowVal = parseInt(parts[36]) || 0;
+    var posBeardVal = parseInt(parts[37]) || 0;
+    var sizeBeardVal = parseInt(parts[38]) || 0;
+    var posCheekVal = parseInt(parts[39]) || 0;
+    var sizeCheekVal = parseInt(parts[40]) || 0;
+    var posLipVal = parseInt(parts[41]) || 0;
+    var sizeLipVal = parseInt(parts[42]) || 0;
 
     var canvas = document.createElement('canvas');
     canvas.width = size; canvas.height = size;
@@ -111,7 +119,13 @@ function renderCustomAvatar(avatarStr, size) {
     var eyeSize = faceR * (0.045 + sizeEyeVal * 0.015);
 
     // 眉毛
+    var browScale = 1 + sizeBrowVal * 0.1;
+    ctx.save();
+    ctx.translate(cx, eyeY + browYOff);
+    ctx.scale(browScale, browScale);
+    ctx.translate(-cx, -(eyeY + browYOff));
     drawEyebrows(ctx, cx, eyeY + browYOff, eyeSpacing, faceR, eyebrowType);
+    ctx.restore();
 
     // アイシャドウ（目の前に描画）
     if (eyeshadowType > 0 && AB_EYESHADOW_COLORS[eyeshadowType]) {
@@ -128,14 +142,35 @@ function renderCustomAvatar(avatarStr, size) {
     drawNose(ctx, cx, noseY, noseFaceR, noseType);
 
     // 口（リップカラー対応）
+    var lipYOff = posLipVal * faceR * 0.04;
+    var lipScale = 1 + sizeLipVal * 0.1;
     var mouthFaceR = faceR * (1 + sizeMouthVal * 0.1);
-    drawMouth(ctx, cx, mouthY, mouthFaceR, mouthType, lipColorIdx);
+    ctx.save();
+    ctx.translate(cx, mouthY + lipYOff);
+    ctx.scale(lipScale, lipScale);
+    ctx.translate(-cx, -(mouthY + lipYOff));
+    drawMouth(ctx, cx, mouthY + lipYOff, mouthFaceR, mouthType, lipColorIdx);
+    ctx.restore();
 
     // ヒゲ
-    drawBeard(ctx, cx, mouthY, faceR, beardType, hairColor);
+    var beardYOff = posBeardVal * faceR * 0.05;
+    var beardScale = 1 + sizeBeardVal * 0.1;
+    ctx.save();
+    ctx.translate(cx, mouthY + beardYOff);
+    ctx.scale(beardScale, beardScale);
+    ctx.translate(-cx, -(mouthY + beardYOff));
+    drawBeard(ctx, cx, mouthY + beardYOff, faceR, beardType, hairColor);
+    ctx.restore();
 
     // チーク（カラー対応）
-    drawCheeks(ctx, cx, eyeY, eyeSpacing, faceR, cheekType, cheekColorIdx);
+    var cheekYOff = posCheekVal * faceR * 0.05;
+    var cheekScale = 1 + sizeCheekVal * 0.08;
+    ctx.save();
+    ctx.translate(cx, eyeY + cheekYOff);
+    ctx.scale(cheekScale, cheekScale);
+    ctx.translate(-cx, -(eyeY + cheekYOff));
+    drawCheeks(ctx, cx, eyeY + cheekYOff, eyeSpacing, faceR, cheekType, cheekColorIdx);
+    ctx.restore();
 
     // 髪（前部分）
     ctx.save();

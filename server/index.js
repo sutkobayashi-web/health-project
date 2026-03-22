@@ -8,6 +8,9 @@ const rateLimit = require('express-rate-limit');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Cloudflare/nginx経由のプロキシを信頼
+app.set('trust proxy', 1);
+
 // セキュリティヘッダー（CSP等）
 app.use(helmet({
   contentSecurityPolicy: {
@@ -33,8 +36,20 @@ app.use((req, res, next) => {
 });
 
 // CORS制限（許可するオリジンを限定）
+var allowedOrigins = [
+  process.env.WEB_APP_URL || 'https://health.biz-terrace.org',
+  'https://health.biz-terrace.org',
+  'http://localhost:3001'
+];
 app.use(cors({
-  origin: process.env.WEB_APP_URL || 'https://health.biz-terrace.org',
+  origin: function(origin, callback) {
+    // 同一オリジン（originなし）またはホワイトリストを許可
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST'],
   allowedHeaders: ['Content-Type', 'Authorization']

@@ -350,25 +350,8 @@
   <!-- 左右分割 -->
   <div style="flex:1; display:flex; overflow:hidden;">
     <!-- 左: プレビュー -->
-    <div id="ab-editor-left" style="width:45%; background:linear-gradient(135deg,#f0f4ff,#e8ecff); display:flex; flex-direction:column; align-items:center; justify-content:center; padding:10px; flex-shrink:0; touch-action:none;">
-      <canvas id="ab-editor-canvas" width="400" height="400" style="width:100%; max-width:260px; aspect-ratio:1; border-radius:16px; box-shadow:0 8px 30px rgba(0,0,0,0.15); border:3px solid #fff; cursor:grab;"></canvas>
-      <div style="margin-top:8px; display:flex; gap:3px; flex-wrap:wrap; justify-content:center;" id="ab-editor-part-btns">
-        <button class="ab-part-btn" data-part="posHair" onclick="abSelectDragPart(this,'posHair')">髪↕</button>
-        <button class="ab-part-btn" data-part="sizeHair" onclick="abSelectDragPart(this,'sizeHair')">髪⊕</button>
-        <button class="ab-part-btn" data-part="widthHair" onclick="abSelectDragPart(this,'widthHair')">髪↔</button>
-        <button class="ab-part-btn selected" data-part="posEye" onclick="abSelectDragPart(this,'posEye')">目↕</button>
-        <button class="ab-part-btn" data-part="eyeSpacing" onclick="abSelectDragPart(this,'eyeSpacing')">目↔</button>
-        <button class="ab-part-btn" data-part="sizeEye" onclick="abSelectDragPart(this,'sizeEye')">目⊕</button>
-        <button class="ab-part-btn" data-part="posBrow" onclick="abSelectDragPart(this,'posBrow')">眉↕</button>
-        <button class="ab-part-btn" data-part="posNose" onclick="abSelectDragPart(this,'posNose')">鼻↕</button>
-        <button class="ab-part-btn" data-part="sizeNose" onclick="abSelectDragPart(this,'sizeNose')">鼻⊕</button>
-        <button class="ab-part-btn" data-part="posMouth" onclick="abSelectDragPart(this,'posMouth')">口↕</button>
-        <button class="ab-part-btn" data-part="sizeMouth" onclick="abSelectDragPart(this,'sizeMouth')">口⊕</button>
-        <button class="ab-part-btn" data-part="posLip" onclick="abSelectDragPart(this,'posLip')">唇↕</button>
-        <button class="ab-part-btn" data-part="posBeard" onclick="abSelectDragPart(this,'posBeard')">髭↕</button>
-        <button class="ab-part-btn" data-part="posCheek" onclick="abSelectDragPart(this,'posCheek')">頬↕</button>
-      </div>
-      <div style="font-size:0.6rem; color:#aaa; margin-top:4px;">パーツを選んで画面をドラッグ</div>
+    <div id="ab-editor-left" style="width:35%; background:linear-gradient(135deg,#f0f4ff,#e8ecff); display:flex; flex-direction:column; align-items:center; justify-content:center; padding:8px; flex-shrink:0;">
+      <canvas id="ab-editor-canvas" width="400" height="400" style="width:100%; max-width:200px; aspect-ratio:1; border-radius:16px; box-shadow:0 8px 30px rgba(0,0,0,0.15); border:3px solid #fff;"></canvas>
     </div>
     <!-- 右: パーツ選択 -->
     <div style="flex:1; overflow-y:auto; padding:12px; -webkit-overflow-scrolling:touch;">
@@ -794,11 +777,6 @@ function openAbEditor(initialAvatar, onSave) {
   }
   abRenderBuilderUI('ab-editor-parts-container', 'ab-editor-preview-canvas');
   document.getElementById('ab-editor-modal').style.display = 'flex';
-  // エディタキャンバスにもドラッグ初期化
-  setTimeout(function() {
-    var ec = document.getElementById('ab-editor-canvas');
-    if (ec) abInitDrag(ec);
-  }, 100);
 }
 function abEditorSave() {
   selectedAvatar = abBuildString();

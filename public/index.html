@@ -9,7 +9,7 @@
 <title>健康プロジェクト</title>
 <script>
 // キャッシュ破棄: バージョンが古い場合は強制リロード
-(function(){var v='20260322b';if(localStorage.getItem('app_version')!==v){localStorage.setItem('app_version',v);if(!window.location.search.includes('_r=')){window.location.replace(window.location.pathname+'?_r='+Date.now());}}}());
+(function(){var v='20260322b';if(localStorage.getItem('app_version')!==v){localStorage.setItem('app_version',v);if(!window.location.search.includes('_r=')){var p=new URLSearchParams(window.location.search);p.set('_r',Date.now());window.location.replace(window.location.pathname+'?'+p.toString());}}}());
 </script>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">

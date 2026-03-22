@@ -494,13 +494,13 @@
       <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="toggleAccordion('honne-body','honne-chevron')">
         <div style="display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#e0f7fa,#b2ebf2);flex-shrink:0;"><i class="fas fa-heartbeat" style="font-size:22px;color:#e91e63;"></i></div>
         <div style="flex:1; min-width:0;">
-          <div class="section-title" style="margin-bottom:2px; padding-bottom:3px; border-bottom:2px solid rgba(214,51,132,0.2);"><i class="far fa-comment-dots"></i> 健康のお悩み・提案</div>
+          <div class="section-title" style="margin-bottom:2px; padding-bottom:3px; border-bottom:2px solid rgba(214,51,132,0.2);"><i class="far fa-comment-dots"></i> 健康のお悩み・みんなと共有</div>
           <div class="honne-area section-sub">AIヘルスアドバイザーが親身にお答えします</div>
         </div>
         <i class="fas fa-chevron-down" id="honne-chevron" style="color:#d63384; font-size:0.9rem; transition:transform 0.3s;"></i>
       </div>
       <div id="honne-body" style="display:none; margin-top:12px; padding-top:12px; border-top:1px solid rgba(214,51,132,0.2);">
-        <textarea id="honne-input" placeholder="最近の体調や気になること、職場環境への提案など、なんでもどうぞ（匿名で届きます）"></textarea>
+        <textarea id="honne-input" placeholder="最近の体調や気になること、健康の悩みなど、なんでもどうぞ（みんなと共有されます）"></textarea>
         <button class="btn-submit" onclick="submitPost()"><i class="fas fa-paper-plane" style="margin-right:6px;"></i> 健康推進メンバーへ相談する</button>
       </div>
     </div>
@@ -1731,7 +1731,7 @@ var _postCache = {};
 
 function renderPost(p) {
   _postCache[p.row] = p;
-  var headerClass = "header-consult"; var icon = "far fa-comment-dots"; var catName = "相談・提案";
+  var headerClass = "header-consult"; var icon = "far fa-comment-dots"; var catName = "相談・共有";
   if (p.category === '🍱 食事・栄養' || p.imageUrl) { headerClass = "header-food"; icon = "fas fa-utensils"; catName = "食事チェック"; }
   var likeId = 'like-' + p.row;
   var liked = p.isLiked;

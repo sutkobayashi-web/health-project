@@ -28,6 +28,18 @@ function getDb() {
       db.exec("ALTER TABLE vote_cycles ADD COLUMN exec_comment TEXT DEFAULT ''");
     }
   }
+    // マイグレーション: AI使用量ログテーブル
+    db.exec(`CREATE TABLE IF NOT EXISTS ai_usage_log (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      provider TEXT NOT NULL,
+      model TEXT NOT NULL,
+      function_name TEXT NOT NULL,
+      tokens_in INTEGER DEFAULT 0,
+      tokens_out INTEGER DEFAULT 0,
+      success INTEGER DEFAULT 1,
+      created_at TEXT DEFAULT (datetime('now'))
+    )`);
+  }
   return db;
 }
 

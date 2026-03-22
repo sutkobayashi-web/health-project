@@ -857,4 +857,22 @@ router.get('/auto-evaluation/:postId', (req, res) => {
   } catch (e) { res.json({ success: false, evaluation: null }); }
 });
 
+// AI使用量ダッシュボード
+router.get('/ai-usage', (req, res) => {
+  try {
+    const db = getDb();
+    // 今日
+    const today = db.prepare("SELECT provider, function_name, COUNT(*) as count, SUM(tokens_in) as tokens_in, SUM(tokens_out) as tokens_out, SUM(CASE WHEN success=1 THEN 1 ELSE 0 END) as ok, SUM(CASE WHEN success=0 THEN 1 ELSE 0 END) as fail FROM ai_usage_log WHERE created_at >= date('now') GROUP BY provider, function_name ORDER BY count DESC").all();
+    // 今月
+    const month = db.prepare("SELECT provider, function_name, COUNT(*) as count, SUM(tokens_in) as tokens_in, SUM(tokens_out) as tokens_out FROM ai_usage_log WHERE created_at >= date('now','start of month') GROUP BY provider, function_name ORDER BY count DESC").all();
+    // 日別推移（過去30日）
+    const daily = db.prepare("SELECT date(created_at) as date, provider, COUNT(*) as count, SUM(tokens_in+tokens_out) as tokens FROM ai_usage_log WHERE created_at >= date('now','-30 days') GROUP BY date(created_at), provider ORDER BY date").all();
+    // 合計
+    const totals = db.prepare("SELECT provider, COUNT(*) as count, SUM(tokens_in) as tokens_in, SUM(tokens_out) as tokens_out FROM ai_usage_log GROUP BY provider").all();
+    res.json({ success: true, today, month, daily, totals });
+  } catch (e) {
+    res.json({ success: false, error: e.message });
+  }
+});
+
 module.exports = router;

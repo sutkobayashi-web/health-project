@@ -1,4 +1,12 @@
 const fetch = require('node-fetch');
+const { getDb } = require('./db');
+
+function logAiUsage(provider, model, functionName, tokensIn, tokensOut, success) {
+  try {
+    getDb().prepare('INSERT INTO ai_usage_log (provider, model, function_name, tokens_in, tokens_out, success) VALUES (?,?,?,?,?,?)')
+      .run(provider, model, functionName, tokensIn || 0, tokensOut || 0, success ? 1 : 0);
+  } catch (e) { /* ログ失敗は無視 */ }
+}
 
 const GROQ_API_KEY = () => process.env.GROQ_API_KEY;
 const GEMINI_API_KEY = () => process.env.GEMINI_API_KEY;
@@ -183,14 +191,41 @@ async function callGroqApi(systemPrompt, userMessage, options = {}) {
       })
     });
     const json = await res.json();
+    var tokensIn = (json.usage && json.usage.prompt_tokens) || 0;
+    var tokensOut = (json.usage && json.usage.completion_tokens) || 0;
+    var fnName = options._fn || _detectFnName(systemPrompt, userMessage);
     if (json.choices && json.choices.length > 0) {
+      logAiUsage('groq', GROQ_MODEL(), fnName, tokensIn, tokensOut, true);
       return json.choices[0].message.content;
     }
+    logAiUsage('groq', GROQ_MODEL(), fnName, tokensIn, tokensOut, false);
     return null;
   } catch (e) {
     console.error('Groq API error:', e.message);
+    logAiUsage('groq', GROQ_MODEL(), options._fn || 'groq_error', 0, 0, false);
     return null;
   }
+}
+
+function _detectFnName(sys, user) {
+  var s = (sys || '') + (user || '');
+  if (s.includes('AIヘルスアドバイザー') && s.includes('挨拶')) return 'greeting';
+  if (s.includes('AIヘルスアドバイザー')) return 'chat';
+  if (s.includes('7軸') || s.includes('COM-B')) return '7axis_eval';
+  if (s.includes('議論') || s.includes('会議')) return 'ai_council';
+  if (s.includes('リアクション')) return 'ai_reaction';
+  if (s.includes('企画書')) return 'plan_generate';
+  if (s.includes('施策アイデア')) return 'plan_ideas';
+  if (s.includes('修正指示')) return 'plan_refine';
+  if (s.includes('チャレンジ') && s.includes('JSON')) return 'challenge_generate';
+  if (s.includes('クラスタ') || s.includes('テーマ')) return 'theme_cluster';
+  if (s.includes('栄養') && s.includes('レポート')) return 'nutrition_report';
+  if (s.includes('類似') || s.includes('似ている')) return 'similar_posts';
+  if (s.includes('共感') && s.includes('スコア')) return 'empathy_score';
+  if (s.includes('声かけ') || s.includes('ケアコメント')) return 'care_comment';
+  if (s.includes('健康経営') && s.includes('教育')) return 'knowledge_bot';
+  if (s.includes('JSON出力専門')) return 'json_eval';
+  return 'other';
 }
 
 async function callGroqApiSafe(sys, user) {
@@ -219,11 +254,14 @@ async function callGeminiVision(systemPrompt, base64Data, mimeType) {
     });
     const json = await res.json();
     if (json.candidates && json.candidates.length > 0) {
+      logAiUsage('gemini', GEMINI_VISION_MODEL(), 'vision', 0, 0, true);
       return json.candidates[0].content.parts[0].text;
     }
+    logAiUsage('gemini', GEMINI_VISION_MODEL(), 'vision', 0, 0, false);
     return '通信エラー';
   } catch (e) {
     console.error('Gemini Vision error:', e.message);
+    logAiUsage('gemini', GEMINI_VISION_MODEL(), 'vision', 0, 0, false);
     return '通信エラー';
   }
 }

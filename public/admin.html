@@ -337,6 +337,9 @@ if(localStorage.getItem('co_heart_admin_token') && localStorage.getItem('co_hear
     <div class="nav-item" onclick="window.location.href='/guide'" id="nav-guide">
       <i class="fas fa-map-signs nav-icon" style="color:#667eea;"></i><div class="nav-label" style="font-size:0.55rem;">ガイド</div>
     </div>
+    <div class="nav-item" onclick="switchTab('ai-usage')" id="nav-ai-usage">
+      <i class="fas fa-chart-bar nav-icon" style="color:#e91e63;"></i><div class="nav-label" style="font-size:0.55rem; line-height:1.2;">AI<br>使用量</div>
+    </div>
     <!-- 管理系 -->
     <div class="nav-item" onclick="switchTab('members')" id="nav-members" style="border-top:1px solid rgba(255,255,255,0.1); margin-top:auto; padding-top:10px; position:relative;">
       <i class="fas fa-users-cog nav-icon" style="color:#4caf50;"></i>
@@ -506,6 +509,15 @@ if(localStorage.getItem('co_heart_admin_token') && localStorage.getItem('co_hear
         <div><div class="section-title">解決済み</div><div class="section-subtitle">対応完了した投稿</div></div>
       </div>
       <div id="resolved-list-area"></div>
+    </div>
+
+    <!-- Tab: AI使用量 -->
+    <div id="tab-ai-usage" class="tab-view">
+      <div class="section-header">
+        <div class="section-icon" style="background:linear-gradient(135deg,#e91e63,#f06292);"><i class="fas fa-chart-bar"></i></div>
+        <div><div class="section-title">AI使用量モニター</div><div class="section-subtitle">Groq / Gemini API の利用状況</div></div>
+      </div>
+      <div id="ai-usage-body"><div class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm"></div> 読み込み中...</div></div>
     </div>
 
     <!-- Tab: メンバー管理 -->

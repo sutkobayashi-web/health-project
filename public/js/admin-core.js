@@ -194,7 +194,82 @@ function refreshActiveTab() {
         case 'v2challenge': if(typeof renderV2Challenges==='function') renderV2Challenges(); break;
         case 'v2kpi': if(typeof renderV2KpiSelector==='function') renderV2KpiSelector(); break;
         case 'v2ambassador': if(typeof renderV2Ambassador==='function') renderV2Ambassador(); break;
+        case 'ai-usage': loadAiUsage(); break;
     }
+}
+
+function loadAiUsage() {
+    var body = document.getElementById('ai-usage-body');
+    if (!body) return;
+    body.innerHTML = '<div class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm"></div> 読み込み中...</div>';
+    api('/admin/ai-usage', undefined, getAdminToken()).then(function(res) {
+        if (!res || !res.success) { body.innerHTML = '<div class="text-muted text-center p-4">データを取得できませんでした</div>'; return; }
+        var html = '';
+        // 合計サマリー
+        html += '<div class="row g-3 mb-4">';
+        (res.totals || []).forEach(function(t) {
+            var color = t.provider === 'groq' ? '#667eea' : '#4caf50';
+            var icon = t.provider === 'groq' ? 'fa-brain' : 'fa-eye';
+            html += '<div class="col-6"><div style="background:white; border-radius:16px; padding:16px; box-shadow:0 2px 10px rgba(0,0,0,0.06); border-top:4px solid ' + color + ';">' +
+                '<div style="font-size:0.75rem; color:#999; font-weight:700;"><i class="fas ' + icon + '" style="color:' + color + ';"></i> ' + t.provider.toUpperCase() + ' 全期間</div>' +
+                '<div style="font-size:1.8rem; font-weight:900; color:#2c3e50;">' + t.count + '<span style="font-size:0.7rem; color:#999;"> 回</span></div>' +
+                '<div style="font-size:0.7rem; color:#888;">トークン: ' + ((t.tokens_in || 0) + (t.tokens_out || 0)).toLocaleString() + '</div>' +
+                '</div></div>';
+        });
+        html += '</div>';
+        // 今日の使用量
+        html += '<div class="card mb-3 shadow-sm"><div class="card-header fw-bold" style="background:#f8f9fa; font-size:0.85rem;"><i class="fas fa-calendar-day text-primary me-2"></i>今日の使用量</div>';
+        html += '<div class="card-body p-0">';
+        if (!res.today || res.today.length === 0) {
+            html += '<div class="text-muted text-center p-3 small">今日はまだ使用されていません</div>';
+        } else {
+            html += '<table class="table table-sm mb-0" style="font-size:0.8rem;"><thead><tr><th>Provider</th><th>機能</th><th>回数</th><th>成功</th><th>失敗</th><th>トークン</th></tr></thead><tbody>';
+            res.today.forEach(function(r) {
+                html += '<tr><td><span class="badge" style="background:' + (r.provider === 'groq' ? '#667eea' : '#4caf50') + ';">' + r.provider + '</span></td>' +
+                    '<td>' + r.function_name + '</td><td class="fw-bold">' + r.count + '</td>' +
+                    '<td class="text-success">' + (r.ok || 0) + '</td><td class="text-danger">' + (r.fail || 0) + '</td>' +
+                    '<td>' + ((r.tokens_in || 0) + (r.tokens_out || 0)).toLocaleString() + '</td></tr>';
+            });
+            html += '</tbody></table>';
+        }
+        html += '</div></div>';
+        // 今月の使用量
+        html += '<div class="card mb-3 shadow-sm"><div class="card-header fw-bold" style="background:#f8f9fa; font-size:0.85rem;"><i class="fas fa-calendar-alt text-success me-2"></i>今月の使用量</div>';
+        html += '<div class="card-body p-0">';
+        if (!res.month || res.month.length === 0) {
+            html += '<div class="text-muted text-center p-3 small">今月はまだ使用されていません</div>';
+        } else {
+            html += '<table class="table table-sm mb-0" style="font-size:0.8rem;"><thead><tr><th>Provider</th><th>機能</th><th>回数</th><th>トークン</th></tr></thead><tbody>';
+            res.month.forEach(function(r) {
+                html += '<tr><td><span class="badge" style="background:' + (r.provider === 'groq' ? '#667eea' : '#4caf50') + ';">' + r.provider + '</span></td>' +
+                    '<td>' + r.function_name + '</td><td class="fw-bold">' + r.count + '</td>' +
+                    '<td>' + ((r.tokens_in || 0) + (r.tokens_out || 0)).toLocaleString() + '</td></tr>';
+            });
+            html += '</tbody></table>';
+        }
+        html += '</div></div>';
+        // 日別推移
+        html += '<div class="card shadow-sm"><div class="card-header fw-bold" style="background:#f8f9fa; font-size:0.85rem;"><i class="fas fa-chart-line text-warning me-2"></i>日別推移（過去30日）</div>';
+        html += '<div class="card-body p-2">';
+        if (!res.daily || res.daily.length === 0) {
+            html += '<div class="text-muted text-center p-3 small">データなし</div>';
+        } else {
+            var maxCount = Math.max.apply(null, res.daily.map(function(d) { return d.count; })) || 1;
+            html += '<div style="display:flex; align-items:flex-end; gap:2px; height:120px; overflow-x:auto; padding:4px;">';
+            res.daily.forEach(function(d) {
+                var h = Math.max(4, (d.count / maxCount) * 100);
+                var color = d.provider === 'groq' ? '#667eea' : '#4caf50';
+                html += '<div style="display:flex; flex-direction:column; align-items:center; flex-shrink:0; width:20px;" title="' + d.date + ' ' + d.provider + ': ' + d.count + '回">' +
+                    '<div style="font-size:0.5rem; color:#999;">' + d.count + '</div>' +
+                    '<div style="width:14px; height:' + h + 'px; background:' + color + '; border-radius:3px 3px 0 0;"></div>' +
+                    '</div>';
+            });
+            html += '</div>';
+            html += '<div style="font-size:0.6rem; color:#aaa; text-align:center; margin-top:4px;"><span style="display:inline-block; width:10px; height:10px; background:#667eea; border-radius:2px; margin-right:2px;"></span>Groq <span style="display:inline-block; width:10px; height:10px; background:#4caf50; border-radius:2px; margin:0 2px 0 8px;"></span>Gemini</div>';
+        }
+        html += '</div></div>';
+        body.innerHTML = html;
+    });
 }
 
 // メンバーリスト（キャッシュ）

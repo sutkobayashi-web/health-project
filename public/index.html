@@ -1516,7 +1516,7 @@ function savePasswordChange() {
 
 function saveAvatarChange(newAvatarFromEditor) {
   var newAvatar = newAvatarFromEditor || abBuildString();
-  api('/auth/update-avatar', { uid: currentUser.uid, avatar: newAvatar }).then(function(res) {
+  api('/auth/update-avatar', { uid: currentUser.uid, avatar: newAvatar }, getToken()).then(function(res) {
     if (res && res.success) {
       currentUser.avatar = newAvatar;
       localStorage.setItem('co_heart_user_data', JSON.stringify(currentUser));

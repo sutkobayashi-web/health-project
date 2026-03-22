@@ -1080,7 +1080,27 @@ function showStep(step) {
 
 var selectedAvatar = null;
 function initAvatarGrid() {
-  abState = { skin: 2, hair: 1, hairColor: 0, eye: 0, mouth: 0, accessories: [0], bg: 0, faceSize: 0, eyebrow: 0, nose: 0, beard: 0, cheek: 0, faceShape: 0, eyeColor: 0, posEye: 0, posMouth: 0, posNose: 0, posBrow: 0, eyeSpacing: 0, sizeEye: 0, sizeNose: 0, sizeMouth: 0, posHair: 0, sizeHair: 0, widthHair: 0, sizeFace: 0 };
+  // ランダムで親しみやすい初期アバターを生成
+  var skins = [0,1,2,3];
+  var hairs = [1,2,3,7,8,13,14,18];
+  var hairColors = [0,1,2,3];
+  var eyes = [0,2,5,9];
+  var mouths = [0,1];
+  var faceShapes = [0,3,8];
+  var bgs = [0,1,2,3,4,5,6,7];
+  var pick = function(arr) { return arr[Math.floor(Math.random() * arr.length)]; };
+  abState = {
+    skin: pick(skins), hair: pick(hairs), hairColor: pick(hairColors),
+    eye: pick(eyes), mouth: pick(mouths), accessories: [0],
+    bg: pick(bgs), faceSize: 1, eyebrow: 0, nose: 0, beard: 0,
+    cheek: 1, faceShape: pick(faceShapes), eyeColor: Math.floor(Math.random() * 6),
+    posEye: 0, posMouth: 0, posNose: 0, posBrow: 0, eyeSpacing: 0,
+    sizeEye: 0, sizeNose: 0, sizeMouth: 0, posHair: 0, sizeHair: 0,
+    widthHair: 0, sizeFace: 0, ear: 0, posEar: 0, sizeEar: 0, earSpacing: 0,
+    lipColor: 0, eyeshadow: 0, lash: 0, cheekColor: 0,
+    posAcc: 0, sizeAcc: 0, sizeBrow: 0, posBeard: 0, sizeBeard: 0,
+    posCheek: 0, sizeCheek: 0, posLip: 0, sizeLip: 0, cheekSpacing: 0
+  };
   selectedAvatar = abBuildString();
   var el = document.getElementById('reg-avatar-preview');
   if (el) el.innerHTML = getAvatarHtml(selectedAvatar, 58);

@@ -87,11 +87,27 @@ window.onload = function() {
     const savedProfile = localStorage.getItem('co_heart_admin_profile');
 
     if(savedToken && savedProfile) {
-        // トークンが存在すればそのまま使う（JWT有効期限は7日間）
+        // トークンの有効性をサーバーで確認
         try { currentAdminProfile = JSON.parse(savedProfile); } catch(e) {}
-        document.getElementById('admin-auth-overlay').style.display = 'none';
-        renderHeaderInfo();
-        loadData();
+        api('/admin/inbox', undefined, savedToken).then(function(res) {
+            if (res && res.success !== false && !res.msg) {
+                // トークン有効
+                document.getElementById('admin-auth-overlay').style.display = 'none';
+                renderHeaderInfo();
+                loadData();
+            } else {
+                // トークン期限切れ → ログイン画面
+                localStorage.removeItem('co_heart_admin_token');
+                localStorage.removeItem('co_heart_admin_profile');
+                currentAdminProfile = null;
+                document.getElementById('admin-auth-overlay').style.display = 'flex';
+                var savedEmail = localStorage.getItem('co_heart_admin_email');
+                var el = document.getElementById('admin-login-email');
+                if(el && savedEmail) { el.value = savedEmail; }
+            }
+        }).catch(function() {
+            document.getElementById('admin-auth-overlay').style.display = 'flex';
+        });
     } else {
         // トークンなし → ログイン画面を表示
         document.getElementById('admin-auth-overlay').style.display = 'flex';
@@ -142,7 +158,7 @@ function startHeartbeat() {
             email: currentAdminProfile.email || '',
             name: currentAdminProfile.name || '',
             avatar: currentAdminProfile.avatar || '🛡️'
-        }, getAdminToken());
+        }, getAdminToken()).catch(function(){});
     }
     sendBeat();
     setInterval(sendBeat, 30000);

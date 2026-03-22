@@ -1574,7 +1574,39 @@ function showRanking() {
       html += '</div>';
       return html;
     }
-    content.innerHTML = renderRankList('投稿数ランキング TOP5', 'pen', res.postRanking) + renderRankList('紹介者数ランキング TOP5', 'user-plus', res.inviteRanking);
+    // バッジ情報
+    var rankDescs = {
+      'Beginner': { icon:'🌱', desc:'まずは5回投稿を目指そう！' },
+      'Bronze': { icon:'🥉', desc:'投稿5回達成！' }, 'Silver': { icon:'🥈', desc:'投稿10回達成！' },
+      'Gold': { icon:'🥇', desc:'投稿30回達成！' }, 'Platinum': { icon:'👑', desc:'投稿50回達成！' },
+      'Black': { icon:'💎', desc:'投稿80回達成！' }
+    };
+    var postCount = 0;
+    try { postCount = parseInt(document.getElementById('profile-posts').innerText.match(/\d+/)[0]) || 0; } catch(e) {}
+    var currentRank = 'Beginner';
+    if (postCount >= 80) currentRank = 'Black';
+    else if (postCount >= 50) currentRank = 'Platinum';
+    else if (postCount >= 30) currentRank = 'Gold';
+    else if (postCount >= 10) currentRank = 'Silver';
+    else if (postCount >= 5) currentRank = 'Bronze';
+    var rd = rankDescs[currentRank];
+    var nextRanks = [{name:'Bronze',need:5},{name:'Silver',need:10},{name:'Gold',need:30},{name:'Platinum',need:50},{name:'Black',need:80}];
+    var nextRank = nextRanks.find(function(r) { return postCount < r.need; });
+    var badgeHtml = '<div style="margin-bottom:16px;">';
+    badgeHtml += '<div style="font-weight:800; font-size:0.9rem; color:#2c3e50; margin-bottom:8px; display:flex; align-items:center; gap:6px;"><i class="fas fa-medal" style="color:#667eea;"></i> あなたのランク</div>';
+    badgeHtml += '<div style="display:flex; align-items:center; gap:10px; padding:10px; background:#f8f9fa; border-radius:12px;">';
+    badgeHtml += '<span style="font-size:1.4rem;">' + rd.icon + '</span>';
+    badgeHtml += '<div style="flex:1;"><div style="font-weight:800; font-size:0.9rem; color:#333;">' + currentRank + '</div><div style="font-size:0.7rem; color:#888;">' + rd.desc + '</div></div>';
+    badgeHtml += '<div style="font-size:0.85rem; font-weight:800; color:#667eea;">' + postCount + '投稿</div></div>';
+    if (nextRank) {
+      var pct = Math.round(postCount / nextRank.need * 100);
+      badgeHtml += '<div style="margin-top:6px; font-size:0.7rem; color:#888;">次: <strong>' + nextRank.name + '</strong> まであと <strong>' + (nextRank.need - postCount) + '</strong> 投稿</div>';
+      badgeHtml += '<div style="height:5px; background:#f0f0f0; border-radius:3px; margin-top:3px; overflow:hidden;"><div style="height:100%; width:' + pct + '%; background:linear-gradient(90deg,#667eea,#764ba2); border-radius:3px;"></div></div>';
+    } else {
+      badgeHtml += '<div style="margin-top:6px; font-size:0.7rem; color:#ffd700; font-weight:700;">最高ランク達成！</div>';
+    }
+    badgeHtml += '</div>';
+    content.innerHTML = badgeHtml + renderRankList('投稿数ランキング TOP5', 'pen', res.postRanking) + renderRankList('紹介者数ランキング TOP5', 'user-plus', res.inviteRanking);
   }).catch(function() {
     content.innerHTML = '<p style="color:#999;">通信エラー</p>';
   });

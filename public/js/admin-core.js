@@ -638,7 +638,7 @@ function switchTab(t) {
     var target = document.getElementById('tab-'+t); if(target) target.classList.add('active');
     document.querySelectorAll('.nav-item').forEach(function(e) { e.classList.remove('active'); });
 
-    var navMap = { evaluation:'nav-eval', current:'nav-curr', candidates:'nav-cand', resolved:'nav-res', personal:'nav-personal', bmi22:'nav-bmi22', aimeeting:'nav-aimeeting', exec:'nav-exec', food:'nav-food', members:'nav-members', backup:'nav-backup', v2dash:'nav-v2dash', v2challenge:'nav-v2challenge', v2kpi:'nav-v2kpi', v2ambassador:'nav-v2ambassador' };
+    var navMap = { evaluation:'nav-eval', current:'nav-curr', candidates:'nav-cand', resolved:'nav-res', personal:'nav-personal', bmi22:'nav-bmi22', aimeeting:'nav-aimeeting', exec:'nav-exec', food:'nav-food', members:'nav-members', backup:'nav-backup', v2dash:'nav-v2dash', v2challenge:'nav-v2challenge', avatarchallenge:'nav-avatarchallenge', v2kpi:'nav-v2kpi', v2ambassador:'nav-v2ambassador' };
     var navEl = document.getElementById(navMap[t] || 'nav-eval');
     if(navEl) navEl.classList.add('active');
 
@@ -658,6 +658,7 @@ function switchTab(t) {
     if(t==='v2challenge' && typeof renderV2Challenges === 'function') renderV2Challenges();
     if(t==='v2kpi' && typeof renderV2KpiSelector === 'function') renderV2KpiSelector();
     if(t==='v2ambassador' && typeof renderV2Ambassador === 'function') renderV2Ambassador();
+    if(t==='avatarchallenge' && typeof loadAvatarChallengeAdmin === 'function') loadAvatarChallengeAdmin();
 }
 
 function loadResolved() {

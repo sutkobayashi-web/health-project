@@ -400,3 +400,20 @@ function runAutoEvaluate(postId) {
 function getAutoEvaluation(postId) {
   return api('/admin/auto-evaluation/' + postId, undefined, getAdminToken());
 }
+
+// ===== Avatar Challenge (Onboarding) =====
+function getAvatarChallengeConfig() {
+  return api('/avatar-challenge/config');
+}
+function updateAvatarChallengeConfig(status, start_date, end_date, max_votes) {
+  return api('/avatar-challenge/config', { status, start_date, end_date, max_votes }, getAdminToken());
+}
+function getAvatarGallery(uid) {
+  return api('/avatar-challenge/gallery?uid=' + (uid || ''));
+}
+function voteAvatar(voterId, targetUserId) {
+  return api('/avatar-challenge/vote', { voterId, targetUserId });
+}
+function getAvatarRanking() {
+  return api('/avatar-challenge/ranking');
+}

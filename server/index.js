@@ -89,6 +89,7 @@ app.use('/api/plans', require('./routes/plans'));
 app.use('/api/notices', require('./routes/notices'));
 app.use('/api/chat', require('./routes/chat'));
 app.use('/api/themes', require('./routes/themes'));
+app.use('/api/avatar-challenge', require('./routes/avatar-challenge'));
 
 // ヘルスチェック
 app.get('/api/health', (req, res) => {

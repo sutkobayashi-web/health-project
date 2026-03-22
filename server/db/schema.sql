@@ -308,6 +308,24 @@ CREATE TABLE IF NOT EXISTS member_chats (
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
+-- アバターチャレンジ（オンボーディング用・いいね投票）
+CREATE TABLE IF NOT EXISTS avatar_votes (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  voter_id TEXT NOT NULL,
+  target_user_id TEXT NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(voter_id, target_user_id)
+);
+
+-- アバターチャレンジ設定
+CREATE TABLE IF NOT EXISTS avatar_challenge_config (
+  id INTEGER PRIMARY KEY CHECK (id = 1),
+  status TEXT DEFAULT 'inactive',
+  start_date DATETIME,
+  end_date DATETIME,
+  max_votes INTEGER DEFAULT 5
+);
+
 -- AI自動7軸評価
 CREATE TABLE IF NOT EXISTS auto_evaluations (
   id INTEGER PRIMARY KEY AUTOINCREMENT,

@@ -476,6 +476,27 @@
       </div>
     </div>
 
+    <!-- アバターチャレンジ（オンボーディング） -->
+    <div class="card-section" id="avatar-challenge-section" style="display:none; background:linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);">
+      <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="toggleAccordion('avatar-challenge-body','avatar-challenge-chevron')">
+        <div style="display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#ff9800,#f57c00);flex-shrink:0;"><i class="fas fa-palette" style="font-size:22px;color:#fff;"></i></div>
+        <div style="flex:1;">
+          <div class="section-title" style="margin-bottom:2px; padding-bottom:3px; border-bottom:2px solid rgba(255,152,0,0.3);"><i class="fas fa-palette"></i> アバターチャレンジ</div>
+          <div style="font-size:0.75rem; color:#999;" id="avatar-challenge-subtitle">みんなのアバターに投票しよう！</div>
+        </div>
+        <i class="fas fa-chevron-down" id="avatar-challenge-chevron" style="color:#f57c00; font-size:0.9rem; transition:transform 0.3s;"></i>
+      </div>
+      <div id="avatar-challenge-body" style="display:none; margin-top:12px; padding-top:12px; border-top:1px solid rgba(255,152,0,0.2);">
+        <div id="avatar-challenge-status" style="font-size:0.75rem; color:#f57c00; font-weight:700; margin-bottom:10px; text-align:center;"></div>
+        <div id="avatar-challenge-tabs" style="display:flex; gap:6px; margin-bottom:12px;">
+          <button onclick="showAvatarTab('gallery')" id="av-tab-gallery" style="flex:1; padding:8px; border:2px solid #ff9800; background:#ff9800; color:white; border-radius:10px; font-weight:700; font-size:0.78rem; cursor:pointer;">ギャラリー</button>
+          <button onclick="showAvatarTab('ranking')" id="av-tab-ranking" style="flex:1; padding:8px; border:2px solid #ff9800; background:white; color:#ff9800; border-radius:10px; font-weight:700; font-size:0.78rem; cursor:pointer;">ランキング</button>
+        </div>
+        <div id="avatar-gallery-content"></div>
+        <div id="avatar-ranking-content" style="display:none;"></div>
+      </div>
+    </div>
+
     <!-- テーマ投票 -->
     <div class="card-section" id="theme-vote-section" style="display:none; background:linear-gradient(135deg, #f0f4ff 0%, #e8ecff 100%);">
       <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="toggleAccordion('vote-body','vote-chevron')">
@@ -592,7 +613,7 @@
   </div>
 </div>
 
-<script src="/js/api.js?v=20260320b"></script>
+<script src="/js/api.js?v=20260323a"></script>
 <script>
 // ====== グローバル変数 ======
 var currentUser = null;
@@ -1429,6 +1450,7 @@ function onLoginSuccess() {
   updateHeaderStats();
   generateQR();
   loadHealthMemos();
+  loadAvatarChallenge();
   loadThemeVoting();
   loadActiveChallenge();
   loadEmpathyAnswered();
@@ -3432,6 +3454,122 @@ function toggleAccordion(bodyId, chevronId) {
     if (chevron) chevron.style.transform = 'rotate(0deg)';
   }
 }
+// ====== アバターチャレンジ（オンボーディング） ======
+var avatarChallengeData = null;
+function loadAvatarChallenge() {
+  if (!currentUser) return;
+  getAvatarGallery(currentUser.uid).then(function(res) {
+    if (!res || !res.success || !res.active) {
+      document.getElementById('avatar-challenge-section').style.display = 'none';
+      return;
+    }
+    document.getElementById('avatar-challenge-section').style.display = 'block';
+    avatarChallengeData = res;
+    var config = res.config || {};
+    var endDate = config.end_date ? new Date(config.end_date) : null;
+    var remaining = endDate ? Math.max(0, Math.ceil((endDate - Date.now()) / 86400000)) : '?';
+    document.getElementById('avatar-challenge-subtitle').innerText = 'みんなのアバターに投票しよう！（残り' + remaining + '日）';
+    document.getElementById('avatar-challenge-status').innerHTML =
+      '<i class="fas fa-users"></i> ' + res.totalVoters + '/' + res.totalUsers + '名が参加中' +
+      '　<i class="fas fa-heart" style="color:#e91e63;"></i> ' + (config.max_votes || 5) + '票まで投票OK';
+    renderAvatarGallery(res);
+  });
+}
+
+function showAvatarTab(tab) {
+  var gBtn = document.getElementById('av-tab-gallery');
+  var rBtn = document.getElementById('av-tab-ranking');
+  var gContent = document.getElementById('avatar-gallery-content');
+  var rContent = document.getElementById('avatar-ranking-content');
+  if (tab === 'gallery') {
+    gBtn.style.background = '#ff9800'; gBtn.style.color = 'white';
+    rBtn.style.background = 'white'; rBtn.style.color = '#ff9800';
+    gContent.style.display = 'block'; rContent.style.display = 'none';
+  } else {
+    rBtn.style.background = '#ff9800'; rBtn.style.color = 'white';
+    gBtn.style.background = 'white'; gBtn.style.color = '#ff9800';
+    gContent.style.display = 'none'; rContent.style.display = 'block';
+    renderAvatarRanking();
+  }
+}
+
+function renderAvatarGallery(data) {
+  var users = data.users || [];
+  var myVotes = data.myVotes || [];
+  var html = '<div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px;">';
+  users.forEach(function(u) {
+    var voted = myVotes.includes(u.id);
+    var isSelf = u.id === currentUser.uid;
+    html += '<div style="background:white; border-radius:14px; padding:12px 6px; text-align:center; border:2px solid ' +
+      (voted ? '#e91e63' : (isSelf ? '#ff9800' : '#f0f0f0')) +
+      '; transition:all 0.2s; box-shadow:0 2px 6px rgba(0,0,0,0.04);">';
+    // アバター
+    html += '<div style="width:56px; height:56px; margin:0 auto 6px; border-radius:50%; overflow:hidden; display:flex; align-items:center; justify-content:center; background:#f8f8f8;">';
+    html += getAvatarHtml(u.avatar || '😀', 56);
+    html += '</div>';
+    // ニックネーム
+    html += '<div style="font-size:0.72rem; font-weight:700; color:#333; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' + escapeHtml(u.nickname) + '</div>';
+    // 部署
+    if (u.department) {
+      html += '<div style="font-size:0.6rem; color:#999; margin-bottom:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' + escapeHtml(u.department) + '</div>';
+    }
+    // 得票数 + ボタン
+    html += '<div style="display:flex; align-items:center; justify-content:center; gap:4px; margin-top:4px;">';
+    if (isSelf) {
+      html += '<span style="font-size:0.68rem; color:#ff9800; font-weight:700;">あなた</span>';
+    } else {
+      html += '<button onclick="doVoteAvatar(\'' + u.id + '\')" style="background:' +
+        (voted ? 'linear-gradient(135deg,#e91e63,#c2185b)' : '#f5f5f5') +
+        '; border:none; border-radius:20px; padding:4px 10px; cursor:pointer; display:flex; align-items:center; gap:3px;">';
+      html += '<i class="fas fa-heart" style="font-size:0.7rem; color:' + (voted ? 'white' : '#ccc') + ';"></i>';
+      html += '<span style="font-size:0.72rem; font-weight:700; color:' + (voted ? 'white' : '#999') + ';">' + u.vote_count + '</span>';
+      html += '</button>';
+    }
+    html += '</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+  // アバター編集への導線
+  html += '<div style="margin-top:12px; text-align:center;">';
+  html += '<button onclick="openAbEditor(currentUser.avatar, saveAvatarChange)" style="background:linear-gradient(135deg,#ff9800,#f57c00); color:white; border:none; border-radius:12px; padding:10px 20px; font-weight:700; font-size:0.82rem; cursor:pointer; box-shadow:0 2px 8px rgba(255,152,0,0.3);"><i class="fas fa-edit" style="margin-right:6px;"></i>自分のアバターを編集</button>';
+  html += '</div>';
+  document.getElementById('avatar-gallery-content').innerHTML = html;
+}
+
+function doVoteAvatar(targetUserId) {
+  if (!currentUser) return;
+  voteAvatar(currentUser.uid, targetUserId).then(function(res) {
+    if (!res.success) { alert(res.msg); return; }
+    loadAvatarChallenge();
+  });
+}
+
+function renderAvatarRanking() {
+  getAvatarRanking().then(function(res) {
+    if (!res || !res.success) return;
+    var ranking = res.ranking || [];
+    var html = '';
+    if (ranking.length === 0) {
+      html = '<div style="text-align:center; color:#999; padding:20px; font-size:0.85rem;">まだ投票がありません</div>';
+    } else {
+      ranking.forEach(function(u, i) {
+        var medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1) + '.';
+        var bg = i < 3 ? 'linear-gradient(135deg,#fff8e1,#ffecb3)' : 'white';
+        html += '<div style="display:flex; align-items:center; gap:10px; padding:10px 12px; background:' + bg + '; border-radius:12px; margin-bottom:6px;">';
+        html += '<div style="font-size:1.2rem; min-width:28px; text-align:center;">' + medal + '</div>';
+        html += '<div style="width:40px; height:40px; border-radius:50%; overflow:hidden; display:flex; align-items:center; justify-content:center; background:#f8f8f8; flex-shrink:0;">' + getAvatarHtml(u.avatar || '😀', 40) + '</div>';
+        html += '<div style="flex:1; min-width:0;">';
+        html += '<div style="font-weight:700; font-size:0.82rem; color:#333;">' + escapeHtml(u.nickname) + '</div>';
+        if (u.department) html += '<div style="font-size:0.65rem; color:#999;">' + escapeHtml(u.department) + '</div>';
+        html += '</div>';
+        html += '<div style="text-align:center;"><div style="font-size:1.1rem; font-weight:900; color:#e91e63;">' + u.vote_count + '</div><div style="font-size:0.6rem; color:#999;">票</div></div>';
+        html += '</div>';
+      });
+    }
+    document.getElementById('avatar-ranking-content').innerHTML = html;
+  });
+}
+
 // ====== テーマ投票 ======
 function loadThemeVoting() {
   if (!currentUser) return;

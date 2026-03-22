@@ -1473,32 +1473,22 @@ function drawCheeks(ctx, cx, eyeY, eyeSpacing, faceR, type, colorIdx, spacingVal
   ctx.save();
 
   if (type === 3) {
-    // バカボン — くっきり赤丸 + 渦巻き
-    var bR = cheekR * 1.3;
+    // バカボン — ナルト渦巻きのみ（色なし）
+    var bR = cheekR * 1.2;
     [cx - cheekX, cx + cheekX].forEach(function(x, si) {
-      // 赤丸ベース
-      ctx.fillStyle = 'rgba(220,50,50,0.55)';
-      ctx.beginPath(); ctx.arc(x, cheekY, bR, 0, Math.PI * 2); ctx.fill();
-      // 内側の濃い丸
-      ctx.fillStyle = 'rgba(200,30,30,0.35)';
-      ctx.beginPath(); ctx.arc(x, cheekY, bR * 0.7, 0, Math.PI * 2); ctx.fill();
-      // 渦巻き
-      ctx.strokeStyle = 'rgba(180,20,20,0.5)';
-      ctx.lineWidth = Math.max(1, faceR * 0.02);
+      ctx.strokeStyle = 'rgba(80,50,30,0.5)';
+      ctx.lineWidth = Math.max(1.5, faceR * 0.025);
       ctx.lineCap = 'round';
       ctx.beginPath();
       var dir = si === 0 ? 1 : -1;
-      for (var t = 0; t < Math.PI * 4; t += 0.1) {
-        var sr = bR * 0.08 + t * bR * 0.12;
+      for (var t = 0; t < Math.PI * 5; t += 0.08) {
+        var sr = faceR * 0.01 + t * bR * 0.1;
         var sx = x + Math.cos(t * dir) * sr;
         var sy = cheekY + Math.sin(t * dir) * sr;
         if (t === 0) ctx.moveTo(sx, sy); else ctx.lineTo(sx, sy);
-        if (sr > bR * 0.85) break;
+        if (sr > bR * 0.9) break;
       }
       ctx.stroke();
-      // ハイライト
-      ctx.fillStyle = 'rgba(255,255,255,0.25)';
-      ctx.beginPath(); ctx.arc(x - bR * 0.2, cheekY - bR * 0.2, bR * 0.2, 0, Math.PI * 2); ctx.fill();
     });
   } else {
     // うすく / しっかり

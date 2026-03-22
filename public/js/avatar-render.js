@@ -124,7 +124,7 @@ function renderCustomAvatar(avatarStr, size) {
     // 鼻
     var mouthY = faceY + faceR * 0.35 + mouthYOff;
     var noseY = (eyeY + mouthY) / 2 + noseYOff;
-    var noseFaceR = faceR * (1 + sizeNoseVal * 0.12);
+    var noseFaceR = faceR * (1.5 + sizeNoseVal * 0.15);
     drawNose(ctx, cx, noseY, noseFaceR, noseType);
 
     // 口（リップカラー対応）
@@ -1076,96 +1076,94 @@ function drawNose(ctx, cx, noseY, faceR, type) {
   ctx.save();
   switch(type) {
     case 0: // ちょこん
-      var dotGrad = ctx.createRadialGradient(cx, noseY, 0, cx, noseY, faceR * 0.05);
-      dotGrad.addColorStop(0, 'rgba(0,0,0,0.25)');
-      dotGrad.addColorStop(0.7, 'rgba(0,0,0,0.1)');
+      var dotGrad = ctx.createRadialGradient(cx, noseY, 0, cx, noseY, faceR * 0.06);
+      dotGrad.addColorStop(0, 'rgba(0,0,0,0.35)');
+      dotGrad.addColorStop(0.6, 'rgba(0,0,0,0.18)');
       dotGrad.addColorStop(1, 'rgba(0,0,0,0)');
       ctx.fillStyle = dotGrad;
-      ctx.beginPath(); ctx.arc(cx, noseY, faceR * 0.05, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(cx, noseY, faceR * 0.06, 0, Math.PI * 2); ctx.fill();
       // 鼻筋ハイライト
       if (detail) {
-        ctx.strokeStyle = 'rgba(255,255,255,0.12)';
-        ctx.lineWidth = Math.max(0.5, faceR * 0.015);
+        ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+        ctx.lineWidth = Math.max(0.5, faceR * 0.02);
         ctx.lineCap = 'round';
         ctx.beginPath();
-        ctx.moveTo(cx, noseY - faceR * 0.08);
+        ctx.moveTo(cx, noseY - faceR * 0.1);
         ctx.lineTo(cx, noseY - faceR * 0.02);
         ctx.stroke();
-        // 鼻先ハイライト点
-        ctx.fillStyle = 'rgba(255,255,255,0.18)';
-        ctx.beginPath(); ctx.arc(cx, noseY - faceR * 0.01, faceR * 0.012, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = 'rgba(255,255,255,0.22)';
+        ctx.beginPath(); ctx.arc(cx, noseY - faceR * 0.01, faceR * 0.016, 0, Math.PI * 2); ctx.fill();
       }
       break;
     case 1: // まるい
       // 小鼻の影（両サイド）
       if (detail) {
         [-1, 1].forEach(function(s) {
-          var sideGrad = ctx.createRadialGradient(cx + s * faceR * 0.06, noseY + faceR * 0.01, 0, cx + s * faceR * 0.06, noseY + faceR * 0.01, faceR * 0.06);
-          sideGrad.addColorStop(0, 'rgba(0,0,0,0.12)');
+          var sideGrad = ctx.createRadialGradient(cx + s * faceR * 0.08, noseY + faceR * 0.01, 0, cx + s * faceR * 0.08, noseY + faceR * 0.01, faceR * 0.08);
+          sideGrad.addColorStop(0, 'rgba(0,0,0,0.2)');
           sideGrad.addColorStop(1, 'rgba(0,0,0,0)');
           ctx.fillStyle = sideGrad;
-          ctx.beginPath(); ctx.arc(cx + s * faceR * 0.06, noseY + faceR * 0.01, faceR * 0.06, 0, Math.PI * 2); ctx.fill();
+          ctx.beginPath(); ctx.arc(cx + s * faceR * 0.08, noseY + faceR * 0.01, faceR * 0.08, 0, Math.PI * 2); ctx.fill();
         });
       }
       // メイン影
-      var roundGrad = ctx.createRadialGradient(cx, noseY, faceR * 0.01, cx, noseY, faceR * 0.09);
-      roundGrad.addColorStop(0, 'rgba(0,0,0,0.2)');
-      roundGrad.addColorStop(0.5, 'rgba(0,0,0,0.12)');
+      var roundGrad = ctx.createRadialGradient(cx, noseY, faceR * 0.01, cx, noseY, faceR * 0.12);
+      roundGrad.addColorStop(0, 'rgba(0,0,0,0.3)');
+      roundGrad.addColorStop(0.5, 'rgba(0,0,0,0.18)');
       roundGrad.addColorStop(1, 'rgba(0,0,0,0)');
       ctx.fillStyle = roundGrad;
-      ctx.beginPath(); ctx.ellipse(cx, noseY, faceR * 0.09, faceR * 0.07, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(cx, noseY, faceR * 0.12, faceR * 0.09, 0, 0, Math.PI * 2); ctx.fill();
       // 鼻の穴
-      ctx.fillStyle = 'rgba(0,0,0,0.18)';
-      ctx.beginPath(); ctx.arc(cx - faceR * 0.035, noseY + faceR * 0.025, faceR * 0.016, 0, Math.PI * 2); ctx.fill();
-      ctx.beginPath(); ctx.arc(cx + faceR * 0.035, noseY + faceR * 0.025, faceR * 0.016, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = 'rgba(0,0,0,0.25)';
+      ctx.beginPath(); ctx.arc(cx - faceR * 0.045, noseY + faceR * 0.03, faceR * 0.02, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(cx + faceR * 0.045, noseY + faceR * 0.03, faceR * 0.02, 0, Math.PI * 2); ctx.fill();
       // 鼻筋ハイライト
       if (detail) {
-        ctx.strokeStyle = 'rgba(255,255,255,0.15)';
-        ctx.lineWidth = Math.max(0.5, faceR * 0.018);
+        ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+        ctx.lineWidth = Math.max(0.5, faceR * 0.022);
         ctx.lineCap = 'round';
         ctx.beginPath();
-        ctx.moveTo(cx, noseY - faceR * 0.12);
+        ctx.moveTo(cx, noseY - faceR * 0.14);
         ctx.lineTo(cx, noseY - faceR * 0.03);
         ctx.stroke();
-        // 鼻先の丸みハイライト
-        ctx.fillStyle = 'rgba(255,255,255,0.2)';
-        ctx.beginPath(); ctx.arc(cx, noseY - faceR * 0.01, faceR * 0.018, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = 'rgba(255,255,255,0.25)';
+        ctx.beginPath(); ctx.arc(cx, noseY - faceR * 0.01, faceR * 0.022, 0, Math.PI * 2); ctx.fill();
       }
       break;
     case 2: // たかい
       // 鼻筋の影線（片側）
-      ctx.strokeStyle = 'rgba(0,0,0,0.15)';
-      ctx.lineWidth = Math.max(0.5, faceR * 0.02);
+      ctx.strokeStyle = 'rgba(0,0,0,0.25)';
+      ctx.lineWidth = Math.max(0.8, faceR * 0.025);
       ctx.lineCap = 'round';
       ctx.beginPath();
-      ctx.moveTo(cx + faceR * 0.01, noseY - faceR * 0.12);
-      ctx.bezierCurveTo(cx + faceR * 0.02, noseY - faceR * 0.04, cx + faceR * 0.025, noseY + faceR * 0.02, cx + faceR * 0.01, noseY + faceR * 0.06);
+      ctx.moveTo(cx + faceR * 0.012, noseY - faceR * 0.16);
+      ctx.bezierCurveTo(cx + faceR * 0.025, noseY - faceR * 0.06, cx + faceR * 0.03, noseY + faceR * 0.02, cx + faceR * 0.012, noseY + faceR * 0.08);
       ctx.stroke();
       // 小鼻の影（両サイド）
       if (detail) {
         [-1, 1].forEach(function(s) {
-          var sGrad = ctx.createRadialGradient(cx + s * faceR * 0.04, noseY + faceR * 0.05, 0, cx + s * faceR * 0.04, noseY + faceR * 0.05, faceR * 0.04);
-          sGrad.addColorStop(0, 'rgba(0,0,0,0.1)');
+          var sGrad = ctx.createRadialGradient(cx + s * faceR * 0.05, noseY + faceR * 0.06, 0, cx + s * faceR * 0.05, noseY + faceR * 0.06, faceR * 0.05);
+          sGrad.addColorStop(0, 'rgba(0,0,0,0.18)');
           sGrad.addColorStop(1, 'rgba(0,0,0,0)');
           ctx.fillStyle = sGrad;
-          ctx.beginPath(); ctx.arc(cx + s * faceR * 0.04, noseY + faceR * 0.05, faceR * 0.04, 0, Math.PI * 2); ctx.fill();
+          ctx.beginPath(); ctx.arc(cx + s * faceR * 0.05, noseY + faceR * 0.06, faceR * 0.05, 0, Math.PI * 2); ctx.fill();
         });
       }
       // 鼻筋ハイライト（中央の白い縦線）
       if (detail) {
-        ctx.strokeStyle = 'rgba(255,255,255,0.18)';
-        ctx.lineWidth = Math.max(0.5, faceR * 0.015);
+        ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+        ctx.lineWidth = Math.max(0.8, faceR * 0.02);
         ctx.beginPath();
-        ctx.moveTo(cx - faceR * 0.005, noseY - faceR * 0.1);
-        ctx.lineTo(cx - faceR * 0.005, noseY + faceR * 0.03);
+        ctx.moveTo(cx - faceR * 0.005, noseY - faceR * 0.14);
+        ctx.lineTo(cx - faceR * 0.005, noseY + faceR * 0.05);
         ctx.stroke();
       }
       // 鼻先の丸みハイライト
-      var tipGrad = ctx.createRadialGradient(cx, noseY + faceR * 0.05, 0, cx, noseY + faceR * 0.05, faceR * 0.04);
-      tipGrad.addColorStop(0, 'rgba(255,255,255,0.25)');
+      var tipGrad = ctx.createRadialGradient(cx, noseY + faceR * 0.07, 0, cx, noseY + faceR * 0.07, faceR * 0.05);
+      tipGrad.addColorStop(0, 'rgba(255,255,255,0.3)');
       tipGrad.addColorStop(1, 'rgba(255,255,255,0)');
       ctx.fillStyle = tipGrad;
-      ctx.beginPath(); ctx.arc(cx, noseY + faceR * 0.05, faceR * 0.04, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(cx, noseY + faceR * 0.07, faceR * 0.05, 0, Math.PI * 2); ctx.fill();
       break;
     case 4: // だんご鼻 — round bulbous nose
       var dangoGrad = ctx.createRadialGradient(cx, noseY, faceR * 0.02, cx, noseY, faceR * 0.13);

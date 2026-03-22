@@ -87,10 +87,11 @@ window.onload = function() {
     const savedProfile = localStorage.getItem('co_heart_admin_profile');
 
     if(savedToken && savedProfile) {
-        // トークンの有効性をサーバーで確認
+        // トークンの有効性をサーバーで確認（軽量APIで検証）
         try { currentAdminProfile = JSON.parse(savedProfile); } catch(e) {}
-        api('/admin/inbox', undefined, savedToken).then(function(res) {
-            if (res && res.success !== false && !res.msg) {
+        fetch('/api/admin/members-status', { headers: { 'Authorization': 'Bearer ' + savedToken } })
+        .then(function(r) {
+            if (r.ok) {
                 // トークン有効
                 document.getElementById('admin-auth-overlay').style.display = 'none';
                 renderHeaderInfo();

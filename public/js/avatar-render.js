@@ -46,9 +46,9 @@ var AvatarAssets = {
       }
     }
     await Promise.all(promises);
-    // 1枚でもロード成功していればモンタージュ利用可能とする
+    // 実際の400x400パーツ画像がロードされているか判定（1x1プレースホルダーは除外）
     var loadedCount = 0;
-    for (var k in this.images) { if (this.images[k]) loadedCount++; }
+    for (var k in this.images) { if (this.images[k] && this.images[k].naturalWidth >= 400) loadedCount++; }
     this.isLoaded = loadedCount > 0;
     this.isLoading = false;
     if (this.isLoaded) {

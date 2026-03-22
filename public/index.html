@@ -454,7 +454,7 @@
     <!-- プロフィールカード -->
     <div class="card-section" style="background:linear-gradient(135deg, #f0f4ff 0%, #e8ecff 100%); text-align:center; padding:18px;">
       <div style="display:flex; align-items:center; gap:14px;">
-        <div id="profile-avatar" style="width:64px; height:64px; border-radius:50%; overflow:hidden; border:3px solid #fff; box-shadow:0 4px 12px rgba(0,0,0,0.1); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:2rem; background:#f0f0f0;"></div>
+        <div id="profile-avatar" onclick="showRanking()" style="width:64px; height:64px; border-radius:50%; overflow:hidden; border:3px solid #fff; box-shadow:0 4px 12px rgba(0,0,0,0.1); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:2rem; background:#f0f0f0; cursor:pointer;"></div>
         <div style="flex:1; text-align:left;">
           <div style="display:flex; align-items:center; gap:8px;">
             <span style="font-weight:800; font-size:1.05rem; color:#2c3e50;" id="profile-nickname">--</span>
@@ -1542,6 +1542,42 @@ function getRankBadgeHtml(rank) {
   };
   var c = configs[rank] || configs['Beginner'];
   return '<span style="display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; background:' + c.bg + '; color:' + c.color + '; font-size:0.85rem; border-radius:50%; box-shadow:0 2px 6px rgba(0,0,0,0.15);" title="' + (rank || '') + '"><i class="' + c.icon + '"></i></span>';
+}
+
+function showRanking() {
+  var popup = document.getElementById('badge-info-popup');
+  var content = document.getElementById('badge-info-content');
+  if (!popup || !content) return;
+  content.innerHTML = '<div style="text-align:center; padding:16px;"><div class="spinner-border text-secondary" role="status"></div></div>';
+  popup.style.display = 'block';
+  fetch('/auth/ranking').then(function(r){return r.json();}).then(function(res) {
+    if (!res || !res.success) { content.innerHTML = '<p style="color:#999;">データを取得できませんでした</p>'; return; }
+    var medals = ['🥇','🥈','🥉','4','5'];
+    function renderRankList(title, icon, list) {
+      var html = '<div style="margin-bottom:16px;">';
+      html += '<div style="font-weight:800; font-size:0.9rem; color:#2c3e50; margin-bottom:8px; display:flex; align-items:center; gap:6px;"><i class="fas fa-' + icon + '" style="color:#667eea;"></i> ' + title + '</div>';
+      if (!list || list.length === 0) {
+        html += '<div style="font-size:0.8rem; color:#999;">データなし</div>';
+      } else {
+        list.forEach(function(u, i) {
+          var medal = i < 3 ? '<span style="font-size:1.1rem;">' + medals[i] + '</span>' : '<span style="font-size:0.75rem; font-weight:800; color:#999; width:20px; text-align:center; display:inline-block;">' + medals[i] + '</span>';
+          var isMe = currentUser && u.id === currentUser.uid;
+          var bg = isMe ? 'background:linear-gradient(135deg,#f0f4ff,#e8ecff);border:1.5px solid #667eea;' : 'background:#f8f8f8;border:1.5px solid transparent;';
+          html += '<div style="display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:12px; margin-bottom:4px; ' + bg + '">';
+          html += medal;
+          html += '<div style="width:32px; height:32px; border-radius:50%; overflow:hidden; display:flex; align-items:center; justify-content:center; background:#f0f0f0; flex-shrink:0;">' + getAvatarHtml(u.avatar, 30) + '</div>';
+          html += '<div style="flex:1; font-size:0.8rem; font-weight:700; color:#333;">' + (u.nickname || '--') + (isMe ? ' <span style="font-size:0.65rem; color:#667eea;">(あなた)</span>' : '') + '</div>';
+          html += '<div style="font-size:0.85rem; font-weight:800; color:#667eea;">' + (u.count || 0) + '</div>';
+          html += '</div>';
+        });
+      }
+      html += '</div>';
+      return html;
+    }
+    content.innerHTML = renderRankList('投稿数ランキング TOP5', 'pen', res.postRanking) + renderRankList('紹介者数ランキング TOP5', 'user-plus', res.inviteRanking);
+  }).catch(function() {
+    content.innerHTML = '<p style="color:#999;">通信エラー</p>';
+  });
 }
 
 function showProfileBadgeInfo() {

@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const { v4: uuidv4 } = require('uuid');
 const { getDb } = require('../services/db');
-const { generateToken } = require('../middleware/auth');
+const { generateToken, authUser } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -187,8 +187,8 @@ router.post('/reset-password', (req, res) => {
   }
 });
 
-// アバター変更
-router.post('/update-avatar', (req, res) => {
+// アバター変更（認証必須）
+router.post('/update-avatar', authUser, (req, res) => {
   try {
     const { uid, avatar } = req.body;
     if (!uid || !avatar) return res.json({ success: false, msg: 'uid と avatar を指定してください' });
@@ -200,8 +200,8 @@ router.post('/update-avatar', (req, res) => {
   }
 });
 
-// プロフィール更新（ニックネーム・部署）
-router.post('/update-profile', (req, res) => {
+// プロフィール更新（ニックネーム・部署、認証必須）
+router.post('/update-profile', authUser, (req, res) => {
   try {
     const { uid, nickname, department } = req.body;
     if (!uid || !nickname) return res.json({ success: false, msg: 'uidとニックネームは必須です' });

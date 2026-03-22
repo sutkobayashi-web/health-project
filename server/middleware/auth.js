@@ -1,9 +1,12 @@
 const jwt = require('jsonwebtoken');
 
-const JWT_SECRET = () => process.env.JWT_SECRET || 'health-project-secret';
+const JWT_SECRET = () => {
+  if (!process.env.JWT_SECRET) throw new Error('JWT_SECRET environment variable is required');
+  return process.env.JWT_SECRET;
+};
 
 function generateToken(payload) {
-  return jwt.sign(payload, JWT_SECRET(), { expiresIn: '7d' });
+  return jwt.sign(payload, JWT_SECRET(), { expiresIn: '24h' });
 }
 
 function verifyToken(token) {

@@ -2,14 +2,54 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// ミドルウェア
-app.use(cors());
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+// セキュリティヘッダー（CSP等）
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
+      imgSrc: ["'self'", "data:", "https://api.qrserver.com", "blob:"],
+      connectSrc: ["'self'"],
+      frameSrc: ["'none'"]
+    }
+  },
+  crossOriginEmbedderPolicy: false
+}));
+
+// HTTPS強制（Cloudflare経由）
+app.use((req, res, next) => {
+  if (process.env.NODE_ENV === 'production' && req.headers['x-forwarded-proto'] && req.headers['x-forwarded-proto'] !== 'https') {
+    return res.redirect(301, 'https://' + req.headers.host + req.url);
+  }
+  next();
+});
+
+// CORS制限（許可するオリジンを限定）
+app.use(cors({
+  origin: process.env.WEB_APP_URL || 'https://health.biz-terrace.org',
+  credentials: true,
+  methods: ['GET', 'POST'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+// レート制限
+const apiLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 300, message: { success: false, msg: 'リクエスト制限を超えました。しばらくしてから再試行してください。' } });
+const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 15, message: { success: false, msg: 'ログイン試行回数を超えました。15分後に再試行してください。' } });
+app.use('/api/', apiLimiter);
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/register', authLimiter);
+app.use('/api/auth/admin-login', authLimiter);
+
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // 静的ファイル配信 (HTML はキャッシュ無効化)
 app.use(express.static(path.join(__dirname, '..', 'public'), {
@@ -36,17 +76,19 @@ app.use('/api/themes', require('./routes/themes'));
 
 // ヘルスチェック
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', version: '1.0.0', timestamp: new Date().toISOString() });
+  res.json({ status: 'ok' });
 });
 
-// 手動バックアップAPI（管理者用）
-app.post('/api/admin/backup', (req, res) => {
+const { authAdmin } = require('./middleware/auth');
+
+// 手動バックアップAPI（管理者用・認証必須）
+app.post('/api/admin/backup', authAdmin, (req, res) => {
   const { runBackup } = require('./services/backup');
   runBackup().then(r => res.json(r)).catch(e => res.json({ success: false, error: e.message }));
 });
 
-// バックアップ状態確認API（自アプリのみ）
-app.get('/api/admin/backup-status', (req, res) => {
+// バックアップ状態確認API（認証必須）
+app.get('/api/admin/backup-status', authAdmin, (req, res) => {
   const fs = require('fs');
   const { execSync } = require('child_process');
   const backupDir = path.join(__dirname, '..', 'backup');
@@ -82,8 +124,8 @@ app.get('/api/admin/backup-status', (req, res) => {
   });
 });
 
-// Box Developer Token更新API
-app.post('/api/admin/box-token', (req, res) => {
+// Box Developer Token更新API（認証必須）
+app.post('/api/admin/box-token', authAdmin, (req, res) => {
   const { token } = req.body;
   if (!token) return res.json({ success: false, msg: 'トークンを入力してください' });
   process.env.BOX_DEVELOPER_TOKEN = token;

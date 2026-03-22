@@ -6,6 +6,9 @@ const { authAdmin } = require('../middleware/auth');
 
 const router = express.Router();
 
+// 全管理APIに認証を適用
+router.use(authAdmin);
+
 const STATUS = {
   CANDIDATE: 'candidate', MEMBER_REVIEW: 'member_review', EXEC_PENDING: 'exec_pending',
   APPROVED: 'approved', REJECTED: 'rejected', IN_EXECUTION: 'in_execution',

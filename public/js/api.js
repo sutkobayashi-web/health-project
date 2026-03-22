@@ -67,7 +67,7 @@ function resetAdminPassword(email, name, newPassword) {
   return api('/auth/admin-reset-password', { email, name, newPassword });
 }
 function updateUserAvatar(uid, avatar) {
-  return api('/auth/update-avatar', { uid, avatar });
+  return api('/auth/update-avatar', { uid, avatar }, getToken());
 }
 function getLatestUserStats(uid) {
   return api('/auth/stats/' + uid);

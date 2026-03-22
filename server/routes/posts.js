@@ -126,13 +126,20 @@ router.post('/food', async (req, res) => {
     const dName = decodeURIComponent(nickname);
     const comment = userComment || 'なし';
 
-    // 画像保存
+    // 画像保存（バリデーション付き）
     let imageUrl = '';
     try {
+      const ALLOWED_MIMES = ['image/jpeg', 'image/png', 'image/webp'];
+      const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+      if (!ALLOWED_MIMES.includes(mimeType)) throw new Error('Invalid image type');
+      const imgBuf = Buffer.from(imageBase64, 'base64');
+      if (imgBuf.length > MAX_SIZE) throw new Error('File too large');
       const uploadDir = process.env.UPLOAD_DIR || './uploads';
-      const fileName = `food_${Date.now()}.jpg`;
+      const crypto = require('crypto');
+      const ext = mimeType === 'image/png' ? '.png' : '.jpg';
+      const fileName = 'food_' + crypto.randomBytes(8).toString('hex') + ext;
       const filePath = path.join(uploadDir, fileName);
-      fs.writeFileSync(filePath, Buffer.from(imageBase64, 'base64'));
+      fs.writeFileSync(filePath, imgBuf);
       imageUrl = `/uploads/${fileName}`;
     } catch (e) { imageUrl = '(保存失敗)'; }
 

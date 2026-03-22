@@ -450,7 +450,7 @@ function renderGeneralUsers(users) {
         return;
     }
     area.innerHTML = '<table class="table table-hover mb-0" style="font-size:0.85rem;">' +
-        '<thead style="background:#f8f9fa;"><tr><th style="width:50px;"></th><th>ニックネーム</th><th>本名</th><th>部署</th><th>投稿数</th><th>登録日</th><th style="width:100px;">操作</th></tr></thead>' +
+        '<thead style="background:#f8f9fa;"><tr><th style="width:50px;"></th><th>ニックネーム</th><th>本名</th><th>部署</th><th>投稿数</th><th>登録日</th><th style="width:130px;">操作</th></tr></thead>' +
         '<tbody>' + users.map(function(u) {
             var avatarHtml = _renderMemberAvatar(u.avatar, '😀', 32);
             var dateStr = u.created_at ? new Date(u.created_at).toLocaleDateString('ja-JP') : '';
@@ -461,7 +461,8 @@ function renderGeneralUsers(users) {
                 '<td>' + escapeHtml(u.department || '') + '</td>' +
                 '<td class="text-center"><span class="badge bg-primary rounded-pill">' + (u.post_count || 0) + '</span></td>' +
                 '<td class="text-muted small">' + dateStr + '</td>' +
-                '<td><button class="btn btn-outline-primary btn-sm me-1" style="font-size:0.7rem;" onclick=\'openEditUserModal(' + JSON.stringify(u).replace(/'/g, "&#39;") + ')\'><i class="fas fa-edit"></i></button>' +
+                '<td><button class="btn btn-outline-success btn-sm me-1" style="font-size:0.7rem;" onclick="sendPersonalMessage(\'' + u.id + '\',\'' + escapeHtml(u.nickname) + '\')" title="個別お知らせ"><i class="fas fa-envelope"></i></button>' +
+                '<button class="btn btn-outline-primary btn-sm me-1" style="font-size:0.7rem;" onclick=\'openEditUserModal(' + JSON.stringify(u).replace(/'/g, "&#39;") + ')\'><i class="fas fa-edit"></i></button>' +
                 '<button class="btn btn-outline-danger btn-sm" style="font-size:0.7rem;" onclick="handleDeleteUser(\'' + u.id + '\',\'' + escapeHtml(u.nickname) + '\')"><i class="fas fa-trash"></i></button></td>' +
                 '</tr>';
         }).join('') + '</tbody></table>';

@@ -364,6 +364,9 @@
         <button class="ab-part-btn" data-part="sizeNose" onclick="abSelectDragPart(this,'sizeNose')">鼻⊕</button>
         <button class="ab-part-btn" data-part="posMouth" onclick="abSelectDragPart(this,'posMouth')">口↕</button>
         <button class="ab-part-btn" data-part="sizeMouth" onclick="abSelectDragPart(this,'sizeMouth')">口⊕</button>
+        <button class="ab-part-btn" data-part="posLip" onclick="abSelectDragPart(this,'posLip')">唇↕</button>
+        <button class="ab-part-btn" data-part="posBeard" onclick="abSelectDragPart(this,'posBeard')">髭↕</button>
+        <button class="ab-part-btn" data-part="posCheek" onclick="abSelectDragPart(this,'posCheek')">頬↕</button>
       </div>
       <div style="font-size:0.6rem; color:#aaa; margin-top:4px;">パーツを選んで画面をドラッグ</div>
     </div>
@@ -739,7 +742,7 @@ function abInitDrag(canvas) {
     if (_abDragStartY === null) return;
     e.preventDefault();
     var isHorizontal = (_abDragPart === 'eyeSpacing' || _abDragPart === 'widthHair');
-    var isSize = (_abDragPart === 'sizeEye' || _abDragPart === 'sizeNose' || _abDragPart === 'sizeMouth' || _abDragPart === 'sizeHair' || _abDragPart === 'sizeFace' || _abDragPart === 'widthHair');
+    var isSize = (_abDragPart === 'sizeEye' || _abDragPart === 'sizeNose' || _abDragPart === 'sizeMouth' || _abDragPart === 'sizeHair' || _abDragPart === 'sizeFace' || _abDragPart === 'widthHair' || _abDragPart === 'sizeBrow' || _abDragPart === 'sizeBeard' || _abDragPart === 'sizeCheek' || _abDragPart === 'sizeLip' || _abDragPart === 'sizeAcc');
     var delta;
     if (isHorizontal) {
       delta = (getX(e) - _abDragStartX) / 15;
@@ -748,7 +751,7 @@ function abInitDrag(canvas) {
     } else {
       delta = (getY(e) - _abDragStartY) / 15;
     }
-    var limits = { posEye:[-4,4], posBrow:[-4,4], posNose:[-3,3], posMouth:[-4,4], eyeSpacing:[-3,3], sizeEye:[-3,3], sizeNose:[-2,2], sizeMouth:[-2,2], posHair:[-4,4], sizeHair:[-3,3], widthHair:[-3,3], sizeFace:[-3,3] };
+    var limits = { posEye:[-4,4], posBrow:[-4,4], posNose:[-3,3], posMouth:[-4,4], eyeSpacing:[-3,3], sizeEye:[-3,3], sizeNose:[-2,2], sizeMouth:[-2,2], posHair:[-4,4], sizeHair:[-3,3], widthHair:[-3,3], sizeFace:[-3,3], posAcc:[-4,4], sizeAcc:[-3,3], sizeBrow:[-3,3], posBeard:[-4,4], sizeBeard:[-3,3], posCheek:[-4,4], sizeCheek:[-3,3], posLip:[-4,4], sizeLip:[-3,3] };
     var lim = limits[_abDragPart] || [-4,4];
     var newVal = Math.round(Math.max(lim[0], Math.min(lim[1], _abDragStartVal + delta)));
     if (abState[_abDragPart] !== newVal) {

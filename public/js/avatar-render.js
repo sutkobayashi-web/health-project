@@ -141,35 +141,38 @@ function renderCustomAvatar(avatarStr, size) {
     var noseFaceR = faceR * (1.5 + sizeNoseVal * 0.15);
     drawNose(ctx, cx, noseY, noseFaceR, noseType);
 
-    // 口（リップカラー対応）
-    var lipYOff = posLipVal * faceR * 0.04;
+    // 口（リップカラー対応）— 口の位置は独立
+    var lipYOff = posLipVal * faceR * 0.05;
     var lipScale = 1 + sizeLipVal * 0.1;
     var mouthFaceR = faceR * (1 + sizeMouthVal * 0.1);
+    var lipBaseY = faceY + faceR * 0.35 + lipYOff;
     ctx.save();
-    ctx.translate(cx, mouthY + lipYOff);
+    ctx.translate(cx, lipBaseY);
     ctx.scale(lipScale, lipScale);
-    ctx.translate(-cx, -(mouthY + lipYOff));
-    drawMouth(ctx, cx, mouthY + lipYOff, mouthFaceR, mouthType, lipColorIdx);
+    ctx.translate(-cx, -lipBaseY);
+    drawMouth(ctx, cx, lipBaseY, mouthFaceR, mouthType, lipColorIdx);
     ctx.restore();
 
-    // ヒゲ
+    // ヒゲ — 独立した位置制御
     var beardYOff = posBeardVal * faceR * 0.05;
     var beardScale = 1 + sizeBeardVal * 0.1;
+    var beardBaseY = faceY + faceR * 0.35 + beardYOff;
     ctx.save();
-    ctx.translate(cx, mouthY + beardYOff);
+    ctx.translate(cx, beardBaseY);
     ctx.scale(beardScale, beardScale);
-    ctx.translate(-cx, -(mouthY + beardYOff));
-    drawBeard(ctx, cx, mouthY + beardYOff, faceR, beardType, hairColor);
+    ctx.translate(-cx, -beardBaseY);
+    drawBeard(ctx, cx, beardBaseY, faceR, beardType, hairColor);
     ctx.restore();
 
-    // チーク（カラー対応）
+    // チーク（カラー対応）— 独立した位置制御
     var cheekYOff = posCheekVal * faceR * 0.05;
     var cheekScale = 1 + sizeCheekVal * 0.08;
+    var cheekBaseY = faceY + faceR * 0.1 + cheekYOff;
     ctx.save();
-    ctx.translate(cx, eyeY + cheekYOff);
+    ctx.translate(cx, cheekBaseY);
     ctx.scale(cheekScale, cheekScale);
-    ctx.translate(-cx, -(eyeY + cheekYOff));
-    drawCheeks(ctx, cx, eyeY + cheekYOff, eyeSpacing, faceR, cheekType, cheekColorIdx);
+    ctx.translate(-cx, -cheekBaseY);
+    drawCheeks(ctx, cx, cheekBaseY, eyeSpacing, faceR, cheekType, cheekColorIdx);
     ctx.restore();
 
     // 髪（前部分）

@@ -77,6 +77,7 @@ function doAdminAuth() {
             document.getElementById('admin-auth-overlay').style.display = 'none';
             renderHeaderInfo();
             loadData();
+            switchTab('evaluation');
         } else { alert("認証失敗: " + res.msg); }
     }).catch(function(err) { hideLoading(); alert("通信エラー: " + err.message); });
 }

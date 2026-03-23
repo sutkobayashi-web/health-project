@@ -218,7 +218,7 @@ function renderReportList(data) {
                         '<div style="flex:1; font-size:0.85rem; line-height:1.5; color:#444; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">'+escapeHtml(rawContent)+'</div>' +
                     '</div>' +
                     // 右: 共感ミニサマリー
-                    '<div id="empathy-mini-'+pid+'" style="flex-shrink:0; width:280px; font-size:0.8rem; color:#667eea;"></div>' +
+                    '<div id="empathy-mini-'+pid+'" style="flex-shrink:0; width:300px; max-height:200px; overflow-y:auto;"></div>' +
                 '</div>' +
                 // 操作ボタン行
                 '<div style="margin-top:8px; text-align:right;">' +
@@ -242,26 +242,16 @@ function renderReportList(data) {
                             '<button class="btn btn-sm btn-outline-primary fw-bold mt-1" style="font-size:0.68rem;" onclick="doAutoEvaluate(\''+pid+'\')"><i class="fas fa-magic me-1"></i>AI評価を実行</button>' +
                         '</div>' +
                     '</div>' +
-                    // 右: 共感+回答+チャット
+                    // 右: 回答一覧+チャット
                     '<div style="flex:1; display:flex; flex-direction:column; max-height:450px; background:linear-gradient(180deg, #f5f0ff 0%, #f0f4ff 100%);">' +
-                        // 上部: 共感+回答（折り畳み式・コンパクト）
-                        '<div style="flex-shrink:0; padding:8px 12px; overflow-y:auto; max-height:160px;">' +
-                            // 共感サマリー（折り畳み）
-                            '<div style="margin-bottom:4px;">' +
-                                '<div style="display:flex; align-items:center; gap:6px; cursor:pointer;" onclick="var b=document.getElementById(\'empathy-detail-'+pid+'\'); b.style.display=b.style.display===\'none\'?\'block\':\'none\';">' +
-                                    '<div style="font-size:0.7rem; font-weight:700; color:#667eea;"><i class="fas fa-heart me-1"></i>共感 <span id="empathy-count-'+pid+'" style="color:#999;"></span></div>' +
-                                    '<span style="font-size:0.6rem; color:#667eea; background:rgba(102,126,234,0.1); padding:1px 8px; border-radius:10px; font-weight:600; margin-left:auto;">詳細 ▼</span>' +
-                                '</div>' +
-                                '<div id="empathy-detail-'+pid+'" style="display:none; margin-top:4px;">' +
-                                    '<div id="empathy-summary-'+pid+'"></div>' +
-                                    '<div style="margin-top:6px;">' +
-                                        '<div style="font-size:0.68rem; font-weight:700; color:#333; margin-bottom:2px;"><i class="fas fa-list me-1"></i>回答一覧</div>' +
-                                        '<div id="empathy-members-'+pid+'" style="max-height:100px; overflow-y:auto;"></div>' +
-                                    '</div>' +
-                                '</div>' +
-                            '</div>' +
+                        // 上部: 回答一覧
+                        '<div style="flex-shrink:0; padding:8px 12px; overflow-y:auto; max-height:180px;">' +
+                            '<div style="font-size:0.7rem; font-weight:700; color:#667eea; margin-bottom:4px;"><i class="fas fa-heart me-1"></i>共感 <span id="empathy-count-'+pid+'" style="color:#999;"></span></div>' +
+                            '<div id="empathy-summary-'+pid+'" style="display:none;"></div>' +
+                            '<div style="font-size:0.68rem; font-weight:700; color:#333; margin-bottom:2px;"><i class="fas fa-list me-1"></i>回答一覧</div>' +
+                            '<div id="empathy-members-'+pid+'" style="max-height:120px; overflow-y:auto;"></div>' +
                         '</div>' +
-                        // 下部: 推進メンバー議論チャット（広めに確保）
+                        // 下部: 推進メンバー議論チャット
                         '<div style="flex:1; display:flex; flex-direction:column; border-top:2px solid #d32f2f; background:linear-gradient(180deg, #fff5f5 0%, #fff0f0 100%); padding:8px 12px; min-height:0;">' +
                             '<div style="font-size:0.7rem; font-weight:700; color:#d32f2f; margin-bottom:4px;"><i class="fas fa-comments me-1"></i>推進メンバー議論</div>' +
                             '<div id="empathy-member-chats-'+pid+'" style="flex:1; overflow-y:auto; font-size:0.78rem; background:white; border-radius:8px; padding:6px; min-height:80px; word-break:break-word; border:1px solid #f0e0e0;"></div>' +
@@ -667,23 +657,13 @@ function loadEmpathyDisplay(pid) {
         'senmon':'🏥','kininaru':'👀','oishii':'🍽️','sankou':'💪',
         'onaji':'😅','healthy':'🌿','kaizen':'🍺','motto':'📸'
       };
-      var miniLabelMap = {
-        'wakaru':'わかる','yabai':'ヤバい','kaisha':'会社が動けば','ouen':'応援',
-        'issho':'一緒に','senmon':'専門家へ','kininaru':'気になる',
-        'oishii':'美味しそう','sankou':'参考に','onaji':'自分も同じ',
-        'healthy':'見習いたい','kaizen':'改善したい','motto':'もっと見たい'
-      };
-      var mHtml = '<div style="font-weight:800; color:#667eea; margin-bottom:4px; font-size:0.82rem;"><i class="fas fa-heart" style="font-size:0.7rem; margin-right:2px;"></i> 共感 ' + s.totalCount + '名</div>';
-      mHtml += '<div style="display:flex; flex-direction:column; gap:2px;">';
+      var mHtml = '<div style="font-weight:800; color:#667eea; margin-bottom:4px; font-size:0.78rem;"><i class="fas fa-heart" style="font-size:0.65rem; margin-right:2px;"></i> 共感 ' + s.totalCount + '名</div>';
+      // タイプ別バッジ（詳細パネルと同じ形式）
+      mHtml += '<div style="display:flex; flex-wrap:wrap; gap:3px; margin-bottom:4px;">';
       Object.keys(s.typeCounts).forEach(function(type) {
-        var emoji = miniTypeMap[type] || '❓';
-        var label = miniLabelMap[type] || type;
-        var cnt = s.typeCounts[type];
-        mHtml += '<div style="display:flex; align-items:center; gap:4px; font-size:0.75rem;">' +
-          '<span style="font-size:0.85rem;">' + emoji + '</span>' +
-          '<span style="flex:1; color:#555; font-weight:600;">' + label + '</span>' +
-          '<span style="background:#667eea; color:white; border-radius:8px; padding:0 7px; font-size:0.68rem; font-weight:700; min-width:18px; text-align:center;">' + cnt + '</span>' +
-        '</div>';
+        var info = typeMap[type] || { emoji:'❓', label:type };
+        var count = s.typeCounts[type];
+        mHtml += '<span style="display:inline-flex; align-items:center; gap:2px; padding:2px 7px; border-radius:10px; font-size:0.65rem; font-weight:700; background:#f0f0ff; border:1px solid #e0e0ff;">' + info.emoji + ' ' + info.label + ' <span style="background:#667eea; color:white; border-radius:6px; padding:0 5px; font-size:0.6rem;">' + count + '</span></span>';
       });
       mHtml += '</div>';
       miniArea.innerHTML = mHtml;

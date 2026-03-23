@@ -15,6 +15,8 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   const req = event.request;
+  // 同一オリジン以外はSWで処理しない（CSP違反防止）
+  if (new URL(req.url).origin !== self.location.origin) return;
   // APIリクエストはキャッシュしない
   if (req.url.includes('/api/')) return;
   // GETのみキャッシュ

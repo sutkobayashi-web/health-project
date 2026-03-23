@@ -522,17 +522,20 @@
       <div id="challenge-combined-body" style="display:none; margin-top:12px; padding-top:12px; border-top:1px solid rgba(255,107,53,0.2);">
         <!-- アバターチャレンジ -->
         <div id="avatar-challenge-section" style="display:none;">
-          <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+          <div style="display:flex; align-items:center; gap:8px; cursor:pointer;" onclick="toggleAccordion('avatar-challenge-body','avatar-challenge-chevron')">
             <div style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#ff9800,#f57c00);flex-shrink:0;"><i class="fas fa-palette" style="font-size:14px;color:#fff;"></i></div>
-            <div style="font-weight:700; font-size:0.88rem; color:#e65100;" id="avatar-challenge-subtitle">アバターチャレンジ</div>
+            <div style="flex:1; font-weight:700; font-size:0.88rem; color:#e65100;" id="avatar-challenge-subtitle">アバターチャレンジ</div>
+            <i class="fas fa-chevron-down" id="avatar-challenge-chevron" style="color:#f57c00; font-size:0.8rem; transition:transform 0.3s;"></i>
           </div>
-          <div id="avatar-challenge-status" style="font-size:0.75rem; color:#f57c00; font-weight:700; margin-bottom:10px; text-align:center;"></div>
-          <div id="avatar-challenge-tabs" style="display:flex; gap:6px; margin-bottom:12px;">
-            <button onclick="showAvatarTab('gallery')" id="av-tab-gallery" style="flex:1; padding:8px; border:2px solid #ff9800; background:#ff9800; color:white; border-radius:10px; font-weight:700; font-size:0.78rem; cursor:pointer;">ギャラリー</button>
-            <button onclick="showAvatarTab('ranking')" id="av-tab-ranking" style="flex:1; padding:8px; border:2px solid #ff9800; background:white; color:#ff9800; border-radius:10px; font-weight:700; font-size:0.78rem; cursor:pointer;">ランキング</button>
+          <div id="avatar-challenge-body" style="display:none; margin-top:10px;">
+            <div id="avatar-challenge-status" style="font-size:0.75rem; color:#f57c00; font-weight:700; margin-bottom:10px; text-align:center;"></div>
+            <div id="avatar-challenge-tabs" style="display:flex; gap:6px; margin-bottom:12px;">
+              <button onclick="showAvatarTab('gallery')" id="av-tab-gallery" style="flex:1; padding:8px; border:2px solid #ff9800; background:#ff9800; color:white; border-radius:10px; font-weight:700; font-size:0.78rem; cursor:pointer;">ギャラリー</button>
+              <button onclick="showAvatarTab('ranking')" id="av-tab-ranking" style="flex:1; padding:8px; border:2px solid #ff9800; background:white; color:#ff9800; border-radius:10px; font-weight:700; font-size:0.78rem; cursor:pointer;">ランキング</button>
+            </div>
+            <div id="avatar-gallery-content" style="max-height:400px; overflow-y:auto; -webkit-overflow-scrolling:touch;"></div>
+            <div id="avatar-ranking-content" style="display:none; max-height:400px; overflow-y:auto; -webkit-overflow-scrolling:touch;"></div>
           </div>
-          <div id="avatar-gallery-content" style="max-height:400px; overflow-y:auto; -webkit-overflow-scrolling:touch;"></div>
-          <div id="avatar-ranking-content" style="display:none; max-height:400px; overflow-y:auto; -webkit-overflow-scrolling:touch;"></div>
         </div>
         <!-- アクションチャレンジ -->
         <div id="challenge-section" style="display:none;">

@@ -218,7 +218,7 @@ function renderReportList(data) {
                         '<div style="flex:1; font-size:0.85rem; line-height:1.5; color:#444; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">'+escapeHtml(rawContent)+'</div>' +
                     '</div>' +
                     // 右: 共感ミニサマリー
-                    '<div id="empathy-mini-'+pid+'" style="flex-shrink:0; width:160px; font-size:0.8rem; color:#667eea;"></div>' +
+                    '<div id="empathy-mini-'+pid+'" style="flex-shrink:0; width:180px; font-size:0.8rem; color:#667eea; margin-right:auto;"></div>' +
                 '</div>' +
                 // 操作ボタン行
                 '<div style="margin-top:8px; text-align:right;">' +

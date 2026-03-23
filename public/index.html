@@ -537,15 +537,10 @@
             <div id="avatar-ranking-content" style="display:none; max-height:400px; overflow-y:auto; -webkit-overflow-scrolling:touch;"></div>
           </div>
         </div>
-        <!-- アクションチャレンジ -->
+        <!-- アクションチャレンジ（動的生成） -->
         <div id="challenge-section" style="display:none;">
           <div id="challenge-divider" style="display:none; border-top:1px solid rgba(255,107,53,0.15); margin:14px 0;"></div>
-          <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
-            <div style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#ff6b35,#ff9a5c);flex-shrink:0;" id="challenge-icon-circle"><i class="fas fa-running" style="font-size:14px;color:#fff;"></i></div>
-            <div style="font-weight:700; font-size:0.88rem; color:#e65100;" id="challenge-title-display"></div>
-          </div>
-          <div style="font-size:0.75rem; color:#999; margin-bottom:8px;" id="challenge-subtitle-display"></div>
-          <div id="challenge-body"></div>
+          <div id="challenge-list-container"></div>
         </div>
       </div>
     </div>
@@ -3714,54 +3709,74 @@ function doVoteTheme(themeId) {
 // ====== チャレンジ ======
 var currentChallengeId = null;
 var challengeDetail = null;
+var _challengeDetails = {};
 
 function loadActiveChallenge() {
   if (!currentUser) return;
   getChallenges().then(function(res) {
     if (!res || !res.success) return;
-    var active = res.challenges.find(function(c) { return c.status === 'active'; });
-    if (!active) {
-      // エントリー受付中のチャレンジがあるかチェック
-      var recruiting = res.challenges.find(function(c) { return c.status === 'recruiting'; });
-      if (recruiting) {
-        currentChallengeId = recruiting.challenge_id;
-        loadChallengeDetail(recruiting.challenge_id);
-        return;
-      }
+    var targets = res.challenges.filter(function(c) { return c.status === 'active' || c.status === 'recruiting'; });
+    if (targets.length === 0) {
       document.getElementById('challenge-section').style.display = 'none';
       updateChallengeCombiVisibility();
       return;
     }
-    currentChallengeId = active.challenge_id;
-    loadChallengeDetail(active.challenge_id);
+    document.getElementById('challenge-section').style.display = 'block';
+    updateChallengeCombiVisibility();
+    // コンテナ初期化
+    var container = document.getElementById('challenge-list-container');
+    container.innerHTML = '';
+    targets.forEach(function(ch, idx) {
+      var cid = ch.challenge_id;
+      // 各チャレンジの折り畳みブロック生成
+      var block = document.createElement('div');
+      block.id = 'ch-block-' + cid;
+      if (idx > 0) block.style.marginTop = '12px';
+      block.innerHTML =
+        '<div style="display:flex; align-items:center; gap:8px; cursor:pointer;" onclick="toggleAccordion(\'ch-body-' + cid + '\',\'ch-chevron-' + cid + '\')">' +
+          '<div style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#ff6b35,#ff9a5c);flex-shrink:0;"><i class="fas fa-running" style="font-size:14px;color:#fff;"></i></div>' +
+          '<div style="flex:1;"><div style="font-weight:700; font-size:0.88rem; color:#e65100;" id="ch-title-' + cid + '"></div>' +
+          '<div style="font-size:0.75rem; color:#999;" id="ch-subtitle-' + cid + '"></div></div>' +
+          '<i class="fas fa-chevron-down" id="ch-chevron-' + cid + '" style="color:#ff6b35; font-size:0.8rem; transition:transform 0.3s;"></i>' +
+        '</div>' +
+        '<div id="ch-body-' + cid + '" style="display:none; margin-top:10px;"></div>';
+      container.appendChild(block);
+      loadChallengeDetail(cid);
+    });
+    if (targets.length > 0) currentChallengeId = targets[0].challenge_id;
   });
 }
 
 function loadChallengeDetail(cid) {
   getChallengeDetail(cid, currentUser.uid).then(function(res) {
     if (!res || !res.success) return;
+    _challengeDetails[cid] = res;
     challengeDetail = res;
+    currentChallengeId = cid;
     var c = res.challenge;
-    document.getElementById('challenge-section').style.display = 'block';
-    updateChallengeCombiVisibility();
-    document.getElementById('challenge-title-display').innerHTML = (c.icon || '💪') + ' ' + escapeHtml(c.title);
+    var titleEl = document.getElementById('ch-title-' + cid);
+    var subEl = document.getElementById('ch-subtitle-' + cid);
+    if (titleEl) titleEl.innerHTML = (c.icon || '💪') + ' ' + escapeHtml(c.title);
     var daysLeft = c.period_end ? Math.max(0, Math.ceil((new Date(c.period_end) - Date.now()) / 86400000)) : '?';
-    document.getElementById('challenge-subtitle-display').innerText = '参加' + res.participants.length + '名 / 残り' + daysLeft + '日';
+    if (subEl) subEl.innerText = '参加' + res.participants.length + '名 / 残り' + daysLeft + '日';
     if (!res.myParticipation) {
-      renderChallengeEntry(c);
+      renderChallengeEntry(c, cid);
     } else if (res.todayRecord) {
-      renderChallengeStatus(res);
+      renderChallengeStatus(res, cid);
     } else {
-      renderChallengeRecordForm(res);
+      renderChallengeRecordForm(res, cid);
     }
   });
 }
 
-function renderChallengeEntry(c) {
-  document.getElementById('challenge-section').style.display = 'block';
-  updateChallengeCombiVisibility();
-  document.getElementById('challenge-title-display').innerHTML = (c.icon || '💪') + ' ' + escapeHtml(c.title);
-  document.getElementById('challenge-subtitle-display').innerText = (c.participantCount || 0) + '名が参加予定';
+function _getChBody(cid) {
+  return document.getElementById('ch-body-' + (cid || currentChallengeId)) || document.getElementById('challenge-body');
+}
+
+function renderChallengeEntry(c, cid) {
+  cid = cid || c.challenge_id;
+  var subEl = document.getElementById('ch-subtitle-' + cid);
+  if (subEl) subEl.innerText = (c.participantCount || 0) + '名が参加予定';
   var html = '<div style="text-align:center; padding:10px;">';
   html += '<div style="font-size:0.88rem; color:#444; line-height:1.7; margin-bottom:14px;">' + escapeHtml(c.description || '') + '</div>';
   // アンバサダー助言があれば表示
@@ -3774,7 +3789,7 @@ function renderChallengeEntry(c) {
   html += '<button onclick="doJoinChallenge(\'' + c.challenge_id + '\')" style="background:linear-gradient(135deg,#ff6b35,#ff9a5c); color:white; border:none; border-radius:12px; padding:12px 30px; font-size:0.95rem; font-weight:800; cursor:pointer; box-shadow:0 4px 14px rgba(255,107,53,0.3);"><i class="fas fa-hand-point-up" style="margin-right:6px;"></i>エントリーする</button>';
   html += '<div style="font-size:0.7rem; color:#999; margin-top:8px;">途中参加・途中離脱OK</div>';
   html += '</div>';
-  document.getElementById('challenge-body').innerHTML = html;
+  _getChBody(cid).innerHTML = html;
 }
 
 function doJoinChallenge(cid) {
@@ -3785,7 +3800,8 @@ function doJoinChallenge(cid) {
   });
 }
 
-function renderChallengeRecordForm(res) {
+function renderChallengeRecordForm(res, cid) {
+  cid = cid || res.challenge.challenge_id;
   var c = res.challenge;
   var kpis = c.kpi_definitions || [];
   var html = '<div style="background:white; border-radius:12px; padding:14px; margin-bottom:10px;">';
@@ -3810,15 +3826,15 @@ function renderChallengeRecordForm(res) {
     }
     html += '</div>';
   });
-  html += '<input type="text" id="kpi-comment" placeholder="コメント（任意）" style="width:100%; border:1px solid #ddd; border-radius:10px; padding:8px 12px; font-size:0.82rem; margin-bottom:10px;">';
-  html += '<button onclick="doRecordKpi()" style="width:100%; background:linear-gradient(135deg,#ff6b35,#ff9a5c); color:white; border:none; border-radius:10px; padding:10px; font-size:0.9rem; font-weight:800; cursor:pointer;"><i class="fas fa-check"></i> 記録する</button>';
+  html += '<input type="text" id="kpi-comment-' + cid + '" placeholder="コメント（任意）" style="width:100%; border:1px solid #ddd; border-radius:10px; padding:8px 12px; font-size:0.82rem; margin-bottom:10px;">';
+  html += '<button onclick="doRecordKpi(\'' + cid + '\')" style="width:100%; background:linear-gradient(135deg,#ff6b35,#ff9a5c); color:white; border:none; border-radius:10px; padding:10px; font-size:0.9rem; font-weight:800; cursor:pointer;"><i class="fas fa-check"></i> 記録する</button>';
   html += '</div>';
   // ランキングボタン
   html += '<div style="display:flex; gap:8px;">';
-  html += '<button onclick="showChallengeRanking()" style="flex:1; background:white; border:2px solid #667eea; color:#667eea; border-radius:10px; padding:8px; font-size:0.8rem; font-weight:700; cursor:pointer;"><i class="fas fa-trophy"></i> ランキング</button>';
-  html += '<button onclick="showMyProgress()" style="flex:1; background:white; border:2px solid #20c997; color:#20c997; border-radius:10px; padding:8px; font-size:0.8rem; font-weight:700; cursor:pointer;"><i class="fas fa-chart-line"></i> 自分の推移</button>';
+  html += '<button onclick="showChallengeRanking(\'' + cid + '\')" style="flex:1; background:white; border:2px solid #667eea; color:#667eea; border-radius:10px; padding:8px; font-size:0.8rem; font-weight:700; cursor:pointer;"><i class="fas fa-trophy"></i> ランキング</button>';
+  html += '<button onclick="showMyProgress(\'' + cid + '\')" style="flex:1; background:white; border:2px solid #20c997; color:#20c997; border-radius:10px; padding:8px; font-size:0.8rem; font-weight:700; cursor:pointer;"><i class="fas fa-chart-line"></i> 自分の推移</button>';
   html += '</div>';
-  document.getElementById('challenge-body').innerHTML = html;
+  _getChBody(cid).innerHTML = html;
 }
 
 var kpiAnswers = {};
@@ -3841,21 +3857,23 @@ function toggleKpiCheck(el) {
   else { arr.push(val); el.style.borderColor = '#ff6b35'; el.style.background = '#fff5f0'; el.style.color = '#ff6b35'; el.style.fontWeight = '700'; }
 }
 
-function doRecordKpi() {
-  console.log('[KPI] doRecordKpi called', 'user:', !!currentUser, 'challengeId:', currentChallengeId, 'answers:', JSON.stringify(kpiAnswers));
+function doRecordKpi(cid) {
+  cid = cid || currentChallengeId;
+  console.log('[KPI] doRecordKpi called', 'user:', !!currentUser, 'challengeId:', cid, 'answers:', JSON.stringify(kpiAnswers));
   if (!currentUser) { alert('ログインしてください'); return; }
-  if (!currentChallengeId) { alert('チャレンジが選択されていません'); return; }
-  var comment = (document.getElementById('kpi-comment') || {}).value || '';
+  if (!cid) { alert('チャレンジが選択されていません'); return; }
+  var comment = (document.getElementById('kpi-comment-' + cid) || document.getElementById('kpi-comment') || {}).value || '';
   // number入力もチェック
-  document.querySelectorAll('input[id^="kpi-num-"]').forEach(function(el) {
+  var bodyEl = _getChBody(cid);
+  if (bodyEl) bodyEl.querySelectorAll('input[id^="kpi-num-"]').forEach(function(el) {
     kpiAnswers[el.getAttribute('data-q')] = el.value;
   });
-  console.log('[KPI] Sending:', currentChallengeId, kpiAnswers, comment);
-  recordKpi(currentChallengeId, currentUser.uid, kpiAnswers, comment).then(function(res) {
+  console.log('[KPI] Sending:', cid, kpiAnswers, comment);
+  recordKpi(cid, currentUser.uid, kpiAnswers, comment).then(function(res) {
     console.log('[KPI] Response:', JSON.stringify(res));
     if (res.success) {
       kpiAnswers = {};
-      loadChallengeDetail(currentChallengeId);
+      loadChallengeDetail(cid);
     } else { alert(res.msg || 'エラー'); }
   }).catch(function(e) {
     console.error('[KPI] Error:', e);
@@ -3863,7 +3881,8 @@ function doRecordKpi() {
   });
 }
 
-function renderChallengeStatus(res) {
+function renderChallengeStatus(res, cid) {
+  cid = cid || res.challenge.challenge_id;
   var c = res.challenge;
   var record = res.todayRecord;
   var html = '<div style="background:white; border-radius:12px; padding:14px; margin-bottom:10px; text-align:center;">';
@@ -3889,20 +3908,21 @@ function renderChallengeStatus(res) {
   html += '</div>';
   // ボタン
   html += '<div style="display:flex; gap:8px;">';
-  html += '<button onclick="showChallengeRanking()" style="flex:1; background:white; border:2px solid #667eea; color:#667eea; border-radius:10px; padding:8px; font-size:0.8rem; font-weight:700; cursor:pointer;"><i class="fas fa-trophy"></i> ランキング</button>';
-  html += '<button onclick="showMyProgress()" style="flex:1; background:white; border:2px solid #20c997; color:#20c997; border-radius:10px; padding:8px; font-size:0.8rem; font-weight:700; cursor:pointer;"><i class="fas fa-chart-line"></i> 自分の推移</button>';
+  html += '<button onclick="showChallengeRanking(\'' + cid + '\')" style="flex:1; background:white; border:2px solid #667eea; color:#667eea; border-radius:10px; padding:8px; font-size:0.8rem; font-weight:700; cursor:pointer;"><i class="fas fa-trophy"></i> ランキング</button>';
+  html += '<button onclick="showMyProgress(\'' + cid + '\')" style="flex:1; background:white; border:2px solid #20c997; color:#20c997; border-radius:10px; padding:8px; font-size:0.8rem; font-weight:700; cursor:pointer;"><i class="fas fa-chart-line"></i> 自分の推移</button>';
   html += '</div>';
-  document.getElementById('challenge-body').innerHTML = html;
+  _getChBody(cid).innerHTML = html;
 }
 
-function showChallengeRanking() {
-  if (!currentChallengeId) return;
-  getChallengeRanking(currentChallengeId).then(function(res) {
+function showChallengeRanking(cid) {
+  cid = cid || currentChallengeId;
+  if (!cid) return;
+  getChallengeRanking(cid).then(function(res) {
     if (!res || !res.success) return;
     var html = '<div style="background:white; border-radius:12px; padding:14px; margin-bottom:10px;">';
     html += '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">';
     html += '<div style="font-size:0.85rem; font-weight:800; color:#667eea;"><i class="fas fa-trophy"></i> ランキング</div>';
-    html += '<button onclick="loadChallengeDetail(currentChallengeId)" style="background:none; border:1px solid #ddd; border-radius:8px; padding:4px 10px; font-size:0.72rem; cursor:pointer;">戻る</button>';
+    html += '<button onclick="loadChallengeDetail(\'' + cid + '\')" style="background:none; border:1px solid #ddd; border-radius:8px; padding:4px 10px; font-size:0.72rem; cursor:pointer;">戻る</button>';
     html += '</div>';
     // タブ
     html += '<div style="display:flex; gap:4px; margin-bottom:10px;">';
@@ -3926,7 +3946,7 @@ function showChallengeRanking() {
       });
       html += '</div>';
     }
-    document.getElementById('challenge-body').innerHTML = html;
+    _getChBody(cid).innerHTML = html;
     renderRankList('total');
   });
 }
@@ -3955,14 +3975,15 @@ function renderRankList(type) {
   document.getElementById('ranking-list-area').innerHTML = html;
 }
 
-function showMyProgress() {
-  if (!currentUser || !currentChallengeId) return;
-  getMyProgress(currentChallengeId, currentUser.uid).then(function(res) {
+function showMyProgress(cid) {
+  cid = cid || currentChallengeId;
+  if (!currentUser || !cid) return;
+  getMyProgress(cid, currentUser.uid).then(function(res) {
     if (!res || !res.success) return;
     var html = '<div style="background:white; border-radius:12px; padding:14px; margin-bottom:10px;">';
     html += '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">';
     html += '<div style="font-size:0.85rem; font-weight:800; color:#20c997;"><i class="fas fa-chart-line"></i> 自分の推移</div>';
-    html += '<button onclick="loadChallengeDetail(currentChallengeId)" style="background:none; border:1px solid #ddd; border-radius:8px; padding:4px 10px; font-size:0.72rem; cursor:pointer;">戻る</button>';
+    html += '<button onclick="loadChallengeDetail(\'' + cid + '\')" style="background:none; border:1px solid #ddd; border-radius:8px; padding:4px 10px; font-size:0.72rem; cursor:pointer;">戻る</button>';
     html += '</div>';
     var records = res.records || [];
     html += '<div style="font-size:0.8rem; color:#555; margin-bottom:8px;">記録日数: <strong>' + records.length + '</strong>日</div>';
@@ -3991,7 +4012,7 @@ function showMyProgress() {
       });
       html += '</div></div>';
     }
-    document.getElementById('challenge-body').innerHTML = html;
+    _getChBody(cid).innerHTML = html;
   });
 }
 </script>

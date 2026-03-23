@@ -741,7 +741,7 @@ if(localStorage.getItem('co_heart_admin_token') && localStorage.getItem('co_hear
       <!-- 7軸評価パネル削除: 推進メンバーは使用しないため -->
 
       <!-- Discussion tab -->
-      <div id="prio-panel-discuss" class="prio-panel" style="display:flex; flex-direction:column; height:100%;">
+      <div id="prio-panel-discuss" class="prio-panel" style="display:flex; flex-direction:column; height:100%; min-height:0;">
         <div style="text-align:center; padding:20px;" id="btn-open-chat">
           <div style="color:#999; font-size:0.85rem; margin-bottom:12px;">推進メンバーで議論を始めましょう</div>
           <button class="btn btn-primary rounded-pill px-4 shadow-sm" onclick="openChatAndStartAI()"><i class="fas fa-robot me-2"></i>AIメンバーを招集して議論開始</button>

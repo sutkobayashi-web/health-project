@@ -271,7 +271,13 @@ window.switchPrioTab = function(tab) {
     var idx = tabNames.indexOf(tab);
     if(idx >= 0 && tabs[idx]) tabs[idx].classList.add('active');
     var panel = document.getElementById('prio-panel-' + tab);
+    var tabArea = document.getElementById('prio-tab-area');
     if(panel) { panel.classList.add('active'); panel.style.display = (tab === 'discuss') ? 'flex' : 'block'; }
+    // discussタブ時はtab-areaもflexにしてチャットエリアのスクロールを有効化
+    if(tabArea) {
+        if(tab === 'discuss') { tabArea.style.overflow = 'hidden'; tabArea.style.display = 'flex'; tabArea.style.flexDirection = 'column'; }
+        else { tabArea.style.overflow = ''; tabArea.style.overflowY = 'auto'; tabArea.style.display = ''; }
+    }
     // Load data for specific tabs
     if(tab === 'eval') loadPrioEvalTab();
     if(tab === 'discuss') { /* chat already loaded on modal open */ }

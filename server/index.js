@@ -190,6 +190,11 @@ app.get('/knowledge', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'public', 'knowledge.html'));
 });
 
+// ホワイトペーパー
+app.get('/whitepaper', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'public', 'whitepaper.html'));
+});
+
 // SPA フォールバック (ユーザー画面)
 app.get('*', (req, res) => {
   if (req.path.startsWith('/api/') || req.path.startsWith('/uploads/')) return;

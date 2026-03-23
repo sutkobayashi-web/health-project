@@ -413,6 +413,15 @@
       <div style="font-weight:700; color:#333;" id="profile-edit-nickname-display">--</div>
     </div>
 
+    <!-- 実名変更 -->
+    <div style="margin-bottom:16px; padding:14px; background:#f0fff4; border-radius:12px; border:1px solid #c8e6c9;">
+      <div style="font-size:0.8rem; font-weight:700; color:#2e7d32; margin-bottom:10px;"><i class="fas fa-id-card" style="margin-right:4px;"></i>実名変更</div>
+      <div style="margin-bottom:8px;">
+        <input type="text" id="profile-edit-realname" placeholder="例: 健康 太郎" style="width:100%; border:1.5px solid #ddd; border-radius:10px; padding:10px 12px; font-size:0.88rem; box-sizing:border-box;">
+      </div>
+      <button onclick="saveRealNameChange()" style="width:100%; background:linear-gradient(135deg,#2e7d32,#43a047); color:white; border:none; border-radius:10px; padding:10px; font-weight:700; font-size:0.85rem; cursor:pointer;"><i class="fas fa-save" style="margin-right:4px;"></i>実名を保存</button>
+    </div>
+
     <!-- パスワード変更 -->
     <div style="margin-bottom:16px; padding:14px; background:#fff5f5; border-radius:12px; border:1px solid #fde;">
       <div style="font-size:0.8rem; font-weight:700; color:#e53935; margin-bottom:10px;"><i class="fas fa-lock" style="margin-right:4px;"></i>パスワード変更</div>
@@ -1069,7 +1078,7 @@ function abToggleAcc(idx, previewCanvasId) {
       loginUser(savedNick, savedPass).then(function(res) {
         if (res && res.success) {
           setToken(res.token);
-          currentUser = { uid: res.uid, nickname: res.nickname, avatar: res.avatar, department: res.department, birthDate: res.birthDate };
+          currentUser = { uid: res.uid, nickname: res.nickname, avatar: res.avatar, department: res.department, birthDate: res.birthDate, realName: res.realName || '' };
           localStorage.setItem('co_heart_user_data', JSON.stringify(currentUser));
           onLoginSuccess();
         } else {
@@ -1311,7 +1320,7 @@ function doRegister() {
     hideLoading();
     if (res.success) {
       setToken(res.token);
-      currentUser = { uid: res.uid, nickname: res.nickname, avatar: res.avatar, department: d, birthDate: b };
+      currentUser = { uid: res.uid, nickname: res.nickname, avatar: res.avatar, department: d, birthDate: b, realName: r };
       localStorage.setItem('co_heart_user_nick', n);
       localStorage.setItem('co_heart_user_pass', p);
       localStorage.setItem('co_heart_user_data', JSON.stringify(currentUser));
@@ -1333,7 +1342,7 @@ function doLogin() {
     console.log('LOGIN response:', JSON.stringify(res));
     if (res && res.success) {
       setToken(res.token);
-      currentUser = { uid: res.uid, nickname: res.nickname, avatar: res.avatar, department: res.department, birthDate: res.birthDate };
+      currentUser = { uid: res.uid, nickname: res.nickname, avatar: res.avatar, department: res.department, birthDate: res.birthDate, realName: res.realName || '' };
       if (remember) {
         localStorage.setItem('co_heart_user_nick', n);
         localStorage.setItem('co_heart_user_pass', p);
@@ -1494,6 +1503,9 @@ function openProfileEditModal() {
   // ニックネーム表示
   var nickDisplay = document.getElementById('profile-edit-nickname-display');
   if (nickDisplay) nickDisplay.innerText = currentUser.nickname || '--';
+  // 実名初期値
+  var rnEl = document.getElementById('profile-edit-realname');
+  if (rnEl) rnEl.value = currentUser.realName || '';
   // パスワード変更欄初期化
   initPwBirthdateSelectors();
   var newPw = document.getElementById('profile-edit-new-pw');
@@ -1552,6 +1564,20 @@ function savePasswordChange() {
       localStorage.setItem('co_heart_user_pass', newPw);
     } else {
       alert('変更失敗: ' + (res.msg || '不明なエラー'));
+    }
+  });
+}
+
+function saveRealNameChange() {
+  var newName = document.getElementById('profile-edit-realname').value.trim();
+  if (!newName) { alert('実名を入力してください'); return; }
+  api('/auth/update-realname', { uid: currentUser.uid, realName: newName }, getToken()).then(function(res) {
+    if (res && res.success) {
+      currentUser.realName = newName;
+      localStorage.setItem('co_heart_user_data', JSON.stringify(currentUser));
+      alert('実名を更新しました');
+    } else {
+      alert('更新失敗: ' + (res.msg || '不明なエラー'));
     }
   });
 }

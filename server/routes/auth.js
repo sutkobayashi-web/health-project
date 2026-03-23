@@ -82,7 +82,7 @@ router.post('/login', (req, res) => {
     }
     const inviteCount = db.prepare('SELECT COUNT(*) as cnt FROM users WHERE inviter_id = ?').get(user.id).cnt;
     const token = generateToken({ uid: user.id, nickname: user.nickname, type: 'user' });
-    res.json({ success: true, uid: user.id, nickname: user.nickname, avatar: user.avatar, inviteCount, department: user.department || '', birthDate: user.birth_date || '', token });
+    res.json({ success: true, uid: user.id, nickname: user.nickname, avatar: user.avatar, inviteCount, department: user.department || '', birthDate: user.birth_date || '', realName: user.real_name || '', token });
   } catch (e) {
     res.json({ success: false, msg: e.message });
   }
@@ -194,6 +194,19 @@ router.post('/update-avatar', authUser, (req, res) => {
     if (!uid || !avatar) return res.json({ success: false, msg: 'uid と avatar を指定してください' });
     const db = getDb();
     db.prepare('UPDATE users SET avatar = ? WHERE id = ?').run(avatar, uid);
+    res.json({ success: true });
+  } catch (e) {
+    res.json({ success: false, msg: e.message });
+  }
+});
+
+// 実名更新（認証必須）
+router.post('/update-realname', authUser, (req, res) => {
+  try {
+    const { uid, realName } = req.body;
+    if (!uid) return res.json({ success: false, msg: 'uidは必須です' });
+    const db = getDb();
+    db.prepare('UPDATE users SET real_name = ? WHERE id = ?').run(realName || '', uid);
     res.json({ success: true });
   } catch (e) {
     res.json({ success: false, msg: e.message });

@@ -22,7 +22,9 @@ router.get('/inbox', (req, res) => {
     const posts = db.prepare("SELECT * FROM posts WHERE status = 'open' ORDER BY created_at DESC").all();
     const chatCounts = {};
     db.prepare("SELECT voice_id, COUNT(*) as cnt FROM admin_discussions WHERE role != 'AI_Council' GROUP BY voice_id").all()
-      .forEach(r => { chatCounts[r.voice_id] = r.cnt; });
+      .forEach(r => { chatCounts[r.voice_id] = (chatCounts[r.voice_id] || 0) + r.cnt; });
+    db.prepare("SELECT post_id, COUNT(*) as cnt FROM member_chats GROUP BY post_id").all()
+      .forEach(r => { chatCounts[r.post_id] = (chatCounts[r.post_id] || 0) + r.cnt; });
     // ユーザーの最新アバターを取得
     const userAvatars = {};
     db.prepare('SELECT id, avatar FROM users').all().forEach(u => { userAvatars[u.id] = u.avatar; });

@@ -3679,22 +3679,22 @@ function showAvatarTab(tab) {
 function renderAvatarGallery(data) {
   var users = data.users || [];
   var myVotes = data.myVotes || [];
-  var html = '<div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:10px; padding:4px;">';
+  var html = '<div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:8px; padding:2px;">';
   users.forEach(function(u) {
     var voted = myVotes.includes(u.id);
     var isSelf = u.id === currentUser.uid;
-    html += '<div style="background:white; border-radius:14px; padding:10px; display:flex; align-items:center; gap:10px; border:2px solid ' +
+    html += '<div style="background:white; border-radius:14px; padding:10px 6px; text-align:center; border:2px solid ' +
       (voted ? '#e91e63' : (isSelf ? '#ff9800' : '#f0f0f0')) +
       '; box-shadow:0 2px 6px rgba(0,0,0,0.04);">';
     // アバター
-    html += '<div style="width:48px; height:48px; flex-shrink:0; border-radius:50%; overflow:hidden; display:flex; align-items:center; justify-content:center; background:#f8f8f8;">';
-    html += getAvatarHtml(u.avatar || '😀', 48);
+    html += '<div style="width:52px; height:52px; margin:0 auto 6px; border-radius:50%; overflow:hidden; display:flex; align-items:center; justify-content:center; background:#f8f8f8;">';
+    html += getAvatarHtml(u.avatar || '😀', 52);
     html += '</div>';
-    // 情報
-    html += '<div style="flex:1; min-width:0;">';
-    html += '<div style="font-size:0.78rem; font-weight:700; color:#333; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' + escapeHtml(u.nickname) + '</div>';
+    // ニックネーム
+    html += '<div style="font-size:0.72rem; font-weight:700; color:#333; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' + escapeHtml(u.nickname) + '</div>';
+    // 部署
     if (u.department) {
-      html += '<div style="font-size:0.6rem; color:#999; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' + escapeHtml(u.department) + '</div>';
+      html += '<div style="font-size:0.6rem; color:#999; margin-bottom:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' + escapeHtml(u.department) + '</div>';
     }
     // 得票数 + ボタン
     html += '<div style="margin-top:4px;">';
@@ -3708,7 +3708,6 @@ function renderAvatarGallery(data) {
       html += '<span style="font-size:0.72rem; font-weight:700; color:' + (voted ? 'white' : '#999') + ';">' + u.vote_count + '</span>';
       html += '</button>';
     }
-    html += '</div>';
     html += '</div>';
     html += '</div>';
   });

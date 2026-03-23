@@ -3890,11 +3890,39 @@ function _getChBody(cid) {
   return document.getElementById('ch-body-' + (cid || currentChallengeId)) || document.getElementById('challenge-body');
 }
 
+function renderQuoCardBanner() {
+  return '<div style="margin-bottom:14px; padding:0 4px;">' +
+    '<div style="background:linear-gradient(135deg,#1a237e 0%,#283593 40%,#3949ab 100%); border-radius:12px; padding:12px 14px; color:white; position:relative; overflow:hidden; box-shadow:0 4px 16px rgba(26,35,126,0.3);">' +
+      // 背景装飾
+      '<div style="position:absolute;top:-15px;right:-15px;width:70px;height:70px;background:rgba(255,215,0,0.15);border-radius:50%;"></div>' +
+      '<div style="position:absolute;bottom:-10px;left:-10px;width:50px;height:50px;background:rgba(255,215,0,0.1);border-radius:50%;"></div>' +
+      // ヘッダー
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">' +
+        '<div style="font-size:1.3rem;">🎁</div>' +
+        '<div style="font-weight:900;font-size:0.82rem;letter-spacing:0.5px;">チャレンジ達成で褒賞GET!</div>' +
+      '</div>' +
+      // QUOカード風ミニカード
+      '<div style="display:flex;gap:10px;align-items:center;">' +
+        '<div style="flex-shrink:0;width:72px;height:45px;background:linear-gradient(135deg,#ffd700 0%,#ffec80 30%,#ffd700 60%,#f0c000 100%);border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.2);position:relative;overflow:hidden;">' +
+          '<div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.6),transparent);"></div>' +
+          '<div style="font-weight:900;font-size:0.5rem;color:#1a237e;letter-spacing:1px;">QUO CARD</div>' +
+          '<div style="font-weight:900;font-size:0.85rem;color:#1a237e;margin-top:1px;">¥1,000</div>' +
+          '<div style="position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.6),transparent);"></div>' +
+        '</div>' +
+        '<div style="flex:1;min-width:0;">' +
+          '<div style="font-size:0.72rem;color:rgba(255,255,255,0.9);line-height:1.5;">目標達成者にQUOカードをプレゼント!<br>みんなで楽しくチャレンジしよう</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+
 function renderChallengeEntry(c, cid) {
   cid = cid || c.challenge_id;
   var subEl = document.getElementById('ch-subtitle-' + cid);
   if (subEl) subEl.innerText = (c.participantCount || 0) + '名が参加予定';
   var html = '<div style="text-align:center; padding:10px;">';
+  html += renderQuoCardBanner();
   html += '<div style="font-size:0.88rem; color:#444; line-height:1.7; margin-bottom:14px;">' + escapeHtml(c.description || '') + '</div>';
   // アンバサダー助言があれば表示
   if (c.ambassador_advice_plan) {
@@ -3946,6 +3974,8 @@ function renderChallengeRecordForm(res, cid) {
   html += '<input type="text" id="kpi-comment-' + cid + '" placeholder="コメント（任意）" style="width:100%; border:1px solid #ddd; border-radius:10px; padding:8px 12px; font-size:0.82rem; margin-bottom:10px;">';
   html += '<button onclick="doRecordKpi(\'' + cid + '\')" style="width:100%; background:linear-gradient(135deg,#ff6b35,#ff9a5c); color:white; border:none; border-radius:10px; padding:10px; font-size:0.9rem; font-weight:800; cursor:pointer;"><i class="fas fa-check"></i> 記録する</button>';
   html += '</div>';
+  // 褒賞バナー
+  html += renderQuoCardBanner();
   // ランキングボタン
   html += '<div style="display:flex; gap:8px;">';
   html += '<button onclick="showChallengeRanking(\'' + cid + '\')" style="flex:1; background:white; border:2px solid #667eea; color:#667eea; border-radius:10px; padding:8px; font-size:0.8rem; font-weight:700; cursor:pointer;"><i class="fas fa-trophy"></i> ランキング</button>';

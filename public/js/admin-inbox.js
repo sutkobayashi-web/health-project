@@ -513,7 +513,7 @@ function renderMemberComments(pid, comments) {
     if (!area) return;
     if (!comments || comments.length === 0) { area.innerHTML = '<div style="color:#ccc;">まだコメントはありません</div>'; return; }
     area.innerHTML = comments.map(function(c) {
-        var date = c.created_at ? new Date(c.created_at).toLocaleString('ja-JP', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' }) : '';
+        var date = c.created_at ? new Date(c.created_at + 'Z').toLocaleString('ja-JP', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', timeZone:'Asia/Tokyo' }) : '';
         return '<div style="padding:4px 0; border-bottom:1px solid #f0f0f0;"><span style="font-weight:700; color:#e65100;">' + escapeHtml(c.member_name) + '</span> <span style="color:#bbb; font-size:0.65rem;">' + date + '</span><div style="color:#444;">' + escapeHtml(c.comment) + '</div></div>';
     }).join('');
 }
@@ -535,7 +535,7 @@ function renderMemberChats(pid, chats) {
     if (!area) return;
     if (!chats || chats.length === 0) { area.innerHTML = '<div style="color:#ccc;">まだ議論はありません</div>'; return; }
     area.innerHTML = chats.map(function(c) {
-        var date = c.created_at ? new Date(c.created_at).toLocaleString('ja-JP', { hour:'2-digit', minute:'2-digit' }) : '';
+        var date = c.created_at ? new Date(c.created_at + 'Z').toLocaleString('ja-JP', { hour:'2-digit', minute:'2-digit', timeZone:'Asia/Tokyo' }) : '';
         return '<div style="padding:3px 0;"><span style="font-weight:700; color:#d32f2f; font-size:0.75rem;">' + escapeHtml(c.member_name) + '</span> <span style="color:#ccc; font-size:0.6rem;">' + date + '</span><div style="color:#333; font-size:0.8rem; white-space:pre-wrap; word-break:break-word;">' + escapeHtml(c.message) + '</div></div>';
     }).join('');
     area.scrollTop = area.scrollHeight;
@@ -593,7 +593,7 @@ function renderEmpathyChats(pid, chats) {
     var area = document.getElementById('empathy-member-chats-' + pid);
     if (!area) return;
     area.innerHTML = chats.map(function(c) {
-        var date = c.created_at ? new Date(c.created_at).toLocaleString('ja-JP', { hour:'2-digit', minute:'2-digit' }) : '';
+        var date = c.created_at ? new Date(c.created_at + 'Z').toLocaleString('ja-JP', { hour:'2-digit', minute:'2-digit', timeZone:'Asia/Tokyo' }) : '';
         return '<div style="padding:3px 0;"><span style="font-weight:700; color:#d32f2f; font-size:0.75rem;">' + escapeHtml(c.member_name) + '</span> <span style="color:#ccc; font-size:0.6rem;">' + date + '</span><div style="color:#333; font-size:0.8rem; white-space:pre-wrap; word-break:break-word;">' + escapeHtml(c.message) + '</div></div>';
     }).join('');
     area.scrollTop = area.scrollHeight;

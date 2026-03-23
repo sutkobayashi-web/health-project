@@ -2220,105 +2220,49 @@ function handleCheckupFile(input) {
   reader.readAsDataURL(file);
 }
 
-var _checkupLabels = {height:'身長',weight:'体重',bmi:'BMI',waist:'腹囲',bp_sys:'血圧(上)',bp_dia:'血圧(下)',glucose:'血糖値',hba1c:'HbA1c',tg:'中性脂肪',hdl:'HDL',ldl:'LDL',ast:'AST',alt:'ALT',ggt:'γ-GTP',uric:'尿酸',egfr:'eGFR',rbc:'赤血球',hb:'Hb',wbc:'白血球'};
-var _checkupUnits = {height:'cm',weight:'kg',bmi:'',waist:'cm',bp_sys:'mmHg',bp_dia:'mmHg',glucose:'mg/dL',hba1c:'%',tg:'mg/dL',hdl:'mg/dL',ldl:'mg/dL',ast:'U/L',alt:'U/L',ggt:'U/L',uric:'mg/dL',egfr:'mL/min',rbc:'万/μL',hb:'g/dL',wbc:'/μL'};
-
-// Step1: 画像送信→OCR抽出
 function submitCheckup() {
   if (!_checkupImageBase64) return;
   var btn = document.getElementById('checkup-submit-btn');
   btn.disabled = true;
   btn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right:6px;"></i>AI読み取り中...（30秒ほどお待ちください）';
 
-  extractCheckup(_checkupImageBase64, _checkupMimeType).then(function(res) {
+  analyzeCheckup(_checkupImageBase64, _checkupMimeType).then(function(res) {
     btn.disabled = false;
     btn.innerHTML = '<i class="fas fa-search-plus" style="margin-right:6px;"></i>AIに読み取ってもらう';
-    if (!res.success) { alert(res.msg || '読み取りに失敗しました'); return; }
-    // 確認・修正画面を表示
-    showCheckupConfirm(res.data);
-  }).catch(function(err) {
-    btn.disabled = false;
-    btn.innerHTML = '<i class="fas fa-search-plus" style="margin-right:6px;"></i>AIに読み取ってもらう';
-    alert('通信エラー: ' + err.message);
-  });
-}
 
-// Step2: 確認・修正画面
-function showCheckupConfirm(data) {
-  var resultArea = document.getElementById('checkup-result');
-  resultArea.style.display = 'block';
+    if (!res.success) {
+      alert(res.msg || '読み取りに失敗しました');
+      return;
+    }
 
-  var html = '<div style="background:#fff3e0;border-radius:12px;padding:12px;margin-bottom:12px;font-size:0.78rem;color:#e65100;line-height:1.6;">' +
-    '<i class="fas fa-exclamation-triangle" style="margin-right:4px;"></i><strong>数値を確認してください</strong><br>' +
-    'AIの読み取りは誤認の可能性があります。健診結果通知書と見比べて、間違いがあればタップして修正してください。' +
-    '</div>';
+    // 結果表示
+    var resultArea = document.getElementById('checkup-result');
+    resultArea.style.display = 'block';
 
-  html += '<div style="font-size:0.75rem;font-weight:700;color:#26a69a;margin-bottom:8px;"><i class="fas fa-table me-1"></i>読み取り結果（タップで修正可）</div>';
-  html += '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;">';
-  for (var key in _checkupLabels) {
-    var val = (data[key] !== null && data[key] !== undefined) ? data[key] : '';
-    html += '<div style="background:white;border:1.5px solid #c8e6c9;border-radius:10px;padding:6px 8px;font-size:0.75rem;min-width:90px;text-align:center;">' +
-      '<div style="font-size:0.6rem;color:#888;font-weight:700;">' + _checkupLabels[key] + '</div>' +
-      '<input type="number" step="any" id="ck-' + key + '" value="' + val + '" placeholder="-" ' +
-        'style="width:100%;border:none;border-bottom:1px solid #e0e0e0;text-align:center;font-size:0.9rem;font-weight:700;color:#333;padding:2px 0;outline:none;background:transparent;" ' +
-        'onfocus="this.parentElement.style.borderColor=\'#26a69a\'" onblur="this.parentElement.style.borderColor=\'#c8e6c9\'">' +
-      '<div style="font-size:0.55rem;color:#aaa;">' + _checkupUnits[key] + '</div>' +
-    '</div>';
-  }
-  html += '</div>';
+    // 数値一覧
+    var dataHtml = '<div style="font-size:0.75rem;font-weight:700;color:#26a69a;margin-bottom:6px;"><i class="fas fa-table me-1"></i>読み取り結果</div>';
+    dataHtml += '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px;">';
+    var labels = {height:'身長',weight:'体重',bmi:'BMI',waist:'腹囲',bp_sys:'血圧(上)',bp_dia:'血圧(下)',glucose:'血糖値',hba1c:'HbA1c',tg:'中性脂肪',hdl:'HDL',ldl:'LDL',ast:'AST',alt:'ALT',ggt:'γ-GTP',uric:'尿酸',egfr:'eGFR',rbc:'赤血球',hb:'Hb',wbc:'白血球'};
+    var units = {height:'cm',weight:'kg',bmi:'',waist:'cm',bp_sys:'mmHg',bp_dia:'mmHg',glucose:'mg/dL',hba1c:'%',tg:'mg/dL',hdl:'mg/dL',ldl:'mg/dL',ast:'U/L',alt:'U/L',ggt:'U/L',uric:'mg/dL',egfr:'mL/min',rbc:'万/μL',hb:'g/dL',wbc:'/μL'};
+    for (var key in labels) {
+      if (res.data[key] !== null && res.data[key] !== undefined) {
+        dataHtml += '<span style="background:#f0faf8;border:1px solid #c8e6c9;border-radius:8px;padding:3px 8px;font-size:0.7rem;"><strong>' + labels[key] + '</strong> ' + res.data[key] + units[key] + '</span>';
+      }
+    }
+    dataHtml += '</div>';
 
-  html += '<button onclick="submitCheckupAdvise()" id="checkup-advise-btn" style="width:100%;padding:14px;background:linear-gradient(135deg,#00897b,#26a69a);color:white;border:none;border-radius:14px;font-weight:800;font-size:0.9rem;cursor:pointer;box-shadow:0 4px 12px rgba(0,137,123,0.3);">' +
-    '<i class="fas fa-stethoscope" style="margin-right:6px;"></i>この数値でAI解説を受ける</button>';
+    // AI解説
+    var adviceHtml = '<div style="font-size:0.75rem;font-weight:700;color:#00897b;margin-bottom:6px;"><i class="fas fa-stethoscope me-1"></i>AIによる解説</div>';
+    adviceHtml += '<div style="background:linear-gradient(135deg,#e0f2f1,#f1f8e9);border-radius:12px;padding:14px;font-size:0.85rem;line-height:1.8;color:#333;white-space:pre-wrap;">' + escapeHtml(res.advice) + '</div>';
 
-  html += '<div style="margin-top:8px;text-align:center;"><button onclick="retakeCheckup()" style="background:none;border:none;color:#999;font-size:0.75rem;cursor:pointer;text-decoration:underline;"><i class="fas fa-camera-rotate me-1"></i>写真を撮り直す</button></div>';
+    resultArea.innerHTML = dataHtml + adviceHtml;
 
-  // 免責表示
-  html += '<div id="checkup-advice-area"></div>';
-
-  resultArea.innerHTML = html;
-}
-
-function retakeCheckup() {
-  document.getElementById('checkup-result').style.display = 'none';
-  document.getElementById('checkup-preview').style.display = 'none';
-  document.getElementById('checkup-upload-area').style.display = '';
-  document.getElementById('checkup-file').value = '';
-  _checkupImageBase64 = null;
-}
-
-// Step3: 確認済み数値でAI解説
-function submitCheckupAdvise() {
-  var data = {};
-  for (var key in _checkupLabels) {
-    var el = document.getElementById('ck-' + key);
-    if (el && el.value !== '') data[key] = parseFloat(el.value);
-  }
-  if (Object.keys(data).length === 0) { alert('数値が入力されていません'); return; }
-
-  var btn = document.getElementById('checkup-advise-btn');
-  btn.disabled = true;
-  btn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right:6px;"></i>AI解説を生成中...';
-
-  adviseCheckup(data).then(function(res) {
-    btn.disabled = false;
-    btn.innerHTML = '<i class="fas fa-stethoscope" style="margin-right:6px;"></i>この数値でAI解説を受ける';
-    if (!res.success) { alert(res.msg || 'エラーが発生しました'); return; }
-
-    var adviceArea = document.getElementById('checkup-advice-area');
-    adviceArea.innerHTML =
-      '<div style="margin-top:16px;">' +
-        '<div style="background:#ffebee;border-radius:10px;padding:10px;margin-bottom:10px;font-size:0.72rem;color:#c62828;line-height:1.5;">' +
-          '<i class="fas fa-info-circle me-1"></i><strong>免責事項</strong>: この解説はAIによる参考情報であり、医療診断ではありません。正確な判断は必ず医療機関で医師にご相談ください。' +
-        '</div>' +
-        '<div style="font-size:0.75rem;font-weight:700;color:#00897b;margin-bottom:6px;"><i class="fas fa-stethoscope me-1"></i>AIによる解説</div>' +
-        '<div style="background:linear-gradient(135deg,#e0f2f1,#f1f8e9);border-radius:12px;padding:14px;font-size:0.85rem;line-height:1.8;color:#333;white-space:pre-wrap;">' + escapeHtml(res.advice) + '</div>' +
-      '</div>';
-
-    saveCheckupToLocal(data, res.advice);
+    // localStorageに保存
+    saveCheckupToLocal(res.data, res.advice);
     renderCheckupHistory();
   }).catch(function(err) {
     btn.disabled = false;
-    btn.innerHTML = '<i class="fas fa-stethoscope" style="margin-right:6px;"></i>この数値でAI解説を受ける';
+    btn.innerHTML = '<i class="fas fa-search-plus" style="margin-right:6px;"></i>AIに読み取ってもらう';
     alert('通信エラー: ' + err.message);
   });
 }

@@ -382,11 +382,8 @@ function postAmbassadorAdvice(ambassadorId, challengeId, adviceType, content) {
 }
 
 // ===== Health Checkup =====
-function extractCheckup(imageBase64, mimeType) {
-  return api('/chat/checkup-extract', { imageBase64, mimeType });
-}
-function adviseCheckup(data) {
-  return api('/chat/checkup-advise', { data });
+function analyzeCheckup(imageBase64, mimeType) {
+  return api('/chat/checkup-analyze', { imageBase64, mimeType });
 }
 
 // ===== My Posts =====

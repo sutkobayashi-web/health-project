@@ -1479,7 +1479,7 @@ function checkUnreadNotices() {
     var readBroadcastIds = getReadBroadcastIds();
     var unread = 0;
     notices.forEach(function(n) {
-      var isRead = n.target_id === 'ALL' ? readBroadcastIds.indexOf(n.id) !== -1 : n.status === 'read';
+      var isRead = n.isPersonal ? (n.status === 'read' || !!n.readAt) : readBroadcastIds.indexOf(n.id) !== -1;
       if (!isRead) unread++;
     });
     updateInboxBadge(unread);

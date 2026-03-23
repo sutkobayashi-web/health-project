@@ -21,7 +21,7 @@ router.get('/inbox', (req, res) => {
     const db = getDb();
     const posts = db.prepare("SELECT * FROM posts WHERE status = 'open' ORDER BY created_at DESC").all();
     const chatCounts = {};
-    db.prepare('SELECT voice_id, COUNT(*) as cnt FROM admin_discussions GROUP BY voice_id').all()
+    db.prepare("SELECT voice_id, COUNT(*) as cnt FROM admin_discussions WHERE role != 'AI_Council' GROUP BY voice_id").all()
       .forEach(r => { chatCounts[r.voice_id] = r.cnt; });
     // ユーザーの最新アバターを取得
     const userAvatars = {};

@@ -3604,10 +3604,10 @@ function toggleAccordion(bodyId, labelId) {
   if (!body) return;
   if (body.style.display === 'none') {
     body.style.display = 'block';
-    if (label) { label.innerHTML = '<i class="fas fa-chevron-up" style="font-size:0.6rem;margin-right:3px;"></i>閉じる'; }
+    if (label) { label.innerHTML = '<i class="fas fa-chevron-up" style="font-size:0.6rem;margin-right:3px;"></i>閉じる'; label.style.background = '#e53935'; label.style.color = 'white'; }
   } else {
     body.style.display = 'none';
-    if (label) { label.innerHTML = '<i class="fas fa-chevron-down" style="font-size:0.6rem;margin-right:3px;"></i>開く'; }
+    if (label) { label.innerHTML = '<i class="fas fa-chevron-down" style="font-size:0.6rem;margin-right:3px;"></i>開く'; label.style.background = ''; label.style.color = ''; }
   }
 }
 // ====== チャレンジ統合セクション表示制御 ======

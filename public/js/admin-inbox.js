@@ -649,26 +649,6 @@ function loadEmpathyDisplay(pid) {
     var badge = document.getElementById('empathy-badge-' + pid);
     if (badge && s.totalCount > 0) badge.innerText = '❤️' + s.totalCount;
 
-    // 投稿右側ミニサマリー更新
-    var miniArea = document.getElementById('empathy-mini-' + pid);
-    if (miniArea && s.totalCount > 0) {
-      var miniTypeMap = {
-        'wakaru':'🙋','yabai':'😰','kaisha':'💡','ouen':'💪','issho':'🤝',
-        'senmon':'🏥','kininaru':'👀','oishii':'🍽️','sankou':'💪',
-        'onaji':'😅','healthy':'🌿','kaizen':'🍺','motto':'📸'
-      };
-      var mHtml = '<div style="font-weight:800; color:#667eea; margin-bottom:4px; font-size:0.78rem;"><i class="fas fa-heart" style="font-size:0.65rem; margin-right:2px;"></i> 共感 ' + s.totalCount + '名</div>';
-      // タイプ別バッジ（詳細パネルと同じ形式）
-      mHtml += '<div style="display:flex; flex-wrap:wrap; gap:3px; margin-bottom:4px;">';
-      Object.keys(s.typeCounts).forEach(function(type) {
-        var info = typeMap[type] || { emoji:'❓', label:type };
-        var count = s.typeCounts[type];
-        mHtml += '<span style="display:inline-flex; align-items:center; gap:2px; padding:2px 7px; border-radius:10px; font-size:0.65rem; font-weight:700; background:#f0f0ff; border:1px solid #e0e0ff;">' + info.emoji + ' ' + info.label + ' <span style="background:#667eea; color:white; border-radius:6px; padding:0 5px; font-size:0.6rem;">' + count + '</span></span>';
-      });
-      mHtml += '</div>';
-      miniArea.innerHTML = mHtml;
-    }
-
     // Type count badges（英語キー＋日本語ラベル両対応）
     var typeMap = {
       'wakaru': { emoji:'🙋', label:'わかる、自分も' },
@@ -685,6 +665,21 @@ function loadEmpathyDisplay(pid) {
       'kaizen': { emoji:'🍺', label:'一緒に改善したい' },
       'motto': { emoji:'📸', label:'もっと見たい' }
     };
+
+    // 投稿右側ミニサマリー更新
+    var miniArea = document.getElementById('empathy-mini-' + pid);
+    if (miniArea && s.totalCount > 0) {
+      var mHtml = '<div style="font-weight:800; color:#667eea; margin-bottom:4px; font-size:0.78rem;"><i class="fas fa-heart" style="font-size:0.65rem; margin-right:2px;"></i> 共感 ' + s.totalCount + '名</div>';
+      mHtml += '<div style="display:flex; flex-wrap:wrap; gap:3px; margin-bottom:4px;">';
+      Object.keys(s.typeCounts).forEach(function(type) {
+        var info = typeMap[type] || { emoji:'❓', label:type };
+        var count = s.typeCounts[type];
+        mHtml += '<span style="display:inline-flex; align-items:center; gap:2px; padding:2px 7px; border-radius:10px; font-size:0.65rem; font-weight:700; background:#f0f0ff; border:1px solid #e0e0ff;">' + info.emoji + ' ' + info.label + ' <span style="background:#667eea; color:white; border-radius:6px; padding:0 5px; font-size:0.6rem;">' + count + '</span></span>';
+      });
+      mHtml += '</div>';
+      miniArea.innerHTML = mHtml;
+    }
+
     var html = '';
     // タイプ別バッジ
     html += '<div style="display:flex; flex-wrap:wrap; gap:4px; margin-bottom:8px;">';

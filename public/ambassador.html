@@ -26,8 +26,7 @@
     <h5 class="fw-bold" style="color:#9c27b0;">アンバサダー画面</h5>
     <p class="text-muted small">保健センター専門職の方はこちらからログインしてください</p>
     <div class="mb-3"><input type="text" id="amb-login-name" class="form-control" placeholder="お名前"></div>
-    <div class="mb-3"><input type="text" id="amb-login-org" class="form-control" placeholder="所属（例: ○○市保健センター）"></div>
-    <div class="mb-3"><select id="amb-login-role" class="form-select"><option>保健師</option><option>栄養士</option><option>運動指導士</option><option>その他</option></select></div>
+    <div class="mb-3"><input type="password" id="amb-login-password" class="form-control" placeholder="パスワード"></div>
     <button class="btn w-100 fw-bold py-2" style="background:linear-gradient(135deg,#9c27b0,#ce93d8); color:white; border:none; border-radius:10px;" onclick="doAmbLogin()">ログイン</button>
     <div class="mt-3"><a href="/" class="small text-muted">ユーザー画面に戻る</a></div>
   </div>
@@ -51,14 +50,19 @@ var ambProfile = null;
 
 function doAmbLogin() {
   var name = document.getElementById('amb-login-name').value.trim();
-  var org = document.getElementById('amb-login-org').value.trim();
-  var role = document.getElementById('amb-login-role').value;
-  if (!name) { alert('お名前を入力してください'); return; }
-  ambProfile = { name: name, organization: org, role: role };
-  localStorage.setItem('amb_profile', JSON.stringify(ambProfile));
-  document.getElementById('login-overlay').style.display = 'none';
-  document.getElementById('amb-user-info').innerText = name + ' (' + org + ' / ' + role + ')';
-  loadAmbDashboard();
+  var password = document.getElementById('amb-login-password').value.trim();
+  if (!name || !password) { alert('名前とパスワードを入力してください'); return; }
+  api('/themes/ambassador-login', { name: name, password: password }).then(function(res) {
+    if (res && res.success) {
+      ambProfile = { id: res.id, name: res.name, organization: res.organization, role: res.role };
+      localStorage.setItem('amb_profile', JSON.stringify(ambProfile));
+      document.getElementById('login-overlay').style.display = 'none';
+      document.getElementById('amb-user-info').innerText = res.name + ' (' + res.organization + ' / ' + res.role + ')';
+      loadAmbDashboard();
+    } else {
+      alert(res.msg || '認証失敗');
+    }
+  });
 }
 
 // 保存済みログイン復元

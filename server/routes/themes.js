@@ -722,6 +722,24 @@ router.post('/update-challenge', (req, res) => {
   }
 });
 
+// アンバサダーログイン
+router.post('/ambassador-login', (req, res) => {
+  try {
+    const { name, password } = req.body;
+    if (!name || !password) return res.json({ success: false, msg: '名前とパスワードを入力してください' });
+    const db = getDb();
+    const bcrypt = require('bcryptjs');
+    const amb = db.prepare("SELECT * FROM ambassadors WHERE name = ? AND status = 'active'").get(name.trim());
+    if (!amb) return res.json({ success: false, msg: '認証失敗' });
+    if (!amb.password_hash || !bcrypt.compareSync(password, amb.password_hash)) {
+      return res.json({ success: false, msg: '認証失敗' });
+    }
+    res.json({ success: true, id: amb.id, name: amb.name, organization: amb.organization || '', role: amb.role || '' });
+  } catch (e) {
+    res.json({ success: false, msg: e.message });
+  }
+});
+
 // アンバサダー助言の追加
 router.post('/ambassador-advice', (req, res) => {
   try {

@@ -490,27 +490,6 @@
       </div>
     </div>
 
-    <!-- アバターチャレンジ（オンボーディング） -->
-    <div class="card-section" id="avatar-challenge-section" style="display:none; background:linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);">
-      <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="toggleAccordion('avatar-challenge-body','avatar-challenge-chevron')">
-        <div style="display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#ff9800,#f57c00);flex-shrink:0;"><i class="fas fa-palette" style="font-size:22px;color:#fff;"></i></div>
-        <div style="flex:1;">
-          <div class="section-title" style="margin-bottom:2px; padding-bottom:3px; border-bottom:2px solid rgba(255,152,0,0.3);"><i class="fas fa-palette"></i> アバターチャレンジ</div>
-          <div style="font-size:0.75rem; color:#999;" id="avatar-challenge-subtitle">みんなのアバターに投票しよう！</div>
-        </div>
-        <i class="fas fa-chevron-down" id="avatar-challenge-chevron" style="color:#f57c00; font-size:0.9rem; transition:transform 0.3s;"></i>
-      </div>
-      <div id="avatar-challenge-body" style="display:none; margin-top:12px; padding-top:12px; border-top:1px solid rgba(255,152,0,0.2);">
-        <div id="avatar-challenge-status" style="font-size:0.75rem; color:#f57c00; font-weight:700; margin-bottom:10px; text-align:center;"></div>
-        <div id="avatar-challenge-tabs" style="display:flex; gap:6px; margin-bottom:12px;">
-          <button onclick="showAvatarTab('gallery')" id="av-tab-gallery" style="flex:1; padding:8px; border:2px solid #ff9800; background:#ff9800; color:white; border-radius:10px; font-weight:700; font-size:0.78rem; cursor:pointer;">ギャラリー</button>
-          <button onclick="showAvatarTab('ranking')" id="av-tab-ranking" style="flex:1; padding:8px; border:2px solid #ff9800; background:white; color:#ff9800; border-radius:10px; font-weight:700; font-size:0.78rem; cursor:pointer;">ランキング</button>
-        </div>
-        <div id="avatar-gallery-content" style="max-height:400px; overflow-y:auto; -webkit-overflow-scrolling:touch;"></div>
-        <div id="avatar-ranking-content" style="display:none; max-height:400px; overflow-y:auto; -webkit-overflow-scrolling:touch;"></div>
-      </div>
-    </div>
-
     <!-- テーマ投票 -->
     <div class="card-section" id="theme-vote-section" style="display:none; background:linear-gradient(135deg, #f0f4ff 0%, #e8ecff 100%);">
       <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="toggleAccordion('vote-body','vote-chevron')">
@@ -526,6 +505,44 @@
         <div id="theme-vote-list"></div>
         <div id="vote-comment-area" style="display:none; margin-top:10px;">
           <input type="text" id="vote-comment-input" placeholder="こんなプランだったら参加したい..." style="width:100%; border:1px solid #ddd; border-radius:10px; padding:8px 12px; font-size:0.82rem; outline:none;">
+        </div>
+      </div>
+    </div>
+
+    <!-- チャレンジ（統合：アバターチャレンジ＋アクションチャレンジ） -->
+    <div class="card-section" id="challenge-combined-section" style="display:none; background:linear-gradient(135deg, #fff5f0 0%, #ffe8de 100%);">
+      <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="toggleAccordion('challenge-combined-body','challenge-combined-chevron')">
+        <div style="display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#ff6b35,#ff9a5c);flex-shrink:0;"><i class="fas fa-fire" style="font-size:22px;color:#fff;"></i></div>
+        <div style="flex:1;">
+          <div class="section-title" style="margin-bottom:2px; padding-bottom:3px; border-bottom:2px solid rgba(255,107,53,0.2);"><i class="fas fa-fire"></i> チャレンジ</div>
+          <div style="font-size:0.75rem; color:#999;" id="challenge-combined-subtitle">アバター投票＆アクションチャレンジ</div>
+        </div>
+        <i class="fas fa-chevron-down" id="challenge-combined-chevron" style="color:#ff6b35; font-size:0.9rem; transition:transform 0.3s;"></i>
+      </div>
+      <div id="challenge-combined-body" style="display:none; margin-top:12px; padding-top:12px; border-top:1px solid rgba(255,107,53,0.2);">
+        <!-- アバターチャレンジ -->
+        <div id="avatar-challenge-section" style="display:none;">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+            <div style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#ff9800,#f57c00);flex-shrink:0;"><i class="fas fa-palette" style="font-size:14px;color:#fff;"></i></div>
+            <div style="font-weight:700; font-size:0.88rem; color:#e65100;" id="avatar-challenge-subtitle">アバターチャレンジ</div>
+          </div>
+          <div id="avatar-challenge-status" style="font-size:0.75rem; color:#f57c00; font-weight:700; margin-bottom:10px; text-align:center;"></div>
+          <div id="avatar-challenge-tabs" style="display:flex; gap:6px; margin-bottom:12px;">
+            <button onclick="showAvatarTab('gallery')" id="av-tab-gallery" style="flex:1; padding:8px; border:2px solid #ff9800; background:#ff9800; color:white; border-radius:10px; font-weight:700; font-size:0.78rem; cursor:pointer;">ギャラリー</button>
+            <button onclick="showAvatarTab('ranking')" id="av-tab-ranking" style="flex:1; padding:8px; border:2px solid #ff9800; background:white; color:#ff9800; border-radius:10px; font-weight:700; font-size:0.78rem; cursor:pointer;">ランキング</button>
+          </div>
+          <div id="avatar-gallery-content" style="max-height:400px; overflow-y:auto; -webkit-overflow-scrolling:touch;"></div>
+          <div id="avatar-ranking-content" style="display:none; max-height:400px; overflow-y:auto; -webkit-overflow-scrolling:touch;"></div>
+        </div>
+        <!-- アクションチャレンジ -->
+        <div id="challenge-section" style="display:none;">
+          <div id="challenge-divider" style="display:none; border-top:1px solid rgba(255,107,53,0.15); margin:14px 0;"></div>
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+            <div style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#ff6b35,#ff9a5c);flex-shrink:0;" id="challenge-icon-circle"><i class="fas fa-running" style="font-size:14px;color:#fff;"></i></div>
+            <div style="font-weight:700; font-size:0.88rem; color:#e65100;" id="challenge-title-display"></div>
+          </div>
+          <div style="font-size:0.75rem; color:#999; margin-bottom:8px;" id="challenge-subtitle-display"></div>
+          <div id="challenge-body"></div>
         </div>
       </div>
     </div>
@@ -578,18 +595,6 @@
       </div>
     </div>
 
-    <!-- チャレンジ -->
-    <div class="card-section" id="challenge-section" style="display:none; background:linear-gradient(135deg, #fff5f0 0%, #ffe8de 100%);">
-      <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="toggleAccordion('challenge-body','challenge-chevron')">
-        <div style="display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#ff6b35,#ff9a5c);flex-shrink:0;" id="challenge-icon-circle"><i class="fas fa-fire" style="font-size:22px;color:#fff;"></i></div>
-        <div style="flex:1;">
-          <div class="section-title" style="margin-bottom:2px; padding-bottom:3px; border-bottom:2px solid rgba(255,107,53,0.2);" id="challenge-title-display"></div>
-          <div style="font-size:0.75rem; color:#999;" id="challenge-subtitle-display"></div>
-        </div>
-        <i class="fas fa-chevron-down" id="challenge-chevron" style="color:#ff6b35; font-size:0.9rem; transition:transform 0.3s;"></i>
-      </div>
-      <div id="challenge-body" style="display:none; margin-top:12px; padding-top:12px; border-top:1px solid rgba(255,107,53,0.2);"></div>
-    </div>
 
     <!-- 健康メモ -->
     <div class="card-section" id="health-memo-section" style="background:linear-gradient(135deg, #fffde7 0%, #fff8e1 100%);">
@@ -3490,6 +3495,31 @@ function toggleAccordion(bodyId, chevronId) {
     if (chevron) chevron.style.transform = 'rotate(0deg)';
   }
 }
+// ====== チャレンジ統合セクション表示制御 ======
+function updateChallengeCombiVisibility() {
+  var avSec = document.getElementById('avatar-challenge-section');
+  var chSec = document.getElementById('challenge-section');
+  var combi = document.getElementById('challenge-combined-section');
+  var avVisible = avSec && avSec.style.display !== 'none';
+  var chVisible = chSec && chSec.style.display !== 'none';
+  if (avVisible || chVisible) {
+    combi.style.display = 'block';
+    // 両方表示時に仕切り線を出す
+    var divider = document.getElementById('challenge-divider');
+    if (divider) divider.style.display = (avVisible && chVisible) ? 'block' : 'none';
+    // サブタイトル更新
+    var sub = document.getElementById('challenge-combined-subtitle');
+    if (sub) {
+      var parts = [];
+      if (avVisible) parts.push('アバター投票');
+      if (chVisible) parts.push('アクションチャレンジ');
+      sub.innerText = parts.join(' ＆ ');
+    }
+  } else {
+    combi.style.display = 'none';
+  }
+}
+
 // ====== アバターチャレンジ（オンボーディング） ======
 var avatarChallengeData = null;
 function loadAvatarChallenge() {
@@ -3497,14 +3527,16 @@ function loadAvatarChallenge() {
   getAvatarGallery(currentUser.uid).then(function(res) {
     if (!res || !res.success || !res.active) {
       document.getElementById('avatar-challenge-section').style.display = 'none';
+      updateChallengeCombiVisibility();
       return;
     }
     document.getElementById('avatar-challenge-section').style.display = 'block';
+    updateChallengeCombiVisibility();
     avatarChallengeData = res;
     var config = res.config || {};
     var endDate = config.end_date ? new Date(config.end_date) : null;
     var remaining = endDate ? Math.max(0, Math.ceil((endDate - Date.now()) / 86400000)) : '?';
-    document.getElementById('avatar-challenge-subtitle').innerText = 'みんなのアバターに投票しよう！（残り' + remaining + '日）';
+    document.getElementById('avatar-challenge-subtitle').innerText = 'アバターチャレンジ（残り' + remaining + '日）';
     document.getElementById('avatar-challenge-status').innerHTML =
       '<i class="fas fa-users"></i> ' + res.totalVoters + '/' + res.totalUsers + '名が参加中' +
       '　<i class="fas fa-heart" style="color:#e91e63;"></i> ' + (config.max_votes || 5) + '票まで投票OK';
@@ -3694,6 +3726,7 @@ function loadActiveChallenge() {
         return;
       }
       document.getElementById('challenge-section').style.display = 'none';
+      updateChallengeCombiVisibility();
       return;
     }
     currentChallengeId = active.challenge_id;
@@ -3707,6 +3740,7 @@ function loadChallengeDetail(cid) {
     challengeDetail = res;
     var c = res.challenge;
     document.getElementById('challenge-section').style.display = 'block';
+    updateChallengeCombiVisibility();
     document.getElementById('challenge-title-display').innerHTML = (c.icon || '💪') + ' ' + escapeHtml(c.title);
     var daysLeft = c.period_end ? Math.max(0, Math.ceil((new Date(c.period_end) - Date.now()) / 86400000)) : '?';
     document.getElementById('challenge-subtitle-display').innerText = '参加' + res.participants.length + '名 / 残り' + daysLeft + '日';
@@ -3722,6 +3756,7 @@ function loadChallengeDetail(cid) {
 
 function renderChallengeEntry(c) {
   document.getElementById('challenge-section').style.display = 'block';
+  updateChallengeCombiVisibility();
   document.getElementById('challenge-title-display').innerHTML = (c.icon || '💪') + ' ' + escapeHtml(c.title);
   document.getElementById('challenge-subtitle-display').innerText = (c.participantCount || 0) + '名が参加予定';
   var html = '<div style="text-align:center; padding:10px;">';

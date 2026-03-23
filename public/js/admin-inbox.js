@@ -206,7 +206,7 @@ function renderReportList(data) {
         // コンパクトカード + 詳細パネル（タブ切替）
         var empathyBadge = '<span id="empathy-badge-'+pid+'" style="font-size:0.6rem; background:#eef; color:#667eea; padding:1px 6px; border-radius:8px; font-weight:700;"></span>';
         var commentBadge = '<span id="comment-badge-'+pid+'" style="font-size:0.6rem; background:#f0f0f0; color:#666; padding:1px 6px; border-radius:8px; font-weight:700;"></span>';
-        var chatUnreadBadge = '<span id="chat-unread-'+pid+'" style="display:none;"></span>';
+        var chatUnreadBadge = '<span id="chat-unread-'+pid+'" style="display:none; cursor:pointer;" onclick="event.stopPropagation(); openPriorityModal(\''+pid+'\');"></span>';
         div.innerHTML =
             // ヘッダー
             '<div class="post-header-bar '+headerClass+'"><span><i class="'+icon+'"></i> '+catName+'</span><span>'+dateStr+'</span></div>' +

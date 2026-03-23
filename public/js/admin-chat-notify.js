@@ -75,9 +75,13 @@
       var data = unreadMap[postId];
       var badgeEl = document.getElementById('chat-unread-' + postId);
       if (badgeEl) {
-        badgeEl.innerHTML = '<i class="fas fa-comment-dots"></i> ' + data.unread;
+        var preview = data.member ? escapeHtml(data.member) + ': ' : '';
+        preview += data.latest ? escapeHtml(data.latest.substring(0, 20)) : '';
+        badgeEl.innerHTML = '<i class="fas fa-comment-dots"></i> 新着' + data.unread + '件' +
+          (preview ? '<span style="margin-left:4px; font-weight:400; opacity:0.9; font-size:0.6rem;">' + preview + '…</span>' : '');
         badgeEl.style.display = 'inline-flex';
         badgeEl.className = 'chat-unread-badge';
+        badgeEl.title = '議論を開く';
       }
     }
     // 既読になった投稿のバッジを非表示
@@ -103,23 +107,8 @@
     }
   }
 
-  /* ── 差分検知してトースト表示 ── */
+  /* ── 差分検知（状態保存のみ、トースト無し） ── */
   function detectNewAndNotify(unreadMap) {
-    for (var postId in unreadMap) {
-      var cur = unreadMap[postId];
-      var prev = lastUnreadState[postId];
-      // 新規 or 件数増加 → トースト
-      if (!prev || cur.unread > prev.unread) {
-        if (cur.latest && cur.member) {
-          // 自分の投稿はトースト不要
-          var myName = (window.currentAdminProfile && window.currentAdminProfile.name) || '';
-          if (cur.member !== myName) {
-            showToast(cur.member, cur.latest, postId);
-          }
-        }
-      }
-    }
-    // 状態保存
     lastUnreadState = JSON.parse(JSON.stringify(unreadMap));
   }
 

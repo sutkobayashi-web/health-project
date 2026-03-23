@@ -211,13 +211,15 @@ function renderReportList(data) {
                 '<div class="user-info" style="margin-bottom:6px;">'+avatarDiv+'<div class="nick">'+escapeHtml(r[INBOX_COLS.USER_NAME])+'</div>' +
                 (likeCount > 0 ? '<span style="margin-left:auto; background:linear-gradient(135deg,#667eea,#764ba2); color:white; font-size:0.6rem; font-weight:700; padding:2px 7px; border-radius:10px;"><i class="fas fa-hand-paper"></i> '+likeCount+'</span>' : '') +
                 ' '+empathyBadge+' '+commentBadge+'</div>' +
-                // サムネ+投稿文
-                '<div style="display:flex; gap:8px; align-items:flex-start; margin-bottom:6px;">' +
-                    (thumbTag ? thumbTag : '') +
-                    '<div style="flex:1; font-size:0.85rem; line-height:1.5; color:#444; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">'+escapeHtml(rawContent)+'</div>' +
+                '<div style="display:flex; gap:10px; align-items:flex-start;">' +
+                    // 左: サムネ+投稿文
+                    '<div style="flex:1; min-width:0; display:flex; gap:8px; align-items:flex-start;">' +
+                        (thumbTag ? thumbTag : '') +
+                        '<div style="flex:1; font-size:0.85rem; line-height:1.5; color:#444; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">'+escapeHtml(rawContent)+'</div>' +
+                    '</div>' +
+                    // 右: 共感サマリー
+                    '<div id="empathy-mini-'+pid+'" style="flex-shrink:0; width:300px; max-height:200px; overflow-y:auto;"></div>' +
                 '</div>' +
-                // 共感サマリー（同じ枠内）
-                '<div id="empathy-mini-'+pid+'" style="max-height:200px; overflow-y:auto;"></div>' +
                 // 操作ボタン行
                 '<div style="margin-top:8px; text-align:right;">' +
                     '<button id="inbox-toggle-btn-'+pid+'" class="btn btn-sm btn-outline-primary" style="font-size:0.68rem; padding:3px 12px;" onclick="event.stopPropagation(); toggleInboxDetail(\''+pid+'\')"><i class="fas fa-chevron-down" style="font-size:0.6rem;margin-right:3px;"></i>開く</button>' +

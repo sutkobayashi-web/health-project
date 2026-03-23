@@ -195,6 +195,8 @@ window.openPriorityModal = function(pid) {
     tl.innerHTML = '';
     // 過去ログチェック
     getDiscussionLog(pid).then(function(logs) {
+        // チャット既読マーク
+        if(typeof markChatAsRead === 'function') markChatAsRead(pid);
         if(logs && logs.length > 0) {
             logs.forEach(function(h) { var isMe=(h.role!=='AI_Council' && h.member==="Admin"); var safeAvatar=getMatrixAvatar(h.member,h.role,h.avatar); addChatBubble(tl,h.member,h.comment,safeAvatar,(h.role==='AI_Council'?'ai':'human'),isMe,h.row); });
             // 過去ログがある場合はチャット欄を自動表示

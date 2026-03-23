@@ -161,6 +161,8 @@ function loadData() {
     // メンバーリスト＆ハートビート開始
     startHeartbeat();
     loadSidebarMembers();
+    // チャット新着通知ポーリング開始
+    if (typeof startChatNotifyPolling === 'function') startChatNotifyPolling();
 }
 
 // ハートビート送信（30秒ごと）- 自動更新は廃止

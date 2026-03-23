@@ -203,6 +203,7 @@ function renderReportList(data) {
         // コンパクトカード + 詳細パネル（タブ切替）
         var empathyBadge = '<span id="empathy-badge-'+pid+'" style="font-size:0.6rem; background:#eef; color:#667eea; padding:1px 6px; border-radius:8px; font-weight:700;"></span>';
         var commentBadge = '<span id="comment-badge-'+pid+'" style="font-size:0.6rem; background:#f0f0f0; color:#666; padding:1px 6px; border-radius:8px; font-weight:700;"></span>';
+        var chatUnreadBadge = '<span id="chat-unread-'+pid+'" style="display:none;"></span>';
         div.innerHTML =
             // ヘッダー
             '<div class="post-header-bar '+headerClass+'"><span><i class="'+icon+'"></i> '+catName+'</span><span>'+dateStr+'</span></div>' +
@@ -210,7 +211,7 @@ function renderReportList(data) {
             '<div style="padding:10px 14px; background:#fafaff;">' +
                 '<div class="user-info" style="margin-bottom:6px;">'+avatarDiv+'<div class="nick">'+escapeHtml(r[INBOX_COLS.USER_NAME])+'</div>' +
                 (likeCount > 0 ? '<span style="margin-left:auto; background:linear-gradient(135deg,#667eea,#764ba2); color:white; font-size:0.6rem; font-weight:700; padding:2px 7px; border-radius:10px;"><i class="fas fa-hand-paper"></i> '+likeCount+'</span>' : '') +
-                ' '+empathyBadge+' '+commentBadge+'</div>' +
+                ' '+empathyBadge+' '+commentBadge+' '+chatUnreadBadge+'</div>' +
                 '<div style="display:flex; gap:10px; align-items:flex-start;">' +
                     // 左: サムネ+投稿文
                     '<div style="flex:1; min-width:0; display:flex; gap:8px; align-items:flex-start;">' +
@@ -605,6 +606,8 @@ function doPostEmpathyChat(pid) {
 }
 
 function loadAttentionTab(pid) {
+    // チャット既読マーク
+    if(typeof markChatAsRead === 'function') { markChatAsRead(pid); markChatAsRead('mc_' + pid); }
     getMemberComments(pid).then(function(res) { if (res.success) renderMemberComments(pid, res.comments); });
     getMemberChats(pid).then(function(res) { if (res.success) renderMemberChats(pid, res.chats); });
     getAutoEvaluation(pid).then(function(res) {

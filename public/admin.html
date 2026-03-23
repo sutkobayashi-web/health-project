@@ -304,8 +304,9 @@ if(localStorage.getItem('co_heart_admin_token') && localStorage.getItem('co_hear
 <div class="main-container">
   <div class="sidebar">
     <!-- 投稿一覧（最上部） -->
-    <div class="nav-item" onclick="switchTab('evaluation')" id="nav-eval">
+    <div class="nav-item position-relative" onclick="switchTab('evaluation')" id="nav-eval">
       <i class="fas fa-inbox nav-icon"></i><div class="nav-label" style="font-size:0.55rem; line-height:1.2;">投稿<br>一覧</div>
+      <span id="chat-notify-nav-badge" class="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-danger border border-light" style="display:none; font-size:0.55rem;">0</span>
     </div>
     <!-- 区切り -->
     <div style="border-top:1px solid rgba(255,255,255,0.1); margin:4px 0;"></div>
@@ -851,6 +852,7 @@ if(localStorage.getItem('co_heart_admin_token') && localStorage.getItem('co_hear
 <script src="/js/admin-proposal.js?v=20260323a"></script>
 <script src="/js/admin-meeting.js?v=20260323a"></script>
 <script src="/js/admin-mail.js?v=20260323a"></script>
+<script src="/js/admin-chat-notify.js?v=20260324a"></script>
 <script src="/js/admin-food.js?v=20260323a"></script>
 <script src="/js/admin-v2.js?v=20260320a"></script>
 <script>

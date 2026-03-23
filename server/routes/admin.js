@@ -120,6 +120,60 @@ router.post('/discussion/delete', (req, res) => {
   } catch (e) { res.json({ success: false, msg: e.message }); }
 });
 
+// チャット未読数取得（全投稿の未読チャット数を一括取得）
+router.get('/chat-unread/:email', (req, res) => {
+  try {
+    const db = getDb();
+    const email = req.params.email;
+    // admin_discussions の未読数をpost別に集計
+    const rows = db.prepare(`
+      SELECT d.voice_id AS post_id,
+             COUNT(*) AS unread_count,
+             MAX(d.created_at) AS latest_at,
+             (SELECT comment FROM admin_discussions WHERE voice_id = d.voice_id ORDER BY created_at DESC LIMIT 1) AS latest_message,
+             (SELECT member_name FROM admin_discussions WHERE voice_id = d.voice_id ORDER BY created_at DESC LIMIT 1) AS latest_member
+      FROM admin_discussions d
+      LEFT JOIN chat_read_status r ON r.post_id = d.voice_id AND r.member_email = ?
+      WHERE d.role != 'AI_Council'
+        AND (r.last_read_at IS NULL OR d.created_at > r.last_read_at)
+      GROUP BY d.voice_id
+    `).all(email);
+    // member_chats の未読も含める
+    const mcRows = db.prepare(`
+      SELECT c.post_id,
+             COUNT(*) AS unread_count,
+             MAX(c.created_at) AS latest_at,
+             (SELECT message FROM member_chats WHERE post_id = c.post_id ORDER BY created_at DESC LIMIT 1) AS latest_message,
+             (SELECT member_name FROM member_chats WHERE post_id = c.post_id ORDER BY created_at DESC LIMIT 1) AS latest_member
+      FROM member_chats c
+      LEFT JOIN chat_read_status r ON r.post_id = ('mc_' || c.post_id) AND r.member_email = ?
+      WHERE (r.last_read_at IS NULL OR c.created_at > r.last_read_at)
+      GROUP BY c.post_id
+    `).all(email);
+    // マージ
+    const result = {};
+    rows.forEach(r => { result[r.post_id] = { unread: r.unread_count, latest: r.latest_message, member: r.latest_member, at: r.latest_at }; });
+    mcRows.forEach(r => {
+      if (result[r.post_id]) { result[r.post_id].unread += r.unread_count; }
+      else { result[r.post_id] = { unread: r.unread_count, latest: r.latest_message, member: r.latest_member, at: r.latest_at }; }
+    });
+    res.json({ success: true, unread: result });
+  } catch (e) { res.json({ success: true, unread: {} }); }
+});
+
+// チャット既読マーク
+router.post('/chat-mark-read', (req, res) => {
+  try {
+    const { email, postId } = req.body;
+    if (!email || !postId) return res.json({ success: false });
+    const db = getDb();
+    db.prepare(`INSERT INTO chat_read_status (member_email, post_id, last_read_at) VALUES (?, ?, datetime('now'))
+      ON CONFLICT(member_email, post_id) DO UPDATE SET last_read_at = datetime('now')
+    `).run(email, postId);
+    res.json({ success: true });
+  } catch (e) { res.json({ success: false }); }
+});
+
 // 重点ステータストグル
 router.post('/toggle-target', (req, res) => {
   try {

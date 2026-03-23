@@ -27,6 +27,14 @@ function getDb() {
     if (!vcCols.find(c => c.name === 'exec_comment')) {
       db.exec("ALTER TABLE vote_cycles ADD COLUMN exec_comment TEXT DEFAULT ''");
     }
+    // マイグレーション: チャット既読管理テーブル
+    db.exec(`CREATE TABLE IF NOT EXISTS chat_read_status (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      member_email TEXT NOT NULL,
+      post_id TEXT NOT NULL,
+      last_read_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(member_email, post_id)
+    )`);
     // マイグレーション: AI使用量ログテーブル
     db.exec(`CREATE TABLE IF NOT EXISTS ai_usage_log (
       id INTEGER PRIMARY KEY AUTOINCREMENT,

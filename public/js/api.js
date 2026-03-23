@@ -381,6 +381,14 @@ function postAmbassadorAdvice(ambassadorId, challengeId, adviceType, content) {
   return api('/themes/ambassador-advice', { ambassadorId, challengeId, adviceType, content }, getAdminToken());
 }
 
+// ===== My Posts =====
+function getMyPosts(uid) {
+  return api('/posts/my-posts/' + uid);
+}
+function getPostMemberChats(postId, uid) {
+  return api('/posts/member-chats/' + postId + '/' + uid);
+}
+
 // ===== Chat Notification =====
 function getChatUnread(email) {
   return api('/admin/chat-unread/' + encodeURIComponent(email), undefined, getAdminToken());

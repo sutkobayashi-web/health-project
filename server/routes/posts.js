@@ -69,6 +69,54 @@ router.get('/public', (req, res) => {
   }
 });
 
+// 自分の投稿一覧
+router.get('/my-posts/:uid', (req, res) => {
+  try {
+    const uid = req.params.uid;
+    const db = getDb();
+    const posts = db.prepare("SELECT * FROM posts WHERE user_id = ? ORDER BY created_at DESC").all(uid);
+    // チャット数（member_chats）
+    const chatCounts = {};
+    db.prepare("SELECT post_id, COUNT(*) as cnt FROM member_chats GROUP BY post_id").all()
+      .forEach(r => { chatCounts[r.post_id] = r.cnt; });
+    // 共感カウント
+    const empathyCountsByPost = {};
+    try {
+      db.prepare('SELECT post_id, COUNT(*) as cnt FROM empathy_responses GROUP BY post_id').all()
+        .forEach(r => { empathyCountsByPost[r.post_id] = r.cnt; });
+    } catch (e) {}
+
+    const result = posts.map(p => {
+      const parsed = parsePostScore(p.analysis);
+      return {
+        id: p.post_id, row: p.id,
+        date: new Date(p.created_at).toLocaleString('ja-JP', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Tokyo' }),
+        content: (p.content || '').replace(/^【写真】/, ''),
+        analysis: parsed.text,
+        nickname: p.nickname || '匿名', avatar: p.avatar || '🙂',
+        imageUrl: p.image_url || '', category: p.category || '相談',
+        chatCount: chatCounts[p.post_id] || 0,
+        empathyCount: empathyCountsByPost[p.post_id] || 0,
+        authorUid: p.user_id
+      };
+    });
+    res.json({ success: true, posts: result });
+  } catch (e) { res.json({ success: true, posts: [] }); }
+});
+
+// 投稿者向け: 推進メンバーチャット取得
+router.get('/member-chats/:postId/:uid', (req, res) => {
+  try {
+    const db = getDb();
+    const post = db.prepare('SELECT user_id FROM posts WHERE post_id = ?').get(req.params.postId);
+    if (!post || post.user_id !== req.params.uid) {
+      return res.json({ success: false, msg: '権限がありません' });
+    }
+    const chats = db.prepare('SELECT member_name, message, created_at FROM member_chats WHERE post_id = ? ORDER BY created_at ASC').all(req.params.postId);
+    res.json({ success: true, chats });
+  } catch (e) { res.json({ success: false, chats: [] }); }
+});
+
 // テキスト投稿
 router.post('/submit', async (req, res) => {
   try {

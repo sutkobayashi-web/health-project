@@ -471,6 +471,40 @@
   </div>
 </div>
 
+<!-- 健診結果モーダル -->
+<div id="checkup-modal" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:5000;display:none;justify-content:center;align-items:center;backdrop-filter:blur(2px);padding:16px;">
+  <div style="width:100%;max-width:500px;max-height:90vh;background:white;border-radius:20px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.25);display:flex;flex-direction:column;">
+    <div style="padding:14px 18px;background:linear-gradient(135deg,#26a69a,#80cbc4);color:white;display:flex;align-items:center;gap:10px;flex-shrink:0;">
+      <i class="fas fa-file-medical" style="font-size:1.2rem;"></i>
+      <div style="flex:1;font-weight:800;font-size:0.95rem;">健診結果を読み解く</div>
+      <button onclick="closeCheckup()" style="background:rgba(255,255,255,0.25);border:none;color:white;border-radius:50%;width:32px;height:32px;font-size:0.9rem;cursor:pointer;"><i class="fas fa-times"></i></button>
+    </div>
+    <div id="checkup-body" style="flex:1;overflow-y:auto;padding:16px;">
+      <!-- 注意書き -->
+      <div style="background:#e8f5e9;border-radius:12px;padding:12px;margin-bottom:14px;font-size:0.78rem;color:#2e7d32;line-height:1.6;">
+        <i class="fas fa-lock" style="margin-right:4px;"></i><strong>プライバシー保護</strong><br>
+        撮影した画像・読み取った数値はサーバーに保存されません。AI解析後、端末内にのみ結果を保持します。
+      </div>
+      <!-- 撮影エリア -->
+      <div id="checkup-upload-area" onclick="document.getElementById('checkup-file').click()" style="border:2px dashed #26a69a;border-radius:16px;padding:30px 20px;text-align:center;cursor:pointer;background:#f0faf8;transition:all 0.2s;">
+        <i class="fas fa-camera" style="font-size:2rem;color:#26a69a;"></i>
+        <div style="margin-top:8px;font-size:0.88rem;font-weight:700;color:#26a69a;">健診結果を撮影・選択</div>
+        <div style="margin-top:4px;font-size:0.72rem;color:#999;">結果通知書・血液検査結果など</div>
+      </div>
+      <input type="file" id="checkup-file" accept="image/*" capture="environment" style="display:none;" onchange="handleCheckupFile(this)">
+      <!-- プレビュー -->
+      <div id="checkup-preview" style="display:none;margin-top:12px;text-align:center;">
+        <img id="checkup-preview-img" style="max-width:100%;max-height:200px;border-radius:12px;border:1px solid #eee;">
+        <button onclick="submitCheckup()" id="checkup-submit-btn" style="width:100%;margin-top:12px;padding:14px;background:linear-gradient(135deg,#26a69a,#00897b);color:white;border:none;border-radius:14px;font-weight:800;font-size:0.9rem;cursor:pointer;box-shadow:0 4px 12px rgba(38,166,154,0.3);"><i class="fas fa-search-plus" style="margin-right:6px;"></i>AIに読み取ってもらう</button>
+      </div>
+      <!-- 結果表示 -->
+      <div id="checkup-result" style="display:none;margin-top:16px;"></div>
+      <!-- 過去の結果 -->
+      <div id="checkup-history" style="margin-top:16px;"></div>
+    </div>
+  </div>
+</div>
+
 <div id="main-app" style="display:none;">
   <div class="app-header">
     <div class="logo"><div class="logo-icon"><i class="fas fa-handshake"></i></div><div><div class="logo-text">CoWell Health Project 2.0</div><div class="logo-sub">みんなで 健康を</div></div></div>
@@ -2148,6 +2182,136 @@ function closeMyPosts() {
   unlockScroll();
 }
 
+// ===== 健診結果 =====
+var _checkupImageBase64 = null;
+var _checkupMimeType = null;
+
+function openCheckup() {
+  var modal = document.getElementById('checkup-modal');
+  modal.style.display = 'flex';
+  lockScroll();
+  // リセット
+  document.getElementById('checkup-preview').style.display = 'none';
+  document.getElementById('checkup-result').style.display = 'none';
+  document.getElementById('checkup-upload-area').style.display = '';
+  document.getElementById('checkup-file').value = '';
+  _checkupImageBase64 = null;
+  // 過去の結果を表示
+  renderCheckupHistory();
+}
+
+function closeCheckup() {
+  document.getElementById('checkup-modal').style.display = 'none';
+  unlockScroll();
+}
+
+function handleCheckupFile(input) {
+  if (!input.files || !input.files[0]) return;
+  var file = input.files[0];
+  _checkupMimeType = file.type;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var dataUrl = e.target.result;
+    _checkupImageBase64 = dataUrl.split(',')[1];
+    document.getElementById('checkup-preview-img').src = dataUrl;
+    document.getElementById('checkup-preview').style.display = 'block';
+    document.getElementById('checkup-upload-area').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+function submitCheckup() {
+  if (!_checkupImageBase64) return;
+  var btn = document.getElementById('checkup-submit-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right:6px;"></i>AI読み取り中...（30秒ほどお待ちください）';
+
+  analyzeCheckup(_checkupImageBase64, _checkupMimeType).then(function(res) {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-search-plus" style="margin-right:6px;"></i>AIに読み取ってもらう';
+
+    if (!res.success) {
+      alert(res.msg || '読み取りに失敗しました');
+      return;
+    }
+
+    // 結果表示
+    var resultArea = document.getElementById('checkup-result');
+    resultArea.style.display = 'block';
+
+    // 数値一覧
+    var dataHtml = '<div style="font-size:0.75rem;font-weight:700;color:#26a69a;margin-bottom:6px;"><i class="fas fa-table me-1"></i>読み取り結果</div>';
+    dataHtml += '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px;">';
+    var labels = {height:'身長',weight:'体重',bmi:'BMI',waist:'腹囲',bp_sys:'血圧(上)',bp_dia:'血圧(下)',glucose:'血糖値',hba1c:'HbA1c',tg:'中性脂肪',hdl:'HDL',ldl:'LDL',ast:'AST',alt:'ALT',ggt:'γ-GTP',uric:'尿酸',egfr:'eGFR',rbc:'赤血球',hb:'Hb',wbc:'白血球'};
+    var units = {height:'cm',weight:'kg',bmi:'',waist:'cm',bp_sys:'mmHg',bp_dia:'mmHg',glucose:'mg/dL',hba1c:'%',tg:'mg/dL',hdl:'mg/dL',ldl:'mg/dL',ast:'U/L',alt:'U/L',ggt:'U/L',uric:'mg/dL',egfr:'mL/min',rbc:'万/μL',hb:'g/dL',wbc:'/μL'};
+    for (var key in labels) {
+      if (res.data[key] !== null && res.data[key] !== undefined) {
+        dataHtml += '<span style="background:#f0faf8;border:1px solid #c8e6c9;border-radius:8px;padding:3px 8px;font-size:0.7rem;"><strong>' + labels[key] + '</strong> ' + res.data[key] + units[key] + '</span>';
+      }
+    }
+    dataHtml += '</div>';
+
+    // AI解説
+    var adviceHtml = '<div style="font-size:0.75rem;font-weight:700;color:#00897b;margin-bottom:6px;"><i class="fas fa-stethoscope me-1"></i>AIによる解説</div>';
+    adviceHtml += '<div style="background:linear-gradient(135deg,#e0f2f1,#f1f8e9);border-radius:12px;padding:14px;font-size:0.85rem;line-height:1.8;color:#333;white-space:pre-wrap;">' + escapeHtml(res.advice) + '</div>';
+
+    resultArea.innerHTML = dataHtml + adviceHtml;
+
+    // localStorageに保存
+    saveCheckupToLocal(res.data, res.advice);
+    renderCheckupHistory();
+  }).catch(function(err) {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-search-plus" style="margin-right:6px;"></i>AIに読み取ってもらう';
+    alert('通信エラー: ' + err.message);
+  });
+}
+
+function saveCheckupToLocal(data, advice) {
+  var history = JSON.parse(localStorage.getItem('co_heart_checkup_history') || '[]');
+  history.unshift({
+    date: new Date().toISOString().slice(0, 10),
+    data: data,
+    advice: advice
+  });
+  // 最大5件保持
+  if (history.length > 5) history = history.slice(0, 5);
+  localStorage.setItem('co_heart_checkup_history', JSON.stringify(history));
+}
+
+function renderCheckupHistory() {
+  var area = document.getElementById('checkup-history');
+  if (!area) return;
+  var history = JSON.parse(localStorage.getItem('co_heart_checkup_history') || '[]');
+  if (history.length === 0) { area.innerHTML = ''; return; }
+
+  var html = '<div style="font-size:0.75rem;font-weight:700;color:#78909c;margin-bottom:6px;border-top:1px solid #eee;padding-top:12px;"><i class="fas fa-history me-1"></i>過去の結果（端末内保存・最大5件）</div>';
+  history.forEach(function(h, i) {
+    html += '<div style="background:#fafafa;border-radius:10px;padding:10px;margin-bottom:8px;border:1px solid #eee;cursor:pointer;" onclick="toggleCheckupDetail(this)">';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;">';
+    html += '<span style="font-weight:700;font-size:0.82rem;color:#333;"><i class="fas fa-calendar-alt" style="color:#26a69a;margin-right:4px;"></i>' + h.date + '</span>';
+    html += '<span style="font-size:0.65rem;color:#999;"><i class="fas fa-chevron-down"></i></span>';
+    html += '</div>';
+    html += '<div class="checkup-detail-body" style="display:none;margin-top:8px;font-size:0.8rem;color:#555;line-height:1.7;white-space:pre-wrap;">' + escapeHtml(h.advice) + '</div>';
+    if (i === 0) {
+      html += '<button onclick="event.stopPropagation();deleteCheckupHistory()" style="margin-top:6px;background:none;border:none;color:#e53935;font-size:0.68rem;cursor:pointer;padding:2px 0;"><i class="fas fa-trash-alt me-1"></i>この端末のデータを全て削除</button>';
+    }
+    html += '</div>';
+  });
+  area.innerHTML = html;
+}
+
+function toggleCheckupDetail(el) {
+  var body = el.querySelector('.checkup-detail-body');
+  if (body) body.style.display = body.style.display === 'none' ? 'block' : 'none';
+}
+
+function deleteCheckupHistory() {
+  if (!confirm('端末内に保存された健診結果を全て削除しますか？')) return;
+  localStorage.removeItem('co_heart_checkup_history');
+  renderCheckupHistory();
+}
+
 function openMyPostDetail(postId, authorUid) {
   var sheet = document.getElementById('post-detail-sheet');
   sheet.innerHTML = '<div style="text-align:center;padding:40px;"><i class="fas fa-spinner fa-spin" style="font-size:1.5rem;color:#999;"></i></div>';
@@ -2749,6 +2913,10 @@ function hideLoading() { document.getElementById('loading-overlay').style.displa
     <div class="fab-speed-item" onclick="openMyPosts(); toggleFabMenu();">
       <div class="fab-item-icon" style="background:linear-gradient(135deg,#ff9800,#ffb74d);"><i class="fas fa-user-edit"></i></div>
       <div class="fab-item-label">自分の投稿</div>
+    </div>
+    <div class="fab-speed-item" onclick="openCheckup(); toggleFabMenu();">
+      <div class="fab-item-icon" style="background:linear-gradient(135deg,#26a69a,#80cbc4);"><i class="fas fa-file-medical"></i></div>
+      <div class="fab-item-label">健診結果を読み解く</div>
     </div>
     <div class="fab-speed-item" onclick="openNurseChat(); toggleFabMenu();">
       <div class="fab-item-icon" style="background:linear-gradient(135deg,#ec407a,#f48fb1);"><i class="fas fa-heartbeat"></i></div>

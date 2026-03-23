@@ -134,9 +134,10 @@
     #prio-panel-discuss.active { display:flex !important; flex-direction:column; min-height:0; }
     /* ====== LINE風チャット ====== */
     .deep-dive-container {
-      flex: 1; overflow-y: auto; padding: 16px 12px;
+      overflow-y: scroll; -webkit-overflow-scrolling: touch; padding: 16px 12px;
       background: linear-gradient(180deg, #7494C0 0%, #6B8BB5 30%, #889BB5 100%);
       background-attachment: fixed;
+      max-height: calc(100vh - 260px);
     }
     .input-area-sticky {
       padding: 10px 12px; background: #f6f6f6; border-top: 1px solid #ddd;

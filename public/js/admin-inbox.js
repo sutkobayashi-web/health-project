@@ -251,9 +251,9 @@ function renderReportList(data) {
                         // 推進メンバー議論チャット
                         '<div style="flex:1; display:flex; flex-direction:column; border-top:1px solid #eee; padding-top:8px;">' +
                             '<div style="font-size:0.7rem; font-weight:700; color:#d32f2f; margin-bottom:4px;"><i class="fas fa-comments me-1"></i>推進メンバー議論</div>' +
-                            '<div id="empathy-member-chats-'+pid+'" style="flex:1; overflow-y:auto; font-size:0.78rem; background:#fafafa; border-radius:8px; padding:6px; min-height:60px; max-height:120px;"></div>' +
+                            '<div id="empathy-member-chats-'+pid+'" style="flex:1; overflow-y:auto; font-size:0.78rem; background:#fafafa; border-radius:8px; padding:6px; min-height:60px; max-height:120px; word-break:break-word;"></div>' +
                             '<div style="display:flex; gap:4px; margin-top:4px;">' +
-                                '<input type="text" id="empathy-chat-input-'+pid+'" placeholder="議論..." style="flex:1; border:1px solid #ddd; border-radius:8px; padding:5px 8px; font-size:0.75rem; outline:none;" onkeydown="if(event.key===\'Enter\'){event.preventDefault();doPostEmpathyChat(\''+pid+'\');}">' +
+                                '<textarea id="empathy-chat-input-'+pid+'" placeholder="議論...（Ctrl+Enterで送信）" rows="2" style="flex:1; border:1px solid #ddd; border-radius:8px; padding:5px 8px; font-size:0.75rem; outline:none; resize:none; line-height:1.4;" onkeydown="if(event.key===\'Enter\'&&(event.ctrlKey||event.metaKey)){event.preventDefault();doPostEmpathyChat(\''+pid+'\');}"></textarea>' +
                                 '<button class="btn btn-sm btn-danger" style="font-size:0.68rem; padding:3px 8px;" onclick="doPostEmpathyChat(\''+pid+'\')"><i class="fas fa-paper-plane"></i></button>' +
                             '</div>' +
                         '</div>' +
@@ -528,7 +528,7 @@ function renderMemberChats(pid, chats) {
     if (!chats || chats.length === 0) { area.innerHTML = '<div style="color:#ccc;">まだ議論はありません</div>'; return; }
     area.innerHTML = chats.map(function(c) {
         var date = c.created_at ? new Date(c.created_at).toLocaleString('ja-JP', { hour:'2-digit', minute:'2-digit' }) : '';
-        return '<div style="padding:3px 0;"><span style="font-weight:700; color:#d32f2f; font-size:0.75rem;">' + escapeHtml(c.member_name) + '</span> <span style="color:#ccc; font-size:0.6rem;">' + date + '</span><div style="color:#333; font-size:0.8rem;">' + escapeHtml(c.message) + '</div></div>';
+        return '<div style="padding:3px 0;"><span style="font-weight:700; color:#d32f2f; font-size:0.75rem;">' + escapeHtml(c.member_name) + '</span> <span style="color:#ccc; font-size:0.6rem;">' + date + '</span><div style="color:#333; font-size:0.8rem; white-space:pre-wrap; word-break:break-word;">' + escapeHtml(c.message) + '</div></div>';
     }).join('');
     area.scrollTop = area.scrollHeight;
 }
@@ -586,7 +586,7 @@ function renderEmpathyChats(pid, chats) {
     if (!area) return;
     area.innerHTML = chats.map(function(c) {
         var date = c.created_at ? new Date(c.created_at).toLocaleString('ja-JP', { hour:'2-digit', minute:'2-digit' }) : '';
-        return '<div style="padding:3px 0;"><span style="font-weight:700; color:#d32f2f; font-size:0.75rem;">' + escapeHtml(c.member_name) + '</span> <span style="color:#ccc; font-size:0.6rem;">' + date + '</span><div style="color:#333; font-size:0.8rem;">' + escapeHtml(c.message) + '</div></div>';
+        return '<div style="padding:3px 0;"><span style="font-weight:700; color:#d32f2f; font-size:0.75rem;">' + escapeHtml(c.member_name) + '</span> <span style="color:#ccc; font-size:0.6rem;">' + date + '</span><div style="color:#333; font-size:0.8rem; white-space:pre-wrap; word-break:break-word;">' + escapeHtml(c.message) + '</div></div>';
     }).join('');
     area.scrollTop = area.scrollHeight;
 }

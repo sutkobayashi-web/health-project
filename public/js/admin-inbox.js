@@ -222,6 +222,7 @@ function renderReportList(data) {
             '</div>' +
             // 詳細パネル（左右分割モーダル）
             '<div id="inbox-detail-'+pid+'" style="display:none; border-top:2px solid #667eea;">' +
+                // 左右分割エリア
                 '<div style="display:flex; min-height:300px;">' +
                     // 左: 投稿内容
                     '<div style="flex:1; padding:12px; overflow-y:auto; max-height:450px; border-right:1px solid #eee;">' +
@@ -236,7 +237,7 @@ function renderReportList(data) {
                             '<button class="btn btn-sm btn-outline-primary fw-bold mt-1" style="font-size:0.68rem;" onclick="doAutoEvaluate(\''+pid+'\')"><i class="fas fa-magic me-1"></i>AI評価を実行</button>' +
                         '</div>' +
                     '</div>' +
-                    // 右: 共感+チャット
+                    // 右: 共感+回答
                     '<div style="flex:1; padding:12px; overflow-y:auto; max-height:450px; display:flex; flex-direction:column; background:linear-gradient(180deg, #f5f0ff 0%, #f0f4ff 100%);">' +
                         // 共感サマリー
                         '<div style="margin-bottom:8px;">' +
@@ -248,15 +249,15 @@ function renderReportList(data) {
                             '<div style="font-size:0.7rem; font-weight:700; color:#333; margin-bottom:4px;"><i class="fas fa-list me-1"></i>回答一覧</div>' +
                             '<div id="empathy-members-'+pid+'" style="max-height:120px; overflow-y:auto;"></div>' +
                         '</div>' +
-                        // 推進メンバー議論チャット
-                        '<div style="flex:1; display:flex; flex-direction:column; border-top:1px solid #eee; padding-top:8px;">' +
-                            '<div style="font-size:0.7rem; font-weight:700; color:#d32f2f; margin-bottom:4px;"><i class="fas fa-comments me-1"></i>推進メンバー議論</div>' +
-                            '<div id="empathy-member-chats-'+pid+'" style="flex:1; overflow-y:auto; font-size:0.78rem; background:#fafafa; border-radius:8px; padding:6px; min-height:60px; max-height:120px; word-break:break-word;"></div>' +
-                            '<div style="display:flex; gap:4px; margin-top:4px;">' +
-                                '<textarea id="empathy-chat-input-'+pid+'" placeholder="議論...（Ctrl+Enterで送信）" rows="2" style="flex:1; border:1px solid #ddd; border-radius:8px; padding:5px 8px; font-size:0.75rem; outline:none; resize:none; line-height:1.4;" onkeydown="if(event.key===\'Enter\'&&(event.ctrlKey||event.metaKey)){event.preventDefault();doPostEmpathyChat(\''+pid+'\');}"></textarea>' +
-                                '<button class="btn btn-sm btn-danger" style="font-size:0.68rem; padding:3px 8px;" onclick="doPostEmpathyChat(\''+pid+'\')"><i class="fas fa-paper-plane"></i></button>' +
-                            '</div>' +
-                        '</div>' +
+                    '</div>' +
+                '</div>' +
+                // 下部固定: 推進メンバー議論チャット
+                '<div style="border-top:2px solid #d32f2f; background:linear-gradient(180deg, #fff5f5 0%, #fff0f0 100%); padding:10px 14px;">' +
+                    '<div style="font-size:0.7rem; font-weight:700; color:#d32f2f; margin-bottom:6px;"><i class="fas fa-comments me-1"></i>推進メンバー議論</div>' +
+                    '<div id="empathy-member-chats-'+pid+'" style="overflow-y:auto; font-size:0.78rem; background:white; border-radius:8px; padding:8px; min-height:50px; max-height:150px; word-break:break-word; border:1px solid #f0e0e0;"></div>' +
+                    '<div style="display:flex; gap:4px; margin-top:6px;">' +
+                        '<textarea id="empathy-chat-input-'+pid+'" placeholder="議論...（Ctrl+Enterで送信）" rows="2" style="flex:1; border:1px solid #ddd; border-radius:8px; padding:5px 8px; font-size:0.75rem; outline:none; resize:none; line-height:1.4;" onkeydown="if(event.key===\'Enter\'&&(event.ctrlKey||event.metaKey)){event.preventDefault();doPostEmpathyChat(\''+pid+'\');}"></textarea>' +
+                        '<button class="btn btn-sm btn-danger" style="font-size:0.68rem; padding:3px 8px; align-self:flex-end;" onclick="doPostEmpathyChat(\''+pid+'\')"><i class="fas fa-paper-plane"></i></button>' +
                     '</div>' +
                 '</div>' +
             '</div>';

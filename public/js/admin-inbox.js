@@ -239,24 +239,28 @@ function renderReportList(data) {
                     '</div>' +
                     // 右: 共感+回答+チャット
                     '<div style="flex:1; display:flex; flex-direction:column; max-height:450px; background:linear-gradient(180deg, #f5f0ff 0%, #f0f4ff 100%);">' +
-                        // スクロール領域（共感+回答）
-                        '<div style="flex:1; padding:12px; overflow-y:auto;">' +
-                            // 共感サマリー
-                            '<div style="margin-bottom:8px;">' +
-                                '<div style="font-size:0.7rem; font-weight:700; color:#667eea; margin-bottom:4px;"><i class="fas fa-heart me-1"></i>共感 <span id="empathy-count-'+pid+'" style="color:#999;"></span></div>' +
-                                '<div id="empathy-summary-'+pid+'"></div>' +
-                            '</div>' +
-                            // 全回答一覧
-                            '<div style="margin-bottom:8px;">' +
-                                '<div style="font-size:0.7rem; font-weight:700; color:#333; margin-bottom:4px;"><i class="fas fa-list me-1"></i>回答一覧</div>' +
-                                '<div id="empathy-members-'+pid+'" style="max-height:120px; overflow-y:auto;"></div>' +
+                        // 上部: 共感+回答（折り畳み式・コンパクト）
+                        '<div style="flex-shrink:0; padding:8px 12px; overflow-y:auto; max-height:160px;">' +
+                            // 共感サマリー（折り畳み）
+                            '<div style="margin-bottom:4px;">' +
+                                '<div style="display:flex; align-items:center; gap:6px; cursor:pointer;" onclick="var b=document.getElementById(\'empathy-detail-'+pid+'\'); b.style.display=b.style.display===\'none\'?\'block\':\'none\';">' +
+                                    '<div style="font-size:0.7rem; font-weight:700; color:#667eea;"><i class="fas fa-heart me-1"></i>共感 <span id="empathy-count-'+pid+'" style="color:#999;"></span></div>' +
+                                    '<span style="font-size:0.6rem; color:#667eea; background:rgba(102,126,234,0.1); padding:1px 8px; border-radius:10px; font-weight:600; margin-left:auto;">詳細 ▼</span>' +
+                                '</div>' +
+                                '<div id="empathy-detail-'+pid+'" style="display:none; margin-top:4px;">' +
+                                    '<div id="empathy-summary-'+pid+'"></div>' +
+                                    '<div style="margin-top:6px;">' +
+                                        '<div style="font-size:0.68rem; font-weight:700; color:#333; margin-bottom:2px;"><i class="fas fa-list me-1"></i>回答一覧</div>' +
+                                        '<div id="empathy-members-'+pid+'" style="max-height:100px; overflow-y:auto;"></div>' +
+                                    '</div>' +
+                                '</div>' +
                             '</div>' +
                         '</div>' +
-                        // 下部固定: 推進メンバー議論チャット
-                        '<div style="flex-shrink:0; border-top:2px solid #d32f2f; background:linear-gradient(180deg, #fff5f5 0%, #fff0f0 100%); padding:10px 12px;">' +
+                        // 下部: 推進メンバー議論チャット（広めに確保）
+                        '<div style="flex:1; display:flex; flex-direction:column; border-top:2px solid #d32f2f; background:linear-gradient(180deg, #fff5f5 0%, #fff0f0 100%); padding:8px 12px; min-height:0;">' +
                             '<div style="font-size:0.7rem; font-weight:700; color:#d32f2f; margin-bottom:4px;"><i class="fas fa-comments me-1"></i>推進メンバー議論</div>' +
-                            '<div id="empathy-member-chats-'+pid+'" style="overflow-y:auto; font-size:0.78rem; background:white; border-radius:8px; padding:6px; min-height:50px; max-height:120px; word-break:break-word; border:1px solid #f0e0e0;"></div>' +
-                            '<div style="display:flex; gap:4px; margin-top:4px;">' +
+                            '<div id="empathy-member-chats-'+pid+'" style="flex:1; overflow-y:auto; font-size:0.78rem; background:white; border-radius:8px; padding:6px; min-height:80px; word-break:break-word; border:1px solid #f0e0e0;"></div>' +
+                            '<div style="display:flex; gap:4px; margin-top:4px; flex-shrink:0;">' +
                                 '<textarea id="empathy-chat-input-'+pid+'" placeholder="議論...（Ctrl+Enterで送信）" rows="2" style="flex:1; border:1px solid #ddd; border-radius:8px; padding:5px 8px; font-size:0.75rem; outline:none; resize:none; line-height:1.4;" onkeydown="if(event.key===\'Enter\'&&(event.ctrlKey||event.metaKey)){event.preventDefault();doPostEmpathyChat(\''+pid+'\');}"></textarea>' +
                                 '<button class="btn btn-sm btn-danger" style="font-size:0.68rem; padding:3px 8px; align-self:flex-end;" onclick="doPostEmpathyChat(\''+pid+'\')"><i class="fas fa-paper-plane"></i></button>' +
                             '</div>' +

@@ -670,6 +670,17 @@ function loadEmpathyDisplay(pid) {
     var miniArea = document.getElementById('empathy-mini-' + pid);
     if (miniArea && s.totalCount > 0) {
       var mHtml = '<div style="font-weight:800; color:#667eea; margin-bottom:4px; font-size:0.78rem;"><i class="fas fa-heart" style="font-size:0.65rem; margin-right:2px;"></i> 共感 ' + s.totalCount + '名</div>';
+      // 共感者アバター一覧
+      var allResponses = res.responses || [];
+      if (allResponses.length > 0) {
+        mHtml += '<div style="display:flex; flex-wrap:wrap; gap:2px; margin-bottom:6px;">';
+        allResponses.forEach(function(r) {
+          var avHtml = (r.avatar && typeof getAvatarHtml === 'function') ? getAvatarHtml(r.avatar, 24) : '<span style="font-size:0.7rem;">😀</span>';
+          mHtml += '<div title="' + escapeHtml(r.user_name || '匿名') + '" style="width:26px;height:26px;border-radius:50%;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;background:#f0f0f0;border:1px solid #e0e0ff;flex-shrink:0;">' + avHtml + '</div>';
+        });
+        mHtml += '</div>';
+      }
+      // タイプ別バッジ
       mHtml += '<div style="display:flex; flex-wrap:wrap; gap:4px;">';
       Object.keys(s.typeCounts).forEach(function(type) {
         var info = typeMap[type] || { emoji:'❓', label:type };

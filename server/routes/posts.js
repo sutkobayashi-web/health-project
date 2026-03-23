@@ -280,7 +280,11 @@ router.get('/empathy/:postId', (req, res) => {
 router.get('/empathy-detail/:postId', (req, res) => {
   try {
     const db = getDb();
-    const responses = db.prepare('SELECT * FROM empathy_responses WHERE post_id = ? ORDER BY created_at DESC').all(req.params.postId);
+    const responses = db.prepare(`
+      SELECT er.*, u.avatar FROM empathy_responses er
+      LEFT JOIN users u ON er.user_id = u.id
+      WHERE er.post_id = ? ORDER BY er.created_at DESC
+    `).all(req.params.postId);
     const summary = buildEmpathySummary(responses);
     res.json({ success: true, responses, summary });
   } catch (e) {

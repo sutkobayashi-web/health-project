@@ -769,30 +769,22 @@ router.get('/member-chats/:postId', (req, res) => {
 });
 
 // AI自動7軸評価を実行
-router.post('/auto-evaluate', async (req, res) => {
-  try {
-    const { postId } = req.body;
-    const db = getDb();
-    const post = db.prepare('SELECT * FROM posts WHERE post_id = ?').get(postId);
-    if (!post) return res.json({ success: false, msg: '投稿が見つかりません' });
+// 7軸評価の共通ロジック（1投稿分）
+async function evaluateSinglePost(postId) {
+  const db = getDb();
+  const post = db.prepare('SELECT * FROM posts WHERE post_id = ?').get(postId);
+  if (!post) throw new Error('投稿が見つかりません');
 
-    // 共感データ取得
-    const empathyResponses = db.prepare('SELECT * FROM empathy_responses WHERE post_id = ?').all(postId);
-    const empathySummary = {};
-    empathyResponses.forEach(r => {
-      empathySummary[r.empathy_type] = (empathySummary[r.empathy_type] || 0) + 1;
-    });
+  const empathyResponses = db.prepare('SELECT * FROM empathy_responses WHERE post_id = ?').all(postId);
+  const empathySummary = {};
+  empathyResponses.forEach(r => {
+    empathySummary[r.empathy_type] = (empathySummary[r.empathy_type] || 0) + 1;
+  });
+  const memberComments = db.prepare('SELECT member_name, comment FROM member_comments WHERE post_id = ?').all(postId);
+  const memberChats = db.prepare('SELECT member_name, message FROM member_chats WHERE post_id = ?').all(postId);
 
-    // メンバーコメント取得
-    const memberComments = db.prepare('SELECT member_name, comment FROM member_comments WHERE post_id = ?').all(postId);
-
-    // メンバーチャット取得
-    const memberChats = db.prepare('SELECT member_name, message FROM member_chats WHERE post_id = ?').all(postId);
-
-    // AI に全データを渡して7軸評価
-    const { callGroqApi, EVIDENCE_BASE } = require('../services/ai');
-
-    const prompt = `あなたは健康経営アナリストです。以下の社員の声と、それに対する全社員の共感データ、推進メンバーの専門コメント・議論内容を総合的に分析し、7軸評価をJSON形式で出力してください。
+  const { callGroqApi, EVIDENCE_BASE } = require('../services/ai');
+  const prompt = `あなたは健康経営アナリストです。以下の社員の声と、それに対する全社員の共感データ、推進メンバーの専門コメント・議論内容を総合的に分析し、7軸評価をJSON形式で出力してください。
 
 ${EVIDENCE_BASE}
 
@@ -829,22 +821,54 @@ ${memberChats.map(c => `  ${c.member_name}: ${c.message}`).join('\n') || '（な
   "guideline_refs": "該当するガイドライン名（例: 厚労省「職場における腰痛予防対策指針」）"
 }`;
 
-    const aiResult = await callGroqApi('JSON出力専門AI。指定JSON形式のみ出力。', prompt);
-    if (!aiResult) return res.json({ success: false, msg: 'AI評価失敗' });
+  const aiResult = await callGroqApi('JSON出力専門AI。指定JSON形式のみ出力。', prompt);
+  if (!aiResult) throw new Error('AI評価失敗');
+  const jsonMatch = aiResult.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) throw new Error('AI出力解析失敗');
 
-    const jsonMatch = aiResult.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) return res.json({ success: false, msg: 'AI出力解析失敗' });
+  const scores = JSON.parse(jsonMatch[0]);
+  const total = (scores.legal||1) + (scores.risk||1) + (scores.freq||1) + (scores.urgency||1) + (scores.safety||1) + (scores.value||1) + (scores.needs||1);
 
-    const scores = JSON.parse(jsonMatch[0]);
-    const total = (scores.legal||1) + (scores.risk||1) + (scores.freq||1) + (scores.urgency||1) + (scores.safety||1) + (scores.value||1) + (scores.needs||1);
+  db.prepare(`INSERT INTO auto_evaluations (post_id, legal, risk, freq, urgency, safety, value_score, needs, total_score, reasoning, guideline_refs, source_data)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(post_id) DO UPDATE SET legal=excluded.legal, risk=excluded.risk, freq=excluded.freq, urgency=excluded.urgency, safety=excluded.safety, value_score=excluded.value_score, needs=excluded.needs, total_score=excluded.total_score, reasoning=excluded.reasoning, guideline_refs=excluded.guideline_refs, source_data=excluded.source_data, created_at=CURRENT_TIMESTAMP`)
+    .run(postId, scores.legal||1, scores.risk||1, scores.freq||1, scores.urgency||1, scores.safety||1, scores.value||1, scores.needs||1, total, scores.reasoning||'', scores.guideline_refs||'', JSON.stringify({ empathyCount: empathyResponses.length, memberComments: memberComments.length, memberChats: memberChats.length }));
 
-    // DB保存 (UPSERT)
-    db.prepare(`INSERT INTO auto_evaluations (post_id, legal, risk, freq, urgency, safety, value_score, needs, total_score, reasoning, guideline_refs, source_data)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      ON CONFLICT(post_id) DO UPDATE SET legal=excluded.legal, risk=excluded.risk, freq=excluded.freq, urgency=excluded.urgency, safety=excluded.safety, value_score=excluded.value_score, needs=excluded.needs, total_score=excluded.total_score, reasoning=excluded.reasoning, guideline_refs=excluded.guideline_refs, source_data=excluded.source_data, created_at=CURRENT_TIMESTAMP`)
-      .run(postId, scores.legal||1, scores.risk||1, scores.freq||1, scores.urgency||1, scores.safety||1, scores.value||1, scores.needs||1, total, scores.reasoning||'', scores.guideline_refs||'', JSON.stringify({ empathyCount: empathyResponses.length, memberComments: memberComments.length, memberChats: memberChats.length }));
+  return { scores, total, reasoning: scores.reasoning, guideline_refs: scores.guideline_refs };
+}
 
-    res.json({ success: true, scores, total, reasoning: scores.reasoning, guideline_refs: scores.guideline_refs });
+// 単一投稿の7軸評価API
+router.post('/auto-evaluate', async (req, res) => {
+  try {
+    const result = await evaluateSinglePost(req.body.postId);
+    res.json({ success: true, ...result });
+  } catch (e) { res.json({ success: false, msg: e.message }); }
+});
+
+// 未評価投稿の一括7軸評価API（凝集前に呼ばれる）
+router.post('/auto-evaluate-all', async (req, res) => {
+  try {
+    const db = getDb();
+    const unevaluated = db.prepare(`
+      SELECT p.post_id FROM posts p
+      LEFT JOIN auto_evaluations ae ON p.post_id = ae.post_id
+      WHERE p.status IN ('open','public') AND p.created_at > datetime('now', '-3 months')
+      AND ae.post_id IS NULL
+    `).all();
+    if (unevaluated.length === 0) return res.json({ success: true, evaluated: 0, msg: '全投稿評価済み' });
+
+    let evaluated = 0;
+    let failed = 0;
+    for (const row of unevaluated) {
+      try {
+        await evaluateSinglePost(row.post_id);
+        evaluated++;
+      } catch (e) {
+        console.error('[auto-evaluate-all] Failed:', row.post_id, e.message);
+        failed++;
+      }
+    }
+    res.json({ success: true, evaluated, failed, total: unevaluated.length });
   } catch (e) { res.json({ success: false, msg: e.message }); }
 });
 

@@ -188,16 +188,28 @@ function doDeleteTheme(themeId, name) {
 }
 
 function doGenerateThemes() {
-  if (!confirm('AIテーマ凝集を実行しますか？直近3ヶ月の投稿を分析します。')) return;
-  showLoading('AIがテーマを分析中...');
-  generateThemes().then(function(res) {
-    hideLoading();
-    if (res.success) {
-      alert('サイクル #' + res.cycleNumber + ' のテーマ候補を' + res.themes.length + '件生成しました');
-      renderV2Dashboard();
-    } else {
-      alert('エラー: ' + (res.msg || '不明'));
+  if (!confirm('AIテーマ凝集を実行しますか？直近3ヶ月の投稿を分析します。\n\n※未評価の投稿は自動で7軸評価してから凝集します')) return;
+  showLoading('未評価の投稿を7軸評価中...');
+  // まず未評価投稿を一括7軸評価
+  api('/admin/auto-evaluate-all', {}, getAdminToken()).then(function(evalRes) {
+    var evalMsg = '';
+    if (evalRes.success && evalRes.evaluated > 0) {
+      evalMsg = evalRes.evaluated + '件の投稿を7軸評価しました。';
+      if (evalRes.failed > 0) evalMsg += '（' + evalRes.failed + '件失敗）';
+      console.log('[凝集前評価]', evalMsg);
     }
+    showLoading('AIがテーマを分析中...' + (evalMsg ? '\n' + evalMsg : ''));
+    generateThemes().then(function(res) {
+      hideLoading();
+      if (res.success) {
+        var msg = 'サイクル #' + res.cycleNumber + ' のテーマ候補を' + res.themes.length + '件生成しました';
+        if (evalMsg) msg = evalMsg + '\n' + msg;
+        alert(msg);
+        renderV2Dashboard();
+      } else {
+        alert('エラー: ' + (res.msg || '不明'));
+      }
+    });
   });
 }
 

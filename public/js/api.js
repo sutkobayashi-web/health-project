@@ -381,11 +381,6 @@ function postAmbassadorAdvice(ambassadorId, challengeId, adviceType, content) {
   return api('/themes/ambassador-advice', { ambassadorId, challengeId, adviceType, content }, getAdminToken());
 }
 
-// ===== Health Checkup =====
-function analyzeCheckup(imageBase64, mimeType) {
-  return api('/chat/checkup-analyze', { imageBase64, mimeType });
-}
-
 // ===== My Posts =====
 function getMyPosts(uid) {
   return api('/posts/my-posts/' + uid);

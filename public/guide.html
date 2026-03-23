@@ -746,6 +746,43 @@ body {
     <div class="highlight-box">
       <strong>入力ソース:</strong> 共感データ + メンバーコメント + チャット議論 + エビデンス18領域の公的ガイドライン
     </div>
+
+    <h4 style="margin-top:20px; font-weight:800; color:#1565c0; font-size:0.95rem;"><i class="fas fa-cogs" style="margin-right:6px;"></i>凝集前の自動7軸評価</h4>
+    <p>AIテーマ凝集の実行時、まだ7軸評価が済んでいない投稿は<strong>自動的に一括評価</strong>されます。<br>
+    管理者が個別に評価ボタンを押す必要はありません。</p>
+
+    <div style="background:#f8f9ff; border-radius:12px; padding:16px; margin:12px 0; border:1px solid #e0e4ff;">
+      <div style="font-weight:700; color:#667eea; margin-bottom:10px; font-size:0.85rem;"><i class="fas fa-list-ol" style="margin-right:4px;"></i>凝集時のフロー</div>
+      <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:0.8rem;">
+        <span style="background:#667eea; color:white; padding:4px 12px; border-radius:20px; font-weight:700;">1. 凝集ボタン</span>
+        <i class="fas fa-arrow-right" style="color:#ccc;"></i>
+        <span style="background:#ff9800; color:white; padding:4px 12px; border-radius:20px; font-weight:700;">2. 未評価を自動7軸評価</span>
+        <i class="fas fa-arrow-right" style="color:#ccc;"></i>
+        <span style="background:#4caf50; color:white; padding:4px 12px; border-radius:20px; font-weight:700;">3. 評価レポート表示</span>
+        <i class="fas fa-arrow-right" style="color:#ccc;"></i>
+        <span style="background:#e91e63; color:white; padding:4px 12px; border-radius:20px; font-weight:700;">4. 確認後に凝集実行</span>
+      </div>
+    </div>
+
+    <h4 style="margin-top:16px; font-weight:800; color:#1565c0; font-size:0.95rem;"><i class="fas fa-file-alt" style="margin-right:6px;"></i>7軸評価レポート</h4>
+    <p>凝集前に表示されるレポートでは、以下の情報を確認できます。</p>
+    <table class="guide-table">
+      <thead>
+        <tr><th>項目</th><th>内容</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>スコア順一覧</strong></td><td>全投稿を合計スコア（/35）の高い順に表示。色分け（赤=25以上、橙=18以上、緑=18未満）で重要度が一目瞭然</td></tr>
+        <tr><td><strong>7軸スコア</strong></td><td>各投稿の法令・危険度・頻度・緊急・安全・価値・ニーズをバッジで表示</td></tr>
+        <tr><td><strong>評価根拠</strong></td><td>AIがそのスコアを付けた理由を2〜3文で表示。共感データやメンバー議論の内容が反映</td></tr>
+        <tr><td><strong>参照ガイドライン</strong></td><td>スコアの根拠となった厚労省等の公的ガイドライン名</td></tr>
+        <tr><td><strong>NEWバッジ</strong></td><td>今回の凝集で新たに評価された投稿を識別</td></tr>
+      </tbody>
+    </table>
+
+    <div class="highlight-box" style="border-left-color:#ff9800;">
+      <strong><i class="fas fa-exclamation-triangle" style="color:#ff9800; margin-right:4px;"></i>注意:</strong>
+      共感データやメンバー議論がない段階で評価すると、頻度(freq)やニーズ(needs)のスコアが低く出る傾向があります。十分な共感・議論が集まってから凝集を実行すると、より精度の高いテーマ生成が期待できます。
+    </div>
   </div>
 </div>
 

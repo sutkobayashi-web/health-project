@@ -74,6 +74,9 @@
   #food-preview-area { display: none; margin-top: 12px; }
   #food-preview-img { max-width: 100%; border-radius: 12px; border: 2px solid #e0f0e8; box-shadow: 0 2px 12px rgba(32,201,151,0.1); }
 
+  /* ====== 折り畳みラベル ====== */
+  .accordion-label { font-size:0.68rem; font-weight:700; padding:4px 12px; border-radius:14px; white-space:nowrap; flex-shrink:0; transition:all 0.2s; }
+
   /* ====== タイムライン ====== */
   .timeline-toggle { text-align: center; margin: 16px 0; }
   .btn-timeline { background: white; border: 2px solid #6c5ce7; color: #6c5ce7; border-radius: 16px; padding: 14px 28px; font-weight: 700; font-size: 0.9rem; transition: none; box-shadow: 0 4px 16px rgba(108,92,231,0.1); width: 100%; }
@@ -498,7 +501,7 @@
           <div class="section-title" style="margin-bottom:2px; padding-bottom:3px; border-bottom:2px solid rgba(102,126,234,0.2);"><i class="fas fa-vote-yea"></i> テーマ投票</div>
           <div style="font-size:0.75rem; color:#999;" id="vote-cycle-subtitle">次のアクションプラン、何にする？</div>
         </div>
-        <i class="fas fa-chevron-down" id="vote-chevron" style="color:#667eea; font-size:0.9rem; transition:transform 0.3s;"></i>
+        <span class="accordion-label" id="vote-chevron" style="color:#667eea; background:rgba(102,126,234,0.1);"><i class="fas fa-chevron-down" style="font-size:0.6rem;margin-right:3px;"></i>開く</span>
       </div>
       <div id="vote-body" style="display:none; margin-top:12px; padding-top:12px; border-top:1px solid rgba(102,126,234,0.2);">
         <div id="vote-status-bar" style="font-size:0.75rem; color:#667eea; font-weight:700; margin-bottom:10px; text-align:center;"></div>
@@ -517,7 +520,7 @@
           <div class="section-title" style="margin-bottom:2px; padding-bottom:3px; border-bottom:2px solid rgba(255,107,53,0.2);"><i class="fas fa-fire"></i> チャレンジ</div>
           <div style="font-size:0.75rem; color:#999;" id="challenge-combined-subtitle">アバター投票＆アクションチャレンジ</div>
         </div>
-        <i class="fas fa-chevron-down" id="challenge-combined-chevron" style="color:#ff6b35; font-size:0.9rem; transition:transform 0.3s;"></i>
+        <span class="accordion-label" id="challenge-combined-chevron" style="color:#ff6b35; background:rgba(255,107,53,0.1);"><i class="fas fa-chevron-down" style="font-size:0.6rem;margin-right:3px;"></i>開く</span>
       </div>
       <div id="challenge-combined-body" style="display:none; margin-top:12px; padding-top:12px; border-top:1px solid rgba(255,107,53,0.2);">
         <!-- アバターチャレンジ -->
@@ -525,7 +528,7 @@
           <div style="display:flex; align-items:center; gap:8px; cursor:pointer;" onclick="toggleAccordion('avatar-challenge-body','avatar-challenge-chevron')">
             <div style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#ff9800,#f57c00);flex-shrink:0;"><i class="fas fa-palette" style="font-size:14px;color:#fff;"></i></div>
             <div style="flex:1; font-weight:700; font-size:0.88rem; color:#e65100;" id="avatar-challenge-subtitle">アバターチャレンジ</div>
-            <i class="fas fa-chevron-down" id="avatar-challenge-chevron" style="color:#f57c00; font-size:0.8rem; transition:transform 0.3s;"></i>
+            <span class="accordion-label" id="avatar-challenge-chevron" style="color:#f57c00; background:rgba(255,152,0,0.1); font-size:0.65rem;"><i class="fas fa-chevron-down" style="font-size:0.55rem;margin-right:3px;"></i>開く</span>
           </div>
           <div id="avatar-challenge-body" style="display:none; margin-top:10px;">
             <div id="avatar-challenge-status" style="font-size:0.75rem; color:#f57c00; font-weight:700; margin-bottom:10px; text-align:center;"></div>
@@ -553,7 +556,7 @@
           <div class="section-title" style="margin-bottom:2px; padding-bottom:3px; border-bottom:2px solid rgba(214,51,132,0.2);"><i class="far fa-comment-dots"></i> 健康のお悩み・みんなと共有</div>
           <div class="honne-area section-sub">AIヘルスアドバイザーが親身にお答えします</div>
         </div>
-        <i class="fas fa-chevron-down" id="honne-chevron" style="color:#d63384; font-size:0.9rem; transition:transform 0.3s;"></i>
+        <span class="accordion-label" id="honne-chevron" style="color:#d63384; background:rgba(214,51,132,0.1);"><i class="fas fa-chevron-down" style="font-size:0.6rem;margin-right:3px;"></i>開く</span>
       </div>
       <div id="honne-body" style="display:none; margin-top:12px; padding-top:12px; border-top:1px solid rgba(214,51,132,0.2);">
         <textarea id="honne-input" placeholder="最近の体調や気になること、健康の悩みなど、なんでもどうぞ（みんなと共有されます）"></textarea>
@@ -571,7 +574,7 @@
           <div class="section-title" style="margin-bottom:2px; padding-bottom:3px; border-bottom:2px solid rgba(32,201,151,0.2);"><i class="fas fa-utensils"></i> 食事チェック</div>
           <div class="food-section section-sub">AI食事アドバイザーがバランスを分析します</div>
         </div>
-        <i class="fas fa-chevron-down" id="food-chevron" style="color:#20c997; font-size:0.9rem; transition:transform 0.3s;"></i>
+        <span class="accordion-label" id="food-chevron" style="color:#20c997; background:rgba(32,201,151,0.1);"><i class="fas fa-chevron-down" style="font-size:0.6rem;margin-right:3px;"></i>開く</span>
       </div>
       <div id="food-body" style="display:none; margin-top:12px; padding-top:12px; border-top:1px solid rgba(32,201,151,0.2);">
         <div class="food-upload-area" onclick="document.getElementById('file-input').click()">
@@ -602,7 +605,7 @@
           <div class="section-title" style="margin-bottom:2px; padding-bottom:3px; border-bottom:2px solid rgba(255,152,0,0.2);"><i class="fas fa-bookmark"></i> 健康メモ <span id="memo-count-badge" style="font-size:0.65rem; font-weight:700; background:#ff9800; color:white; padding:1px 7px; border-radius:10px; margin-left:6px; display:none;">0</span></div>
           <div style="font-size:0.75rem; color:#999;">AIアドバイザーの回答を保存</div>
         </div>
-        <i class="fas fa-chevron-down" id="memo-chevron" style="color:#ff9800; font-size:0.9rem; transition:transform 0.3s;"></i>
+        <span class="accordion-label" id="memo-chevron" style="color:#ff9800; background:rgba(255,152,0,0.1);"><i class="fas fa-chevron-down" style="font-size:0.6rem;margin-right:3px;"></i>開く</span>
       </div>
       <div id="memo-body" style="display:none; margin-top:12px; padding-top:12px; border-top:1px solid rgba(255,152,0,0.2);">
         <div id="health-memo-list"></div>
@@ -617,7 +620,7 @@
           <div class="section-title" style="margin-bottom:2px; padding-bottom:3px; border-bottom:2px solid rgba(108,92,231,0.2);"><i class="fas fa-user-plus"></i> 仲間を招待しよう！</div>
           <div style="font-size:0.75rem; color:#999;">QRコードを同僚に見せて参加してもらおう</div>
         </div>
-        <i class="fas fa-chevron-down" id="qr-chevron" style="color:#6c5ce7; font-size:0.9rem; transition:transform 0.3s;"></i>
+        <span class="accordion-label" id="qr-chevron" style="color:#6c5ce7; background:rgba(108,92,231,0.1);"><i class="fas fa-chevron-down" style="font-size:0.6rem;margin-right:3px;"></i>開く</span>
       </div>
       <div id="qr-body" style="display:none; margin-top:12px; padding-top:12px; border-top:1px solid rgba(108,92,231,0.2); text-align:center;">
         <div id="qr-area"></div>
@@ -3481,16 +3484,16 @@ function escInbox(t) {
 function escapeHtml(t) {
   return String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
-function toggleAccordion(bodyId, chevronId) {
+function toggleAccordion(bodyId, labelId) {
   var body = document.getElementById(bodyId);
-  var chevron = document.getElementById(chevronId);
+  var label = document.getElementById(labelId);
   if (!body) return;
   if (body.style.display === 'none') {
     body.style.display = 'block';
-    if (chevron) chevron.style.transform = 'rotate(180deg)';
+    if (label) { label.innerHTML = '<i class="fas fa-chevron-up" style="font-size:0.6rem;margin-right:3px;"></i>閉じる'; }
   } else {
     body.style.display = 'none';
-    if (chevron) chevron.style.transform = 'rotate(0deg)';
+    if (label) { label.innerHTML = '<i class="fas fa-chevron-down" style="font-size:0.6rem;margin-right:3px;"></i>開く'; }
   }
 }
 // ====== チャレンジ統合セクション表示制御 ======
@@ -3737,7 +3740,7 @@ function loadActiveChallenge() {
           '<div style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#ff6b35,#ff9a5c);flex-shrink:0;"><i class="fas fa-running" style="font-size:14px;color:#fff;"></i></div>' +
           '<div style="flex:1;"><div style="font-weight:700; font-size:0.88rem; color:#e65100;" id="ch-title-' + cid + '"></div>' +
           '<div style="font-size:0.75rem; color:#999;" id="ch-subtitle-' + cid + '"></div></div>' +
-          '<i class="fas fa-chevron-down" id="ch-chevron-' + cid + '" style="color:#ff6b35; font-size:0.8rem; transition:transform 0.3s;"></i>' +
+          '<span class="accordion-label" id="ch-chevron-' + cid + '" style="color:#ff6b35; background:rgba(255,107,53,0.1); font-size:0.65rem;"><i class="fas fa-chevron-down" style="font-size:0.55rem;margin-right:3px;"></i>開く</span>' +
         '</div>' +
         '<div id="ch-body-' + cid + '" style="display:none; margin-top:10px;"></div>';
       container.appendChild(block);

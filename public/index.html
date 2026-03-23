@@ -3843,18 +3843,26 @@ function loadActiveChallenge() {
     // コンテナ初期化
     var container = document.getElementById('challenge-list-container');
     container.innerHTML = '';
+    var chThemes = [
+      { grad:'#ff6b35,#ff9a5c', color:'#e65100', icon:'fas fa-running', bg:'rgba(255,107,53,0.08)', border:'rgba(255,107,53,0.2)' },
+      { grad:'#667eea,#764ba2', color:'#4a3cb5', icon:'fas fa-dumbbell', bg:'rgba(102,126,234,0.08)', border:'rgba(102,126,234,0.2)' },
+      { grad:'#20c997,#38ef7d', color:'#0d7a5f', icon:'fas fa-heartbeat', bg:'rgba(32,201,151,0.08)', border:'rgba(32,201,151,0.2)' },
+      { grad:'#e91e63,#f48fb1', color:'#b0003a', icon:'fas fa-apple-whole', bg:'rgba(233,30,99,0.08)', border:'rgba(233,30,99,0.2)' },
+      { grad:'#ff9800,#ffb74d', color:'#e65100', icon:'fas fa-walking', bg:'rgba(255,152,0,0.08)', border:'rgba(255,152,0,0.2)' },
+      { grad:'#00bcd4,#4dd0e1', color:'#006978', icon:'fas fa-bed', bg:'rgba(0,188,212,0.08)', border:'rgba(0,188,212,0.2)' }
+    ];
     targets.forEach(function(ch, idx) {
       var cid = ch.challenge_id;
-      // 各チャレンジの折り畳みブロック生成
+      var t = chThemes[idx % chThemes.length];
       var block = document.createElement('div');
       block.id = 'ch-block-' + cid;
       if (idx > 0) block.style.marginTop = '12px';
       block.innerHTML =
-        '<div style="display:flex; align-items:center; gap:8px; cursor:pointer;" onclick="toggleAccordion(\'ch-body-' + cid + '\',\'ch-chevron-' + cid + '\')">' +
-          '<div style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#ff6b35,#ff9a5c);flex-shrink:0;"><i class="fas fa-running" style="font-size:14px;color:#fff;"></i></div>' +
-          '<div style="flex:1;"><div style="font-weight:700; font-size:0.88rem; color:#e65100;" id="ch-title-' + cid + '"></div>' +
+        '<div style="display:flex; align-items:center; gap:8px; cursor:pointer; padding:8px 10px; border-radius:12px; background:' + t.bg + '; border:1px solid ' + t.border + ';" onclick="toggleAccordion(\'ch-body-' + cid + '\',\'ch-chevron-' + cid + '\')">' +
+          '<div style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,' + t.grad + ');flex-shrink:0;"><i class="' + t.icon + '" style="font-size:14px;color:#fff;"></i></div>' +
+          '<div style="flex:1;"><div style="font-weight:700; font-size:0.88rem; color:' + t.color + ';" id="ch-title-' + cid + '"></div>' +
           '<div style="font-size:0.75rem; color:#999;" id="ch-subtitle-' + cid + '"></div></div>' +
-          '<span class="accordion-label" id="ch-chevron-' + cid + '" style="color:#ff6b35; background:rgba(255,107,53,0.1); font-size:0.65rem;"><i class="fas fa-chevron-down" style="font-size:0.55rem;margin-right:3px;"></i>開く</span>' +
+          '<span class="accordion-label" id="ch-chevron-' + cid + '" style="color:' + t.color + '; background:rgba(255,255,255,0.7); font-size:0.65rem;"><i class="fas fa-chevron-down" style="font-size:0.55rem;margin-right:3px;"></i>開く</span>' +
         '</div>' +
         '<div id="ch-body-' + cid + '" style="display:none; margin-top:10px;"></div>';
       container.appendChild(block);

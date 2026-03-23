@@ -218,7 +218,7 @@ function renderReportList(data) {
                         '<div style="flex:1; font-size:0.85rem; line-height:1.5; color:#444; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">'+escapeHtml(rawContent)+'</div>' +
                     '</div>' +
                     // 右: 共感ミニサマリー
-                    '<div id="empathy-mini-'+pid+'" style="flex-shrink:0; width:110px; font-size:0.65rem; color:#667eea;"></div>' +
+                    '<div id="empathy-mini-'+pid+'" style="flex-shrink:0; width:160px; font-size:0.8rem; color:#667eea;"></div>' +
                 '</div>' +
                 // 操作ボタン行
                 '<div style="margin-top:8px; text-align:right;">' +
@@ -667,11 +667,11 @@ function loadEmpathyDisplay(pid) {
         'senmon':'🏥','kininaru':'👀','oishii':'🍽️','sankou':'💪',
         'onaji':'😅','healthy':'🌿','kaizen':'🍺','motto':'📸'
       };
-      var mHtml = '<div style="font-weight:700; color:#667eea; margin-bottom:3px;"><i class="fas fa-heart" style="font-size:0.55rem;"></i> 共感 ' + s.totalCount + '名</div>';
-      mHtml += '<div style="display:flex; flex-wrap:wrap; gap:2px;">';
+      var mHtml = '<div style="font-weight:800; color:#667eea; margin-bottom:4px; font-size:0.82rem;"><i class="fas fa-heart" style="font-size:0.7rem; margin-right:2px;"></i> 共感 ' + s.totalCount + '名</div>';
+      mHtml += '<div style="display:flex; flex-wrap:wrap; gap:3px;">';
       Object.keys(s.typeCounts).forEach(function(type) {
         var emoji = miniTypeMap[type] || '❓';
-        mHtml += '<span style="background:#f0f0ff; border-radius:6px; padding:1px 5px; font-size:0.6rem; white-space:nowrap;">' + emoji + s.typeCounts[type] + '</span>';
+        mHtml += '<span style="background:#f0f0ff; border:1px solid #e0e0ff; border-radius:8px; padding:2px 8px; font-size:0.78rem; white-space:nowrap; font-weight:600;">' + emoji + ' ' + s.typeCounts[type] + '</span>';
       });
       mHtml += '</div>';
       miniArea.innerHTML = mHtml;

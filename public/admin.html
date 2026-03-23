@@ -129,8 +129,9 @@
     .prio-tab { padding:10px 16px; border:none; background:transparent; font-size:0.8rem; font-weight:700; color:#888; cursor:pointer; border-bottom:3px solid transparent; transition:all 0.2s; flex:1; text-align:center; }
     .prio-tab:hover { color:#667eea; background:#f0f0ff; }
     .prio-tab.active { color:#667eea; border-bottom-color:#667eea; }
-    .prio-panel { display:none; }
-    .prio-panel.active { display:block; }
+    .prio-panel { display:none !important; }
+    .prio-panel.active { display:block !important; }
+    #prio-panel-discuss.active { display:flex !important; flex-direction:column; min-height:0; }
     /* ====== LINE風チャット ====== */
     .deep-dive-container {
       flex: 1; overflow-y: auto; padding: 16px 12px;
@@ -720,7 +721,7 @@ if(localStorage.getItem('co_heart_admin_token') && localStorage.getItem('co_hear
     </div>
 
     <!-- Tab content area -->
-    <div style="flex:1; overflow-y:auto;" id="prio-tab-area">
+    <div style="flex:1; overflow-y:auto; min-height:0;" id="prio-tab-area">
       <!-- Content tab -->
       <div id="prio-panel-content" class="prio-panel active" style="padding:20px;">
         <div class="d-flex align-items-center mb-3">
@@ -746,7 +747,7 @@ if(localStorage.getItem('co_heart_admin_token') && localStorage.getItem('co_hear
           <div style="color:#999; font-size:0.85rem; margin-bottom:12px;">推進メンバーで議論を始めましょう</div>
           <button class="btn btn-primary rounded-pill px-4 shadow-sm" onclick="openChatAndStartAI()"><i class="fas fa-robot me-2"></i>AIメンバーを招集して議論開始</button>
         </div>
-        <div id="chat-wrapper" style="display:none; flex-direction:column; flex:1; overflow:hidden;">
+        <div id="chat-wrapper" style="display:none; flex-direction:column; flex:1; overflow:hidden; min-height:0;">
           <div style="padding:8px 14px; background:linear-gradient(135deg,#667eea,#764ba2); display:flex; justify-content:space-between; align-items:center; flex-shrink:0;">
             <div style="font-weight:800; color:white; font-size:0.85rem;"><i class="fas fa-comments me-2"></i>深耕・戦略会議室</div>
             <div style="font-size:0.65rem; color:rgba(255,255,255,0.7);">AI社員 + 推進チーム</div>

@@ -671,10 +671,27 @@ function loadEmpathyDisplay(pid) {
       html += '<span style="display:inline-flex; align-items:center; gap:3px; padding:4px 10px; border-radius:12px; font-size:0.72rem; font-weight:700; background:#f0f0ff; border:1px solid #e0e0ff;">' + info.emoji + ' ' + info.label + ' <span style="background:#667eea; color:white; border-radius:8px; padding:0 6px; font-size:0.65rem;">' + count + '</span></span>';
     });
     html += '</div>';
+    // 質問マップ（サマリー用）
+    var summaryQMap = {
+      wakaru: ['どのくらい困ってる？','いつ頃から？','自分で対策してる？'],
+      yabai: ['どのくらい深刻？','急いで対応すべき？','放っておくと誰か困る？'],
+      kaisha: ['会社が対策したら参加する？','周りにも同じ悩み？','効果ありそう？'],
+      ouen: ['応援の気持ちは？','自分にもできること？','声掛けしてみたい？'],
+      issho: ['一緒にやりたい度？','どんな形で？','いつから始める？'],
+      senmon: ['どのくらい深刻？','専門家の種類は？','会社のサポートは？'],
+      kininaru: ['どのくらい気になる？','周りにもいる？','情報ほしい？'],
+      oishii: ['自分の食事と比べて？','続けるのは？','情報もっと欲しい？'],
+      sankou: ['真似してみたい？','食事で困ってる？','会社サポートあったら？'],
+      onaji: ['食事の偏り気になる？','改善が難しい理由？','きっかけがあれば？'],
+      healthy: ['自分も取り入れたい？','続けられそう？','参考にしたい？'],
+      kaizen: ['一緒に改善したい度？','どんな工夫？','続けるコツは？'],
+      motto: ['どのくらい見たい？','参考になった？','自分も投稿したい？']
+    };
     // 回答集計（各タイプの3問の回答分布）
     if (s.answerAggregation) {
       Object.keys(s.answerAggregation).forEach(function(type) {
         var info = typeMap[type] || { emoji:'❓', label:type };
+        var qs = summaryQMap[type];
         var agg = s.answerAggregation[type];
         html += '<div style="margin-bottom:8px; padding:8px; background:#fafbff; border-radius:8px; border:1px solid #eef0f5;">';
         html += '<div style="font-size:0.7rem; font-weight:700; color:#667eea; margin-bottom:4px;">' + info.emoji + ' ' + info.label + ' の回答傾向</div>';
@@ -683,7 +700,8 @@ function loadEmpathyDisplay(pid) {
           if (!answers) return;
           var total = 0;
           Object.values(answers).forEach(function(v) { total += v; });
-          html += '<div style="font-size:0.68rem; color:#666; margin-bottom:3px;">Q' + (qi+1) + ': ';
+          var qLabel = qs && qs[qi] ? qs[qi] : '質問' + (qi+1);
+          html += '<div style="font-size:0.68rem; color:#666; margin-bottom:3px;"><span style="color:#667eea; font-weight:600;">' + qLabel + '</span> → ';
           Object.keys(answers).forEach(function(ans, ai) {
             var cnt = answers[ans];
             var pct = total > 0 ? Math.round(cnt / total * 100) : 0;

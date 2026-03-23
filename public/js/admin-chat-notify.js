@@ -75,13 +75,10 @@
       var data = unreadMap[postId];
       var badgeEl = document.getElementById('chat-unread-' + postId);
       if (badgeEl) {
-        var preview = data.member ? escapeHtml(data.member) + ': ' : '';
-        preview += data.latest ? escapeHtml(data.latest.substring(0, 20)) : '';
-        badgeEl.innerHTML = '<i class="fas fa-comment-dots"></i> 新着' + data.unread + '件' +
-          (preview ? '<span style="margin-left:4px; font-weight:400; opacity:0.9; font-size:0.6rem;">' + preview + '…</span>' : '');
+        badgeEl.innerHTML = '<i class="fas fa-bell"></i> NEW +' + data.unread;
         badgeEl.style.display = 'inline-flex';
         badgeEl.className = 'chat-unread-badge';
-        badgeEl.title = '議論を開く';
+        badgeEl.title = '新着チャットあり — タップで議論を開く';
       }
     }
     // 既読になった投稿のバッジを非表示

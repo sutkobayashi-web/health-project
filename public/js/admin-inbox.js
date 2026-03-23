@@ -44,7 +44,7 @@
 `; document.head.appendChild(s);})();
 
 /* ── Constants ── */
-var INBOX_COLS = { ROW_ID:1, CONTENT:2, ANALYSIS:3, USER_NAME:4, AVATAR:5, LIKE_COUNT:6, PID:7, CAT:8, STATUS:9, UID:10, IMG:11, DATE:14 };
+var INBOX_COLS = { ROW_ID:1, CONTENT:2, ANALYSIS:3, USER_NAME:4, AVATAR:5, LIKE_COUNT:6, PID:7, CAT:8, STATUS:9, UID:10, IMG:11, DATE:14, CHAT_COUNT:15 };
 var currentInboxCatFilter = 'all';
 var INBOX_AVATAR_MAP = { "メディカル":"🩺","医":"🩺","ヘルス":"💉","看護":"💉","食事":"🥗","管理":"📝","課長":"📝","事務":"📝","専務":"👨‍⚖️","経営":"👨‍⚖️","佐藤":"💁‍♀️","山本":"👨‍💼","高橋":"👩‍💼","中村":"👨‍💻","伊藤":"👦","林":"👩‍🍳" };
 
@@ -206,6 +206,10 @@ function renderReportList(data) {
         // コンパクトカード + 詳細パネル（タブ切替）
         var empathyBadge = '<span id="empathy-badge-'+pid+'" style="font-size:0.6rem; background:#eef; color:#667eea; padding:1px 6px; border-radius:8px; font-weight:700;"></span>';
         var commentBadge = '<span id="comment-badge-'+pid+'" style="font-size:0.6rem; background:#f0f0f0; color:#666; padding:1px 6px; border-radius:8px; font-weight:700;"></span>';
+        var chatCount = parseInt(r[INBOX_COLS.CHAT_COUNT]) || 0;
+        var chatBadge = chatCount > 0
+          ? '<span id="chat-total-'+pid+'" style="font-size:0.6rem; background:#e8eaf6; color:#5c6bc0; padding:1px 6px; border-radius:8px; font-weight:700; cursor:pointer;" onclick="event.stopPropagation(); openPriorityModal(\''+pid+'\');"><i class="fas fa-comments" style="margin-right:2px;"></i>議論'+chatCount+'</span>'
+          : '<span id="chat-total-'+pid+'" style="display:none;"></span>';
         var chatUnreadBadge = '<span id="chat-unread-'+pid+'" style="display:none; cursor:pointer;" onclick="event.stopPropagation(); openPriorityModal(\''+pid+'\');"></span>';
         div.innerHTML =
             // ヘッダー
@@ -214,7 +218,7 @@ function renderReportList(data) {
             '<div style="padding:10px 14px; background:#fafaff;">' +
                 '<div class="user-info" style="margin-bottom:6px;">'+avatarDiv+'<div class="nick">'+escapeHtml(r[INBOX_COLS.USER_NAME])+'</div>' +
                 (likeCount > 0 ? '<span style="margin-left:auto; background:linear-gradient(135deg,#667eea,#764ba2); color:white; font-size:0.6rem; font-weight:700; padding:2px 7px; border-radius:10px;"><i class="fas fa-hand-paper"></i> '+likeCount+'</span>' : '') +
-                ' '+empathyBadge+' '+commentBadge+' '+chatUnreadBadge+'</div>' +
+                ' '+empathyBadge+' '+commentBadge+' '+chatBadge+' '+chatUnreadBadge+'</div>' +
                 '<div style="display:flex; gap:10px; align-items:flex-start;">' +
                     // 左: サムネ+投稿文
                     '<div style="flex:1; min-width:0; display:flex; gap:8px; align-items:flex-start;">' +

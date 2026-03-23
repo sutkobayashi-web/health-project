@@ -190,27 +190,92 @@ function doDeleteTheme(themeId, name) {
 function doGenerateThemes() {
   if (!confirm('AIテーマ凝集を実行しますか？直近3ヶ月の投稿を分析します。\n\n※未評価の投稿は自動で7軸評価してから凝集します')) return;
   showLoading('未評価の投稿を7軸評価中...');
-  // まず未評価投稿を一括7軸評価
   api('/admin/auto-evaluate-all', {}, getAdminToken()).then(function(evalRes) {
-    var evalMsg = '';
-    if (evalRes.success && evalRes.evaluated > 0) {
-      evalMsg = evalRes.evaluated + '件の投稿を7軸評価しました。';
-      if (evalRes.failed > 0) evalMsg += '（' + evalRes.failed + '件失敗）';
-      console.log('[凝集前評価]', evalMsg);
-    }
-    showLoading('AIがテーマを分析中...' + (evalMsg ? '\n' + evalMsg : ''));
-    generateThemes().then(function(res) {
-      hideLoading();
-      if (res.success) {
-        var msg = 'サイクル #' + res.cycleNumber + ' のテーマ候補を' + res.themes.length + '件生成しました';
-        if (evalMsg) msg = evalMsg + '\n' + msg;
-        alert(msg);
-        renderV2Dashboard();
-      } else {
-        alert('エラー: ' + (res.msg || '不明'));
-      }
+    hideLoading();
+    if (!evalRes.success) { alert('7軸評価エラー: ' + (evalRes.msg || '不明')); return; }
+    // 7軸評価レポートを表示してから凝集に進む
+    showEvalReport(evalRes, function() {
+      showLoading('AIがテーマを分析中...');
+      generateThemes().then(function(res) {
+        hideLoading();
+        if (res.success) {
+          alert('サイクル #' + res.cycleNumber + ' のテーマ候補を' + res.themes.length + '件生成しました');
+          renderV2Dashboard();
+        } else {
+          alert('エラー: ' + (res.msg || '不明'));
+        }
+      });
     });
   });
+}
+
+function showEvalReport(evalRes, onProceed) {
+  // モーダル生成
+  var existing = document.getElementById('eval-report-modal');
+  if (existing) existing.remove();
+
+  var axisLabels = { legal:'法的', risk:'危険度', freq:'頻度', urgency:'緊急', safety:'安全', value_score:'価値', needs:'ニーズ' };
+
+  var html = '<div id="eval-report-modal" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;display:flex;justify-content:center;align-items:center;backdrop-filter:blur(2px);">';
+  html += '<div style="background:white;border-radius:16px;width:90%;max-width:800px;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,0.25);">';
+  // ヘッダー
+  html += '<div style="padding:16px 20px;border-bottom:2px solid #667eea;display:flex;justify-content:space-between;align-items:center;">';
+  html += '<div><div style="font-weight:800;font-size:1rem;color:#2c3e50;"><i class="fas fa-chart-bar" style="color:#667eea;margin-right:6px;"></i>7軸評価レポート</div>';
+  html += '<div style="font-size:0.75rem;color:#999;">全' + (evalRes.allEvaluations || []).length + '件 ';
+  if (evalRes.evaluated > 0) html += '（今回新規' + evalRes.evaluated + '件評価）';
+  html += '</div></div>';
+  html += '<button onclick="document.getElementById(\'eval-report-modal\').remove()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:#999;">✕</button>';
+  html += '</div>';
+  // 本体（スクロール）
+  html += '<div style="flex:1;overflow-y:auto;padding:16px 20px;">';
+
+  var allEvals = evalRes.allEvaluations || [];
+  if (allEvals.length === 0) {
+    html += '<div style="text-align:center;color:#ccc;padding:40px;">評価データがありません</div>';
+  } else {
+    allEvals.forEach(function(ev, i) {
+      var isNew = (evalRes.newResults || []).some(function(nr) { return nr.postId === ev.post_id; });
+      var barColor = ev.total_score >= 25 ? '#e53935' : ev.total_score >= 18 ? '#ff9800' : '#4caf50';
+      html += '<div style="margin-bottom:12px;padding:12px;border-radius:10px;background:' + (isNew ? '#fff8e1' : '#fafafa') + ';border:1px solid ' + (isNew ? '#ffe082' : '#eee') + ';">';
+      // 上段：名前・スコア
+      html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">';
+      html += '<span style="font-weight:800;font-size:0.85rem;color:#333;">' + (i+1) + '. ' + escapeHtml(ev.nickname || '不明') + '</span>';
+      if (isNew) html += '<span style="font-size:0.6rem;background:#ff9800;color:white;padding:1px 6px;border-radius:8px;font-weight:700;">NEW</span>';
+      html += '<span style="margin-left:auto;font-weight:800;font-size:0.9rem;color:' + barColor + ';">' + ev.total_score + '/35</span>';
+      html += '</div>';
+      // 投稿内容
+      html += '<div style="font-size:0.78rem;color:#666;margin-bottom:6px;line-height:1.4;">' + escapeHtml(ev.content_short || '') + '</div>';
+      // 7軸バー
+      html += '<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px;">';
+      ['legal','risk','freq','urgency','safety','value_score','needs'].forEach(function(key) {
+        var val = ev[key] || 1;
+        var bgColor = val >= 4 ? '#e53935' : val >= 3 ? '#ff9800' : '#4caf50';
+        html += '<span style="display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:8px;font-size:0.68rem;font-weight:700;background:' + bgColor + '22;color:' + bgColor + ';border:1px solid ' + bgColor + '44;">' + axisLabels[key] + ' ' + val + '</span>';
+      });
+      html += '</div>';
+      // 根拠
+      if (ev.reasoning) {
+        html += '<div style="font-size:0.72rem;color:#555;line-height:1.5;background:white;padding:6px 10px;border-radius:8px;border-left:3px solid #667eea;"><i class="fas fa-lightbulb" style="color:#667eea;margin-right:4px;"></i>' + escapeHtml(ev.reasoning) + '</div>';
+      }
+      // ガイドライン
+      if (ev.guideline_refs) {
+        html += '<div style="font-size:0.65rem;color:#888;margin-top:4px;"><i class="fas fa-book" style="margin-right:3px;"></i>' + escapeHtml(ev.guideline_refs) + '</div>';
+      }
+      html += '</div>';
+    });
+  }
+  html += '</div>';
+  // フッター
+  html += '<div style="padding:12px 20px;border-top:1px solid #eee;display:flex;justify-content:flex-end;gap:10px;">';
+  html += '<button onclick="document.getElementById(\'eval-report-modal\').remove()" style="padding:8px 20px;border:1px solid #ddd;border-radius:10px;background:white;font-size:0.85rem;font-weight:700;cursor:pointer;color:#666;">キャンセル</button>';
+  html += '<button id="eval-proceed-btn" style="padding:8px 24px;border:none;border-radius:10px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;font-size:0.85rem;font-weight:800;cursor:pointer;box-shadow:0 3px 10px rgba(102,126,234,0.3);"><i class="fas fa-magic" style="margin-right:6px;"></i>この評価で凝集を実行</button>';
+  html += '</div></div></div>';
+
+  document.body.insertAdjacentHTML('beforeend', html);
+  document.getElementById('eval-proceed-btn').onclick = function() {
+    document.getElementById('eval-report-modal').remove();
+    onProceed();
+  };
 }
 
 function doDeleteCycle(cycleNum) {

@@ -850,25 +850,36 @@ router.post('/auto-evaluate-all', async (req, res) => {
   try {
     const db = getDb();
     const unevaluated = db.prepare(`
-      SELECT p.post_id FROM posts p
+      SELECT p.post_id, p.nickname, substr(p.content, 1, 60) as content_short FROM posts p
       LEFT JOIN auto_evaluations ae ON p.post_id = ae.post_id
       WHERE p.status IN ('open','public') AND p.created_at > datetime('now', '-3 months')
       AND ae.post_id IS NULL
     `).all();
-    if (unevaluated.length === 0) return res.json({ success: true, evaluated: 0, msg: '全投稿評価済み' });
 
     let evaluated = 0;
     let failed = 0;
+    const results = [];
     for (const row of unevaluated) {
       try {
-        await evaluateSinglePost(row.post_id);
+        const result = await evaluateSinglePost(row.post_id);
         evaluated++;
+        results.push({ postId: row.post_id, nickname: row.nickname, content: row.content_short, ...result });
       } catch (e) {
         console.error('[auto-evaluate-all] Failed:', row.post_id, e.message);
         failed++;
+        results.push({ postId: row.post_id, nickname: row.nickname, content: row.content_short, error: e.message });
       }
     }
-    res.json({ success: true, evaluated, failed, total: unevaluated.length });
+
+    // 既存評価も全件返す（レポート用）
+    const allEvals = db.prepare(`
+      SELECT ae.*, p.nickname, substr(p.content, 1, 60) as content_short
+      FROM auto_evaluations ae
+      LEFT JOIN posts p ON ae.post_id = p.post_id
+      ORDER BY ae.total_score DESC
+    `).all();
+
+    res.json({ success: true, evaluated, failed, total: unevaluated.length, newResults: results, allEvaluations: allEvals });
   } catch (e) { res.json({ success: false, msg: e.message }); }
 });
 

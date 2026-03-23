@@ -217,7 +217,7 @@ function renderReportList(data) {
                 '</div>' +
                 // 操作ボタン行
                 '<div style="margin-top:8px; text-align:right;">' +
-                    '<button class="btn btn-sm btn-outline-primary" style="font-size:0.68rem; padding:3px 12px;" onclick="event.stopPropagation(); toggleInboxDetail(\''+pid+'\')"><i class="fas fa-chevron-down"></i> 詳細</button>' +
+                    '<button id="inbox-toggle-btn-'+pid+'" class="btn btn-sm btn-outline-primary" style="font-size:0.68rem; padding:3px 12px;" onclick="event.stopPropagation(); toggleInboxDetail(\''+pid+'\')"><i class="fas fa-chevron-down" style="font-size:0.6rem;margin-right:3px;"></i>開く</button>' +
                 '</div>' +
             '</div>' +
             // 詳細パネル（左右分割モーダル）
@@ -451,15 +451,18 @@ document.addEventListener('click', function(e) {
 // 詳細パネルのトグル
 function toggleInboxDetail(pid) {
     var panel = document.getElementById('inbox-detail-' + pid);
+    var btn = document.getElementById('inbox-toggle-btn-' + pid);
     if (!panel) return;
     if (panel.style.display === 'none') {
         panel.style.display = 'block';
+        if (btn) btn.innerHTML = '<i class="fas fa-chevron-up" style="font-size:0.6rem;margin-right:3px;"></i>閉じる';
         // 全データ読み込み
         loadEmpathyDisplay(pid);
         loadEmpathyTabFull(pid);
         loadAttentionTab(pid);
     } else {
         panel.style.display = 'none';
+        if (btn) btn.innerHTML = '<i class="fas fa-chevron-down" style="font-size:0.6rem;margin-right:3px;"></i>開く';
     }
 }
 

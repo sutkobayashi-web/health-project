@@ -237,7 +237,7 @@ function renderReportList(data) {
                         '</div>' +
                     '</div>' +
                     // 右: 共感+チャット
-                    '<div style="flex:1; padding:12px; overflow-y:auto; max-height:450px; display:flex; flex-direction:column;">' +
+                    '<div style="flex:1; padding:12px; overflow-y:auto; max-height:450px; display:flex; flex-direction:column; background:linear-gradient(180deg, #f5f0ff 0%, #f0f4ff 100%);">' +
                         // 共感サマリー
                         '<div style="margin-bottom:8px;">' +
                             '<div style="font-size:0.7rem; font-weight:700; color:#667eea; margin-bottom:4px;"><i class="fas fa-heart me-1"></i>共感 <span id="empathy-count-'+pid+'" style="color:#999;"></span></div>' +

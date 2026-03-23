@@ -96,6 +96,9 @@ function renderInboxCustomAvatars() {
 function getPostImageUrl(url) {
     if(!url) return null;
     var str = String(url).trim();
+    if(!str) return null;
+    // ローカルアップロードパス
+    if(str.startsWith('/uploads/')) return str;
     if(!str.startsWith('http')) return null;
     if(str.includes('drive.google.com/thumbnail')) return str;
     var idMatch = str.match(/\/d\/([a-zA-Z0-9_-]{25,})/);

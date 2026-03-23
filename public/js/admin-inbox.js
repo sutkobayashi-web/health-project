@@ -218,7 +218,7 @@ function renderReportList(data) {
                         '<div style="flex:1; font-size:0.85rem; line-height:1.5; color:#444; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">'+escapeHtml(rawContent)+'</div>' +
                     '</div>' +
                     // 右: 共感ミニサマリー
-                    '<div id="empathy-mini-'+pid+'" style="flex-shrink:0; width:180px; font-size:0.8rem; color:#667eea; margin-right:auto;"></div>' +
+                    '<div id="empathy-mini-'+pid+'" style="flex-shrink:0; width:280px; font-size:0.8rem; color:#667eea;"></div>' +
                 '</div>' +
                 // 操作ボタン行
                 '<div style="margin-top:8px; text-align:right;">' +
@@ -667,11 +667,23 @@ function loadEmpathyDisplay(pid) {
         'senmon':'🏥','kininaru':'👀','oishii':'🍽️','sankou':'💪',
         'onaji':'😅','healthy':'🌿','kaizen':'🍺','motto':'📸'
       };
+      var miniLabelMap = {
+        'wakaru':'わかる','yabai':'ヤバい','kaisha':'会社が動けば','ouen':'応援',
+        'issho':'一緒に','senmon':'専門家へ','kininaru':'気になる',
+        'oishii':'美味しそう','sankou':'参考に','onaji':'自分も同じ',
+        'healthy':'見習いたい','kaizen':'改善したい','motto':'もっと見たい'
+      };
       var mHtml = '<div style="font-weight:800; color:#667eea; margin-bottom:4px; font-size:0.82rem;"><i class="fas fa-heart" style="font-size:0.7rem; margin-right:2px;"></i> 共感 ' + s.totalCount + '名</div>';
-      mHtml += '<div style="display:flex; flex-wrap:wrap; gap:3px;">';
+      mHtml += '<div style="display:flex; flex-direction:column; gap:2px;">';
       Object.keys(s.typeCounts).forEach(function(type) {
         var emoji = miniTypeMap[type] || '❓';
-        mHtml += '<span style="background:#f0f0ff; border:1px solid #e0e0ff; border-radius:8px; padding:2px 8px; font-size:0.78rem; white-space:nowrap; font-weight:600;">' + emoji + ' ' + s.typeCounts[type] + '</span>';
+        var label = miniLabelMap[type] || type;
+        var cnt = s.typeCounts[type];
+        mHtml += '<div style="display:flex; align-items:center; gap:4px; font-size:0.75rem;">' +
+          '<span style="font-size:0.85rem;">' + emoji + '</span>' +
+          '<span style="flex:1; color:#555; font-weight:600;">' + label + '</span>' +
+          '<span style="background:#667eea; color:white; border-radius:8px; padding:0 7px; font-size:0.68rem; font-weight:700; min-width:18px; text-align:center;">' + cnt + '</span>' +
+        '</div>';
       });
       mHtml += '</div>';
       miniArea.innerHTML = mHtml;

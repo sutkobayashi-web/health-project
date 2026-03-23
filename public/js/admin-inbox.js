@@ -227,7 +227,7 @@ function renderReportList(data) {
                     '<div style="flex:1; padding:12px; overflow-y:auto; max-height:450px; border-right:1px solid #eee;">' +
                         '<div style="font-size:0.7rem; font-weight:700; color:#667eea; margin-bottom:6px;"><i class="fas fa-file-alt me-1"></i>投稿内容</div>' +
                         '<div style="font-size:0.85rem; line-height:1.7; color:#333; white-space:pre-wrap; margin-bottom:10px;">'+escapeHtml(rawContent)+'</div>' +
-                        (displayUrl ? '<img src="'+displayUrl+'" style="width:120px; height:120px; object-fit:cover; border-radius:10px; border:1px solid #eee; margin-bottom:10px;" onerror="this.style.display=\'none\'">' : '') +
+                        (displayUrl ? '<img src="'+displayUrl+'" style="width:220px; height:220px; object-fit:cover; border-radius:12px; border:1px solid #eee; margin-bottom:10px; cursor:pointer;" onclick="event.stopPropagation(); window.open(\''+displayUrl+'\',\'_blank\');" onerror="this.style.display=\'none\'">' : '') +
                         (aiHtml ? '<div style="margin-top:8px;">'+aiHtml+'</div>' : '') +
                         // AI自動7軸評価
                         '<div style="margin-top:10px; padding-top:8px; border-top:1px solid #eee;">' +

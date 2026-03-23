@@ -262,7 +262,7 @@ function renderReportList(data) {
                         // 下部: 推進メンバー議論チャット
                         '<div style="flex:1; display:flex; flex-direction:column; border-top:2px solid #d32f2f; background:linear-gradient(180deg, #fff5f5 0%, #fff0f0 100%); padding:8px 12px; min-height:0;">' +
                             '<div style="font-size:0.7rem; font-weight:700; color:#d32f2f; margin-bottom:4px;"><i class="fas fa-comments me-1"></i>推進メンバー議論</div>' +
-                            '<div id="empathy-member-chats-'+pid+'" style="overflow-y:auto; font-size:0.78rem; background:white; border-radius:8px; padding:6px; max-height:200px; min-height:60px; word-break:break-word; border:1px solid #f0e0e0;"></div>' +
+                            '<div id="empathy-member-chats-'+pid+'" style="flex:1; overflow-y:auto; font-size:0.78rem; background:white; border-radius:8px; padding:6px; min-height:80px; max-height:180px; word-break:break-word; border:1px solid #f0e0e0;"></div>' +
                             '<div style="display:flex; gap:4px; margin-top:4px; flex-shrink:0;">' +
                                 '<textarea id="empathy-chat-input-'+pid+'" placeholder="議論...（Ctrl+Enterで送信）" rows="2" style="flex:1; border:1px solid #ddd; border-radius:8px; padding:5px 8px; font-size:0.75rem; outline:none; resize:none; line-height:1.4;" onkeydown="if(event.key===\'Enter\'&&(event.ctrlKey||event.metaKey)){event.preventDefault();doPostEmpathyChat(\''+pid+'\');}"></textarea>' +
                                 '<button class="btn btn-sm btn-danger" style="font-size:0.68rem; padding:3px 8px; align-self:flex-end;" onclick="doPostEmpathyChat(\''+pid+'\')"><i class="fas fa-paper-plane"></i></button>' +

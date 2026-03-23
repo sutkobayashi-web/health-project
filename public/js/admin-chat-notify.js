@@ -9,6 +9,7 @@
   var POLL_INTERVAL = 30000; // 30秒
   var pollTimer = null;
   var lastUnreadState = {}; // 前回の未読状態（差分検知用）
+  var currentUnreadMap = {}; // 最新の未読データ（グローバル保持）
   var toastContainer = null;
 
   /* ── トースト通知コンテナ ── */
@@ -39,10 +40,11 @@
 
     toast.onclick = function () {
       toast.remove();
-      // 投稿を開く
-      if (typeof openPriorityModal === 'function') {
-        openPriorityModal(postId);
-      }
+      // 投稿一覧タブに切り替えてからモーダルを開く
+      if (typeof switchTab === 'function') switchTab('evaluation');
+      setTimeout(function () {
+        if (typeof openPriorityModal === 'function') openPriorityModal(postId);
+      }, 300);
     };
     container.appendChild(toast);
 
@@ -66,8 +68,8 @@
     document.head.appendChild(style);
   })();
 
-  /* ── バッジ更新 ── */
-  function updateBadges(unreadMap) {
+  /* ── バッジ更新（DOM上の要素に反映） ── */
+  function applyBadgesToDOM(unreadMap) {
     // 投稿カードの未読バッジ更新
     for (var postId in unreadMap) {
       var data = unreadMap[postId];
@@ -128,9 +130,9 @@
 
     getChatUnread(email).then(function (res) {
       if (!res || !res.success) return;
-      var unreadMap = res.unread || {};
-      updateBadges(unreadMap);
-      detectNewAndNotify(unreadMap);
+      currentUnreadMap = res.unread || {};
+      applyBadgesToDOM(currentUnreadMap);
+      detectNewAndNotify(currentUnreadMap);
     }).catch(function () { /* silent */ });
   }
 
@@ -144,6 +146,11 @@
     }, 2000);
   };
 
+  /* ── カード描画後に呼び出す（タブ切替時にバッジを再適用） ── */
+  window.applyChatUnreadBadges = function () {
+    applyBadgesToDOM(currentUnreadMap);
+  };
+
   /* ── 既読マーク（モーダルを開いた時に呼ぶ） ── */
   window.markChatAsRead = function (postId) {
     var email = (window.currentAdminProfile && window.currentAdminProfile.email) || '';
@@ -153,7 +160,10 @@
       var badgeEl = document.getElementById('chat-unread-' + postId);
       if (badgeEl) badgeEl.style.display = 'none';
       // 内部状態も更新
+      if (currentUnreadMap[postId]) delete currentUnreadMap[postId];
       if (lastUnreadState[postId]) delete lastUnreadState[postId];
+      // ナビバッジも再計算
+      applyBadgesToDOM(currentUnreadMap);
     });
   };
 

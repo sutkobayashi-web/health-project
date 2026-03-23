@@ -118,7 +118,10 @@ function loadReportData() {
         window.allPostData = data || [];
         renderReportList(window.allPostData);
         if(typeof fetchMatrixPoints === 'function') fetchMatrixPoints();
-        setTimeout(function(){ if(typeof renderInboxCustomAvatars==='function') renderInboxCustomAvatars(); }, 200);
+        setTimeout(function(){
+            if(typeof renderInboxCustomAvatars==='function') renderInboxCustomAvatars();
+            if(typeof applyChatUnreadBadges==='function') applyChatUnreadBadges();
+        }, 200);
     }).catch(function(err) {
         if(area) area.innerHTML = '<div class="alert alert-danger m-3 small">データ取得エラー: ' + err.message + '</div>';
     });

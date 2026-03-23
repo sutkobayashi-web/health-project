@@ -549,7 +549,7 @@
               <button onclick="showAvatarTab('gallery')" id="av-tab-gallery" style="flex:1; padding:8px; border:2px solid #ff9800; background:#ff9800; color:white; border-radius:10px; font-weight:700; font-size:0.78rem; cursor:pointer;">ギャラリー</button>
               <button onclick="showAvatarTab('ranking')" id="av-tab-ranking" style="flex:1; padding:8px; border:2px solid #ff9800; background:white; color:#ff9800; border-radius:10px; font-weight:700; font-size:0.78rem; cursor:pointer;">ランキング</button>
             </div>
-            <div id="avatar-gallery-content" style="max-height:400px; overflow-y:auto; -webkit-overflow-scrolling:touch;"></div>
+            <div id="avatar-gallery-content" style="max-height:450px; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch;"></div>
             <div id="avatar-ranking-content" style="display:none; max-height:400px; overflow-y:auto; -webkit-overflow-scrolling:touch;"></div>
           </div>
         </div>
@@ -3679,35 +3679,36 @@ function showAvatarTab(tab) {
 function renderAvatarGallery(data) {
   var users = data.users || [];
   var myVotes = data.myVotes || [];
-  var html = '<div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px;">';
+  var html = '<div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:10px; padding:4px;">';
   users.forEach(function(u) {
     var voted = myVotes.includes(u.id);
     var isSelf = u.id === currentUser.uid;
-    html += '<div style="background:white; border-radius:14px; padding:12px 6px; text-align:center; border:2px solid ' +
+    html += '<div style="background:white; border-radius:14px; padding:10px; display:flex; align-items:center; gap:10px; border:2px solid ' +
       (voted ? '#e91e63' : (isSelf ? '#ff9800' : '#f0f0f0')) +
-      '; transition:all 0.2s; box-shadow:0 2px 6px rgba(0,0,0,0.04);">';
+      '; box-shadow:0 2px 6px rgba(0,0,0,0.04);">';
     // アバター
-    html += '<div style="width:56px; height:56px; margin:0 auto 6px; border-radius:50%; overflow:hidden; display:flex; align-items:center; justify-content:center; background:#f8f8f8;">';
-    html += getAvatarHtml(u.avatar || '😀', 56);
+    html += '<div style="width:48px; height:48px; flex-shrink:0; border-radius:50%; overflow:hidden; display:flex; align-items:center; justify-content:center; background:#f8f8f8;">';
+    html += getAvatarHtml(u.avatar || '😀', 48);
     html += '</div>';
-    // ニックネーム
-    html += '<div style="font-size:0.72rem; font-weight:700; color:#333; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' + escapeHtml(u.nickname) + '</div>';
-    // 部署
+    // 情報
+    html += '<div style="flex:1; min-width:0;">';
+    html += '<div style="font-size:0.78rem; font-weight:700; color:#333; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' + escapeHtml(u.nickname) + '</div>';
     if (u.department) {
-      html += '<div style="font-size:0.6rem; color:#999; margin-bottom:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' + escapeHtml(u.department) + '</div>';
+      html += '<div style="font-size:0.6rem; color:#999; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' + escapeHtml(u.department) + '</div>';
     }
     // 得票数 + ボタン
-    html += '<div style="display:flex; align-items:center; justify-content:center; gap:4px; margin-top:4px;">';
+    html += '<div style="margin-top:4px;">';
     if (isSelf) {
       html += '<span style="font-size:0.68rem; color:#ff9800; font-weight:700;">あなた</span>';
     } else {
-      html += '<button onclick="doVoteAvatar(\'' + u.id + '\')" style="background:' +
+      html += '<button onclick="event.stopPropagation(); doVoteAvatar(\'' + u.id + '\')" style="background:' +
         (voted ? 'linear-gradient(135deg,#e91e63,#c2185b)' : '#f5f5f5') +
-        '; border:none; border-radius:20px; padding:4px 10px; cursor:pointer; display:flex; align-items:center; gap:3px;">';
+        '; border:none; border-radius:20px; padding:4px 12px; cursor:pointer; display:inline-flex; align-items:center; gap:4px;">';
       html += '<i class="fas fa-heart" style="font-size:0.7rem; color:' + (voted ? 'white' : '#ccc') + ';"></i>';
       html += '<span style="font-size:0.72rem; font-weight:700; color:' + (voted ? 'white' : '#999') + ';">' + u.vote_count + '</span>';
       html += '</button>';
     }
+    html += '</div>';
     html += '</div>';
     html += '</div>';
   });

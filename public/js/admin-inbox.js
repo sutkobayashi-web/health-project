@@ -211,9 +211,14 @@ function renderReportList(data) {
                 '<div class="user-info" style="margin-bottom:6px;">'+avatarDiv+'<div class="nick">'+escapeHtml(r[INBOX_COLS.USER_NAME])+'</div>' +
                 (likeCount > 0 ? '<span style="margin-left:auto; background:linear-gradient(135deg,#667eea,#764ba2); color:white; font-size:0.6rem; font-weight:700; padding:2px 7px; border-radius:10px;"><i class="fas fa-hand-paper"></i> '+likeCount+'</span>' : '') +
                 ' '+empathyBadge+' '+commentBadge+'</div>' +
-                '<div style="display:flex; gap:8px; align-items:flex-start;">' +
-                    (thumbTag ? thumbTag : '') +
-                    '<div style="flex:1; font-size:0.85rem; line-height:1.5; color:#444; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">'+escapeHtml(rawContent)+'</div>' +
+                '<div style="display:flex; gap:10px; align-items:flex-start;">' +
+                    // 左: サムネ+投稿文
+                    '<div style="flex:1; min-width:0; display:flex; gap:8px; align-items:flex-start;">' +
+                        (thumbTag ? thumbTag : '') +
+                        '<div style="flex:1; font-size:0.85rem; line-height:1.5; color:#444; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">'+escapeHtml(rawContent)+'</div>' +
+                    '</div>' +
+                    // 右: 共感ミニサマリー
+                    '<div id="empathy-mini-'+pid+'" style="flex-shrink:0; width:110px; font-size:0.65rem; color:#667eea;"></div>' +
                 '</div>' +
                 // 操作ボタン行
                 '<div style="margin-top:8px; text-align:right;">' +
@@ -653,6 +658,24 @@ function loadEmpathyDisplay(pid) {
     // コンパクトカードのバッジ更新
     var badge = document.getElementById('empathy-badge-' + pid);
     if (badge && s.totalCount > 0) badge.innerText = '❤️' + s.totalCount;
+
+    // 投稿右側ミニサマリー更新
+    var miniArea = document.getElementById('empathy-mini-' + pid);
+    if (miniArea && s.totalCount > 0) {
+      var miniTypeMap = {
+        'wakaru':'🙋','yabai':'😰','kaisha':'💡','ouen':'💪','issho':'🤝',
+        'senmon':'🏥','kininaru':'👀','oishii':'🍽️','sankou':'💪',
+        'onaji':'😅','healthy':'🌿','kaizen':'🍺','motto':'📸'
+      };
+      var mHtml = '<div style="font-weight:700; color:#667eea; margin-bottom:3px;"><i class="fas fa-heart" style="font-size:0.55rem;"></i> 共感 ' + s.totalCount + '名</div>';
+      mHtml += '<div style="display:flex; flex-wrap:wrap; gap:2px;">';
+      Object.keys(s.typeCounts).forEach(function(type) {
+        var emoji = miniTypeMap[type] || '❓';
+        mHtml += '<span style="background:#f0f0ff; border-radius:6px; padding:1px 5px; font-size:0.6rem; white-space:nowrap;">' + emoji + s.typeCounts[type] + '</span>';
+      });
+      mHtml += '</div>';
+      miniArea.innerHTML = mHtml;
+    }
 
     // Type count badges（英語キー＋日本語ラベル両対応）
     var typeMap = {

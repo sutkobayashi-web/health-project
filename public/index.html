@@ -2146,12 +2146,15 @@ document.addEventListener('click', function(e) {
 });
 
 // ====== 投稿 ======
+var isSubmitting = false;
 function submitPost() {
   var txt = document.getElementById('honne-input').value;
   if (!txt) return alert("内容を入力してください");
+  if (isSubmitting) return;
+  isSubmitting = true;
   showLoading("AIヘルスアドバイザーが分析中...");
   processForm({ uid: currentUser.uid, nickname: currentUser.nickname, avatar: currentUser.avatar, honne: encodeURIComponent(txt), department: currentUser.department, birthDate: currentUser.birthDate }).then(function(res) {
-    hideLoading();
+    hideLoading(); isSubmitting = false;
     if (res && res.success) {
       document.getElementById('honne-input').value = "";
       updateHeaderStats();
@@ -2161,7 +2164,7 @@ function submitPost() {
     } else {
       alert("投稿エラー: " + (res ? res.error || res.msg : "不明なエラー"));
     }
-  }).catch(function(e) { hideLoading(); alert("送信エラー: " + e.message); });
+  }).catch(function(e) { hideLoading(); isSubmitting = false; alert("送信エラー: " + e.message); });
 }
 
 function showAIResponse(text) {
@@ -2221,10 +2224,12 @@ function toggleFoodSubmit() {
 function submitFoodPost() {
   if (!selectedFoodData) return alert("写真を選択してください");
   if (!document.getElementById('food-confirm').checked) return alert("確認チェックを入れてください");
+  if (isSubmitting) return;
+  isSubmitting = true;
   var comment = document.getElementById('food-comment').value;
   showLoading("AI食事アドバイザーが分析中...");
   handleFoodPost({ uid: currentUser.uid, nickname: currentUser.nickname, avatar: currentUser.avatar, imageBase64: selectedFoodData, mimeType: selectedFoodMime, userComment: comment, department: currentUser.department, birthDate: currentUser.birthDate, isPublic: true }).then(function(res) {
-    hideLoading();
+    hideLoading(); isSubmitting = false;
     document.getElementById('food-comment').value = ""; document.getElementById('file-input').value = "";
     document.getElementById('food-preview-area').style.display = 'none'; document.getElementById('food-confirm').checked = true;
     toggleFoodSubmit(); selectedFoodData = null; updateHeaderStats();
@@ -2239,7 +2244,7 @@ function submitFoodPost() {
     } else {
       alert("投稿エラー: " + (res ? res.msg : "不明なエラー"));
     }
-  }).catch(function(e) { hideLoading(); alert("送信エラー: " + e.message); });
+  }).catch(function(e) { hideLoading(); isSubmitting = false; alert("送信エラー: " + e.message); });
 }
 
 function showFoodResponse(text) {

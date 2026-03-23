@@ -244,11 +244,11 @@ function renderReportList(data) {
                     '</div>' +
                     // 右: 回答一覧+チャット
                     '<div style="flex:1; display:flex; flex-direction:column; max-height:450px; background:linear-gradient(180deg, #f5f0ff 0%, #f0f4ff 100%);">' +
-                        // 上部: 回答一覧
-                        '<div style="flex-shrink:0; padding:8px 12px; overflow-y:auto; max-height:180px;">' +
+                        // 上部: 回答傾向+回答一覧
+                        '<div style="flex-shrink:0; padding:8px 12px; overflow-y:auto; max-height:220px;">' +
                             '<div style="font-size:0.7rem; font-weight:700; color:#667eea; margin-bottom:4px;"><i class="fas fa-heart me-1"></i>共感 <span id="empathy-count-'+pid+'" style="color:#999;"></span></div>' +
-                            '<div id="empathy-summary-'+pid+'" style="display:none;"></div>' +
-                            '<div style="font-size:0.68rem; font-weight:700; color:#333; margin-bottom:2px;"><i class="fas fa-list me-1"></i>回答一覧</div>' +
+                            '<div id="empathy-summary-'+pid+'"></div>' +
+                            '<div style="margin-top:6px; font-size:0.68rem; font-weight:700; color:#333; margin-bottom:2px;"><i class="fas fa-list me-1"></i>回答一覧</div>' +
                             '<div id="empathy-members-'+pid+'" style="max-height:120px; overflow-y:auto;"></div>' +
                         '</div>' +
                         // 下部: 推進メンバー議論チャット
@@ -670,13 +670,20 @@ function loadEmpathyDisplay(pid) {
     var miniArea = document.getElementById('empathy-mini-' + pid);
     if (miniArea && s.totalCount > 0) {
       var mHtml = '<div style="font-weight:800; color:#667eea; margin-bottom:4px; font-size:0.78rem;"><i class="fas fa-heart" style="font-size:0.65rem; margin-right:2px;"></i> 共感 ' + s.totalCount + '名</div>';
-      mHtml += '<div style="display:flex; flex-wrap:wrap; gap:3px; margin-bottom:4px;">';
+      mHtml += '<div style="display:flex; flex-wrap:wrap; gap:4px;">';
       Object.keys(s.typeCounts).forEach(function(type) {
         var info = typeMap[type] || { emoji:'❓', label:type };
         var count = s.typeCounts[type];
-        mHtml += '<span style="display:inline-flex; align-items:center; gap:2px; padding:2px 7px; border-radius:10px; font-size:0.65rem; font-weight:700; background:#f0f0ff; border:1px solid #e0e0ff;">' + info.emoji + ' ' + info.label + ' <span style="background:#667eea; color:white; border-radius:6px; padding:0 5px; font-size:0.6rem;">' + count + '</span></span>';
+        mHtml += '<span style="display:inline-flex; align-items:center; gap:3px; padding:3px 8px; border-radius:10px; font-size:0.72rem; font-weight:700; background:#f0f0ff; border:1px solid #e0e0ff;">' + info.emoji + ' ' + info.label + ' <span style="background:#667eea; color:white; border-radius:8px; padding:0 6px; font-size:0.65rem;">' + count + '</span></span>';
       });
-      // 回答傾向もミニサマリーに追加
+      mHtml += '</div>';
+      miniArea.innerHTML = mHtml;
+    }
+
+    if (countArea) countArea.innerHTML = '<span style="font-weight:700;">' + s.totalCount + '名が共感</span>';
+
+    // 回答傾向（詳細パネルのsummaryAreaに表示）
+    if (summaryArea) {
       var summaryQMap = {
         wakaru: ['どのくらい困ってる？','いつ頃から？','自分で対策してる？'],
         yabai: ['どのくらい深刻？','急いで対応すべき？','放っておくと誰か困る？'],
@@ -692,36 +699,34 @@ function loadEmpathyDisplay(pid) {
         kaizen: ['一緒に改善したい度？','どんな工夫？','続けるコツは？'],
         motto: ['どのくらい見たい？','参考になった？','自分も投稿したい？']
       };
+      var sHtml = '';
       if (s.answerAggregation) {
         Object.keys(s.answerAggregation).forEach(function(type) {
           var info = typeMap[type] || { emoji:'❓', label:type };
           var qs = summaryQMap[type];
           var agg = s.answerAggregation[type];
-          mHtml += '<div style="margin-top:4px; padding:5px 7px; background:rgba(255,255,255,0.7); border-radius:6px; border:1px solid #eef0f5;">';
-          mHtml += '<div style="font-size:0.62rem; font-weight:700; color:#667eea; margin-bottom:2px;">' + info.emoji + ' ' + info.label + '</div>';
+          sHtml += '<div style="margin-bottom:6px; padding:6px 8px; background:#fafbff; border-radius:8px; border:1px solid #eef0f5;">';
+          sHtml += '<div style="font-size:0.68rem; font-weight:700; color:#667eea; margin-bottom:3px;">' + info.emoji + ' ' + info.label + ' の回答傾向</div>';
           ['q1','q2','q3'].forEach(function(qKey, qi) {
             var answers = agg[qKey];
             if (!answers) return;
             var total = 0;
             Object.values(answers).forEach(function(v) { total += v; });
             var qLabel = qs && qs[qi] ? qs[qi] : '質問' + (qi+1);
-            mHtml += '<div style="font-size:0.6rem; color:#666;"><span style="color:#667eea; font-weight:600;">' + qLabel + '</span> → ';
+            sHtml += '<div style="font-size:0.65rem; color:#666;"><span style="color:#667eea; font-weight:600;">' + qLabel + '</span> → ';
             Object.keys(answers).forEach(function(ans, ai) {
               var cnt = answers[ans];
               var pct = total > 0 ? Math.round(cnt / total * 100) : 0;
-              if (ai > 0) mHtml += ' / ';
-              mHtml += '<strong>' + escapeHtml(ans) + '</strong> <span style="color:#667eea;">' + cnt + '票(' + pct + '%)</span>';
+              if (ai > 0) sHtml += ' / ';
+              sHtml += '<strong>' + escapeHtml(ans) + '</strong> <span style="color:#667eea;">' + cnt + '票(' + pct + '%)</span>';
             });
-            mHtml += '</div>';
+            sHtml += '</div>';
           });
-          mHtml += '</div>';
+          sHtml += '</div>';
         });
       }
-      mHtml += '</div>';
-      miniArea.innerHTML = mHtml;
+      summaryArea.innerHTML = sHtml || '';
     }
-
-    if (countArea) countArea.innerHTML = '<span style="font-weight:700;">' + s.totalCount + '名が共感</span>';
 
     // 質問マップ（旧3問回答データ表示用）
     var questionMap = {

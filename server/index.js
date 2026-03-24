@@ -93,7 +93,16 @@ app.use('/api/themes', require('./routes/themes'));
 app.use('/api/avatar-challenge', require('./routes/avatar-challenge'));
 app.use('/api/checkup', require('./routes/checkup'));
 // 採用チャットBOTは公開エンドポイント（外部HP・ローカルファイルからもアクセス可）
-app.use('/api/recruit-chat', cors(), require('./routes/recruit-chat'));
+app.options('/api/recruit-chat', (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.sendStatus(204);
+});
+app.use('/api/recruit-chat', (req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  next();
+}, require('./routes/recruit-chat'));
 
 // ヘルスチェック
 app.get('/api/health', (req, res) => {

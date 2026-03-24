@@ -90,6 +90,7 @@ app.use('/api/notices', require('./routes/notices'));
 app.use('/api/chat', require('./routes/chat'));
 app.use('/api/themes', require('./routes/themes'));
 app.use('/api/avatar-challenge', require('./routes/avatar-challenge'));
+app.use('/api/checkup', require('./routes/checkup'));
 
 // ヘルスチェック
 app.get('/api/health', (req, res) => {

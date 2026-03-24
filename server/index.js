@@ -92,7 +92,8 @@ app.use('/api/chat', require('./routes/chat'));
 app.use('/api/themes', require('./routes/themes'));
 app.use('/api/avatar-challenge', require('./routes/avatar-challenge'));
 app.use('/api/checkup', require('./routes/checkup'));
-app.use('/api/recruit-chat', require('./routes/recruit-chat'));
+// 採用チャットBOTは公開エンドポイント（外部HP・ローカルファイルからもアクセス可）
+app.use('/api/recruit-chat', cors(), require('./routes/recruit-chat'));
 
 // ヘルスチェック
 app.get('/api/health', (req, res) => {

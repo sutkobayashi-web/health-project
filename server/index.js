@@ -40,6 +40,7 @@ app.use((req, res, next) => {
 var allowedOrigins = [
   process.env.WEB_APP_URL || 'https://health.biz-terrace.org',
   'https://health.biz-terrace.org',
+  'https://stdun.biz-terrace.org',
   'http://localhost:3001'
 ];
 app.use(cors({
@@ -91,6 +92,7 @@ app.use('/api/chat', require('./routes/chat'));
 app.use('/api/themes', require('./routes/themes'));
 app.use('/api/avatar-challenge', require('./routes/avatar-challenge'));
 app.use('/api/checkup', require('./routes/checkup'));
+app.use('/api/recruit-chat', require('./routes/recruit-chat'));
 
 // ヘルスチェック
 app.get('/api/health', (req, res) => {

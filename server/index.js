@@ -43,19 +43,22 @@ var allowedOrigins = [
   'https://stdun.biz-terrace.org',
   'http://localhost:3001'
 ];
-app.use(cors({
-  origin: function(origin, callback) {
-    // 同一オリジン（originなし）またはホワイトリストを許可
-    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
-  methods: ['GET', 'POST'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+app.use(function(req, res, next) {
+  // 採用チャットBOTは別途CORS処理するのでスキップ
+  if (req.path.startsWith('/api/recruit-chat')) return next();
+  cors({
+    origin: function(origin, callback) {
+      if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true,
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+  })(req, res, next);
+});
 
 // レート制限
 const apiLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 500, message: { success: false, msg: 'リクエスト制限を超えました。しばらくしてから再試行してください。' } });

@@ -8,6 +8,10 @@ function loadFoodUsers() {
     area.innerHTML = '<div class="col-12 text-center p-5 text-muted"><div class="spinner-border spinner-border-sm"></div> 読み込み中...</div>';
 
     getFoodUsers().then(function(users) {
+        if (!Array.isArray(users)) {
+            area.innerHTML = '<div class="col-12 text-center p-5 text-muted"><i class="fas fa-exclamation-circle fs-1 d-block mb-3" style="opacity:0.3;color:#e53935;"></i>読み込みエラー。再ログインしてください。</div>';
+            return;
+        }
         if (!users || users.length === 0) {
             area.innerHTML = '<div class="col-12 text-center p-5 text-muted"><i class="fas fa-utensils fs-1 d-block mb-3" style="opacity:0.3;"></i>食事投稿が2件以上のユーザーはまだいません</div>';
             return;

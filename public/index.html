@@ -491,8 +491,8 @@
 </div>
 
 <div id="main-app" style="display:none;">
-  <div id="ptr-indicator" style="position:fixed;top:0;left:0;right:0;z-index:9999;display:flex;align-items:center;justify-content:center;height:0;overflow:hidden;background:linear-gradient(135deg,#667eea,#764ba2);transition:height 0.2s;pointer-events:none;">
-    <div id="ptr-spinner" style="color:white;font-size:0.85rem;font-weight:700;display:flex;align-items:center;gap:8px;"><i class="fas fa-sync-alt" id="ptr-icon" style="transition:transform 0.2s;"></i><span id="ptr-text">引っ張って更新</span></div>
+  <div id="ptr-indicator" style="position:fixed;top:0;left:0;right:0;z-index:9999;display:flex;align-items:center;justify-content:center;height:0;overflow:hidden;background:linear-gradient(135deg,#667eea,#764ba2);pointer-events:none;">
+    <div style="color:white;font-size:0.85rem;font-weight:700;display:flex;align-items:center;gap:8px;"><i class="fas fa-sync-alt" id="ptr-icon"></i><span id="ptr-text">引っ張って更新</span></div>
   </div>
   <div class="app-header">
     <div class="logo"><div class="logo-icon"><i class="fas fa-handshake"></i></div><div><div class="logo-text">CoWell Health Project 2.0</div><div class="logo-sub">みんなで 健康を</div></div></div>
@@ -4666,39 +4666,50 @@ function showMyProgress(cid) {
 <script>
 // Pull-to-refresh
 (function() {
-  var startY = 0, pulling = false, ptrEl = document.getElementById('ptr-indicator');
-  var ptrIcon = document.getElementById('ptr-icon'), ptrText = document.getElementById('ptr-text');
-  var threshold = 50, maxPull = 80;
+  var startY = 0, currentY = 0, pulling = false, triggered = false;
+  var ptrEl = document.getElementById('ptr-indicator');
+  var ptrIcon = document.getElementById('ptr-icon');
+  var ptrText = document.getElementById('ptr-text');
+  var threshold = 55;
+
+  function isAtTop() {
+    return (window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0) <= 1;
+  }
 
   document.addEventListener('touchstart', function(e) {
-    if (window.scrollY === 0 && _currentAppTab === 'home') {
-      startY = e.touches[0].clientY;
+    if (isAtTop() && _currentAppTab === 'home' && !triggered) {
+      startY = e.touches[0].pageY;
       pulling = true;
     }
   }, { passive: true });
 
   document.addEventListener('touchmove', function(e) {
-    if (!pulling || !ptrEl) return;
-    var dy = Math.min(e.touches[0].clientY - startY, maxPull);
-    if (dy > 0 && window.scrollY === 0) {
-      ptrEl.style.height = dy + 'px';
-      ptrIcon.style.transform = dy >= threshold ? 'rotate(180deg)' : 'rotate(0deg)';
-      ptrText.textContent = dy >= threshold ? '離して更新' : '引っ張って更新';
+    if (!pulling || triggered) return;
+    currentY = e.touches[0].pageY;
+    var dy = currentY - startY;
+    if (dy < 0 || !isAtTop()) { ptrEl.style.height = '0'; return; }
+    var h = Math.min(dy * 0.5, 70);
+    ptrEl.style.height = h + 'px';
+    if (h >= threshold * 0.5) {
+      ptrIcon.style.transform = h >= threshold * 0.5 ? 'rotate(180deg)' : '';
+      ptrText.textContent = h >= threshold * 0.5 ? '離して更新' : '↓ 引っ張って更新';
     }
   }, { passive: true });
 
   document.addEventListener('touchend', function() {
-    if (!pulling || !ptrEl) { pulling = false; return; }
-    var h = parseInt(ptrEl.style.height) || 0;
-    if (h >= threshold) {
+    if (!pulling || triggered) { pulling = false; return; }
+    var dy = (currentY - startY) * 0.5;
+    if (dy >= threshold * 0.5) {
+      triggered = true;
       ptrText.textContent = '更新中...';
       ptrIcon.className = 'fas fa-sync-alt fa-spin';
-      ptrEl.style.height = '44px';
-      setTimeout(function() { location.reload(); }, 150);
+      ptrEl.style.height = '40px';
+      location.reload();
     } else {
       ptrEl.style.height = '0';
     }
     pulling = false;
+    currentY = 0;
   }, { passive: true });
 })();
 

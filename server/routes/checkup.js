@@ -232,6 +232,15 @@ router.post('/my', authUser, async (req, res) => {
       });
     }
 
+    // 年度の重複排除（同じ年は新しいフォルダを優先）
+    var seenYears = {};
+    yearFolders = yearFolders.filter(function(f) {
+      var y = (f.name.match(/(\d{4})/) || ['', ''])[1];
+      if (!y || seenYears[y]) return false;
+      seenYears[y] = true;
+      return true;
+    });
+
     if (yearFolders.length === 0) {
       return res.json({ success: false, msg: '健診結果データが見つかりません' });
     }

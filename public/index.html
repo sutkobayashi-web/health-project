@@ -3066,6 +3066,8 @@ function closeNurseChat() {
   document.getElementById('nurse-fab').style.display = 'flex';
   var ib = document.getElementById('inbox-fab'); if (ib) ib.style.display = 'flex';
   unlockScroll();
+  // ボトムナビのchatタブから開いた場合、ホームに戻す
+  if (_currentAppTab === 'chat') { switchAppTab('home'); }
 }
 
 function loadNurseGreeting() {

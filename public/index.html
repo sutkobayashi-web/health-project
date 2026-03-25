@@ -508,23 +508,14 @@
 
   <div class="main-content">
 
-    <!-- プロフィールカード -->
-    <div class="card-section" style="background:white; border:2px solid #667eea; box-shadow:0 4px 16px rgba(102,126,234,0.12); text-align:center; padding:18px;">
-      <div style="display:flex; align-items:center; gap:14px;">
-        <div id="profile-avatar" onclick="showRanking()" style="width:80px; height:80px; border-radius:50%; overflow:hidden; border:3px solid #fff; box-shadow:0 4px 12px rgba(0,0,0,0.1); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:2.5rem; background:#f0f0f0; cursor:pointer;"></div>
-        <div style="flex:1; text-align:left;">
-          <div style="display:flex; align-items:center; gap:8px;">
-            <span style="font-weight:800; font-size:1.05rem; color:#2c3e50;" id="profile-nickname">--</span>
-            <span id="profile-rank"></span>
-          </div>
-          <div style="display:flex; align-items:center; gap:6px; margin-top:6px; flex-wrap:nowrap; overflow-x:auto; cursor:pointer; white-space:nowrap;" onclick="showProfileBadgeInfo()">
-            <span style="font-size:0.65rem; font-weight:700; color:#555; background:#f0f0f0; padding:2px 8px; border-radius:10px; display:inline-flex; align-items:center; gap:3px; flex-shrink:0;" id="profile-posts"><i class="fas fa-pen" style="font-size:0.55rem;"></i> 投稿 0</span>
-            <span style="font-size:0.65rem; font-weight:700; color:#555; background:#f0f0f0; padding:2px 8px; border-radius:10px; display:inline-flex; align-items:center; gap:3px; flex-shrink:0;" id="profile-invites"><i class="fas fa-user-plus" style="font-size:0.55rem;"></i> 紹介 0</span>
-            <span style="font-size:0.65rem; font-weight:700; color:#555; background:#f0f0f0; padding:2px 8px; border-radius:10px; display:inline-flex; align-items:center; gap:3px; flex-shrink:0;" id="profile-dept"></span>
-          </div>
-        </div>
-        <button style="background:linear-gradient(135deg,#667eea,#764ba2); border:none; border-radius:10px; padding:8px 14px; font-size:0.72rem; font-weight:700; color:white; cursor:pointer; box-shadow:0 2px 8px rgba(102,126,234,0.3); white-space:nowrap;" onclick="openProfileEditModal()"><i class="fas fa-edit"></i></button>
-      </div>
+    <!-- プロフィールカード（非表示・JS参照用） -->
+    <div style="display:none;">
+      <span id="profile-avatar"></span>
+      <span id="profile-nickname"></span>
+      <span id="profile-rank"></span>
+      <span id="profile-posts"></span>
+      <span id="profile-invites"></span>
+      <span id="profile-dept"></span>
     </div>
 
     <!-- テーマ投票 -->

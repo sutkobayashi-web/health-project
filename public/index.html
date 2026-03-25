@@ -4668,7 +4668,7 @@ function showMyProgress(cid) {
 (function() {
   var startY = 0, pulling = false, ptrEl = document.getElementById('ptr-indicator');
   var ptrIcon = document.getElementById('ptr-icon'), ptrText = document.getElementById('ptr-text');
-  var threshold = 80, maxPull = 120;
+  var threshold = 50, maxPull = 80;
 
   document.addEventListener('touchstart', function(e) {
     if (window.scrollY === 0 && _currentAppTab === 'home') {
@@ -4694,7 +4694,7 @@ function showMyProgress(cid) {
       ptrText.textContent = '更新中...';
       ptrIcon.className = 'fas fa-sync-alt fa-spin';
       ptrEl.style.height = '44px';
-      setTimeout(function() { location.reload(); }, 400);
+      setTimeout(function() { location.reload(); }, 150);
     } else {
       ptrEl.style.height = '0';
     }

@@ -627,7 +627,11 @@
             <div style="font-size:0.85rem; color:#666; margin-bottom:12px;"><i class="fas fa-shield-alt" style="color:#e91e63;"></i> 本人確認が必要です</div>
             <div style="max-width:280px; margin:0 auto; text-align:left;">
               <label style="font-size:0.78rem; color:#888; display:block; margin-bottom:4px;">生年月日</label>
-              <input type="date" id="checkup-birth" style="width:100%; padding:10px 12px; border:1.5px solid #e0e0e0; border-radius:10px; font-size:0.9rem; margin-bottom:10px; box-sizing:border-box;" />
+              <div style="display:flex; gap:6px; margin-bottom:10px;">
+                <select id="checkup-birth-y" style="flex:1.2; padding:10px 6px; border:1.5px solid #e0e0e0; border-radius:10px; font-size:0.9rem; appearance:auto;"></select>
+                <select id="checkup-birth-m" style="flex:0.8; padding:10px 6px; border:1.5px solid #e0e0e0; border-radius:10px; font-size:0.9rem; appearance:auto;"></select>
+                <select id="checkup-birth-d" style="flex:0.8; padding:10px 6px; border:1.5px solid #e0e0e0; border-radius:10px; font-size:0.9rem; appearance:auto;"></select>
+              </div>
               <label style="font-size:0.78rem; color:#888; display:block; margin-bottom:4px;">パスワード</label>
               <input type="password" id="checkup-pass" placeholder="ログインパスワード" style="width:100%; padding:10px 12px; border:1.5px solid #e0e0e0; border-radius:10px; font-size:0.9rem; margin-bottom:14px; box-sizing:border-box;" />
               <button onclick="loadCheckupData()" style="width:100%; background:linear-gradient(135deg,#e91e63,#c2185b); color:white; border:none; padding:12px; border-radius:25px; font-size:0.95rem; cursor:pointer; font-weight:600;"><i class="fas fa-search"></i> 健診結果を表示</button>
@@ -3627,17 +3631,43 @@ function escapeHtml(t) {
   return String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 // ====== 健診結果 ======
+function initBirthSelects() {
+  var yEl = document.getElementById('checkup-birth-y');
+  var mEl = document.getElementById('checkup-birth-m');
+  var dEl = document.getElementById('checkup-birth-d');
+  if (!yEl || yEl.options.length > 1) return;
+  var thisYear = new Date().getFullYear();
+  var defaultY = thisYear - 50;
+  for (var y = thisYear - 18; y >= thisYear - 80; y--) {
+    var o = document.createElement('option'); o.value = y; o.textContent = y + '年';
+    if (y === defaultY) o.selected = true;
+    yEl.appendChild(o);
+  }
+  for (var m = 1; m <= 12; m++) {
+    var o = document.createElement('option'); o.value = m; o.textContent = m + '月';
+    mEl.appendChild(o);
+  }
+  for (var d = 1; d <= 31; d++) {
+    var o = document.createElement('option'); o.value = d; o.textContent = d + '日';
+    dEl.appendChild(o);
+  }
+}
+(function() { setTimeout(initBirthSelects, 100); })();
+
 async function loadCheckupData() {
-  var birthEl = document.getElementById('checkup-birth');
+  var yEl = document.getElementById('checkup-birth-y');
+  var mEl = document.getElementById('checkup-birth-m');
+  var dEl = document.getElementById('checkup-birth-d');
   var passEl = document.getElementById('checkup-pass');
-  if (!birthEl.value || !passEl.value) {
+  if (!yEl || !yEl.value || !passEl || !passEl.value) {
     alert('生年月日とパスワードを入力してください。');
     return;
   }
+  var birthDate = yEl.value + '-' + String(mEl.value).padStart(2, '0') + '-' + String(dEl.value).padStart(2, '0');
   var content = document.getElementById('checkup-content');
   content.innerHTML = '<div style="padding:20px;"><i class="fas fa-spinner fa-spin"></i> 本人確認中... 健診データを取得しています</div>';
 
-  var r = await api('/checkup/my', { birthDate: birthEl.value, password: passEl.value }, getToken());
+  var r = await api('/checkup/my', { birthDate: birthDate, password: passEl.value }, getToken());
   if (!r.success) {
     content.innerHTML = '<div style="padding:15px; color:#e53935; font-size:0.9rem; margin-bottom:12px;"><i class="fas fa-exclamation-circle"></i> ' + (r.msg || '取得に失敗しました') + '</div>';
     // 認証フォームを再表示
@@ -3724,13 +3754,18 @@ function resetCheckupForm() {
     '<div style="font-size:0.85rem; color:#666; margin-bottom:12px;"><i class="fas fa-shield-alt" style="color:#e91e63;"></i> 本人確認が必要です</div>' +
     '<div style="max-width:280px; margin:0 auto; text-align:left;">' +
     '<label style="font-size:0.78rem; color:#888; display:block; margin-bottom:4px;">生年月日</label>' +
-    '<input type="date" id="checkup-birth" style="width:100%; padding:10px 12px; border:1.5px solid #e0e0e0; border-radius:10px; font-size:0.9rem; margin-bottom:10px; box-sizing:border-box;" />' +
+    '<div style="display:flex; gap:6px; margin-bottom:10px;">' +
+    '<select id="checkup-birth-y" style="flex:1.2; padding:10px 6px; border:1.5px solid #e0e0e0; border-radius:10px; font-size:0.9rem; appearance:auto;"></select>' +
+    '<select id="checkup-birth-m" style="flex:0.8; padding:10px 6px; border:1.5px solid #e0e0e0; border-radius:10px; font-size:0.9rem; appearance:auto;"></select>' +
+    '<select id="checkup-birth-d" style="flex:0.8; padding:10px 6px; border:1.5px solid #e0e0e0; border-radius:10px; font-size:0.9rem; appearance:auto;"></select>' +
+    '</div>' +
     '<label style="font-size:0.78rem; color:#888; display:block; margin-bottom:4px;">パスワード</label>' +
     '<input type="password" id="checkup-pass" placeholder="ログインパスワード" style="width:100%; padding:10px 12px; border:1.5px solid #e0e0e0; border-radius:10px; font-size:0.9rem; margin-bottom:14px; box-sizing:border-box;" />' +
     '<button onclick="loadCheckupData()" style="width:100%; background:linear-gradient(135deg,#e91e63,#c2185b); color:white; border:none; padding:12px; border-radius:25px; font-size:0.95rem; cursor:pointer; font-weight:600;"><i class="fas fa-search"></i> 健診結果を表示</button>' +
     '</div>' +
     '<div style="margin-top:8px; font-size:0.7rem; color:#bbb;"><i class="fas fa-lock" style="margin-right:3px;"></i> 本人のみ閲覧可能・データはサーバーに保存されません</div>' +
     '</div>';
+  initBirthSelects();
 }
 
 function toggleAccordion(bodyId, labelId) {

@@ -104,6 +104,19 @@ function editPost(postID, userUid, newContent) {
   return api('/posts/edit', { postID, userUid, newContent });
 }
 
+function getFoodWeeklyReports() {
+  return api('/admin/food-weekly-reports', undefined, getAdminToken());
+}
+function getFoodReportChats(reportId) {
+  return api('/admin/food-report-chats/' + reportId, undefined, getAdminToken());
+}
+function postFoodReportChat(reportId, memberName, message) {
+  return api('/admin/food-report-chat', { reportId, memberName, message }, getAdminToken());
+}
+function runFoodWeeklyNow() {
+  return api('/admin/food-weekly-run', {}, getAdminToken());
+}
+
 function getMyUnread(uid) {
   return api('/posts/my-unread/' + uid);
 }

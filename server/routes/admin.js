@@ -1026,4 +1026,46 @@ router.get('/ai-usage', (req, res) => {
   }
 });
 
+// ===== 週間食事レポート管理 =====
+
+// レポート一覧取得
+router.get('/food-weekly-reports', (req, res) => {
+  try {
+    const db = getDb();
+    var reports = db.prepare(`SELECT r.*,
+      (SELECT COUNT(*) FROM food_report_chats WHERE report_id = r.report_id) as chat_count
+      FROM food_weekly_reports r ORDER BY r.week_start DESC, r.nickname ASC`).all();
+    res.json({ success: true, reports: reports });
+  } catch (e) { res.json({ success: true, reports: [] }); }
+});
+
+// レポートのチャット取得
+router.get('/food-report-chats/:reportId', (req, res) => {
+  try {
+    const db = getDb();
+    var chats = db.prepare('SELECT * FROM food_report_chats WHERE report_id = ? ORDER BY created_at ASC').all(req.params.reportId);
+    res.json({ success: true, chats: chats });
+  } catch (e) { res.json({ success: true, chats: [] }); }
+});
+
+// レポートにチャット追加
+router.post('/food-report-chat', (req, res) => {
+  try {
+    const db = getDb();
+    var { reportId, memberName, message } = req.body;
+    if (!reportId || !message) return res.json({ success: false, msg: '入力が必要です' });
+    db.prepare('INSERT INTO food_report_chats (report_id, member_name, message) VALUES (?, ?, ?)').run(reportId, memberName || '管理者', message);
+    res.json({ success: true });
+  } catch (e) { res.json({ success: false, msg: e.message }); }
+});
+
+// 手動で週間食事分析を実行
+router.post('/food-weekly-run', async (req, res) => {
+  try {
+    const { runWeeklyFoodAnalysis } = require('../services/food-weekly');
+    var result = await runWeeklyFoodAnalysis();
+    res.json({ success: true, ...result });
+  } catch (e) { res.json({ success: false, msg: e.message }); }
+});
+
 module.exports = router;

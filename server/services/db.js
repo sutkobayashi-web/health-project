@@ -59,6 +59,27 @@ function getDb() {
       last_read_at TEXT DEFAULT (datetime('now')),
       UNIQUE(user_id, post_id)
     )`);
+    // マイグレーション: 週間食事分析レポート
+    db.exec(`CREATE TABLE IF NOT EXISTS food_weekly_reports (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      report_id TEXT UNIQUE NOT NULL,
+      user_id TEXT NOT NULL,
+      nickname TEXT,
+      week_start TEXT NOT NULL,
+      week_end TEXT NOT NULL,
+      meal_count INTEGER DEFAULT 0,
+      report_text TEXT NOT NULL,
+      admin_comment TEXT DEFAULT '',
+      created_at TEXT DEFAULT (datetime('now'))
+    )`);
+    // マイグレーション: 週間食事レポートへの推進メンバー議論
+    db.exec(`CREATE TABLE IF NOT EXISTS food_report_chats (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      report_id TEXT NOT NULL,
+      member_name TEXT NOT NULL,
+      message TEXT NOT NULL,
+      created_at TEXT DEFAULT (datetime('now'))
+    )`);
     // マイグレーション: 健診閲覧ログ
     db.exec(`CREATE TABLE IF NOT EXISTS checkup_access_log (
       id INTEGER PRIMARY KEY AUTOINCREMENT,

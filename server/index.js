@@ -177,6 +177,28 @@ function scheduleBackup() {
 }
 scheduleBackup();
 
+// 週間食事分析（毎週月曜 7:00 JST）
+function scheduleFoodWeekly() {
+  const now = new Date();
+  const next = new Date();
+  // 次の月曜7:00 JST（UTC-2:00→7:00 JST = 22:00 UTC前日日曜）
+  // JSTで計算
+  const jstNow = new Date(now.getTime() + 9 * 3600000);
+  const jstNext = new Date(jstNow);
+  const dayOfWeek = jstNext.getDay();
+  const daysUntilMonday = dayOfWeek === 0 ? 1 : dayOfWeek === 1 ? (jstNow.getHours() >= 7 ? 7 : 0) : 8 - dayOfWeek;
+  jstNext.setDate(jstNext.getDate() + daysUntilMonday);
+  jstNext.setHours(7, 0, 0, 0);
+  const utcNext = new Date(jstNext.getTime() - 9 * 3600000);
+  const delay = Math.max(utcNext - now, 60000);
+  console.log(`次回食事分析: ${jstNext.toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' })} (${Math.round(delay/3600000)}h後)`);
+  setTimeout(() => {
+    const { runWeeklyFoodAnalysis } = require('./services/food-weekly');
+    runWeeklyFoodAnalysis().then(() => scheduleFoodWeekly()).catch(e => { console.error('食事分析エラー:', e.message); scheduleFoodWeekly(); });
+  }, delay);
+}
+scheduleFoodWeekly();
+
 // SPA フォールバック (管理画面)
 app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'public', 'admin.html'));

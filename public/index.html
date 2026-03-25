@@ -623,9 +623,9 @@
       </div>
       <div id="checkup-body" style="display:none; margin-top:12px; padding-top:12px; border-top:1px solid rgba(233,30,99,0.2);">
         <div id="checkup-content" style="text-align:center;">
-          <div id="checkup-auth-form">
-            <div style="font-size:0.85rem; color:#666; margin-bottom:12px;"><i class="fas fa-shield-alt" style="color:#e91e63;"></i> 本人確認が必要です</div>
-            <div style="max-width:280px; margin:0 auto; text-align:left;">
+          <div id="checkup-auth-form" style="text-align:left;">
+            <div style="font-size:0.85rem; color:#666; margin-bottom:12px; text-align:center;"><i class="fas fa-shield-alt" style="color:#e91e63;"></i> 本人確認が必要です</div>
+            <div style="margin-bottom:10px;">
               <label style="font-size:0.78rem; color:#888; display:block; margin-bottom:4px;">生年月日</label>
               <div style="display:flex; gap:6px; margin-bottom:10px;">
                 <select id="checkup-birth-y" style="flex:1.2; padding:10px 6px; border:1.5px solid #e0e0e0; border-radius:10px; font-size:0.9rem; appearance:auto;"></select>
@@ -635,7 +635,7 @@
               <label style="font-size:0.78rem; color:#888; display:block; margin-bottom:4px;">パスワード</label>
               <input type="password" id="checkup-pass" placeholder="ログインパスワード" style="width:100%; padding:10px 12px; border:1.5px solid #e0e0e0; border-radius:10px; font-size:0.9rem; margin-bottom:14px; box-sizing:border-box;" />
             </div>
-            <div id="checkup-pledge" style="background:#fafafa; border:1px solid #e0e0e0; border-radius:10px; padding:10px 12px; margin-bottom:14px; font-size:0.75rem; color:#555; text-align:left;">
+            <div id="checkup-pledge" style="background:#fafafa; border:1px solid #e0e0e0; border-radius:10px; padding:10px 12px; margin-bottom:14px; font-size:0.75rem; color:#555;">
               <div style="font-weight:700; color:#c2185b; margin-bottom:8px;"><i class="fas fa-file-signature"></i> 誓約事項</div>
               <label style="display:flex; align-items:flex-start; gap:6px; margin-bottom:6px; cursor:pointer;">
                 <input type="checkbox" class="checkup-pledge-cb" style="margin-top:2px; flex-shrink:0; accent-color:#e91e63;" />
@@ -3961,9 +3961,9 @@ function renderTrendView() {
 
 function resetCheckupForm() {
   var content = document.getElementById('checkup-content');
-  content.innerHTML = '<div id="checkup-auth-form">' +
-    '<div style="font-size:0.85rem; color:#666; margin-bottom:12px;"><i class="fas fa-shield-alt" style="color:#e91e63;"></i> 本人確認が必要です</div>' +
-    '<div style="max-width:280px; margin:0 auto; text-align:left;">' +
+  content.innerHTML = '<div id="checkup-auth-form" style="text-align:left;">' +
+    '<div style="font-size:0.85rem; color:#666; margin-bottom:12px; text-align:center;"><i class="fas fa-shield-alt" style="color:#e91e63;"></i> 本人確認が必要です</div>' +
+    '<div style="margin-bottom:10px;">' +
     '<label style="font-size:0.78rem; color:#888; display:block; margin-bottom:4px;">生年月日</label>' +
     '<div style="display:flex; gap:6px; margin-bottom:10px;">' +
     '<select id="checkup-birth-y" style="flex:1.2; padding:10px 6px; border:1.5px solid #e0e0e0; border-radius:10px; font-size:0.9rem; appearance:auto;"></select>' +
@@ -3972,18 +3972,18 @@ function resetCheckupForm() {
     '</div>' +
     '<label style="font-size:0.78rem; color:#888; display:block; margin-bottom:4px;">パスワード</label>' +
     '<input type="password" id="checkup-pass" placeholder="ログインパスワード" style="width:100%; padding:10px 12px; border:1.5px solid #e0e0e0; border-radius:10px; font-size:0.9rem; margin-bottom:14px; box-sizing:border-box;" />' +
+    '</div>' +
     '<div id="checkup-pledge" style="background:#fafafa; border:1px solid #e0e0e0; border-radius:10px; padding:10px 12px; margin-bottom:14px; font-size:0.75rem; color:#555;">' +
     '<div style="font-weight:700; color:#c2185b; margin-bottom:8px;"><i class="fas fa-file-signature"></i> 誓約事項</div>' +
-    '<label style="display:flex; align-items:flex-start; gap:6px; margin-bottom:6px; cursor:pointer;"><input type="checkbox" class="checkup-pledge-cb" style="margin-top:2px; accent-color:#e91e63;" /><span>自分自身のアカウントであり、他者になりすまして閲覧していません</span></label>' +
-    '<label style="display:flex; align-items:flex-start; gap:6px; margin-bottom:6px; cursor:pointer;"><input type="checkbox" class="checkup-pledge-cb" style="margin-top:2px; accent-color:#e91e63;" /><span>健診結果を第三者に共有・口外しません</span></label>' +
-    '<label style="display:flex; align-items:flex-start; gap:6px; margin-bottom:6px; cursor:pointer;"><input type="checkbox" class="checkup-pledge-cb" style="margin-top:2px; accent-color:#e91e63;" /><span>スクリーンショット・画面録画・データ転送を行いません</span></label>' +
-    '<label style="display:flex; align-items:flex-start; gap:6px; margin-bottom:6px; cursor:pointer;"><input type="checkbox" class="checkup-pledge-cb" style="margin-top:2px; accent-color:#e91e63;" /><span>健康管理目的にのみ利用し、会社の情報管理規程に従います</span></label>' +
-    '<label style="display:flex; align-items:flex-start; gap:6px; margin-bottom:6px; cursor:pointer;"><input type="checkbox" class="checkup-pledge-cb" style="margin-top:2px; accent-color:#e91e63;" /><span>この結果は参考情報であり、医療判断は医師に相談します</span></label>' +
-    '<label style="display:flex; align-items:flex-start; gap:6px; cursor:pointer;"><input type="checkbox" class="checkup-pledge-cb" style="margin-top:2px; accent-color:#e91e63;" /><span>閲覧履歴が記録されることに同意します</span></label>' +
+    '<label style="display:flex; align-items:flex-start; gap:6px; margin-bottom:6px; cursor:pointer;"><input type="checkbox" class="checkup-pledge-cb" style="margin-top:2px; flex-shrink:0; accent-color:#e91e63;" /><span>自分自身のアカウントであり、他者になりすまして閲覧していません</span></label>' +
+    '<label style="display:flex; align-items:flex-start; gap:6px; margin-bottom:6px; cursor:pointer;"><input type="checkbox" class="checkup-pledge-cb" style="margin-top:2px; flex-shrink:0; accent-color:#e91e63;" /><span>健診結果を第三者に共有・口外しません</span></label>' +
+    '<label style="display:flex; align-items:flex-start; gap:6px; margin-bottom:6px; cursor:pointer;"><input type="checkbox" class="checkup-pledge-cb" style="margin-top:2px; flex-shrink:0; accent-color:#e91e63;" /><span>スクリーンショット・画面録画・データ転送を行いません</span></label>' +
+    '<label style="display:flex; align-items:flex-start; gap:6px; margin-bottom:6px; cursor:pointer;"><input type="checkbox" class="checkup-pledge-cb" style="margin-top:2px; flex-shrink:0; accent-color:#e91e63;" /><span>健康管理目的にのみ利用し、会社の情報管理規程に従います</span></label>' +
+    '<label style="display:flex; align-items:flex-start; gap:6px; margin-bottom:6px; cursor:pointer;"><input type="checkbox" class="checkup-pledge-cb" style="margin-top:2px; flex-shrink:0; accent-color:#e91e63;" /><span>この結果は参考情報であり、医療判断は医師に相談します</span></label>' +
+    '<label style="display:flex; align-items:flex-start; gap:6px; cursor:pointer;"><input type="checkbox" class="checkup-pledge-cb" style="margin-top:2px; flex-shrink:0; accent-color:#e91e63;" /><span>閲覧履歴が記録されることに同意します</span></label>' +
     '</div>' +
     '<button id="checkup-submit-btn" onclick="loadCheckupData()" disabled style="width:100%; background:#ccc; color:white; border:none; padding:12px; border-radius:25px; font-size:0.95rem; cursor:not-allowed; font-weight:600;"><i class="fas fa-search"></i> 健診結果を表示</button>' +
-    '</div>' +
-    '<div style="margin-top:8px; font-size:0.7rem; color:#bbb;"><i class="fas fa-lock" style="margin-right:3px;"></i> 本人のみ閲覧可能・データはサーバーに保存されません</div>' +
+    '<div style="margin-top:8px; font-size:0.7rem; color:#bbb; text-align:center;"><i class="fas fa-lock" style="margin-right:3px;"></i> 本人のみ閲覧可能・データはサーバーに保存されません</div>' +
     '</div>';
   initBirthSelects();
   setTimeout(initPledgeCheckboxes, 100);

@@ -475,6 +475,7 @@
   <div class="app-header">
     <div class="logo"><div class="logo-icon"><i class="fas fa-handshake"></i></div><div><div class="logo-text">CoWell Health Project 2.0</div><div class="logo-sub">みんなで 健康を</div></div></div>
     <div class="header-stats">
+      <span class="stat-chip" style="cursor:pointer; color:white; background:rgba(255,255,255,0.15); padding:6px 12px; font-size:0.75rem; border-radius:20px;" onclick="openAdminFromUser()"><i class="fas fa-shield-alt" style="margin-right:3px;"></i>管理者</span>
       <span class="stat-chip" style="cursor:pointer; color:white; background:rgba(255,255,255,0.2); padding:6px 14px; font-size:0.8rem; border-radius:20px;" onclick="doUserLogout()"><i class="fas fa-sign-out-alt" style="margin-right:4px;"></i>ログアウト</span>
     </div>
     <!-- 非表示（JS参照用） -->
@@ -1150,6 +1151,18 @@ function abToggleAcc(idx, previewCanvasId) {
     } catch(e) {}
   }
 })();
+
+// ★ 管理者ログイン/登録への導線
+function openAdminFromUser() {
+  var choice = confirm('管理者としてログインしますか？\n\n【OK】管理者ログイン画面へ\n【キャンセル】新規メンバー登録画面へ');
+  if (choice) {
+    window.location.href = '/admin';
+  } else {
+    // 認証モーダルを表示して管理者新規登録画面を開く
+    document.getElementById('auth-modal').style.display = 'flex';
+    showStep('admin-register');
+  }
+}
 
 // ★ ログアウト
 function doUserLogout() {

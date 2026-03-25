@@ -310,11 +310,14 @@ ${EVIDENCE_BASE}
     }
     messages.push({ role: 'user', content: userMessage });
 
-    const result = await callGroqApi(null, null, {
-      messages,
-      temperature: 0.6,
-      max_tokens: 500
-    });
+    let result = null;
+    try {
+      result = await callGroqApi(null, null, { messages, temperature: 0.6, max_tokens: 500 });
+    } catch (e) {
+      // Groq失敗時はGeminiにフォールバック
+      var combined = messages.map(m => (m.role === 'system' ? '[指示] ' : m.role === 'assistant' ? '[AI] ' : '[ユーザー] ') + m.content).join('\n\n');
+      result = await callGeminiText(null, combined);
+    }
 
     if (result) return { success: true, reply: result };
     return { success: false, reply: 'すみません、うまく応答できませんでした。もう一度お話しいただけますか？' };
@@ -332,7 +335,7 @@ async function getNurseGreeting(userName) {
 - 来てくれたことへの感謝
 - 体調や気になることを聞くオープンクエスチョン（食事・運動・睡眠など）
 語り口は「です・ます」調で温かく。絵文字は1〜2個まで。`;
-    const reply = await callGroqApi(sys, '挨拶してください');
+    const reply = await callAIWithFallback(sys, '挨拶してください');
     if (reply) return { success: true, reply };
     return { success: true, reply: `こんにちは、${userName || ''}さん😊 エビデンスに基づく健康支援を行うAIヘルスアドバイザーです！\nお話しできて嬉しいです。最近の食事や運動、体調で気になっていることはありますか？` };
   } catch (e) {
@@ -377,7 +380,13 @@ ${EVIDENCE_BASE}
     }
     messages.push({ role: 'user', content: combinedMessage });
 
-    const result = await callGroqApi(null, null, { messages, temperature: 0.5, max_tokens: 1000 });
+    let result = null;
+    try {
+      result = await callGroqApi(null, null, { messages, temperature: 0.5, max_tokens: 1000 });
+    } catch (e) {
+      var combined = messages.map(m => (m.role === 'system' ? '[指示] ' : m.role === 'assistant' ? '[AI] ' : '[ユーザー] ') + m.content).join('\n\n');
+      result = await callGeminiText(null, combined);
+    }
     if (result) return { success: true, reply: result };
     return { success: false, reply: '申し訳ありません、回答を生成できませんでした。' };
   } catch (e) {
@@ -423,7 +432,7 @@ ${JSON.stringify(humanScores || {})}
 【出力形式】JSONのみ出力。他のテキストは不要。
 {"legal":3, "risk":3, "freq":3, "urgency":3, "safety":3, "value":3, "needs":3}`;
 
-    const resText = await callGroqApi('あなたはJSON出力専門AIです。指定されたJSON形式のみを出力してください。', prompt);
+    const resText = await callAIWithFallback('あなたはJSON出力専門AIです。指定されたJSON形式のみを出力してください。', prompt);
     if (!resText) return { success: false, msg: 'AI無応答' };
     const jsonMatch = resText.match(/\{[\s\S]*\}/);
     if (!jsonMatch) return { success: false, msg: 'AI出力形式エラー' };

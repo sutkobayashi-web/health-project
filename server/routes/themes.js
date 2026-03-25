@@ -426,7 +426,7 @@ ${commentsText}
   ]
 }`;
 
-    const aiResult = await callGroqApi('JSON出力専門AI。指定JSON形式のみ出力。', prompt);
+    const aiResult = await callAIWithFallback('JSON出力専門AI。指定JSON形式のみ出力。', prompt);
     if (!aiResult) return res.json({ success: false, msg: 'AI生成失敗' });
     const jsonMatch = aiResult.match(/\{[\s\S]*\}/);
     if (!jsonMatch) return res.json({ success: false, msg: 'AI出力解析失敗' });

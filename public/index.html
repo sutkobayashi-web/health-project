@@ -460,8 +460,8 @@
 </div>
 
 <!-- 自分の投稿モーダル -->
-<div id="my-posts-modal" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:5000;display:none;justify-content:center;align-items:center;backdrop-filter:blur(2px);padding:16px;">
-  <div style="width:100%;max-width:500px;max-height:90vh;background:white;border-radius:20px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.25);display:flex;flex-direction:column;">
+<div id="my-posts-modal" style="position:fixed;top:0;left:0;right:0;bottom:56px;background:white;z-index:2400;display:none;flex-direction:column;">
+  <div style="width:100%;height:100%;display:flex;flex-direction:column;overflow:hidden;">
     <!-- ヘッダー -->
     <div style="padding:10px 18px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;display:flex;align-items:center;gap:10px;flex-shrink:0;">
       <div style="flex:1;font-weight:800;font-size:0.95rem;">マイページ</div>
@@ -2214,8 +2214,7 @@ function submitEmpathyResponse(row) {
 // ===== 自分の投稿 =====
 function openMyPosts() {
   var modal = document.getElementById('my-posts-modal');
-  modal.style.display = 'flex';
-  lockScroll();
+  if (modal.style.display !== 'flex') modal.style.display = 'flex';
   // マイページプロフィール更新
   if (currentUser) {
     var avEl = document.getElementById('mypage-avatar');
@@ -2565,31 +2564,23 @@ function hideLoading() { document.getElementById('loading-overlay').style.displa
 @keyframes nPulse { 0% { transform: scale(1); } 50% { transform: scale(1.15); } 100% { transform: scale(1); } }
 
 /* --- オーバーレイ --- */
-#nurse-chat-overlay {
-  position: fixed; top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: rgba(0,0,0,0.5);
-  z-index: 4000;
-  display: none;
-  backdrop-filter: blur(2px);
-}
-#nurse-chat-overlay.active { display: block; }
+#nurse-chat-overlay { display: none !important; }
 
 /* --- チャットシート --- */
 #nurse-chat-sheet {
   position: fixed;
-  bottom: 0; left: 0;
-  width: 100%; height: 85vh; height: 85dvh;
+  bottom: 56px; left: 0;
+  width: 100%; height: calc(100vh - 56px); height: calc(100dvh - 56px);
   background: #f8f5f0;
-  border-radius: 20px 20px 0 0;
-  z-index: 4001;
+  border-radius: 0;
+  z-index: 2400;
   transform: translateY(100%);
   visibility: hidden;
   transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), visibility 0s 0.35s;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  box-shadow: 0 -8px 40px rgba(0,0,0,0.2);
+  box-shadow: none;
 }
 #nurse-chat-sheet.active { transform: translateY(0); visibility: visible; transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), visibility 0s 0s; }
 
@@ -2857,30 +2848,74 @@ function hideLoading() { document.getElementById('loading-overlay').style.displa
 <!-- スピードダイヤルFAB -->
 <div id="fab-speed-dial" style="display:none;"></div>
 <nav id="bottom-nav" style="display:none;">
-  <div class="bnav-item active" onclick="scrollTo({top:0,behavior:'smooth'});">
+  <div class="bnav-item active" id="bnav-home" onclick="switchAppTab('home');">
     <i class="fas fa-home bnav-icon"></i>
     <span class="bnav-label">ホーム</span>
   </div>
-  <div class="bnav-item" onclick="openInbox();">
+  <div class="bnav-item" id="bnav-inbox" onclick="switchAppTab('inbox');">
     <i class="fas fa-bell bnav-icon"></i>
     <span class="bnav-label">お知らせ</span>
     <span class="bnav-badge" id="bnav-inbox-badge"></span>
   </div>
-  <div class="bnav-item" onclick="openNurseChat();">
+  <div class="bnav-item" id="bnav-chat" onclick="switchAppTab('chat');">
     <i class="fas fa-heartbeat bnav-icon"></i>
     <span class="bnav-label">AI相談</span>
   </div>
-  <div class="bnav-item" onclick="openMyPosts();">
+  <div class="bnav-item" id="bnav-mypage" onclick="switchAppTab('mypage');">
     <i class="fas fa-user bnav-icon"></i>
     <span class="bnav-label">マイページ</span>
   </div>
-  <div class="bnav-item" onclick="window.location.href='/guide';">
+  <div class="bnav-item" id="bnav-guide" onclick="switchAppTab('guide');">
     <i class="fas fa-book bnav-icon"></i>
     <span class="bnav-label">ガイド</span>
   </div>
 </nav>
+<div id="app-tab-guide" style="display:none;position:fixed;top:0;left:0;right:0;bottom:56px;z-index:2400;background:white;overflow:hidden;">
+  <iframe id="guide-iframe" style="width:100%;height:100%;border:none;"></iframe>
+</div>
 
 <script>
+var _currentAppTab = 'home';
+function switchAppTab(tab) {
+  // 全タブを閉じる
+  if (_currentAppTab !== 'home') {
+    if (_currentAppTab === 'inbox') { document.getElementById('inbox-sheet').classList.remove('active'); unlockScroll(); }
+    if (_currentAppTab === 'chat') { document.getElementById('nurse-chat-sheet').classList.remove('active'); unlockScroll(); }
+    if (_currentAppTab === 'mypage') { document.getElementById('my-posts-modal').style.display = 'none'; unlockScroll(); }
+    if (_currentAppTab === 'guide') { document.getElementById('app-tab-guide').style.display = 'none'; }
+  }
+  // メインコンテンツの表示切り替え
+  var mainContent = document.querySelector('.main-content');
+  if (mainContent) mainContent.style.display = tab === 'home' ? 'block' : 'none';
+
+  // タブを開く
+  if (tab === 'home') {
+    scrollTo({ top: 0, behavior: 'smooth' });
+  } else if (tab === 'inbox') {
+    lockScroll();
+    loadInboxContent();
+    document.getElementById('inbox-sheet').classList.add('active');
+  } else if (tab === 'chat') {
+    lockScroll();
+    document.getElementById('nurse-chat-sheet').classList.add('active');
+    if (!nurseInited) { nurseInited = true; loadNurseGreeting(); } else { nurseScrollBottom(); }
+  } else if (tab === 'mypage') {
+    document.getElementById('my-posts-modal').style.display = 'flex';
+    openMyPosts();
+  } else if (tab === 'guide') {
+    var iframe = document.getElementById('guide-iframe');
+    if (!iframe.src || iframe.src === 'about:blank') iframe.src = '/guide';
+    document.getElementById('app-tab-guide').style.display = 'block';
+  }
+
+  _currentAppTab = tab;
+
+  // ナビのアクティブ状態
+  document.querySelectorAll('.bnav-item').forEach(function(el) { el.classList.remove('active'); });
+  var activeNav = document.getElementById('bnav-' + tab);
+  if (activeNav) activeNav.classList.add('active');
+}
+
 function toggleFabMenu() {
   var items = document.getElementById('fab-speed-items');
   var btn = document.getElementById('fab-main-btn');
@@ -3314,28 +3349,21 @@ function nurseScrollBottom() {
 }
 
 /* --- Inbox オーバーレイ --- */
-#inbox-overlay {
-  position: fixed; top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: rgba(0,0,0,0.5);
-  z-index: 4000; display: none;
-  backdrop-filter: blur(2px);
-}
-#inbox-overlay.active { display: block; }
+#inbox-overlay { display: none !important; }
 
 /* --- Inbox シート --- */
 #inbox-sheet {
-  position: fixed; bottom: 0; left: 0;
-  width: 100%; height: 95vh; height: 95dvh;
+  position: fixed; bottom: 56px; left: 0;
+  width: 100%; height: calc(100vh - 56px); height: calc(100dvh - 56px);
   background: #f8f9fa;
-  border-radius: 20px 20px 0 0;
-  z-index: 4001;
+  border-radius: 0;
+  z-index: 2400;
   transform: translateY(100%);
   visibility: hidden;
   transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), visibility 0s 0.35s;
   display: flex; flex-direction: column;
   overflow: hidden;
-  box-shadow: 0 -8px 40px rgba(0,0,0,0.2);
+  box-shadow: none;
 }
 #inbox-sheet.active { transform: translateY(0); visibility: visible; transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), visibility 0s 0s; }
 

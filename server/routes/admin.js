@@ -916,18 +916,19 @@ async function runEvalJob() {
 
   for (let i = 0; i < unevaluated.length; i++) {
     const row = unevaluated[i];
-    if (i > 0) await new Promise(r => setTimeout(r, 3000));
-    let retried = false;
-    for (let attempt = 0; attempt < 2; attempt++) {
+    if (i > 0) await new Promise(r => setTimeout(r, 6000));
+    let success = false;
+    for (let attempt = 0; attempt < 3; attempt++) {
       try {
         await evaluateSinglePost(row.post_id);
         evalJobState.evaluated++;
+        success = true;
         break;
       } catch (e) {
-        if (e.message && e.message.includes('429') && !retried) {
-          retried = true;
-          console.log('[auto-evaluate-all] Rate limited, waiting 10s:', row.post_id);
-          await new Promise(r => setTimeout(r, 10000));
+        if (e.message && e.message.includes('429') && attempt < 2) {
+          var wait = (attempt + 1) * 15000;
+          console.log('[auto-evaluate-all] Rate limited, waiting ' + (wait/1000) + 's (attempt ' + (attempt+1) + '):', row.post_id);
+          await new Promise(r => setTimeout(r, wait));
           continue;
         }
         console.error('[auto-evaluate-all] Failed:', row.post_id, e.message);

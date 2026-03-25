@@ -1,7 +1,7 @@
 const express = require('express');
 const { v4: uuidv4 } = require('uuid');
 const { getDb } = require('../services/db');
-const { callGroqApi, EVIDENCE_BASE } = require('../services/ai');
+const { callGroqApi, callAIWithFallback, EVIDENCE_BASE } = require('../services/ai');
 const router = express.Router();
 
 // ============================================================
@@ -123,8 +123,8 @@ router.post('/generate-themes', async (req, res) => {
     } catch(e) {}
 
     // 投稿サマリー（全データ統合）
-    const postSummaries = posts.slice(0, 100).map((p, i) => {
-      const content = (p.content || '').replace(/^【写真】/, '').substring(0, 150);
+    const postSummaries = posts.slice(0, 30).map((p, i) => {
+      const content = (p.content || '').replace(/^【写真】/, '').substring(0, 100);
       const emp = empathyByPost[p.post_id];
       const empStr = emp ? `共感${emp.total}件(${Object.entries(emp.types).map(([k,v])=>`${k}:${v}`).join(',')})` : '共感0';
       const mc = memberCommentsByPost[p.post_id];
@@ -161,7 +161,8 @@ ${postSummaries}
   }
 ]`;
 
-    const aiResult = await callGroqApi('JSON出力専門AI。指定JSON形式のみ出力。', prompt);
+    // Groq → Geminiフォールバック付きAPI呼び出し
+    const aiResult = await callAIWithFallback('JSON出力専門AI。指定JSON形式のみ出力。', prompt);
     if (!aiResult) return res.json({ success: false, msg: 'AI生成失敗' });
     const jsonMatch = aiResult.match(/\[[\s\S]*\]/);
     if (!jsonMatch) return res.json({ success: false, msg: 'AI出力形式エラー' });

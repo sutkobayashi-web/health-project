@@ -207,6 +207,8 @@ async function callGroqApi(systemPrompt, userMessage, options = {}) {
   } catch (e) {
     console.error('Groq API error:', e.message);
     logAiUsage('groq', GROQ_MODEL(), options._fn || 'groq_error', 0, 0, false);
+    // 429はリトライ可能なので再throwする
+    if (e.message && e.message.includes('429')) throw e;
     return null;
   }
 }
@@ -431,8 +433,49 @@ ${JSON.stringify(humanScores || {})}
   }
 }
 
+// Gemini テキスト生成（Groqフォールバック用）
+async function callGeminiText(systemPrompt, userMessage) {
+  try {
+    var model = process.env.GEMINI_VISION_MODEL || 'gemini-2.5-flash-preview-05-20';
+    var url = 'https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + GEMINI_API_KEY();
+    var res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: (systemPrompt ? systemPrompt + '\n\n' : '') + userMessage }] }],
+        generationConfig: { temperature: 0.3, maxOutputTokens: 4096 }
+      })
+    });
+    if (!res.ok) {
+      var errText = await res.text();
+      throw new Error('Gemini HTTP ' + res.status + ': ' + errText.substring(0, 200));
+    }
+    var json = await res.json();
+    if (json.candidates && json.candidates[0] && json.candidates[0].content) {
+      return json.candidates[0].content.parts[0].text;
+    }
+    return null;
+  } catch (e) {
+    console.error('Gemini Text error:', e.message);
+    return null;
+  }
+}
+
+// Groq → Gemini フォールバック付きAPI呼び出し
+async function callAIWithFallback(systemPrompt, userMessage) {
+  // まずGroqを試す
+  try {
+    var result = await callGroqApi(systemPrompt, userMessage);
+    if (result) return result;
+  } catch (e) {
+    console.log('[AI Fallback] Groq failed:', e.message, '-> trying Gemini');
+  }
+  // GeminiにフォールバックS
+  return await callGeminiText(systemPrompt, userMessage);
+}
+
 module.exports = {
-  callGroqApi, callGroqApiSafe, callGeminiVision,
+  callGroqApi, callGroqApiSafe, callGeminiVision, callGeminiText, callAIWithFallback,
   chatWithNurse, getNurseGreeting, chatWithNurseImage,
   parsePostScore, evaluateVoiceByAI,
   EVIDENCE_BASE

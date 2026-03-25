@@ -3801,21 +3801,32 @@ function renderTrendView() {
     return '<span style="color:#1565c0;font-size:0.7rem;"> ↓' + (Math.round(diff * 10) / 10) + '</span>';
   }
 
-  function miniBar(val, min, max, warn, danger) {
+  function miniBar(val, min, max, warn, danger, warnLow) {
     if (typeof val !== 'number') return '';
     var pct = Math.max(0, Math.min(100, ((val - min) / (max - min)) * 100));
     var color = '#4caf50';
     if (danger !== undefined && val >= danger) color = '#d32f2f';
     else if (warn !== undefined && val >= warn) color = '#f57c00';
+    else if (warnLow !== undefined && val < warnLow) color = '#d32f2f';
     return '<div style="background:#f5f5f5; border-radius:3px; height:6px; width:100%; margin-top:2px;">' +
       '<div style="background:' + color + '; border-radius:3px; height:6px; width:' + pct + '%;"></div></div>';
   }
 
+  // 性別判定（最新データから取得）
+  var isFemale = sorted.some(function(d) { return d.性別 === '女'; });
+
+  // 基準値: 特定健診判定値・各学会ガイドラインに準拠
+  // 腹囲: メタボ診断基準(2005) 男85cm/女90cm
+  // 血圧: JSH2019高血圧治療ガイドライン
+  // 脂質: 動脈硬化性疾患予防ガイドライン2022
+  // 血糖: 日本糖尿病学会診断基準
+  // 肝機能: 特定健診判定値
+  // 貧血: 男13.0未満/女12.0未満が要注意(WHO基準)
   var trendItems = [
     { cat: '生体計測', items: [
-      { label: '体重', key: '体重', unit: 'kg', min: 40, max: 120, warn: 80, danger: 95 },
+      { label: '体重', key: '体重', unit: 'kg', min: 40, max: 120 },
       { label: 'BMI', key: 'BMI', unit: '', min: 15, max: 40, warn: 25, danger: 30 },
-      { label: '腹囲', key: '腹囲', unit: 'cm', min: 60, max: 120, warn: 85, danger: 95 },
+      { label: '腹囲', key: '腹囲', unit: 'cm', min: 60, max: 120, warn: isFemale ? 90 : 85, danger: isFemale ? 100 : 95 },
     ]},
     { cat: '血圧', items: [
       { label: '収縮期(平均)', key: '収縮期_平均', unit: 'mmHg', min: 80, max: 200, warn: 130, danger: 140 },
@@ -3823,7 +3834,7 @@ function renderTrendView() {
     ]},
     { cat: '脂質', items: [
       { label: 'LDL', key: 'LDLコレステロール', unit: '', min: 40, max: 250, warn: 140, danger: 180 },
-      { label: 'HDL', key: 'HDLコレステロール', unit: '', min: 20, max: 100 },
+      { label: 'HDL', key: 'HDLコレステロール', unit: '', min: 20, max: 100, warnLow: 40 },
       { label: '中性脂肪', key: '中性脂肪', unit: '', min: 20, max: 400, warn: 150, danger: 300 },
     ]},
     { cat: '血糖', items: [
@@ -3836,7 +3847,7 @@ function renderTrendView() {
       { label: 'γ-GTP', key: 'γGTP', unit: '', min: 0, max: 150, warn: 51, danger: 101 },
     ]},
     { cat: '貧血', items: [
-      { label: 'ヘモグロビン', key: 'ヘモグロビン', unit: '', min: 8, max: 20 },
+      { label: 'ヘモグロビン', key: 'ヘモグロビン', unit: '', min: 8, max: 20, warnLow: isFemale ? 12.0 : 13.0 },
     ]},
   ];
 
@@ -3867,6 +3878,8 @@ function renderTrendView() {
           cellStyle += ' color:#d32f2f;';
         } else if (typeof v === 'number' && item.warn !== undefined && v >= item.warn) {
           cellStyle += ' color:#f57c00;';
+        } else if (typeof v === 'number' && item.warnLow !== undefined && v < item.warnLow) {
+          cellStyle += ' color:#d32f2f;';
         }
         html += '<div style="' + cellStyle + '">' + display + '</div>';
       });
@@ -3878,7 +3891,7 @@ function renderTrendView() {
       // 最新値のミニバー
       if (numVals.length > 0) {
         var latest = numVals[numVals.length - 1];
-        html += '<div style="padding:0 0 4px 84px;">' + miniBar(latest, item.min, item.max, item.warn, item.danger) + '</div>';
+        html += '<div style="padding:0 0 4px 84px;">' + miniBar(latest, item.min, item.max, item.warn, item.danger, item.warnLow) + '</div>';
       }
     });
   });

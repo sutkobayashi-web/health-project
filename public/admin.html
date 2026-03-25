@@ -545,13 +545,16 @@ if(localStorage.getItem('co_heart_admin_token') && localStorage.getItem('co_hear
       <div id="personal-list-area"></div>
     </div>
 
-    <!-- Tab: 食事分析 -->
+    <!-- Tab: 週間食事レポート -->
     <div id="tab-food" class="tab-view">
       <div class="section-header">
         <div class="section-icon" style="background:linear-gradient(135deg,#20c997,#38d9a9);"><i class="fas fa-utensils"></i></div>
-        <div><div class="section-title">食事傾向分析</div><div class="section-subtitle">ユーザーの食事記録をAI食事アドバイザーが分析しレポートを送信</div></div>
+        <div><div class="section-title">週間食事レポート</div><div class="section-subtitle">毎週月曜7:00に自動配信。ユーザーごとの栄養分析・アドバイス履歴</div></div>
       </div>
-      <div id="food-users-area" class="row g-3"></div>
+      <div style="margin-bottom:12px; text-align:right;">
+        <button class="btn btn-sm btn-outline-success fw-bold" onclick="runFoodWeeklyManual()" id="food-weekly-run-btn"><i class="fas fa-play me-1"></i>今すぐ実行</button>
+      </div>
+      <div id="food-weekly-area"></div>
     </div>
 
     <!-- Tab: 解決済み -->

@@ -913,15 +913,30 @@ router.post('/auto-evaluate-all', async (req, res) => {
     let evaluated = 0;
     let failed = 0;
     const results = [];
-    for (const row of unevaluated) {
-      try {
-        const result = await evaluateSinglePost(row.post_id);
-        evaluated++;
-        results.push({ postId: row.post_id, nickname: row.nickname, content: row.content_short, ...result });
-      } catch (e) {
-        console.error('[auto-evaluate-all] Failed:', row.post_id, e.message);
-        failed++;
-        results.push({ postId: row.post_id, nickname: row.nickname, content: row.content_short, error: e.message });
+    for (let i = 0; i < unevaluated.length; i++) {
+      const row = unevaluated[i];
+      // レートリミット対策: 2件目以降は3秒待機
+      if (i > 0) await new Promise(r => setTimeout(r, 3000));
+      // リトライ付き（429の場合は10秒待って1回リトライ）
+      let retried = false;
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          const result = await evaluateSinglePost(row.post_id);
+          evaluated++;
+          results.push({ postId: row.post_id, nickname: row.nickname, content: row.content_short, ...result });
+          break;
+        } catch (e) {
+          if (e.message && e.message.includes('429') && !retried) {
+            retried = true;
+            console.log('[auto-evaluate-all] Rate limited, waiting 10s before retry:', row.post_id);
+            await new Promise(r => setTimeout(r, 10000));
+            continue;
+          }
+          console.error('[auto-evaluate-all] Failed:', row.post_id, e.message);
+          failed++;
+          results.push({ postId: row.post_id, nickname: row.nickname, content: row.content_short, error: e.message });
+          break;
+        }
       }
     }
 

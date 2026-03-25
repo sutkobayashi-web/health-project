@@ -190,6 +190,10 @@ async function callGroqApi(systemPrompt, userMessage, options = {}) {
         max_tokens: options.max_tokens || undefined
       })
     });
+    if (res.status === 429) {
+      logAiUsage('groq', GROQ_MODEL(), options._fn || 'groq_429', 0, 0, false);
+      throw new Error('HTTP 429 Rate Limited');
+    }
     const json = await res.json();
     var tokensIn = (json.usage && json.usage.prompt_tokens) || 0;
     var tokensOut = (json.usage && json.usage.completion_tokens) || 0;

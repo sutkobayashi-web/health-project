@@ -1,7 +1,7 @@
 const express = require('express');
 const { v4: uuidv4 } = require('uuid');
 const { getDb } = require('../services/db');
-const { callGroqApi, parsePostScore, evaluateVoiceByAI } = require('../services/ai');
+const { callGroqApi, callAIWithFallback, parsePostScore, evaluateVoiceByAI } = require('../services/ai');
 const { authAdmin } = require('../middleware/auth');
 
 const router = express.Router();
@@ -293,7 +293,7 @@ router.post('/simulate-meeting', async (req, res) => {
 必ずJSON配列のみを出力。前後に説明文を付けないこと。avatarは必ず「絵文字1文字」。
 [{"role": "AIメディカルアドバイザー", "avatar": "🩺", "message": "..."}]`;
 
-    const resText = await callGroqApi(sysPrompt, '議論開始');
+    const resText = await callAIWithFallback(sysPrompt, '議論開始');
     if (!resText) return res.json({ success: false, msg: 'AI無応答' });
 
     const startIdx = resText.indexOf('[');
@@ -326,7 +326,7 @@ router.post('/ai-reply', async (req, res) => {
 【人間発言】"${humanComment}"
 【出力形式】JSON配列のみ。avatarは必ず「絵文字1文字」。
 [{"role": "中村さん (批判)", "avatar": "👨‍💻", "message": "..."}]`;
-    const resText = await callGroqApi(sysPrompt, 'リアクション生成');
+    const resText = await callAIWithFallback(sysPrompt, 'リアクション生成');
     if (!resText) return res.json({ success: false });
     const match = resText.match(/\[[\s\S]*\]/);
     if (!match) return res.json({ success: false, msg: 'JSON抽出失敗' });
@@ -353,7 +353,7 @@ router.post('/ai-advisor', async (req, res) => {
   try {
     const { content, question } = req.body;
     const sys = `あなたは健康経営の専門家であり、労働安全衛生の知識を持つAIヘルスアドバイザーです。ユーザーの【質問】に対し、専門的な知見から評価の参考になるアドバイスを簡潔に回答してください。\n\n【声】\n${content}`;
-    const result = await callGroqApi(sys, question);
+    const result = await callAIWithFallback(sys, question);
     res.json({ success: true, reply: result || '申し訳ありません。AIの応答がありませんでした。' });
   } catch (e) { res.json({ success: false, reply: 'エラーが発生しました。' }); }
 });
@@ -475,7 +475,7 @@ router.post('/food-report', async (req, res) => {
 
 語り口は温かく、否定せず、エビデンスのない助言はしない。200-400字程度。`;
 
-    const report = await callGroqApi(sysPrompt, `【${user.nickname}さんの食事記録】\n${meals}`);
+    const report = await callAIWithFallback(sysPrompt, `【${user.nickname}さんの食事記録】\n${meals}`);
     if (!report) return res.json({ success: false, msg: 'AIレポート生成に失敗しました' });
 
     // sendNow=trueの場合のみ通知送信、それ以外はプレビューのみ
@@ -590,7 +590,7 @@ router.post('/similar-posts', async (req, res) => {
 出力形式: [0, 3, 7] のようにインデックス番号のみ。該当なしは [] を返す。`;
     const userPrompt = `【対象の投稿】\n${content.substring(0, 200)}\n\n【他の投稿一覧】\n${postList}`;
 
-    const aiRes = await callGroqApi(sysPrompt, userPrompt);
+    const aiRes = await callAIWithFallback(sysPrompt, userPrompt);
     let indices = [];
     try {
       const match = aiRes.match(/\[[\d,\s]*\]/);
@@ -837,7 +837,7 @@ async function evaluateSinglePost(postId) {
   const memberComments = db.prepare('SELECT member_name, comment FROM member_comments WHERE post_id = ?').all(postId);
   const memberChats = db.prepare('SELECT member_name, message FROM member_chats WHERE post_id = ?').all(postId);
 
-  const { callGroqApi, EVIDENCE_BASE } = require('../services/ai');
+  const { callAIWithFallback, EVIDENCE_BASE } = require('../services/ai');
   const prompt = `あなたは健康経営アナリストです。以下の社員の声と、それに対する全社員の共感データ、推進メンバーの専門コメント・議論内容を総合的に分析し、7軸評価をJSON形式で出力してください。
 
 ${EVIDENCE_BASE}
@@ -875,7 +875,7 @@ ${memberChats.map(c => `  ${c.member_name}: ${c.message}`).join('\n') || '（な
   "guideline_refs": "該当するガイドライン名（例: 厚労省「職場における腰痛予防対策指針」）"
 }`;
 
-  const aiResult = await callGroqApi('JSON出力専門AI。指定JSON形式のみ出力。', prompt);
+  const aiResult = await callAIWithFallback('JSON出力専門AI。指定JSON形式のみ出力。', prompt);
   if (!aiResult) throw new Error('AI評価失敗');
   const jsonMatch = aiResult.match(/\{[\s\S]*\}/);
   if (!jsonMatch) throw new Error('AI出力解析失敗');

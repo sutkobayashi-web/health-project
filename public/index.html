@@ -564,10 +564,10 @@
             <span class="accordion-label" id="avatar-challenge-chevron" style="color:#b0003a; background:rgba(255,255,255,0.7); font-size:0.65rem;"><i class="fas fa-chevron-down" style="font-size:0.55rem;margin-right:3px;"></i>開く</span>
           </div>
           <div id="avatar-challenge-body" style="display:none; margin-top:10px;">
-            <div id="avatar-challenge-status" style="font-size:0.75rem; color:#f57c00; font-weight:700; margin-bottom:10px; text-align:center;"></div>
+            <div id="avatar-challenge-status" style="font-size:0.75rem; color:#00897b; font-weight:700; margin-bottom:10px; text-align:center;"></div>
             <div id="avatar-challenge-tabs" style="display:flex; gap:6px; margin-bottom:12px;">
-              <button onclick="showAvatarTab('gallery')" id="av-tab-gallery" style="flex:1; padding:8px; border:2px solid #ff9800; background:#ff9800; color:white; border-radius:10px; font-weight:700; font-size:0.78rem; cursor:pointer;">ギャラリー</button>
-              <button onclick="showAvatarTab('ranking')" id="av-tab-ranking" style="flex:1; padding:8px; border:2px solid #ff9800; background:white; color:#ff9800; border-radius:10px; font-weight:700; font-size:0.78rem; cursor:pointer;">ランキング</button>
+              <button onclick="showAvatarTab('gallery')" id="av-tab-gallery" style="flex:1; padding:8px; border:2px solid #26a69a; background:#26a69a; color:white; border-radius:10px; font-weight:700; font-size:0.78rem; cursor:pointer;">ギャラリー</button>
+              <button onclick="showAvatarTab('ranking')" id="av-tab-ranking" style="flex:1; padding:8px; border:2px solid #26a69a; background:white; color:#26a69a; border-radius:10px; font-weight:700; font-size:0.78rem; cursor:pointer;">ランキング</button>
             </div>
             <div id="avatar-gallery-content" style="overflow:hidden;"></div>
             <div id="avatar-ranking-content" style="display:none;"></div>
@@ -575,7 +575,7 @@
         </div>
         <!-- アクションチャレンジ（動的生成） -->
         <div id="challenge-section" style="display:none;">
-          <div id="challenge-divider" style="display:none; border-top:1px solid rgba(255,107,53,0.15); margin:14px 0;"></div>
+          <div id="challenge-divider" style="display:none; border-top:1px solid rgba(30,136,229,0.15); margin:14px 0;"></div>
           <div id="challenge-list-container"></div>
         </div>
       </div>
@@ -4206,12 +4206,12 @@ function showAvatarTab(tab) {
   var gContent = document.getElementById('avatar-gallery-content');
   var rContent = document.getElementById('avatar-ranking-content');
   if (tab === 'gallery') {
-    gBtn.style.background = '#ff9800'; gBtn.style.color = 'white';
-    rBtn.style.background = 'white'; rBtn.style.color = '#ff9800';
+    gBtn.style.background = '#26a69a'; gBtn.style.color = 'white';
+    rBtn.style.background = 'white'; rBtn.style.color = '#26a69a';
     gContent.style.display = 'block'; rContent.style.display = 'none';
   } else {
-    rBtn.style.background = '#ff9800'; rBtn.style.color = 'white';
-    gBtn.style.background = 'white'; gBtn.style.color = '#ff9800';
+    rBtn.style.background = '#26a69a'; rBtn.style.color = 'white';
+    gBtn.style.background = 'white'; gBtn.style.color = '#26a69a';
     gContent.style.display = 'none'; rContent.style.display = 'block';
     renderAvatarRanking();
   }
@@ -4385,11 +4385,11 @@ function loadActiveChallenge() {
     var container = document.getElementById('challenge-list-container');
     container.innerHTML = '';
     var chThemes = [
-      { grad:'#ff6b35,#ff9a5c', color:'#e65100', icon:'fas fa-running', bg:'rgba(255,107,53,0.08)', border:'rgba(255,107,53,0.2)' },
+      { grad:'#1e88e5,#42a5f5', color:'#0d47a1', icon:'fas fa-running', bg:'rgba(30,136,229,0.08)', border:'rgba(30,136,229,0.2)' },
       { grad:'#667eea,#764ba2', color:'#4a3cb5', icon:'fas fa-dumbbell', bg:'rgba(102,126,234,0.08)', border:'rgba(102,126,234,0.2)' },
       { grad:'#20c997,#38ef7d', color:'#0d7a5f', icon:'fas fa-heartbeat', bg:'rgba(32,201,151,0.08)', border:'rgba(32,201,151,0.2)' },
       { grad:'#e91e63,#f48fb1', color:'#b0003a', icon:'fas fa-apple-whole', bg:'rgba(233,30,99,0.08)', border:'rgba(233,30,99,0.2)' },
-      { grad:'#ff9800,#ffb74d', color:'#e65100', icon:'fas fa-walking', bg:'rgba(255,152,0,0.08)', border:'rgba(255,152,0,0.2)' },
+      { grad:'#26a69a,#4db6ac', color:'#00695c', icon:'fas fa-walking', bg:'rgba(38,166,154,0.08)', border:'rgba(38,166,154,0.2)' },
       { grad:'#00bcd4,#4dd0e1', color:'#006978', icon:'fas fa-bed', bg:'rgba(0,188,212,0.08)', border:'rgba(0,188,212,0.2)' }
     ];
     targets.forEach(function(ch, idx) {
@@ -4480,7 +4480,7 @@ function renderChallengeEntry(c, cid) {
     html += '<div style="font-size:0.82rem; color:#444; line-height:1.6;">' + escapeHtml(c.ambassador_advice_plan) + '</div>';
     html += '</div>';
   }
-  html += '<button onclick="doJoinChallenge(\'' + c.challenge_id + '\')" style="background:linear-gradient(135deg,#ff6b35,#ff9a5c); color:white; border:none; border-radius:12px; padding:12px 30px; font-size:0.95rem; font-weight:800; cursor:pointer; box-shadow:0 4px 14px rgba(255,107,53,0.3);"><i class="fas fa-hand-point-up" style="margin-right:6px;"></i>エントリーする</button>';
+  html += '<button onclick="doJoinChallenge(\'' + c.challenge_id + '\')" style="background:linear-gradient(135deg,#1e88e5,#42a5f5); color:white; border:none; border-radius:12px; padding:12px 30px; font-size:0.95rem; font-weight:800; cursor:pointer; box-shadow:0 4px 14px rgba(30,136,229,0.3);"><i class="fas fa-hand-point-up" style="margin-right:6px;"></i>エントリーする</button>';
   html += '<div style="font-size:0.7rem; color:#999; margin-top:8px;">途中参加・途中離脱OK</div>';
   html += '</div>';
   _getChBody(cid).innerHTML = html;
@@ -4499,7 +4499,7 @@ function renderChallengeRecordForm(res, cid) {
   var c = res.challenge;
   var kpis = c.kpi_definitions || [];
   var html = '<div style="background:white; border-radius:12px; padding:14px; margin-bottom:10px;">';
-  html += '<div style="font-size:0.8rem; font-weight:800; color:#ff6b35; margin-bottom:10px;"><i class="fas fa-edit"></i> 今日の記録</div>';
+  html += '<div style="font-size:0.8rem; font-weight:800; color:#1e88e5; margin-bottom:10px;"><i class="fas fa-edit"></i> 今日の記録</div>';
   kpis.forEach(function(kpi, i) {
     html += '<div style="margin-bottom:12px;">';
     html += '<div style="font-size:0.8rem; font-weight:700; color:#555; margin-bottom:6px;">' + escapeHtml(kpi.question) + '</div>';
@@ -4521,7 +4521,7 @@ function renderChallengeRecordForm(res, cid) {
     html += '</div>';
   });
   html += '<input type="text" id="kpi-comment-' + cid + '" placeholder="コメント（任意）" style="width:100%; border:1px solid #ddd; border-radius:10px; padding:8px 12px; font-size:0.82rem; margin-bottom:10px;">';
-  html += '<button onclick="doRecordKpi(\'' + cid + '\')" style="width:100%; background:linear-gradient(135deg,#ff6b35,#ff9a5c); color:white; border:none; border-radius:10px; padding:10px; font-size:0.9rem; font-weight:800; cursor:pointer;"><i class="fas fa-check"></i> 記録する</button>';
+  html += '<button onclick="doRecordKpi(\'' + cid + '\')" style="width:100%; background:linear-gradient(135deg,#1e88e5,#42a5f5); color:white; border:none; border-radius:10px; padding:10px; font-size:0.9rem; font-weight:800; cursor:pointer;"><i class="fas fa-check"></i> 記録する</button>';
   html += '</div>';
   // 褒賞バナー
   html += renderQuoCardBanner();
@@ -4541,7 +4541,7 @@ function selectKpiOpt(el) {
   document.querySelectorAll('.kpi-opt[data-q="' + q + '"]').forEach(function(b) {
     b.style.borderColor = '#ddd'; b.style.background = 'white'; b.style.color = '#333';
   });
-  el.style.borderColor = '#ff6b35'; el.style.background = '#fff5f0'; el.style.color = '#ff6b35'; el.style.fontWeight = '700';
+  el.style.borderColor = '#1e88e5'; el.style.background = '#e3f2fd'; el.style.color = '#1e88e5'; el.style.fontWeight = '700';
 }
 function toggleKpiCheck(el) {
   var q = el.getAttribute('data-q');
@@ -4550,7 +4550,7 @@ function toggleKpiCheck(el) {
   var arr = kpiAnswers[q];
   var idx = arr.indexOf(val);
   if (idx >= 0) { arr.splice(idx, 1); el.style.borderColor = '#ddd'; el.style.background = 'white'; el.style.color = '#333'; }
-  else { arr.push(val); el.style.borderColor = '#ff6b35'; el.style.background = '#fff5f0'; el.style.color = '#ff6b35'; el.style.fontWeight = '700'; }
+  else { arr.push(val); el.style.borderColor = '#1e88e5'; el.style.background = '#e3f2fd'; el.style.color = '#1e88e5'; el.style.fontWeight = '700'; }
 }
 
 function doRecordKpi(cid) {
@@ -4633,7 +4633,7 @@ function showChallengeRanking(cid) {
     // 最近のコメント
     if (res.recentComments && res.recentComments.length > 0) {
       html += '<div style="background:white; border-radius:12px; padding:14px;">';
-      html += '<div style="font-size:0.8rem; font-weight:700; color:#ff6b35; margin-bottom:8px;"><i class="fas fa-comment"></i> みんなのコメント</div>';
+      html += '<div style="font-size:0.8rem; font-weight:700; color:#1e88e5; margin-bottom:8px;"><i class="fas fa-comment"></i> みんなのコメント</div>';
       res.recentComments.forEach(function(c) {
         html += '<div style="padding:6px 0; border-bottom:1px solid #f5f5f5; font-size:0.8rem;">';
         html += '<span style="font-weight:700; display:inline-flex; align-items:center; gap:4px;">' + getAvatarHtml(c.avatar || '😀', 20) + ' ' + escapeHtml(c.nickname || '匿名') + '</span> ';
@@ -4660,7 +4660,7 @@ function renderRankList(type) {
     var medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1);
     var isMe = currentUser && u.userId === currentUser.uid;
     var val = type === 'total' ? u.totalValue : type === 'streak' ? u.maxStreak + '日' : u.recordCount + '回';
-    html += '<div style="display:flex; align-items:center; gap:8px; padding:8px; border-radius:8px; ' + (isMe ? 'background:#fff5f0; border:1px solid #ff6b35;' : 'border-bottom:1px solid #f5f5f5;') + '">';
+    html += '<div style="display:flex; align-items:center; gap:8px; padding:8px; border-radius:8px; ' + (isMe ? 'background:#e3f2fd; border:1px solid #1e88e5;' : 'border-bottom:1px solid #f5f5f5;') + '">';
     html += '<span style="width:30px; text-align:center; font-weight:800; font-size:' + (i < 3 ? '1.2rem' : '0.85rem') + ';">' + medal + '</span>';
     html += '<span style="width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;overflow:hidden;flex-shrink:0;">' + getAvatarHtml(u.avatar || '😀', 32) + '</span>';
     html += '<span style="flex:1; font-weight:' + (isMe ? '800' : '600') + '; font-size:0.85rem;">' + escapeHtml(u.nickname) + (isMe ? ' (あなた)' : '') + '</span>';

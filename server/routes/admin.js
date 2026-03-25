@@ -910,6 +910,9 @@ async function runEvalJob() {
     LEFT JOIN auto_evaluations ae ON p.post_id = ae.post_id
     WHERE p.status IN ('open','public') AND p.created_at > datetime('now', '-3 months')
     AND ae.post_id IS NULL
+    AND p.content NOT LIKE '【写真】%'
+    AND COALESCE(p.category,'') NOT LIKE '%食事%'
+    AND COALESCE(p.category,'') NOT LIKE '%栄養%'
   `).all();
 
   evalJobState = { running: true, evaluated: 0, failed: 0, total: unevaluated.length, done: false, error: null };

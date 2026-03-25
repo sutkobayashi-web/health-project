@@ -82,9 +82,12 @@ router.post('/generate-themes', async (req, res) => {
     const posts = db.prepare(`
       SELECT post_id, content, analysis, department, category, created_at
       FROM posts WHERE status IN ('open','public') AND created_at > datetime('now', '-3 months')
+      AND content NOT LIKE '【写真】%'
+      AND COALESCE(category,'') NOT LIKE '%食事%'
+      AND COALESCE(category,'') NOT LIKE '%栄養%'
       ORDER BY created_at DESC
     `).all();
-    if (posts.length < 3) return res.json({ success: false, msg: '投稿が少なすぎます（最低3件必要）' });
+    if (posts.length < 3) return res.json({ success: false, msg: '相談・提案の投稿が少なすぎます（食事投稿を除き最低3件必要）' });
 
     // 共感データを集計（投稿ごと）
     const empathyByPost = {};

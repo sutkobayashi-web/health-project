@@ -4669,6 +4669,11 @@ if ('serviceWorker' in navigator) {
         if (nw.state === 'activated') location.reload();
       });
     });
+    // ページ表示のたびにSW更新チェック（iOS standalone対策）
+    setInterval(function() { reg.update(); }, 60000);
+    document.addEventListener('visibilitychange', function() {
+      if (document.visibilityState === 'visible') reg.update();
+    });
   });
 }
 </script>

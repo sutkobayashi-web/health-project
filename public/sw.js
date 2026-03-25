@@ -1,5 +1,5 @@
 // Service Worker - Network First (常に最新を取得、オフライン時のみキャッシュ使用)
-const CACHE_NAME = 'cowell-health-v1';
+const CACHE_NAME = 'cowell-health-v2';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();

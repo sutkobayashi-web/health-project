@@ -13,7 +13,8 @@ CREATE TABLE IF NOT EXISTS users (
   inviter_id TEXT,
   real_name TEXT,
   department TEXT,
-  birth_date TEXT
+  birth_date TEXT,
+  session_token TEXT
 );
 
 -- CoreMembers シート → core_members テーブル

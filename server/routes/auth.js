@@ -57,11 +57,12 @@ router.post('/register', (req, res) => {
     if (existing) return res.json({ success: false, msg: '使用済みニックネーム' });
 
     const uid = uuidv4();
+    const sid = crypto.randomUUID ? crypto.randomUUID() : uuidv4();
     const passwordHash = hashPasswordBcrypt(password.trim());
-    db.prepare(`INSERT INTO users (id, nickname, password_hash, avatar, inviter_id, real_name, department, birth_date)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`).run(uid, nickname.trim(), passwordHash, avatar || '😀', inviterId || '', realName || '', department || '', birthDate || '');
+    db.prepare(`INSERT INTO users (id, nickname, password_hash, avatar, inviter_id, real_name, department, birth_date, session_token)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(uid, nickname.trim(), passwordHash, avatar || '😀', inviterId || '', realName || '', department || '', birthDate || '', sid);
 
-    const token = generateToken({ uid, nickname: nickname.trim(), type: 'user' });
+    const token = generateToken({ uid, nickname: nickname.trim(), type: 'user', sid: sid });
     res.json({ success: true, uid, nickname: nickname.trim(), avatar: avatar || '😀', inviteCount: 0, department, birthDate, token });
   } catch (e) {
     res.json({ success: false, msg: e.message });
@@ -81,7 +82,10 @@ router.post('/login', (req, res) => {
       return res.json({ success: false, msg: '認証失敗' });
     }
     const inviteCount = db.prepare('SELECT COUNT(*) as cnt FROM users WHERE inviter_id = ?').get(user.id).cnt;
-    const token = generateToken({ uid: user.id, nickname: user.nickname, type: 'user' });
+    // セッションID発行（同時ログイン防止）
+    const sid = crypto.randomUUID ? crypto.randomUUID() : require('uuid').v4();
+    db.prepare('UPDATE users SET session_token = ? WHERE id = ?').run(sid, user.id);
+    const token = generateToken({ uid: user.id, nickname: user.nickname, type: 'user', sid: sid });
     res.json({ success: true, uid: user.id, nickname: user.nickname, avatar: user.avatar, inviteCount, department: user.department || '', birthDate: user.birth_date || '', realName: user.real_name || '', token });
   } catch (e) {
     res.json({ success: false, msg: e.message });

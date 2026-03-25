@@ -175,13 +175,17 @@ async function searchYearData(token, yearFolder, realName) {
   return null;
 }
 
-// POST /api/checkup/my — 本人確認（生年月日+パスワード）後に健診結果を返却
+// POST /api/checkup/my — 誓約同意+本人確認（生年月日+パスワード）後に健診結果を返却
 router.post('/my', authUser, async (req, res) => {
   try {
     var birthDate = req.body.birthDate;
     var password = req.body.password;
+    var agreed = req.body.agreed;
     if (!birthDate || !password) {
       return res.json({ success: false, msg: '生年月日とパスワードを入力してください。' });
+    }
+    if (!agreed) {
+      return res.json({ success: false, msg: '誓約事項に同意してください。' });
     }
 
     var db = getDb();
@@ -198,6 +202,15 @@ router.post('/my', authUser, async (req, res) => {
     // 生年月日検証
     if (!user.birth_date || normalizeBirthDate(birthDate) !== normalizeBirthDate(user.birth_date)) {
       return res.json({ success: false, msg: '生年月日が一致しません。' });
+    }
+
+    // アクセスログ記録（内部統制：誰が・いつ・どこから閲覧したか）
+    try {
+      var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress || '';
+      var ua = req.headers['user-agent'] || '';
+      db.prepare('INSERT INTO checkup_access_log (user_id, ip_address, user_agent) VALUES (?, ?, ?)').run(req.user.uid, ip, ua.substring(0, 500));
+    } catch (logErr) {
+      console.error('健診アクセスログ記録エラー:', logErr.message);
     }
 
     const token = await getBoxToken();

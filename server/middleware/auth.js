@@ -13,12 +13,23 @@ function verifyToken(token) {
   return jwt.verify(token, JWT_SECRET());
 }
 
-// ユーザー認証ミドルウェア
+// ユーザー認証ミドルウェア（セッション検証付き）
 function authUser(req, res, next) {
   const token = req.headers.authorization?.replace('Bearer ', '');
   if (!token) return res.status(401).json({ success: false, msg: '認証が必要です' });
   try {
-    req.user = verifyToken(token);
+    const payload = verifyToken(token);
+    req.user = payload;
+    // セッショントークン検証（同時ログイン防止）
+    if (payload.sid && payload.uid) {
+      try {
+        const { getDb } = require('../services/db');
+        const user = getDb().prepare('SELECT session_token FROM users WHERE id = ?').get(payload.uid);
+        if (user && user.session_token && user.session_token !== payload.sid) {
+          return res.status(401).json({ success: false, msg: '別の端末でログインされました。再ログインしてください。', code: 'SESSION_EXPIRED' });
+        }
+      } catch (dbErr) { /* DB未初期化時はスキップ */ }
+    }
     next();
   } catch (e) {
     res.status(401).json({ success: false, msg: 'トークンが無効です' });

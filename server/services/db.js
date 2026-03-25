@@ -46,6 +46,19 @@ function getDb() {
       success INTEGER DEFAULT 1,
       created_at TEXT DEFAULT (datetime('now'))
     )`);
+    // マイグレーション: users に session_token カラム追加（同時ログイン防止）
+    const userCols = db.prepare("PRAGMA table_info(users)").all();
+    if (!userCols.find(c => c.name === 'session_token')) {
+      db.exec("ALTER TABLE users ADD COLUMN session_token TEXT");
+    }
+    // マイグレーション: 健診閲覧ログ
+    db.exec(`CREATE TABLE IF NOT EXISTS checkup_access_log (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id TEXT NOT NULL,
+      ip_address TEXT,
+      user_agent TEXT,
+      created_at TEXT DEFAULT (datetime('now'))
+    )`);
   }
   return db;
 }

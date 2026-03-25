@@ -20,6 +20,17 @@ async function api(path, data, token) {
     const res = await fetch(API_BASE + path, opts);
     if (!res.ok) {
       console.error('API error:', path, res.status, res.statusText);
+      if (res.status === 401) {
+        try {
+          var errData = await res.json();
+          if (errData.code === 'SESSION_EXPIRED') {
+            alert('別の端末でログインされたため、セッションが無効になりました。再ログインしてください。');
+            localStorage.removeItem('co_heart_token');
+            location.reload();
+            return { success: false, msg: errData.msg };
+          }
+        } catch (e) {}
+      }
       return { success: false, msg: 'HTTP ' + res.status };
     }
     return res.json();

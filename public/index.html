@@ -1182,6 +1182,9 @@ function doUserLogout() {
   localStorage.removeItem('co_heart_user_pass');
   localStorage.removeItem('co_heart_user_data');
   currentUser = null;
+  // AI相談チャットをリセット（次ユーザーに前のニックネームが残る問題を防止）
+  nurseInited = false; nurseHistory = []; nurseReady = true;
+  var nurseArea = document.getElementById('nurse-messages'); if (nurseArea) nurseArea.innerHTML = '';
   document.getElementById('main-app').style.display = 'none';
   document.getElementById('auth-modal').style.display = 'flex';
   var bn = document.getElementById('bottom-nav'); if (bn) bn.style.display = 'none';

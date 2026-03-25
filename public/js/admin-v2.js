@@ -191,22 +191,52 @@ function doGenerateThemes() {
   if (!confirm('AIテーマ凝集を実行しますか？直近3ヶ月の投稿を分析します。\n\n※未評価の投稿は自動で7軸評価してから凝集します')) return;
   showLoading('未評価の投稿を7軸評価中...');
   api('/admin/auto-evaluate-all', {}, getAdminToken()).then(function(evalRes) {
-    hideLoading();
-    if (!evalRes.success) { alert('7軸評価エラー: ' + (evalRes.msg || '不明')); return; }
-    // 7軸評価レポートを表示してから凝集に進む
-    showEvalReport(evalRes, function() {
-      showLoading('AIがテーマを分析中...');
-      generateThemes().then(function(res) {
-        hideLoading();
-        if (res.success) {
-          alert('サイクル #' + res.cycleNumber + ' のテーマ候補を' + res.themes.length + '件生成しました');
-          renderV2Dashboard();
-        } else {
-          alert('エラー: ' + (res.msg || '不明'));
-        }
+    if (!evalRes.success) { hideLoading(); alert('7軸評価エラー: ' + (evalRes.msg || '不明')); return; }
+    if (evalRes.status === 'complete') {
+      // 全て評価済み — そのまま凝集へ
+      hideLoading();
+      showEvalReport(evalRes, function() {
+        showLoading('AIがテーマを分析中...');
+        generateThemes().then(function(res) {
+          hideLoading();
+          if (res.success) {
+            alert('サイクル #' + res.cycleNumber + ' のテーマ候補を' + res.themes.length + '件生成しました');
+            renderV2Dashboard();
+          } else { alert('エラー: ' + (res.msg || '不明')); }
+        });
       });
-    });
+    } else {
+      // バックグラウンド処理開始 — ポーリングで進捗確認
+      pollEvalProgress(function(finalRes) {
+        hideLoading();
+        showEvalReport(finalRes, function() {
+          showLoading('AIがテーマを分析中...');
+          generateThemes().then(function(res) {
+            hideLoading();
+            if (res.success) {
+              alert('サイクル #' + res.cycleNumber + ' のテーマ候補を' + res.themes.length + '件生成しました');
+              renderV2Dashboard();
+            } else { alert('エラー: ' + (res.msg || '不明')); }
+          });
+        });
+      });
+    }
   });
+}
+
+function pollEvalProgress(callback) {
+  var pollTimer = setInterval(function() {
+    api('/admin/auto-evaluate-status', undefined, getAdminToken()).then(function(res) {
+      if (!res.success) return;
+      var pct = res.total > 0 ? Math.round((res.evaluated + res.failed) / res.total * 100) : 0;
+      var loadingText = document.getElementById('loading-text');
+      if (loadingText) loadingText.textContent = '7軸評価中... ' + (res.evaluated + res.failed) + '/' + res.total + '件 (' + pct + '%) 成功:' + res.evaluated + ' 失敗:' + res.failed;
+      if (res.status === 'complete' || res.status === 'idle') {
+        clearInterval(pollTimer);
+        callback(res);
+      }
+    });
+  }, 5000);
 }
 
 function showEvalReport(evalRes, onProceed) {

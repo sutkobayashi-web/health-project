@@ -899,57 +899,100 @@ router.post('/auto-evaluate', async (req, res) => {
   } catch (e) { res.json({ success: false, msg: e.message }); }
 });
 
-// 未評価投稿の一括7軸評価API（凝集前に呼ばれる）
+// 7軸評価のバックグラウンド処理状態
+var evalJobState = { running: false, evaluated: 0, failed: 0, total: 0, done: false, error: null };
+
+// バックグラウンドで7軸評価を実行する関数
+async function runEvalJob() {
+  const db = getDb();
+  const unevaluated = db.prepare(`
+    SELECT p.post_id, p.nickname, substr(p.content, 1, 60) as content_short FROM posts p
+    LEFT JOIN auto_evaluations ae ON p.post_id = ae.post_id
+    WHERE p.status IN ('open','public') AND p.created_at > datetime('now', '-3 months')
+    AND ae.post_id IS NULL
+  `).all();
+
+  evalJobState = { running: true, evaluated: 0, failed: 0, total: unevaluated.length, done: false, error: null };
+
+  for (let i = 0; i < unevaluated.length; i++) {
+    const row = unevaluated[i];
+    if (i > 0) await new Promise(r => setTimeout(r, 3000));
+    let retried = false;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        await evaluateSinglePost(row.post_id);
+        evalJobState.evaluated++;
+        break;
+      } catch (e) {
+        if (e.message && e.message.includes('429') && !retried) {
+          retried = true;
+          console.log('[auto-evaluate-all] Rate limited, waiting 10s:', row.post_id);
+          await new Promise(r => setTimeout(r, 10000));
+          continue;
+        }
+        console.error('[auto-evaluate-all] Failed:', row.post_id, e.message);
+        evalJobState.failed++;
+        break;
+      }
+    }
+  }
+  evalJobState.running = false;
+  evalJobState.done = true;
+}
+
+// 一括7軸評価API — バックグラウンド起動してすぐ返す
 router.post('/auto-evaluate-all', async (req, res) => {
   try {
+    if (evalJobState.running) {
+      return res.json({ success: true, status: 'running', ...evalJobState });
+    }
+
     const db = getDb();
     const unevaluated = db.prepare(`
-      SELECT p.post_id, p.nickname, substr(p.content, 1, 60) as content_short FROM posts p
+      SELECT COUNT(*) as cnt FROM posts p
       LEFT JOIN auto_evaluations ae ON p.post_id = ae.post_id
       WHERE p.status IN ('open','public') AND p.created_at > datetime('now', '-3 months')
       AND ae.post_id IS NULL
-    `).all();
+    `).get();
 
-    let evaluated = 0;
-    let failed = 0;
-    const results = [];
-    for (let i = 0; i < unevaluated.length; i++) {
-      const row = unevaluated[i];
-      // レートリミット対策: 2件目以降は3秒待機
-      if (i > 0) await new Promise(r => setTimeout(r, 3000));
-      // リトライ付き（429の場合は10秒待って1回リトライ）
-      let retried = false;
-      for (let attempt = 0; attempt < 2; attempt++) {
-        try {
-          const result = await evaluateSinglePost(row.post_id);
-          evaluated++;
-          results.push({ postId: row.post_id, nickname: row.nickname, content: row.content_short, ...result });
-          break;
-        } catch (e) {
-          if (e.message && e.message.includes('429') && !retried) {
-            retried = true;
-            console.log('[auto-evaluate-all] Rate limited, waiting 10s before retry:', row.post_id);
-            await new Promise(r => setTimeout(r, 10000));
-            continue;
-          }
-          console.error('[auto-evaluate-all] Failed:', row.post_id, e.message);
-          failed++;
-          results.push({ postId: row.post_id, nickname: row.nickname, content: row.content_short, error: e.message });
-          break;
-        }
-      }
+    if (unevaluated.cnt === 0) {
+      // 全て評価済み — 既存評価を返す
+      const allEvals = db.prepare(`
+        SELECT ae.*, p.nickname, substr(p.content, 1, 60) as content_short
+        FROM auto_evaluations ae
+        LEFT JOIN posts p ON ae.post_id = p.post_id
+        ORDER BY ae.total_score DESC
+      `).all();
+      return res.json({ success: true, status: 'complete', evaluated: 0, failed: 0, total: 0, allEvaluations: allEvals });
     }
 
-    // 既存評価も全件返す（レポート用）
-    const allEvals = db.prepare(`
-      SELECT ae.*, p.nickname, substr(p.content, 1, 60) as content_short
-      FROM auto_evaluations ae
-      LEFT JOIN posts p ON ae.post_id = p.post_id
-      ORDER BY ae.total_score DESC
-    `).all();
+    // バックグラウンド起動
+    runEvalJob().catch(e => { evalJobState.running = false; evalJobState.error = e.message; });
 
-    res.json({ success: true, evaluated, failed, total: unevaluated.length, newResults: results, allEvaluations: allEvals });
-  } catch (e) { res.json({ success: false, msg: e.message }); }
+    res.json({ success: true, status: 'started', total: unevaluated.cnt });
+  } catch (e) {
+    res.json({ success: false, msg: e.message });
+  }
+});
+
+// 7軸評価の進捗確認API
+router.get('/auto-evaluate-status', (req, res) => {
+  try {
+    const db = getDb();
+    if (evalJobState.done && !evalJobState.running) {
+      const allEvals = db.prepare(`
+        SELECT ae.*, p.nickname, substr(p.content, 1, 60) as content_short
+        FROM auto_evaluations ae
+        LEFT JOIN posts p ON ae.post_id = p.post_id
+        ORDER BY ae.total_score DESC
+      `).all();
+      res.json({ success: true, status: 'complete', ...evalJobState, allEvaluations: allEvals });
+    } else {
+      res.json({ success: true, status: evalJobState.running ? 'running' : 'idle', ...evalJobState });
+    }
+  } catch (e) {
+    res.json({ success: false, msg: e.message });
+  }
 });
 
 // AI自動評価結果取得

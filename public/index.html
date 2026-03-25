@@ -3680,6 +3680,9 @@ async function loadCheckupData() {
     return;
   }
 
+  // データをグローバルに保持
+  window._checkupResults = r.results;
+
   function fmtJudge(v) {
     if (!v || v === '-') return '';
     var s = String(v);
@@ -3688,34 +3691,70 @@ async function loadCheckupData() {
     return '<span style="color:#388e3c;">異常なし</span>';
   }
 
+  // タブUI
+  var html = '<div style="display:flex; gap:0; margin-bottom:14px; border-radius:25px; overflow:hidden; border:2px solid #e91e63;">';
+  html += '<button id="checkup-tab-yearly" onclick="showCheckupView(\'yearly\')" style="flex:1; padding:9px 0; font-size:0.85rem; font-weight:600; border:none; cursor:pointer; background:#e91e63; color:white;"><i class="fas fa-calendar-alt"></i> 年度別</button>';
+  html += '<button id="checkup-tab-trend" onclick="showCheckupView(\'trend\')" style="flex:1; padding:9px 0; font-size:0.85rem; font-weight:600; border:none; cursor:pointer; background:white; color:#e91e63;"><i class="fas fa-chart-line"></i> 経年推移</button>';
+  html += '</div>';
+  html += '<div id="checkup-yearly-view"></div>';
+  html += '<div id="checkup-trend-view" style="display:none;"></div>';
+
+  content.innerHTML = html;
+
+  renderYearlyView();
+  renderTrendView();
+
+  html += '</div>';
+
+  var footer = '<div style="margin-top:12px; font-size:0.7rem; color:#bbb; text-align:center;"><i class="fas fa-shield-alt"></i> このデータはBoxから都度取得され、サーバーには保存されません</div>';
+  content.innerHTML += footer;
+}
+
+function showCheckupView(mode) {
+  var yearlyEl = document.getElementById('checkup-yearly-view');
+  var trendEl = document.getElementById('checkup-trend-view');
+  var tabY = document.getElementById('checkup-tab-yearly');
+  var tabT = document.getElementById('checkup-tab-trend');
+  if (mode === 'yearly') {
+    yearlyEl.style.display = 'block'; trendEl.style.display = 'none';
+    tabY.style.background = '#e91e63'; tabY.style.color = 'white';
+    tabT.style.background = 'white'; tabT.style.color = '#e91e63';
+  } else {
+    yearlyEl.style.display = 'none'; trendEl.style.display = 'block';
+    tabT.style.background = '#e91e63'; tabT.style.color = 'white';
+    tabY.style.background = 'white'; tabY.style.color = '#e91e63';
+  }
+}
+
+function fmtJudgeGlobal(v) {
+  if (!v || v === '-') return '';
+  var s = String(v);
+  if (s.includes('●')) return '<span style="color:#d32f2f;font-weight:700;">●要医療</span>';
+  if (s.includes('▲')) return '<span style="color:#f57c00;font-weight:700;">▲要改善</span>';
+  return '<span style="color:#388e3c;">-</span>';
+}
+
+function renderYearlyView() {
+  var results = window._checkupResults;
   var html = '';
-  r.results.forEach(function(d) {
+  results.forEach(function(d) {
     html += '<div style="margin-bottom:20px; text-align:left;">';
     html += '<div style="font-weight:700; font-size:1rem; color:#c2185b; margin-bottom:10px; padding-bottom:6px; border-bottom:2px solid #f8bbd0;">';
     html += '<i class="fas fa-calendar-alt"></i> ' + d.年度;
     html += ' <span style="font-size:0.75rem; color:#999; font-weight:400;">受診日: ' + d.健診受診日 + '</span></div>';
-
-    // 基本情報
-    html += '<div style="font-size:0.8rem; color:#666; margin-bottom:10px;">';
-    html += d.支店名 + ' / ' + d.職種 + ' / ' + d.性別 + ' / ' + d.年齢 + '歳</div>';
+    html += '<div style="font-size:0.8rem; color:#666; margin-bottom:10px;">' + d.支店名 + ' / ' + d.職種 + ' / ' + d.性別 + ' / ' + d.年齢 + '歳</div>';
 
     // 総合判定
     html += '<div style="background:#fff3e0; border-radius:8px; padding:10px 12px; margin-bottom:12px; font-size:0.82rem;">';
     html += '<div style="font-weight:700; color:#e65100; margin-bottom:6px;"><i class="fas fa-clipboard-check"></i> 総合判定</div>';
     html += '<div style="display:flex; flex-wrap:wrap; gap:8px;">';
-    var judges = [
-      ['肥満', d.肥満判定], ['高血圧', d.高血圧判定], ['脂質異常', d.脂質異常判定],
-      ['高血糖', d.高血糖判定], ['肝機能', d.肝機能判定], ['腎機能', d.腎機能判定], ['貧血', d.貧血判定]
-    ];
-    judges.forEach(function(j) {
-      var badge = fmtJudge(j[1]);
-      if (!badge) badge = '<span style="color:#388e3c;">-</span>';
+    [['肥満', d.肥満判定], ['高血圧', d.高血圧判定], ['脂質異常', d.脂質異常判定], ['高血糖', d.高血糖判定], ['肝機能', d.肝機能判定], ['腎機能', d.腎機能判定], ['貧血', d.貧血判定]].forEach(function(j) {
+      var badge = fmtJudgeGlobal(j[1]) || '<span style="color:#388e3c;">-</span>';
       html += '<div style="background:white; border-radius:6px; padding:4px 8px; border:1px solid #eee; min-width:70px; text-align:center;">';
       html += '<div style="font-size:0.7rem; color:#999;">' + j[0] + '</div>' + badge + '</div>';
     });
     html += '</div></div>';
 
-    // 検査結果テーブル
     html += '<table style="width:100%; border-collapse:collapse; font-size:0.82rem;">';
     var sections = [
       { title: '生体計測', items: [['身長', d.身長, 'cm'], ['体重', d.体重, 'kg'], ['BMI', d.BMI, ''], ['腹囲', d.腹囲, 'cm']] },
@@ -3729,23 +3768,140 @@ async function loadCheckupData() {
       { title: '聴力', items: [['右(低音)', d.聴力右_低音, ''], ['右(高音)', d.聴力右_高音, ''], ['左(低音)', d.聴力左_低音, ''], ['左(高音)', d.聴力左_高音, '']] },
       { title: 'その他', items: [['心電図', d.心電図, ''], ['胸部レントゲン', d.胸部レントゲン, '']] },
     ];
-
     sections.forEach(function(sec) {
       html += '<tr><td colspan="3" style="background:#fce4ec; padding:5px 8px; font-weight:600; color:#c2185b; border-bottom:1px solid #f8bbd0;">' + sec.title + '</td></tr>';
       sec.items.forEach(function(item) {
-        var val = item[1];
-        if (val === '' || val === undefined || val === null) val = '-';
+        var val = item[1]; if (val === '' || val === undefined || val === null) val = '-';
         html += '<tr><td style="padding:4px 8px; border-bottom:1px solid #f5f5f5; color:#666;">' + item[0] + '</td>';
         html += '<td style="padding:4px 8px; border-bottom:1px solid #f5f5f5; font-weight:600; text-align:right;">' + val + '</td>';
         html += '<td style="padding:4px 4px; border-bottom:1px solid #f5f5f5; color:#999; font-size:0.75rem;">' + item[2] + '</td></tr>';
       });
     });
-
     html += '</table></div>';
   });
+  document.getElementById('checkup-yearly-view').innerHTML = html;
+}
 
-  html += '<div style="margin-top:12px; font-size:0.7rem; color:#bbb; text-align:center;"><i class="fas fa-shield-alt"></i> このデータはBoxから都度取得され、サーバーには保存されません</div>';
-  content.innerHTML = html;
+function renderTrendView() {
+  var results = window._checkupResults;
+  if (!results || results.length < 1) return;
+
+  // 古い順にソート
+  var sorted = results.slice().sort(function(a, b) { return a.年度.localeCompare(b.年度); });
+  var years = sorted.map(function(d) { return d.年度.replace('年度', ''); });
+
+  function trendArrow(vals) {
+    if (vals.length < 2) return '';
+    var last = vals[vals.length - 1];
+    var prev = vals[vals.length - 2];
+    if (typeof last !== 'number' || typeof prev !== 'number') return '';
+    var diff = last - prev;
+    if (Math.abs(diff) < 0.1) return '<span style="color:#888;font-size:0.7rem;"> →</span>';
+    if (diff > 0) return '<span style="color:#d32f2f;font-size:0.7rem;"> ↑' + (diff > 0 ? '+' : '') + (Math.round(diff * 10) / 10) + '</span>';
+    return '<span style="color:#1565c0;font-size:0.7rem;"> ↓' + (Math.round(diff * 10) / 10) + '</span>';
+  }
+
+  function miniBar(val, min, max, warn, danger) {
+    if (typeof val !== 'number') return '';
+    var pct = Math.max(0, Math.min(100, ((val - min) / (max - min)) * 100));
+    var color = '#4caf50';
+    if (danger !== undefined && val >= danger) color = '#d32f2f';
+    else if (warn !== undefined && val >= warn) color = '#f57c00';
+    return '<div style="background:#f5f5f5; border-radius:3px; height:6px; width:100%; margin-top:2px;">' +
+      '<div style="background:' + color + '; border-radius:3px; height:6px; width:' + pct + '%;"></div></div>';
+  }
+
+  var trendItems = [
+    { cat: '生体計測', items: [
+      { label: '体重', key: '体重', unit: 'kg', min: 40, max: 120, warn: 80, danger: 95 },
+      { label: 'BMI', key: 'BMI', unit: '', min: 15, max: 40, warn: 25, danger: 30 },
+      { label: '腹囲', key: '腹囲', unit: 'cm', min: 60, max: 120, warn: 85, danger: 95 },
+    ]},
+    { cat: '血圧', items: [
+      { label: '収縮期(平均)', key: '収縮期_平均', unit: 'mmHg', min: 80, max: 200, warn: 130, danger: 140 },
+      { label: '拡張期(平均)', key: '拡張期_平均', unit: 'mmHg', min: 40, max: 120, warn: 85, danger: 90 },
+    ]},
+    { cat: '脂質', items: [
+      { label: 'LDL', key: 'LDLコレステロール', unit: '', min: 40, max: 250, warn: 140, danger: 180 },
+      { label: 'HDL', key: 'HDLコレステロール', unit: '', min: 20, max: 100 },
+      { label: '中性脂肪', key: '中性脂肪', unit: '', min: 20, max: 400, warn: 150, danger: 300 },
+    ]},
+    { cat: '血糖', items: [
+      { label: '血糖値', key: '血糖値', unit: '', min: 50, max: 250, warn: 100, danger: 126 },
+      { label: 'HbA1c', key: 'HbA1c', unit: '%', min: 3, max: 12, warn: 5.6, danger: 6.5 },
+    ]},
+    { cat: '肝機能', items: [
+      { label: 'GOT(AST)', key: 'GOT_AST', unit: '', min: 0, max: 100, warn: 31, danger: 51 },
+      { label: 'GPT(ALT)', key: 'GPT_ALT', unit: '', min: 0, max: 100, warn: 31, danger: 51 },
+      { label: 'γ-GTP', key: 'γGTP', unit: '', min: 0, max: 150, warn: 51, danger: 101 },
+    ]},
+    { cat: '貧血', items: [
+      { label: 'ヘモグロビン', key: 'ヘモグロビン', unit: '', min: 8, max: 20 },
+    ]},
+  ];
+
+  var html = '<div style="text-align:left;">';
+
+  // 年度ヘッダー
+  html += '<div style="display:flex; gap:4px; margin-bottom:12px; padding:8px 0; border-bottom:2px solid #f8bbd0; overflow-x:auto;">';
+  html += '<div style="min-width:80px; font-size:0.75rem; color:#999; font-weight:600;">項目</div>';
+  years.forEach(function(y) {
+    html += '<div style="min-width:56px; text-align:center; font-size:0.72rem; font-weight:700; color:#c2185b;">' + y + '</div>';
+  });
+  html += '<div style="min-width:40px;"></div></div>';
+
+  trendItems.forEach(function(cat) {
+    html += '<div style="font-weight:700; font-size:0.8rem; color:#c2185b; margin:10px 0 6px; padding:4px 8px; background:#fce4ec; border-radius:6px;">' + cat.cat + '</div>';
+
+    cat.items.forEach(function(item) {
+      var vals = sorted.map(function(d) { return d[item.key]; });
+      var numVals = vals.filter(function(v) { return typeof v === 'number'; });
+
+      html += '<div style="display:flex; align-items:center; gap:4px; padding:6px 0; border-bottom:1px solid #f5f5f5; overflow-x:auto;">';
+      html += '<div style="min-width:80px; font-size:0.75rem; color:#666;">' + item.label + '</div>';
+
+      vals.forEach(function(v, idx) {
+        var display = (v === '' || v === undefined || v === null) ? '-' : v;
+        var cellStyle = 'min-width:56px; text-align:center; font-size:0.82rem; font-weight:600;';
+        if (typeof v === 'number' && item.danger !== undefined && v >= item.danger) {
+          cellStyle += ' color:#d32f2f;';
+        } else if (typeof v === 'number' && item.warn !== undefined && v >= item.warn) {
+          cellStyle += ' color:#f57c00;';
+        }
+        html += '<div style="' + cellStyle + '">' + display + '</div>';
+      });
+
+      // トレンド矢印
+      html += '<div style="min-width:40px; text-align:center;">' + trendArrow(numVals) + '</div>';
+      html += '</div>';
+
+      // 最新値のミニバー
+      if (numVals.length > 0) {
+        var latest = numVals[numVals.length - 1];
+        html += '<div style="padding:0 0 4px 84px;">' + miniBar(latest, item.min, item.max, item.warn, item.danger) + '</div>';
+      }
+    });
+  });
+
+  // 判定推移
+  html += '<div style="font-weight:700; font-size:0.8rem; color:#c2185b; margin:14px 0 6px; padding:4px 8px; background:#fce4ec; border-radius:6px;">判定推移</div>';
+  var judgeKeys = [
+    ['肥満', '肥満判定'], ['高血圧', '高血圧判定'], ['脂質異常', '脂質異常判定'],
+    ['高血糖', '高血糖判定'], ['肝機能', '肝機能判定'], ['腎機能', '腎機能判定'], ['貧血', '貧血判定']
+  ];
+  judgeKeys.forEach(function(jk) {
+    html += '<div style="display:flex; align-items:center; gap:4px; padding:5px 0; border-bottom:1px solid #f5f5f5; overflow-x:auto;">';
+    html += '<div style="min-width:80px; font-size:0.75rem; color:#666;">' + jk[0] + '</div>';
+    sorted.forEach(function(d) {
+      var v = d[jk[1]];
+      var badge = fmtJudgeGlobal(v) || '<span style="color:#ccc;">-</span>';
+      html += '<div style="min-width:56px; text-align:center; font-size:0.75rem;">' + badge + '</div>';
+    });
+    html += '<div style="min-width:40px;"></div></div>';
+  });
+
+  html += '</div>';
+  document.getElementById('checkup-trend-view').innerHTML = html;
 }
 
 function resetCheckupForm() {

@@ -181,9 +181,9 @@ router.post('/my', authUser, async (req, res) => {
 
     const token = await getBoxToken();
 
-    // トップレベルの年度フォルダを取得
+    // トップレベルの年度フォルダを取得（ヘルスケアネットワーク年度 + 結果データ）
     const topItems = await boxListFolder(token, CHECKUP_FOLDER_ID);
-    const yearFolders = topItems
+    var yearFolders = topItems
       .filter(function(i) {
         return i.type === 'folder' && /\d{4}/.test(i.name) && i.name.includes('ヘルスケア');
       })
@@ -193,13 +193,31 @@ router.post('/my', authUser, async (req, res) => {
         return yb.localeCompare(ya);
       });
 
+    // 「ヘルスケアネット結果データ」フォルダも探索（2020-2021年度等の古いデータ）
+    var oldDataFolder = topItems.find(function(i) {
+      return i.type === 'folder' && i.name.includes('結果データ');
+    });
+    if (oldDataFolder) {
+      var oldSubFolders = await boxListFolder(token, oldDataFolder.id);
+      var oldYears = oldSubFolders.filter(function(i) {
+        return i.type === 'folder' && /\d{4}/.test(i.name);
+      });
+      yearFolders = yearFolders.concat(oldYears);
+      // 重複排除＆再ソート
+      yearFolders.sort(function(a, b) {
+        var ya = (a.name.match(/(\d{4})/) || ['', '0'])[1];
+        var yb = (b.name.match(/(\d{4})/) || ['', '0'])[1];
+        return yb.localeCompare(ya);
+      });
+    }
+
     if (yearFolders.length === 0) {
       return res.json({ success: false, msg: '健診結果データが見つかりません' });
     }
 
-    // 最新2年度分を検索
+    // 全年度を検索
     var results = [];
-    for (var fi = 0; fi < Math.min(2, yearFolders.length); fi++) {
+    for (var fi = 0; fi < yearFolders.length; fi++) {
       var yearFolder = yearFolders[fi];
       var yearMatch = yearFolder.name.match(/(\d{4})/);
       var year = yearMatch ? yearMatch[1] : '';

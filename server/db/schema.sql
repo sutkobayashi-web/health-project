@@ -327,6 +327,15 @@ CREATE TABLE IF NOT EXISTS avatar_challenge_config (
   max_votes INTEGER DEFAULT 5
 );
 
+-- 全体通知の既読管理（ユーザーごと）
+CREATE TABLE IF NOT EXISTS notice_reads (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  notice_id TEXT NOT NULL,
+  user_id TEXT NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(notice_id, user_id)
+);
+
 -- AI自動7軸評価
 CREATE TABLE IF NOT EXISTS auto_evaluations (
   id INTEGER PRIMARY KEY AUTOINCREMENT,

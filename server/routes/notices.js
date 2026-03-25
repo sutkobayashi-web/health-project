@@ -78,6 +78,27 @@ router.post('/mark-read', (req, res) => {
   } catch (e) { console.error('[mark-read error]', e.message); res.json({ success: false, msg: e.message }); }
 });
 
+// 全体通知の既読マーク（ユーザーごと）
+router.post('/mark-broadcast-read', (req, res) => {
+  try {
+    const { noticeIds, uid } = req.body;
+    if (!uid || !noticeIds || !Array.isArray(noticeIds)) return res.json({ success: false, msg: 'params missing' });
+    const db = getDb();
+    const stmt = db.prepare('INSERT OR IGNORE INTO notice_reads (notice_id, user_id) VALUES (?, ?)');
+    noticeIds.forEach(nid => stmt.run(nid, uid));
+    res.json({ success: true });
+  } catch (e) { res.json({ success: false, msg: e.message }); }
+});
+
+// 全体通知の既読一覧取得
+router.get('/broadcast-reads/:uid', (req, res) => {
+  try {
+    const db = getDb();
+    const rows = db.prepare('SELECT notice_id FROM notice_reads WHERE user_id = ?').all(req.params.uid);
+    res.json(rows.map(r => r.notice_id));
+  } catch (e) { res.json([]); }
+});
+
 // 管理者既読マーク
 router.post('/admin-read', (req, res) => {
   try {

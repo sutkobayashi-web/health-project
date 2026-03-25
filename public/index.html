@@ -3498,27 +3498,43 @@ function nurseScrollBottom() {
 <script>
 // ====== お知らせ Inbox JS ======
 var _inboxNoticesCache = [];
+var _broadcastReadIds = [];
 
 function getReadBroadcastIds() {
-  try { return JSON.parse(localStorage.getItem('co_heart_read_notices') || '[]'); }
-  catch(e) { return []; }
+  return _broadcastReadIds;
 }
 function addReadBroadcastId(nid) {
-  var ids = getReadBroadcastIds();
-  if (ids.indexOf(nid) === -1) { ids.push(nid); localStorage.setItem('co_heart_read_notices', JSON.stringify(ids)); }
+  if (_broadcastReadIds.indexOf(nid) === -1) _broadcastReadIds.push(nid);
+  fetch('/api/notices/mark-broadcast-read', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ noticeIds: [nid], uid: currentUser.uid }) });
 }
 function addReadBroadcastIds(nids) {
-  var ids = getReadBroadcastIds();
-  nids.forEach(function(nid) { if (ids.indexOf(nid) === -1) ids.push(nid); });
-  localStorage.setItem('co_heart_read_notices', JSON.stringify(ids));
+  var newIds = [];
+  nids.forEach(function(nid) { if (_broadcastReadIds.indexOf(nid) === -1) { _broadcastReadIds.push(nid); newIds.push(nid); } });
+  if (newIds.length > 0) fetch('/api/notices/mark-broadcast-read', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ noticeIds: newIds, uid: currentUser.uid }) });
 }
-function isBroadcastRead(nid) { return getReadBroadcastIds().indexOf(nid) !== -1; }
+function isBroadcastRead(nid) { return _broadcastReadIds.indexOf(nid) !== -1; }
+function loadBroadcastReads() {
+  if (!currentUser) return Promise.resolve();
+  return fetch('/api/notices/broadcast-reads/' + currentUser.uid).then(function(r) { return r.json(); }).then(function(ids) {
+    _broadcastReadIds = ids || [];
+    // localStorageからの移行（一度だけ）
+    try {
+      var local = JSON.parse(localStorage.getItem('co_heart_read_notices') || '[]');
+      var newIds = local.filter(function(nid) { return _broadcastReadIds.indexOf(nid) === -1; });
+      if (newIds.length > 0) {
+        newIds.forEach(function(nid) { _broadcastReadIds.push(nid); });
+        fetch('/api/notices/mark-broadcast-read', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ noticeIds: newIds, uid: currentUser.uid }) });
+      }
+      localStorage.removeItem('co_heart_read_notices');
+    } catch(e) {}
+  }).catch(function() {});
+}
 
 function initInbox() {
   if (!currentUser) return;
   var bn = document.getElementById('bottom-nav');
   if (bn) bn.style.display = 'flex';
-  checkInboxBadge();
+  loadBroadcastReads().then(function() { checkInboxBadge(); });
 }
 
 function checkInboxBadge() {

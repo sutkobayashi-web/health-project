@@ -88,6 +88,14 @@ function getDb() {
       user_agent TEXT,
       created_at TEXT DEFAULT (datetime('now'))
     )`);
+
+    db.exec(`CREATE TABLE IF NOT EXISTS notice_reads (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      notice_id TEXT NOT NULL,
+      user_id TEXT NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(notice_id, user_id)
+    )`);
   }
   return db;
 }

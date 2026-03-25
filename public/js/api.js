@@ -104,6 +104,13 @@ function editPost(postID, userUid, newContent) {
   return api('/posts/edit', { postID, userUid, newContent });
 }
 
+function getMyUnread(uid) {
+  return api('/posts/my-unread/' + uid);
+}
+function markPostRead(uid, postId) {
+  return api('/posts/mark-read', { uid, postId });
+}
+
 // ===== Admin =====
 function getReportData() {
   return api('/admin/inbox', undefined, getAdminToken());

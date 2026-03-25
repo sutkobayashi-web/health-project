@@ -487,4 +487,49 @@ function buildEmpathySummary(responses) {
   };
 }
 
+// ユーザーの投稿に対する未読コメント数を取得
+router.get('/my-unread/:uid', (req, res) => {
+  try {
+    const db = getDb();
+    const uid = req.params.uid;
+    // ユーザーの投稿一覧
+    const myPosts = db.prepare('SELECT post_id FROM posts WHERE user_id = ?').all(uid);
+    if (!myPosts.length) return res.json({ success: true, unread: {} });
+
+    var unread = {};
+    myPosts.forEach(function(p) {
+      var pid = p.post_id;
+      // 既読時刻を取得
+      var readStatus = db.prepare('SELECT last_read_at FROM post_read_status WHERE user_id = ? AND post_id = ?').get(uid, pid);
+      var lastRead = readStatus ? readStatus.last_read_at : null;
+
+      // member_chats（推進メンバーからのチャット）の未読数
+      var chatCount = 0;
+      if (lastRead) {
+        chatCount = db.prepare('SELECT COUNT(*) as c FROM member_chats WHERE post_id = ? AND created_at > ?').get(pid, lastRead).c;
+      } else {
+        chatCount = db.prepare('SELECT COUNT(*) as c FROM member_chats WHERE post_id = ?').get(pid).c;
+      }
+
+      if (chatCount > 0) {
+        unread[pid] = chatCount;
+      }
+    });
+
+    res.json({ success: true, unread: unread });
+  } catch (e) { res.json({ success: true, unread: {} }); }
+});
+
+// 投稿の管理者コメントを既読にする
+router.post('/mark-read', (req, res) => {
+  try {
+    const db = getDb();
+    var uid = req.body.uid;
+    var postId = req.body.postId;
+    if (!uid || !postId) return res.json({ success: false });
+    db.prepare("INSERT INTO post_read_status (user_id, post_id, last_read_at) VALUES (?, ?, datetime('now')) ON CONFLICT(user_id, post_id) DO UPDATE SET last_read_at = datetime('now')").run(uid, postId);
+    res.json({ success: true });
+  } catch (e) { res.json({ success: false }); }
+});
+
 module.exports = router;

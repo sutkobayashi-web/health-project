@@ -51,6 +51,14 @@ function getDb() {
     if (!userCols.find(c => c.name === 'session_token')) {
       db.exec("ALTER TABLE users ADD COLUMN session_token TEXT");
     }
+    // マイグレーション: ユーザー投稿既読管理（新着バッジ用）
+    db.exec(`CREATE TABLE IF NOT EXISTS post_read_status (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id TEXT NOT NULL,
+      post_id TEXT NOT NULL,
+      last_read_at TEXT DEFAULT (datetime('now')),
+      UNIQUE(user_id, post_id)
+    )`);
     // マイグレーション: 健診閲覧ログ
     db.exec(`CREATE TABLE IF NOT EXISTS checkup_access_log (
       id INTEGER PRIMARY KEY AUTOINCREMENT,

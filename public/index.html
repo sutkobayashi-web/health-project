@@ -1528,6 +1528,38 @@ function onLoginSuccess() {
   loadEmpathyAnswered();
   checkUnreadNotices();
   setInterval(checkUnreadNotices, 60000);
+  loadMyUnread();
+  setInterval(loadMyUnread, 60000);
+}
+
+function loadMyUnread() {
+  if (!currentUser) return;
+  getMyUnread(currentUser.uid).then(function(res) {
+    if (res && res.success) {
+      window._myUnreadMap = res.unread || {};
+      // 既存のバッジを更新
+      for (var pid in window._myUnreadMap) {
+        var el = document.getElementById('post-new-' + pid);
+        if (el) { el.innerHTML = '<i class="fas fa-bell"></i> 新着' + window._myUnreadMap[pid] + '件'; el.style.display = 'inline-flex'; }
+      }
+      // 消えたものを非表示
+      document.querySelectorAll('.post-new-badge').forEach(function(el) {
+        var id = el.id.replace('post-new-', '');
+        if (!window._myUnreadMap[id]) el.style.display = 'none';
+      });
+    }
+  });
+}
+
+function openMyPostChat(postId) {
+  if (!currentUser) return;
+  markPostRead(currentUser.uid, postId).then(function() {
+    var el = document.getElementById('post-new-' + postId);
+    if (el) el.style.display = 'none';
+    if (window._myUnreadMap) delete window._myUnreadMap[postId];
+  });
+  // マイページのチャット表示を開く
+  if (typeof loadMyPostChats === 'function') loadMyPostChats(postId);
 }
 
 function checkUnreadNotices() {
@@ -1899,12 +1931,18 @@ function renderPost(p) {
   var thumbHtml = (p.imageUrl && p.imageUrl.length > 1)
     ? '<img src="' + p.imageUrl + '" style="width:48px;height:48px;object-fit:cover;border-radius:8px;border:1px solid #eee;flex-shrink:0;" onerror="this.style.display=\'none\'">'
     : '';
+  // 新着バッジ（自分の投稿のみ）
+  var unreadBadge = '';
+  if (isOwn && window._myUnreadMap && window._myUnreadMap[p.id]) {
+    var cnt = window._myUnreadMap[p.id];
+    unreadBadge = '<span class="post-new-badge" id="post-new-' + p.id + '" style="display:inline-flex;align-items:center;gap:3px;background:linear-gradient(135deg,#e91e63,#c2185b);color:white;border-radius:10px;padding:2px 8px;font-size:0.6rem;font-weight:700;margin-left:6px;animation:pulseGlow 1.5s infinite;cursor:pointer;" onclick="event.stopPropagation();openMyPostChat(\'' + p.id + '\');"><i class="fas fa-bell"></i> 新着' + cnt + '件</span>';
+  }
   return '<div class="post-card" data-row="' + p.row + '">' +
     '<div class="post-header-bar ' + headerClass + '"><span><i class="' + icon + '"></i> ' + catName + '</span><span>' + p.date + '</span></div>' +
     '<div class="post-content">' +
       '<div class="user-info">' +
         '<div class="avatar">' + avatarHtml + '</div>' +
-        '<div class="nick">' + p.nickname + ' <span class="rank">' + p.authorRank + '</span></div>' +
+        '<div class="nick">' + p.nickname + ' <span class="rank">' + p.authorRank + '</span>' + unreadBadge + '</div>' +
         ownBtns +
         (function() {
           var empathied = _empathyAnsweredPosts[p.id];
@@ -2217,9 +2255,15 @@ function openMyPostDetail(postId, authorUid) {
       '</div>';
     sheet.innerHTML = html;
 
-    // 推進メンバーチャット読み込み
+    // 推進メンバーチャット読み込み（既読化も実行）
     var chatArea = document.getElementById('my-post-chats');
     if (p.chatCount > 0) {
+      // 既読マーク
+      markPostRead(currentUser.uid, postId);
+      var badgeEl = document.getElementById('post-new-' + postId);
+      if (badgeEl) badgeEl.style.display = 'none';
+      if (window._myUnreadMap) delete window._myUnreadMap[postId];
+
       chatArea.innerHTML = '<div style="font-size:0.75rem;color:#999;"><i class="fas fa-spinner fa-spin"></i> メンバーの議論を読み込み中...</div>';
       getPostMemberChats(postId, currentUser.uid).then(function(cres) {
         if (cres.success && cres.chats && cres.chats.length > 0) {

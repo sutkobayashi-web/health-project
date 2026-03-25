@@ -136,22 +136,43 @@ function extractCheckupData(buffer, realName) {
   return null;
 }
 
-// 再帰的に判定結果xlsmを探す
+// 判定結果xlsmを探す（深さ制限付き、サブフォルダは並列）
 async function findCheckupFiles(token, folderId, depth) {
-  if (depth > 4) return [];
-  const items = await boxListFolder(token, folderId);
-  const results = [];
-  for (const item of items) {
-    if (item.type === 'file' && item.name.includes('判定結果') &&
-        (item.name.endsWith('.xlsm') || item.name.endsWith('.xlsx'))) {
-      results.push(item);
-    }
-    if (item.type === 'folder' && depth < 4) {
-      const sub = await findCheckupFiles(token, item.id, depth + 1);
-      results.push(...sub);
-    }
+  if (depth > 2) return [];
+  var items = await boxListFolder(token, folderId);
+  var files = items.filter(function(i) {
+    return i.type === 'file' && i.name.includes('判定結果') &&
+      (i.name.endsWith('.xlsm') || i.name.endsWith('.xlsx'));
+  });
+  if (files.length > 0) return files;
+  // サブフォルダを並列探索
+  var subFolders = items.filter(function(i) { return i.type === 'folder'; });
+  var subResults = await Promise.all(subFolders.map(function(f) {
+    return findCheckupFiles(token, f.id, depth + 1);
+  }));
+  var all = [];
+  subResults.forEach(function(r) { all = all.concat(r); });
+  return all;
+}
+
+// 1年度分のデータを取得する関数
+async function searchYearData(token, yearFolder, realName) {
+  var yearMatch = yearFolder.name.match(/(\d{4})/);
+  var year = yearMatch ? yearMatch[1] : '';
+  var xlsmFiles = await findCheckupFiles(token, yearFolder.id, 0);
+  // 全xlsmを並列ダウンロード＆検索
+  var results = await Promise.all(xlsmFiles.map(async function(f) {
+    try {
+      var buffer = await boxDownloadFile(token, f.id);
+      return extractCheckupData(buffer, realName);
+    } catch (e) { return null; }
+  }));
+  var found = results.find(function(r) { return r !== null; });
+  if (found) {
+    delete found.氏名;
+    return Object.assign({ 年度: year + '年度' }, found);
   }
-  return results;
+  return null;
 }
 
 // POST /api/checkup/my — 本人確認（生年月日+パスワード）後に健診結果を返却
@@ -215,29 +236,12 @@ router.post('/my', authUser, async (req, res) => {
       return res.json({ success: false, msg: '健診結果データが見つかりません' });
     }
 
-    // 全年度を検索
-    var results = [];
-    for (var fi = 0; fi < yearFolders.length; fi++) {
-      var yearFolder = yearFolders[fi];
-      var yearMatch = yearFolder.name.match(/(\d{4})/);
-      var year = yearMatch ? yearMatch[1] : '';
-
-      var xlsmFiles = await findCheckupFiles(token, yearFolder.id, 0);
-
-      for (var xi = 0; xi < xlsmFiles.length; xi++) {
-        try {
-          var buffer = await boxDownloadFile(token, xlsmFiles[xi].id);
-          var checkup = extractCheckupData(buffer, user.real_name);
-          if (checkup) {
-            delete checkup.氏名;
-            results.push(Object.assign({ 年度: year + '年度' }, checkup));
-            break;
-          }
-        } catch (dlErr) {
-          console.error('健診ファイルDLエラー:', xlsmFiles[xi].name, dlErr.message);
-        }
-      }
-    }
+    // 全年度を並列検索（最大6年度）
+    var targetFolders = yearFolders.slice(0, 6);
+    var yearResults = await Promise.all(targetFolders.map(function(yf) {
+      return searchYearData(token, yf, user.real_name);
+    }));
+    var results = yearResults.filter(function(r) { return r !== null; });
 
     if (results.length === 0) {
       return res.json({ success: false, msg: 'あなたの健診結果が見つかりませんでした' });

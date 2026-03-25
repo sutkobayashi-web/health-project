@@ -9,9 +9,32 @@ const fetch = require('node-fetch');
 const XLSX = require('xlsx');
 const { authUser } = require('../middleware/auth');
 const { getBoxToken } = require('../services/backup');
+const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 const { getDb } = require('../services/db');
 
 const CHECKUP_FOLDER_ID = process.env.BOX_CHECKUP_FOLDER_ID || '354720844674';
+
+// パスワード検証（bcrypt / SHA256 / 平文に対応）
+function verifyPassword(inputPassword, storedHash) {
+  if (!storedHash || storedHash.length === 0) return false;
+  if (storedHash.startsWith('$2')) {
+    return bcrypt.compareSync(inputPassword, storedHash);
+  }
+  var sha = crypto.createHash('sha256').update(inputPassword).digest('hex');
+  if (storedHash === sha) return true;
+  if (storedHash === inputPassword) return true;
+  return false;
+}
+
+// 生年月日の正規化比較（YYYY/MM/DD, YYYY-MM-DD, YYYYMMDD 等に対応）
+function normalizeBirthDate(d) {
+  if (!d) return '';
+  var s = String(d).replace(/[\/\-\.年月日\s]/g, '');
+  // 8桁の数字にする
+  if (s.length === 8) return s;
+  return s;
+}
 
 async function boxListFolder(token, folderId) {
   const res = await fetch(
@@ -131,12 +154,29 @@ async function findCheckupFiles(token, folderId, depth) {
   return results;
 }
 
-// GET /api/checkup/my
-router.get('/my', authUser, async (req, res) => {
+// POST /api/checkup/my — 本人確認（生年月日+パスワード）後に健診結果を返却
+router.post('/my', authUser, async (req, res) => {
   try {
-    const user = getDb().prepare('SELECT real_name, department FROM users WHERE id = ?').get(req.user.uid);
+    var birthDate = req.body.birthDate;
+    var password = req.body.password;
+    if (!birthDate || !password) {
+      return res.json({ success: false, msg: '生年月日とパスワードを入力してください。' });
+    }
+
+    var db = getDb();
+    const user = db.prepare('SELECT real_name, department, birth_date, password_hash FROM users WHERE id = ?').get(req.user.uid);
     if (!user || !user.real_name) {
       return res.json({ success: false, msg: '実名が登録されていません。管理者にご連絡ください。' });
+    }
+
+    // パスワード検証
+    if (!verifyPassword(password, user.password_hash)) {
+      return res.json({ success: false, msg: 'パスワードが正しくありません。' });
+    }
+
+    // 生年月日検証
+    if (!user.birth_date || normalizeBirthDate(birthDate) !== normalizeBirthDate(user.birth_date)) {
+      return res.json({ success: false, msg: '生年月日が一致しません。' });
     }
 
     const token = await getBoxToken();

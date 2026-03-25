@@ -623,8 +623,17 @@
       </div>
       <div id="checkup-body" style="display:none; margin-top:12px; padding-top:12px; border-top:1px solid rgba(233,30,99,0.2);">
         <div id="checkup-content" style="text-align:center;">
-          <button onclick="loadCheckupData()" style="background:linear-gradient(135deg,#e91e63,#c2185b); color:white; border:none; padding:12px 28px; border-radius:25px; font-size:0.95rem; cursor:pointer; font-weight:600;"><i class="fas fa-search"></i> 健診結果を表示</button>
-          <div style="margin-top:8px; font-size:0.7rem; color:#bbb;"><i class="fas fa-lock" style="margin-right:3px;"></i> 本人のみ閲覧可能・データはサーバーに保存されません</div>
+          <div id="checkup-auth-form">
+            <div style="font-size:0.85rem; color:#666; margin-bottom:12px;"><i class="fas fa-shield-alt" style="color:#e91e63;"></i> 本人確認が必要です</div>
+            <div style="max-width:280px; margin:0 auto; text-align:left;">
+              <label style="font-size:0.78rem; color:#888; display:block; margin-bottom:4px;">生年月日</label>
+              <input type="date" id="checkup-birth" style="width:100%; padding:10px 12px; border:1.5px solid #e0e0e0; border-radius:10px; font-size:0.9rem; margin-bottom:10px; box-sizing:border-box;" />
+              <label style="font-size:0.78rem; color:#888; display:block; margin-bottom:4px;">パスワード</label>
+              <input type="password" id="checkup-pass" placeholder="ログインパスワード" style="width:100%; padding:10px 12px; border:1.5px solid #e0e0e0; border-radius:10px; font-size:0.9rem; margin-bottom:14px; box-sizing:border-box;" />
+              <button onclick="loadCheckupData()" style="width:100%; background:linear-gradient(135deg,#e91e63,#c2185b); color:white; border:none; padding:12px; border-radius:25px; font-size:0.95rem; cursor:pointer; font-weight:600;"><i class="fas fa-search"></i> 健診結果を表示</button>
+            </div>
+            <div style="margin-top:8px; font-size:0.7rem; color:#bbb;"><i class="fas fa-lock" style="margin-right:3px;"></i> 本人のみ閲覧可能・データはサーバーに保存されません</div>
+          </div>
         </div>
       </div>
     </div>
@@ -3619,12 +3628,25 @@ function escapeHtml(t) {
 }
 // ====== 健診結果 ======
 async function loadCheckupData() {
+  var birthEl = document.getElementById('checkup-birth');
+  var passEl = document.getElementById('checkup-pass');
+  if (!birthEl.value || !passEl.value) {
+    alert('生年月日とパスワードを入力してください。');
+    return;
+  }
   var content = document.getElementById('checkup-content');
-  content.innerHTML = '<div style="padding:20px;"><i class="fas fa-spinner fa-spin"></i> 健診データを取得中...</div>';
+  content.innerHTML = '<div style="padding:20px;"><i class="fas fa-spinner fa-spin"></i> 本人確認中... 健診データを取得しています</div>';
 
-  var r = await api('/checkup/my', undefined, getToken());
+  var r = await api('/checkup/my', { birthDate: birthEl.value, password: passEl.value }, getToken());
   if (!r.success) {
-    content.innerHTML = '<div style="padding:15px; color:#e53935; font-size:0.9rem;"><i class="fas fa-exclamation-circle"></i> ' + (r.msg || '取得に失敗しました') + '</div>';
+    content.innerHTML = '<div style="padding:15px; color:#e53935; font-size:0.9rem; margin-bottom:12px;"><i class="fas fa-exclamation-circle"></i> ' + (r.msg || '取得に失敗しました') + '</div>';
+    // 認証フォームを再表示
+    setTimeout(function() {
+      var authForm = document.getElementById('checkup-auth-form');
+      if (!authForm) {
+        content.innerHTML += '<div style="text-align:center; margin-top:10px;"><button onclick="resetCheckupForm()" style="background:#e91e63; color:white; border:none; padding:8px 20px; border-radius:20px; font-size:0.85rem; cursor:pointer;">もう一度試す</button></div>';
+      }
+    }, 100);
     return;
   }
 
@@ -3694,6 +3716,21 @@ async function loadCheckupData() {
 
   html += '<div style="margin-top:12px; font-size:0.7rem; color:#bbb; text-align:center;"><i class="fas fa-shield-alt"></i> このデータはBoxから都度取得され、サーバーには保存されません</div>';
   content.innerHTML = html;
+}
+
+function resetCheckupForm() {
+  var content = document.getElementById('checkup-content');
+  content.innerHTML = '<div id="checkup-auth-form">' +
+    '<div style="font-size:0.85rem; color:#666; margin-bottom:12px;"><i class="fas fa-shield-alt" style="color:#e91e63;"></i> 本人確認が必要です</div>' +
+    '<div style="max-width:280px; margin:0 auto; text-align:left;">' +
+    '<label style="font-size:0.78rem; color:#888; display:block; margin-bottom:4px;">生年月日</label>' +
+    '<input type="date" id="checkup-birth" style="width:100%; padding:10px 12px; border:1.5px solid #e0e0e0; border-radius:10px; font-size:0.9rem; margin-bottom:10px; box-sizing:border-box;" />' +
+    '<label style="font-size:0.78rem; color:#888; display:block; margin-bottom:4px;">パスワード</label>' +
+    '<input type="password" id="checkup-pass" placeholder="ログインパスワード" style="width:100%; padding:10px 12px; border:1.5px solid #e0e0e0; border-radius:10px; font-size:0.9rem; margin-bottom:14px; box-sizing:border-box;" />' +
+    '<button onclick="loadCheckupData()" style="width:100%; background:linear-gradient(135deg,#e91e63,#c2185b); color:white; border:none; padding:12px; border-radius:25px; font-size:0.95rem; cursor:pointer; font-weight:600;"><i class="fas fa-search"></i> 健診結果を表示</button>' +
+    '</div>' +
+    '<div style="margin-top:8px; font-size:0.7rem; color:#bbb;"><i class="fas fa-lock" style="margin-right:3px;"></i> 本人のみ閲覧可能・データはサーバーに保存されません</div>' +
+    '</div>';
 }
 
 function toggleAccordion(bodyId, labelId) {

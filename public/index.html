@@ -22,7 +22,7 @@
 <style>
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html { background: #f0f0f5; overflow-x: hidden; }
-  body { font-family: 'Noto Sans JP', sans-serif; background: linear-gradient(160deg, #f5f0ff 0%, #eef6ff 40%, #f0faf5 100%); margin: 0; padding: 0; min-height: 100vh; padding-bottom: 100px; overscroll-behavior-y: none; }
+  body { font-family: 'Noto Sans JP', sans-serif; background: linear-gradient(160deg, #f5f0ff 0%, #eef6ff 40%, #f0faf5 100%); margin: 0; padding: 0; min-height: 100vh; padding-bottom: 72px; overscroll-behavior-y: none; }
   body.sheet-open { overflow: hidden !important; position: fixed !important; width: 100% !important; touch-action: none; }
 
   /* ====== ヘッダー ====== */
@@ -1173,6 +1173,7 @@ function doUserLogout() {
   currentUser = null;
   document.getElementById('main-app').style.display = 'none';
   document.getElementById('auth-modal').style.display = 'flex';
+  var bn = document.getElementById('bottom-nav'); if (bn) bn.style.display = 'none';
   showStep('menu');
 }
 
@@ -2491,48 +2492,37 @@ function hideLoading() { document.getElementById('loading-overlay').style.displa
 <!-- ====== AIヘルスアドバイザーチャットボット ====== -->
 <style>
 /* --- FABスピードダイヤル --- */
-#fab-speed-dial {
-  position: fixed; bottom: 20px; right: 14px; z-index: 2500;
+/* 旧FABを非表示 */
+#fab-speed-dial { display: none !important; }
+/* ボトムナビゲーションバー */
+#bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 2500;
+  background: white; border-top: 1px solid #e0e0e0;
+  display: flex; justify-content: space-around; align-items: center;
+  padding: 4px 0 calc(4px + env(safe-area-inset-bottom, 0px));
+  box-shadow: 0 -2px 12px rgba(0,0,0,0.08);
 }
-#fab-main-btn {
-  width: 52px; height: 52px; border-radius: 50%;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  border: none; color: white; font-size: 1.3rem;
-  box-shadow: 0 4px 16px rgba(102,126,234,0.4);
-  cursor: pointer; transition: transform 0.3s;
-  display: flex; align-items: center; justify-content: center;
-  position: relative;
+.bnav-item {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 6px 8px; cursor: pointer; position: relative;
+  transition: all 0.15s; border-radius: 8px; min-width: 56px;
+  -webkit-tap-highlight-color: transparent;
 }
-#fab-main-btn.open { transform: rotate(45deg); }
-#fab-main-btn .fab-notify {
-  position: absolute; top: -8px; right: -10px;
+.bnav-item:active { transform: scale(0.9); background: #f5f5f5; }
+.bnav-item .bnav-icon {
+  font-size: 1.15rem; color: #999; transition: color 0.15s;
+}
+.bnav-item .bnav-label {
+  font-size: 0.58rem; font-weight: 600; color: #999; white-space: nowrap;
+}
+.bnav-item.active .bnav-icon, .bnav-item.active .bnav-label { color: #667eea; }
+.bnav-badge {
+  position: absolute; top: 0; right: 4px;
   background: #ff1744; color: white;
-  font-size: 0.55rem; font-weight: 800;
-  padding: 2px 6px; border-radius: 8px;
-  border: 2px solid white; white-space: nowrap;
-  display: none; animation: nPulse 1.5s infinite;
-}
-#fab-speed-items {
-  display: none; flex-direction: column; gap: 10px;
-  position: absolute; bottom: 62px; right: 0;
-  align-items: flex-end;
-}
-#fab-speed-items.open { display: flex; animation: fabSlideUp 0.2s ease-out; }
-@keyframes fabSlideUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
-.fab-speed-item {
-  display: flex; align-items: center; gap: 8px;
-  background: white; border-radius: 24px; padding: 8px 14px 8px 10px;
-  box-shadow: 0 3px 12px rgba(0,0,0,0.15); cursor: pointer;
-  transition: transform 0.15s; white-space: nowrap;
-}
-.fab-speed-item:active { transform: scale(0.95); }
-.fab-speed-item .fab-item-icon {
-  width: 36px; height: 36px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1rem; color: white; flex-shrink: 0;
-}
-.fab-speed-item .fab-item-label {
-  font-size: 0.78rem; font-weight: 700; color: #333; line-height: 1.3;
+  font-size: 0.5rem; font-weight: 800;
+  padding: 1px 5px; border-radius: 8px;
+  border: 2px solid white; display: none;
+  animation: nPulse 1.5s infinite;
 }
 /* 旧FABを非表示 */
 #nurse-fab { display: none !important; }
@@ -2836,30 +2826,30 @@ function hideLoading() { document.getElementById('loading-overlay').style.displa
 <button id="nurse-fab" style="display:none;" onclick="openNurseChat()"><i class="fas fa-heartbeat fab-img" style="font-size:28px;color:#e91e63;"></i><span class="fab-label">AIヘルスアドバイザーに<br>相談する</span><div class="fab-badge" id="nurse-fab-badge" style="display:none;"></div></button>
 
 <!-- スピードダイヤルFAB -->
-<div id="fab-speed-dial" style="display:none;">
-  <div id="fab-speed-items">
-    <div class="fab-speed-item" onclick="openInbox(); toggleFabMenu();">
-      <div class="fab-item-icon" style="background:linear-gradient(135deg,#6c5ce7,#a29bfe);"><i class="fas fa-bell"></i></div>
-      <div class="fab-item-label">お知らせ <span id="fab-inbox-badge" style="background:#ff1744;color:white;font-size:0.6rem;padding:1px 6px;border-radius:8px;display:none;"></span></div>
-    </div>
-    <div class="fab-speed-item" onclick="openMyPosts(); toggleFabMenu();">
-      <div class="fab-item-icon" style="background:linear-gradient(135deg,#ff9800,#ffb74d);"><i class="fas fa-user-edit"></i></div>
-      <div class="fab-item-label">自分の投稿</div>
-    </div>
-    <div class="fab-speed-item" onclick="openNurseChat(); toggleFabMenu();">
-      <div class="fab-item-icon" style="background:linear-gradient(135deg,#ec407a,#f48fb1);"><i class="fas fa-heartbeat"></i></div>
-      <div class="fab-item-label">AIアドバイザーに相談</div>
-    </div>
-    <div class="fab-speed-item" onclick="window.location.href='/guide'; toggleFabMenu();">
-      <div class="fab-item-icon" style="background:linear-gradient(135deg,#667eea,#764ba2);"><i class="fas fa-map-signs"></i></div>
-      <div class="fab-item-label">使い方ガイド</div>
-    </div>
+<div id="fab-speed-dial" style="display:none;"></div>
+<nav id="bottom-nav" style="display:none;">
+  <div class="bnav-item active" onclick="scrollTo({top:0,behavior:'smooth'});">
+    <i class="fas fa-home bnav-icon"></i>
+    <span class="bnav-label">ホーム</span>
   </div>
-  <button id="fab-main-btn" onclick="toggleFabMenu()">
-    <i class="fas fa-plus"></i>
-    <div class="fab-notify" id="fab-notify-dot"></div>
-  </button>
-</div>
+  <div class="bnav-item" onclick="openInbox();">
+    <i class="fas fa-bell bnav-icon"></i>
+    <span class="bnav-label">お知らせ</span>
+    <span class="bnav-badge" id="bnav-inbox-badge"></span>
+  </div>
+  <div class="bnav-item" onclick="openNurseChat();">
+    <i class="fas fa-heartbeat bnav-icon"></i>
+    <span class="bnav-label">AI相談</span>
+  </div>
+  <div class="bnav-item" onclick="openMyPosts();">
+    <i class="fas fa-user bnav-icon"></i>
+    <span class="bnav-label">マイページ</span>
+  </div>
+  <div class="bnav-item" onclick="window.location.href='/guide';">
+    <i class="fas fa-book bnav-icon"></i>
+    <span class="bnav-label">ガイド</span>
+  </div>
+</nav>
 
 <script>
 function toggleFabMenu() {
@@ -3467,8 +3457,8 @@ function isBroadcastRead(nid) { return getReadBroadcastIds().indexOf(nid) !== -1
 
 function initInbox() {
   if (!currentUser) return;
-  var sd = document.getElementById('fab-speed-dial');
-  if (sd) sd.style.display = 'block';
+  var bn = document.getElementById('bottom-nav');
+  if (bn) bn.style.display = 'flex';
   checkInboxBadge();
 }
 
@@ -3519,13 +3509,11 @@ function updateInboxBadge(count) {
     if (count > 0) { badge.style.display = 'flex'; badge.innerText = count; }
     else { badge.style.display = 'none'; }
   }
-  // スピードダイヤルの通知ドットとバッジ
-  var dot = document.getElementById('fab-notify-dot');
-  if (dot) { dot.style.display = count > 0 ? 'block' : 'none'; dot.innerText = count > 0 ? '新着あり' : ''; }
-  var fabBadge = document.getElementById('fab-inbox-badge');
-  if (fabBadge) {
-    if (count > 0) { fabBadge.style.display = 'inline'; fabBadge.innerText = '新着あり'; }
-    else { fabBadge.style.display = 'none'; }
+  // ボトムナビのお知らせバッジ
+  var bnavBadge = document.getElementById('bnav-inbox-badge');
+  if (bnavBadge) {
+    if (count > 0) { bnavBadge.style.display = 'block'; bnavBadge.innerText = count; }
+    else { bnavBadge.style.display = 'none'; }
   }
 }
 

@@ -1591,7 +1591,7 @@ function openMyPostChat(postId) {
 
 function checkUnreadNotices() {
   if (!currentUser) return;
-  getAllNotices(currentUser.uid).then(function(notices) {
+  loadBroadcastReads().then(function() { return getAllNotices(currentUser.uid); }).then(function(notices) {
     if (!notices || notices.length === 0) { updateInboxBadge(0); return; }
     var readBroadcastIds = getReadBroadcastIds();
     var unread = 0;
@@ -3543,7 +3543,7 @@ function checkInboxBadge() {
   if (!badge) return;
   badge.style.display = 'none';
 
-  getAllNotices(currentUser.uid).then(function(notices) {
+  loadBroadcastReads().then(function() { return getAllNotices(currentUser.uid); }).then(function(notices) {
     if (!notices || notices.length === 0) return;
     var totalUnread = 0;
     notices.forEach(function(n) {
@@ -3596,7 +3596,7 @@ function loadInboxContent() {
   var body = document.getElementById('inbox-body');
   body.innerHTML = '<div style="text-align:center;padding:30px;"><div class="spinner-border text-primary" role="status"></div></div>';
 
-  getAllNotices(currentUser.uid).then(function(notices) {
+  loadBroadcastReads().then(function() { return getAllNotices(currentUser.uid); }).then(function(notices) {
     _inboxNoticesCache = notices || [];
     if (!notices || notices.length === 0) {
       body.innerHTML = '<div class="inbox-empty"><i class="far fa-bell-slash"></i><div class="inbox-empty-text">お知らせはありません</div></div>';

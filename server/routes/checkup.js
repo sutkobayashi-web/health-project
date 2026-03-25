@@ -9,12 +9,10 @@ const fetch = require('node-fetch');
 const XLSX = require('xlsx');
 const { authUser } = require('../middleware/auth');
 const { getBoxToken } = require('../services/backup');
-const db = require('../services/db');
+const { getDb } = require('../services/db');
 
-// 健診データの親フォルダID（ヘルスケアネットワーク）
 const CHECKUP_FOLDER_ID = process.env.BOX_CHECKUP_FOLDER_ID || '354720844674';
 
-// Box APIでフォルダ内アイテム一覧取得
 async function boxListFolder(token, folderId) {
   const res = await fetch(
     `https://api.box.com/2.0/folders/${folderId}/items?fields=id,name,type&limit=1000`,
@@ -25,7 +23,6 @@ async function boxListFolder(token, folderId) {
   return data.entries || [];
 }
 
-// Box APIでファイルをダウンロード（バイナリ）
 async function boxDownloadFile(token, fileId) {
   const res = await fetch(
     `https://api.box.com/2.0/files/${fileId}/content`,
@@ -44,16 +41,13 @@ function extractCheckupData(buffer, realName) {
   const data = XLSX.utils.sheet_to_json(sheet, { header: 1 });
   if (data.length < 5) return null;
 
-  // ヘッダー行（行3）
-  const headers = data[3];
-  // 氏名は列2
+  const target = realName.replace(/[\s\u3000]+/g, '');
+
   for (let i = 4; i < data.length; i++) {
     const row = data[i];
     if (!row || !row[2]) continue;
-    const name = String(row[2]).replace(/\s+/g, '');
-    const target = realName.replace(/\s+/g, '');
+    const name = String(row[2]).replace(/[\s\u3000]+/g, '');
     if (name === target) {
-      // 本人の行を見つけた → 主要項目を抽出
       return {
         氏名: row[2],
         支店名: row[4] || '',
@@ -62,6 +56,14 @@ function extractCheckupData(buffer, realName) {
         年齢: row[8] || '',
         性別: row[9] || '',
         健診受診日: row[10] || '',
+        // 判定
+        肥満判定: row[11] || '',
+        高血圧判定: row[12] || '',
+        脂質異常判定: row[13] || '',
+        高血糖判定: row[14] || '',
+        肝機能判定: row[17] || '',
+        腎機能判定: row[18] || '',
+        貧血判定: row[19] || '',
         // 生体計測
         身長: row[29] || '',
         体重: row[30] || '',
@@ -82,12 +84,15 @@ function extractCheckupData(buffer, realName) {
         // 血糖
         血糖値: row[46] || '',
         HbA1c: row[47] || '',
+        尿糖: row[48] || '',
         // 肝機能
         GOT_AST: row[50] || '',
         GPT_ALT: row[51] || '',
         γGTP: row[52] || '',
         // 腎機能
+        尿蛋白: row[54] || '',
         クレアチニン: row[55] || '',
+        尿酸: row[56] || '',
         // 貧血
         ヘモグロビン: row[58] || '',
         赤血球: row[59] || '',
@@ -99,83 +104,79 @@ function extractCheckupData(buffer, realName) {
         聴力右_高音: row[65] || '',
         聴力左_低音: row[66] || '',
         聴力左_高音: row[67] || '',
-        // 総合
-        胸部レントゲン: row[70] || '',
+        // その他
+        心電図: row[69] || '',
+        胸部レントゲン: row[71] || '',
       };
     }
   }
   return null;
 }
 
-// GET /api/checkup/my — 自分の健診結果を取得
+// 再帰的に判定結果xlsmを探す
+async function findCheckupFiles(token, folderId, depth) {
+  if (depth > 4) return [];
+  const items = await boxListFolder(token, folderId);
+  const results = [];
+  for (const item of items) {
+    if (item.type === 'file' && item.name.includes('判定結果') &&
+        (item.name.endsWith('.xlsm') || item.name.endsWith('.xlsx'))) {
+      results.push(item);
+    }
+    if (item.type === 'folder' && depth < 4) {
+      const sub = await findCheckupFiles(token, item.id, depth + 1);
+      results.push(...sub);
+    }
+  }
+  return results;
+}
+
+// GET /api/checkup/my
 router.get('/my', authUser, async (req, res) => {
   try {
-    // ユーザーのreal_nameを取得
-    const user = db.prepare('SELECT real_name, department FROM users WHERE id = ?').get(req.user.uid);
+    const user = getDb().prepare('SELECT real_name, department FROM users WHERE id = ?').get(req.user.uid);
     if (!user || !user.real_name) {
       return res.json({ success: false, msg: '実名が登録されていません。管理者にご連絡ください。' });
     }
 
     const token = await getBoxToken();
 
-    // 1. ヘルスケアネットワーク → ヘルスケアネット結果データ を探す
+    // トップレベルの年度フォルダを取得
     const topItems = await boxListFolder(token, CHECKUP_FOLDER_ID);
-    const resultFolder = topItems.find(i => i.type === 'folder' && i.name.includes('結果データ'));
-    if (!resultFolder) {
-      return res.json({ success: false, msg: '健診結果データフォルダが見つかりません' });
-    }
+    const yearFolders = topItems
+      .filter(function(i) {
+        return i.type === 'folder' && /\d{4}/.test(i.name) && i.name.includes('ヘルスケア');
+      })
+      .sort(function(a, b) {
+        var ya = (a.name.match(/(\d{4})/) || ['', '0'])[1];
+        var yb = (b.name.match(/(\d{4})/) || ['', '0'])[1];
+        return yb.localeCompare(ya);
+      });
 
-    // 2. 年度フォルダ一覧取得 → 最新年度を特定
-    const yearFolders = await boxListFolder(token, resultFolder.id);
-    const sorted = yearFolders
-      .filter(i => i.type === 'folder' && i.name.includes('判定結果'))
-      .sort((a, b) => b.name.localeCompare(a.name));
-
-    if (sorted.length === 0) {
-      return res.json({ success: false, msg: '判定結果フォルダが見つかりません' });
+    if (yearFolders.length === 0) {
+      return res.json({ success: false, msg: '健診結果データが見つかりません' });
     }
 
     // 最新2年度分を検索
-    const results = [];
-    for (const yearFolder of sorted.slice(0, 2)) {
-      // 3. 営業所フォルダ一覧
-      const officeFolders = await boxListFolder(token, yearFolder.id);
+    var results = [];
+    for (var fi = 0; fi < Math.min(2, yearFolders.length); fi++) {
+      var yearFolder = yearFolders[fi];
+      var yearMatch = yearFolder.name.match(/(\d{4})/);
+      var year = yearMatch ? yearMatch[1] : '';
 
-      for (const office of officeFolders) {
-        if (office.type !== 'folder') continue;
+      var xlsmFiles = await findCheckupFiles(token, yearFolder.id, 0);
 
-        // 4. 営業所内の「結果」サブフォルダを探す
-        const officeItems = await boxListFolder(token, office.id);
-        const resultSubFolder = officeItems.find(i => i.type === 'folder' && i.name.includes('結果'));
-
-        const searchFolder = resultSubFolder || office;
-        const files = resultSubFolder
-          ? await boxListFolder(token, resultSubFolder.id)
-          : officeItems;
-
-        // 5. 判定結果xlsmファイルを探す
-        const xlsmFile = files.find(i =>
-          i.type === 'file' && i.name.includes('判定結果') && (i.name.endsWith('.xlsm') || i.name.endsWith('.xlsx'))
-        );
-
-        if (!xlsmFile) continue;
-
-        // 6. ダウンロードして本人データ抽出
+      for (var xi = 0; xi < xlsmFiles.length; xi++) {
         try {
-          const buffer = await boxDownloadFile(token, xlsmFile.id);
-          const checkup = extractCheckupData(buffer, user.real_name);
+          var buffer = await boxDownloadFile(token, xlsmFiles[xi].id);
+          var checkup = extractCheckupData(buffer, user.real_name);
           if (checkup) {
-            // 年度情報を付加
-            const yearMatch = yearFolder.name.match(/(\d{4})/);
-            results.push({
-              年度: yearMatch ? yearMatch[1] + '年度' : yearFolder.name,
-              会社区分: yearFolder.name.includes('SU') ? 'SU' : '茨運',
-              ...checkup
-            });
-            break; // この年度で見つかったので次の年度へ
+            delete checkup.氏名;
+            results.push(Object.assign({ 年度: year + '年度' }, checkup));
+            break;
           }
         } catch (dlErr) {
-          console.error('健診ファイルDLエラー:', xlsmFile.name, dlErr.message);
+          console.error('健診ファイルDLエラー:', xlsmFiles[xi].name, dlErr.message);
         }
       }
     }
@@ -184,7 +185,7 @@ router.get('/my', authUser, async (req, res) => {
       return res.json({ success: false, msg: 'あなたの健診結果が見つかりませんでした' });
     }
 
-    res.json({ success: true, results });
+    res.json({ success: true, results: results });
 
   } catch (e) {
     console.error('健診結果取得エラー:', e.message);

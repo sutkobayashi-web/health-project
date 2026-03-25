@@ -3628,16 +3628,40 @@ async function loadCheckupData() {
     return;
   }
 
+  function fmtJudge(v) {
+    if (!v || v === '-') return '';
+    var s = String(v);
+    if (s.includes('●')) return '<span style="color:#d32f2f;font-weight:700;" title="要医療">●要医療</span>';
+    if (s.includes('▲')) return '<span style="color:#f57c00;font-weight:700;" title="要生活改善">▲要改善</span>';
+    return '<span style="color:#388e3c;">異常なし</span>';
+  }
+
   var html = '';
   r.results.forEach(function(d) {
-    html += '<div style="margin-bottom:16px; text-align:left;">';
+    html += '<div style="margin-bottom:20px; text-align:left;">';
     html += '<div style="font-weight:700; font-size:1rem; color:#c2185b; margin-bottom:10px; padding-bottom:6px; border-bottom:2px solid #f8bbd0;">';
-    html += '<i class="fas fa-calendar-alt"></i> ' + d.年度 + '（' + d.会社区分 + '）';
+    html += '<i class="fas fa-calendar-alt"></i> ' + d.年度;
     html += ' <span style="font-size:0.75rem; color:#999; font-weight:400;">受診日: ' + d.健診受診日 + '</span></div>';
 
     // 基本情報
     html += '<div style="font-size:0.8rem; color:#666; margin-bottom:10px;">';
     html += d.支店名 + ' / ' + d.職種 + ' / ' + d.性別 + ' / ' + d.年齢 + '歳</div>';
+
+    // 総合判定
+    html += '<div style="background:#fff3e0; border-radius:8px; padding:10px 12px; margin-bottom:12px; font-size:0.82rem;">';
+    html += '<div style="font-weight:700; color:#e65100; margin-bottom:6px;"><i class="fas fa-clipboard-check"></i> 総合判定</div>';
+    html += '<div style="display:flex; flex-wrap:wrap; gap:8px;">';
+    var judges = [
+      ['肥満', d.肥満判定], ['高血圧', d.高血圧判定], ['脂質異常', d.脂質異常判定],
+      ['高血糖', d.高血糖判定], ['肝機能', d.肝機能判定], ['腎機能', d.腎機能判定], ['貧血', d.貧血判定]
+    ];
+    judges.forEach(function(j) {
+      var badge = fmtJudge(j[1]);
+      if (!badge) badge = '<span style="color:#388e3c;">-</span>';
+      html += '<div style="background:white; border-radius:6px; padding:4px 8px; border:1px solid #eee; min-width:70px; text-align:center;">';
+      html += '<div style="font-size:0.7rem; color:#999;">' + j[0] + '</div>' + badge + '</div>';
+    });
+    html += '</div></div>';
 
     // 検査結果テーブル
     html += '<table style="width:100%; border-collapse:collapse; font-size:0.82rem;">';
@@ -3645,10 +3669,13 @@ async function loadCheckupData() {
       { title: '生体計測', items: [['身長', d.身長, 'cm'], ['体重', d.体重, 'kg'], ['BMI', d.BMI, ''], ['腹囲', d.腹囲, 'cm']] },
       { title: '血圧', items: [['収縮期(平均)', d.収縮期_平均, 'mmHg'], ['拡張期(平均)', d.拡張期_平均, 'mmHg']] },
       { title: '脂質', items: [['総コレステロール', d.総コレステロール, ''], ['HDL', d.HDLコレステロール, ''], ['LDL', d.LDLコレステロール, ''], ['中性脂肪', d.中性脂肪, '']] },
-      { title: '血糖', items: [['血糖値', d.血糖値, ''], ['HbA1c', d.HbA1c, '%']] },
+      { title: '血糖', items: [['血糖値', d.血糖値, ''], ['HbA1c', d.HbA1c, '%'], ['尿糖', d.尿糖, '']] },
       { title: '肝機能', items: [['GOT(AST)', d.GOT_AST, ''], ['GPT(ALT)', d.GPT_ALT, ''], ['γ-GTP', d.γGTP, '']] },
-      { title: '腎機能・貧血', items: [['クレアチニン', d.クレアチニン, ''], ['ヘモグロビン', d.ヘモグロビン, ''], ['赤血球', d.赤血球, '']] },
+      { title: '腎機能', items: [['尿蛋白', d.尿蛋白, ''], ['クレアチニン', d.クレアチニン, ''], ['尿酸', d.尿酸, '']] },
+      { title: '貧血', items: [['ヘモグロビン', d.ヘモグロビン, ''], ['赤血球', d.赤血球, '']] },
       { title: '視力', items: [['右', d.視力右, ''], ['左', d.視力左, '']] },
+      { title: '聴力', items: [['右(低音)', d.聴力右_低音, ''], ['右(高音)', d.聴力右_高音, ''], ['左(低音)', d.聴力左_低音, ''], ['左(高音)', d.聴力左_高音, '']] },
+      { title: 'その他', items: [['心電図', d.心電図, ''], ['胸部レントゲン', d.胸部レントゲン, '']] },
     ];
 
     sections.forEach(function(sec) {

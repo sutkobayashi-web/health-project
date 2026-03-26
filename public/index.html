@@ -1281,14 +1281,23 @@ function abToggleAcc(idx, previewCanvasId) {
   var savedNick = localStorage.getItem('co_heart_user_nick');
   var savedPass = localStorage.getItem('co_heart_user_pass');
   if (savedNick && savedPass) {
-    // ログイン画面に情報をプリセットして表示
-    setTimeout(function() {
+    // DOMが準備できてからプリセット
+    function presetLogin() {
       var nickInput = document.getElementById('login-nickname');
       var passInput = document.getElementById('login-password');
-      if (nickInput) nickInput.value = savedNick;
-      if (passInput) passInput.value = savedPass;
-      showStep('login');
-    }, 100);
+      if (nickInput && passInput) {
+        nickInput.value = savedNick;
+        passInput.value = savedPass;
+        showStep('login');
+      } else {
+        setTimeout(presetLogin, 50);
+      }
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', presetLogin);
+    } else {
+      presetLogin();
+    }
   }
 })();
 
@@ -1307,8 +1316,7 @@ function openAdminFromUser() {
 // ★ ログアウト
 function doUserLogout() {
   if (!confirm("ログアウトしますか？")) return;
-  localStorage.removeItem('co_heart_user_nick');
-  localStorage.removeItem('co_heart_user_pass');
+  // ニックネーム・パスワードは保持（次回プリセット用）
   localStorage.removeItem('co_heart_user_data');
   currentUser = null;
   // AI相談チャットをリセット
@@ -1324,7 +1332,18 @@ function doUserLogout() {
   document.getElementById('main-app').style.display = 'none';
   document.getElementById('auth-modal').style.display = 'flex';
   var bn = document.getElementById('bottom-nav'); if (bn) bn.style.display = 'none';
-  showStep('menu');
+  // 保存済み情報をプリセットしてログイン画面を直接表示
+  var savedNick = localStorage.getItem('co_heart_user_nick');
+  var savedPass = localStorage.getItem('co_heart_user_pass');
+  if (savedNick && savedPass) {
+    var nickInput = document.getElementById('login-nickname');
+    var passInput = document.getElementById('login-password');
+    if (nickInput) nickInput.value = savedNick;
+    if (passInput) passInput.value = savedPass;
+    showStep('login');
+  } else {
+    showStep('menu');
+  }
 }
 
 function showStep(step) {

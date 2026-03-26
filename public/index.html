@@ -3570,10 +3570,17 @@ function openBuddySetup() {
   renderBuddyPersonalityGrid();
 }
 
+// デフォルトバディー（プリセット）
+var DEFAULT_BUDDY = {
+  avatar: 'custom:#F5CBA7|#4A3728|#E3F2FD|16|9|0|0|8|0|0|0|1|3|1|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0',
+  name: 'ハルちゃん',
+  personality: 'gentle'
+};
+
 function initBuddy() {
   if (!currentUser) return;
 
-  // バディーデータ読み込み（localStorage優先、なければサーバーから取得）
+  // バディーデータ読み込み（localStorage優先→サーバー→デフォルト）
   var buddyData = null;
   try { buddyData = JSON.parse(localStorage.getItem('co_heart_buddy')); } catch(e) {}
 
@@ -3587,16 +3594,14 @@ function initBuddy() {
         localStorage.setItem('co_heart_buddy', JSON.stringify(data.buddyData));
         startBuddyChat(data.buddyData);
       } else {
-        // サーバーにもない → セットアップ画面表示
-        document.getElementById('buddy-setup-screen').style.display = 'block';
-        abRenderBuilderUI('buddy-builder-parts', 'buddy-setup-preview');
-        renderBuddyPersonalityGrid();
+        // サーバーにもない → デフォルトバディーで開始
+        localStorage.setItem('co_heart_buddy', JSON.stringify(DEFAULT_BUDDY));
+        startBuddyChat(DEFAULT_BUDDY);
       }
     }).catch(function() {
-      // 通信エラー → セットアップ画面表示
-      document.getElementById('buddy-setup-screen').style.display = 'block';
-      abRenderBuilderUI('buddy-builder-parts', 'buddy-setup-preview');
-      renderBuddyPersonalityGrid();
+      // 通信エラー → デフォルトバディーで開始
+      localStorage.setItem('co_heart_buddy', JSON.stringify(DEFAULT_BUDDY));
+      startBuddyChat(DEFAULT_BUDDY);
     });
     return;
   }

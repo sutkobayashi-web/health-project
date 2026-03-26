@@ -3455,15 +3455,43 @@ function initBuddy() {
   setTimeout(function() { showMoodCheck(); }, 800);
 }
 
+function formatBuddyText(text) {
+  // 本文・出典・アクションを分離してリッチ表示
+  var mainText = text;
+  var sourceHtml = '';
+  var actionHtml = '';
+
+  // 📚 出典: を抽出
+  var srcMatch = text.match(/📚\s*出典[:：]\s*(.+)/);
+  if (srcMatch) {
+    mainText = mainText.replace(srcMatch[0], '').trim();
+    sourceHtml = '<div style="margin-top:8px;padding:8px 10px;background:linear-gradient(135deg,#e8f5e9,#f1f8e9);border-radius:10px;border-left:3px solid #43a047;font-size:0.72rem;color:#2e7d32;"><i class="fas fa-book" style="margin-right:4px;"></i>' + srcMatch[1].trim() + '</div>';
+  }
+
+  // 🎯 アクション: を抽出
+  var actMatch = text.match(/🎯\s*アクション[:：]\s*(.+)/s);
+  if (actMatch) {
+    mainText = mainText.replace(actMatch[0], '').trim();
+    var steps = actMatch[1].trim().replace(/\n/g, '<br>');
+    actionHtml = '<div style="margin-top:8px;padding:10px 12px;background:linear-gradient(135deg,#eef0fb,#e8eaf6);border-radius:12px;border:1.5px solid #667eea;">' +
+      '<div style="font-size:0.72rem;font-weight:800;color:#667eea;margin-bottom:4px;"><i class="fas fa-bullseye" style="margin-right:4px;"></i>やってみよう</div>' +
+      '<div style="font-size:0.8rem;color:#333;line-height:1.6;">' + steps + '</div></div>';
+  }
+
+  return mainText.replace(/\n/g, '<br>') + actionHtml + sourceHtml;
+}
+
 function addBuddyMessage(role, text) {
   var msgs = document.getElementById('buddy-messages');
   var time = new Date().toLocaleTimeString('ja-JP', {hour:'2-digit', minute:'2-digit'});
   var isAI = role === 'ai';
 
+  var bubbleContent = isAI ? formatBuddyText(text) : text.replace(/\n/g, '<br>');
+
   var div = document.createElement('div');
   div.className = 'buddy-msg ' + (isAI ? 'ai' : 'user');
   div.innerHTML = '<div class="buddy-avatar">' + (isAI ? '<i class="fas fa-robot"></i>' : getAvatarHtml(currentUser.avatar, 28)) + '</div>' +
-    '<div><div class="buddy-bubble">' + text.replace(/\n/g, '<br>') + '</div>' +
+    '<div style="max-width:calc(100% - 44px);"><div class="buddy-bubble">' + bubbleContent + '</div>' +
     '<div class="buddy-time">' + time + '</div></div>';
 
   msgs.appendChild(div);

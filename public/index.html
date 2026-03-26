@@ -3611,7 +3611,7 @@ function addBuddyMessage(role, text) {
   var div = document.createElement('div');
   div.className = 'buddy-msg ' + (isAI ? 'ai' : 'user');
   div.innerHTML = '<div class="buddy-avatar">' + (isAI ? aiAvatar : getAvatarHtml(currentUser.avatar, 38)) + '</div>' +
-    '<div style="max-width:calc(100% - 44px);"><div class="buddy-bubble">' + bubbleContent + '</div>' +
+    '<div style="flex:1;min-width:0;"><div class="buddy-bubble">' + bubbleContent + '</div>' +
     '<div class="buddy-time">' + time + '</div></div>';
 
   msgs.appendChild(div);

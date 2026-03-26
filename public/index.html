@@ -14,7 +14,7 @@
 <link rel="icon" type="image/png" sizes="16x16" href="/img/favicon-16.png">
 <script>
 // キャッシュ破棄: バージョンが古い場合は強制リロード
-(function(){var v='20260322b';if(localStorage.getItem('app_version')!==v){localStorage.setItem('app_version',v);if(!window.location.search.includes('_r=')){var p=new URLSearchParams(window.location.search);p.set('_r',Date.now());window.location.replace(window.location.pathname+'?'+p.toString());}}}());
+(function(){var v='20260326a';if(localStorage.getItem('app_version')!==v){localStorage.setItem('app_version',v);if(!window.location.search.includes('_r=')){var p=new URLSearchParams(window.location.search);p.set('_r',Date.now());window.location.replace(window.location.pathname+'?'+p.toString());}}}());
 </script>
 <script>
 // 保存済みログイン情報がある場合、ログイン画面を最初から隠す
@@ -205,6 +205,23 @@
 
   /* ====== QR招待カード ====== */
   #qr-area img { border-radius: 12px !important; border: 2px solid #f0f2f5 !important; }
+
+  /* ヘルスバディーチャット */
+  .buddy-msg { display:flex; gap:8px; max-width:85%; }
+  .buddy-msg.ai { align-self:flex-start; }
+  .buddy-msg.user { align-self:flex-end; flex-direction:row-reverse; }
+  .buddy-avatar { width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,#667eea,#764ba2); display:flex; align-items:center; justify-content:center; color:white; font-size:14px; flex-shrink:0; }
+  .buddy-msg.user .buddy-avatar { background:linear-gradient(135deg,#20c997,#0ca678); }
+  .buddy-bubble { padding:10px 14px; border-radius:16px; font-size:0.85rem; line-height:1.6; word-break:break-word; }
+  .buddy-msg.ai .buddy-bubble { background:white; color:#333; border-bottom-left-radius:4px; box-shadow:0 1px 3px rgba(0,0,0,0.08); }
+  .buddy-msg.user .buddy-bubble { background:linear-gradient(135deg,#667eea,#764ba2); color:white; border-bottom-right-radius:4px; }
+  .buddy-time { font-size:0.6rem; color:#aaa; margin-top:2px; }
+  .buddy-quick-btn { display:inline-flex; align-items:center; gap:6px; padding:8px 16px; border:2px solid #667eea; border-radius:20px; background:white; color:#667eea; font-size:0.82rem; font-weight:700; cursor:pointer; transition:all 0.15s; }
+  .buddy-quick-btn:active { background:#667eea; color:white; }
+  .buddy-mood-btn { display:flex; flex-direction:column; align-items:center; gap:2px; padding:10px 14px; border:2px solid #e0e0e0; border-radius:14px; background:white; cursor:pointer; transition:all 0.15s; min-width:65px; }
+  .buddy-mood-btn:active { border-color:#667eea; background:#f5f0ff; }
+  .buddy-mood-btn .mood-emoji { font-size:24px; }
+  .buddy-mood-btn .mood-label { font-size:0.65rem; font-weight:700; color:#666; }
 </style>
 </head>
 <body>
@@ -513,7 +530,30 @@
     <span id="stat-nickname" style="display:none;"></span>
   </div>
 
-  <div class="main-content">
+  <!-- ヘルスバディーチャット画面 -->
+  <div id="buddy-chat-screen" style="display:flex;flex-direction:column;height:calc(100vh - 56px - 68px);background:#f5f0ff;">
+    <!-- バディーヘッダー -->
+    <div style="padding:10px 16px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;display:flex;align-items:center;gap:10px;flex-shrink:0;">
+      <div style="width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;"><i class="fas fa-robot" style="font-size:20px;"></i></div>
+      <div>
+        <div style="font-weight:800;font-size:0.9rem;">ヘルスバディー</div>
+        <div style="font-size:0.65rem;opacity:0.8;">あなたの健康の相棒</div>
+      </div>
+    </div>
+    <!-- チャットメッセージエリア -->
+    <div id="buddy-messages" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:12px;display:flex;flex-direction:column;gap:8px;"></div>
+    <!-- クイック選択エリア -->
+    <div id="buddy-quick-area" style="flex-shrink:0;padding:8px 12px;background:white;border-top:1px solid #eee;display:none;"></div>
+    <!-- 入力バー -->
+    <div style="flex-shrink:0;background:white;border-top:1px solid #eee;padding:8px 12px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <input type="text" id="buddy-input" placeholder="メッセージを入力..." style="flex:1;border:1.5px solid #e0e0e0;border-radius:20px;padding:10px 14px;font-size:0.88rem;outline:none;" onkeydown="if(event.key==='Enter')sendBuddyMessage()">
+        <button onclick="sendBuddyMessage()" style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fas fa-paper-plane"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-content" style="display:none;">
 
     <!-- プロフィールカード（非表示・JS参照用） -->
     <div style="display:none;">
@@ -1612,7 +1652,7 @@ function onLoginSuccess() {
   // タブ状態復元
   try {
     var savedTab = sessionStorage.getItem('healthCurrentTab');
-    if (savedTab && savedTab !== 'home') { setTimeout(function(){ switchAppTab(savedTab); }, 300); }
+    if (savedTab && savedTab !== 'buddy') { setTimeout(function(){ switchAppTab(savedTab); }, 300); }
   } catch(e) {}
 }
 
@@ -2907,18 +2947,18 @@ function hideLoading() { document.getElementById('loading-overlay').style.displa
 <!-- スピードダイヤルFAB -->
 <div id="fab-speed-dial" style="display:none;"></div>
 <nav id="bottom-nav" style="display:none;">
-  <div class="bnav-item active" id="bnav-home" onclick="switchAppTab('home');">
-    <i class="fas fa-home bnav-icon"></i>
-    <span class="bnav-label">ホーム</span>
+  <div class="bnav-item active" id="bnav-buddy" onclick="switchAppTab('buddy');">
+    <i class="fas fa-robot bnav-icon"></i>
+    <span class="bnav-label">バディー</span>
+  </div>
+  <div class="bnav-item" id="bnav-menu" onclick="switchAppTab('menu');">
+    <i class="fas fa-th-large bnav-icon"></i>
+    <span class="bnav-label">メニュー</span>
   </div>
   <div class="bnav-item" id="bnav-inbox" onclick="switchAppTab('inbox');">
     <i class="fas fa-bell bnav-icon"></i>
     <span class="bnav-label">お知らせ</span>
     <span class="bnav-badge" id="bnav-inbox-badge"></span>
-  </div>
-  <div class="bnav-item" id="bnav-chat" onclick="switchAppTab('chat');">
-    <i class="fas fa-heartbeat bnav-icon"></i>
-    <span class="bnav-label">AI相談</span>
   </div>
   <div class="bnav-item" id="bnav-mypage" onclick="switchAppTab('mypage');">
     <i class="fas fa-user bnav-icon"></i>
@@ -2934,32 +2974,45 @@ function hideLoading() { document.getElementById('loading-overlay').style.displa
 </div>
 
 <script>
-var _currentAppTab = 'home';
+var _currentAppTab = 'buddy';
 function switchAppTab(tab) {
-  // タブ状態を保存（リロード時復元用）
+  // タブ状態を保存
   try { sessionStorage.setItem('healthCurrentTab', tab); } catch(e) {}
+
   // 全タブを閉じる
-  if (_currentAppTab !== 'home') {
+  if (_currentAppTab !== 'buddy') {
     if (_currentAppTab === 'inbox') { document.getElementById('inbox-sheet').classList.remove('active'); unlockScroll(); }
     if (_currentAppTab === 'chat') { document.getElementById('nurse-chat-sheet').classList.remove('active'); unlockScroll(); }
     if (_currentAppTab === 'mypage') { document.getElementById('my-posts-modal').style.display = 'none'; unlockScroll(); }
     if (_currentAppTab === 'guide') { document.getElementById('app-tab-guide').style.display = 'none'; }
   }
-  // メインコンテンツの表示切り替え
-  var mainContent = document.querySelector('.main-content');
-  if (mainContent) mainContent.style.display = tab === 'home' ? 'block' : 'none';
 
-  // タブを開く
-  if (tab === 'home') {
-    scrollTo({ top: 0, behavior: 'smooth' });
+  // メインコンテンツとバディー画面の切替
+  var mainContent = document.querySelector('.main-content');
+  var buddyScreen = document.getElementById('buddy-chat-screen');
+
+  if (tab === 'buddy') {
+    buddyScreen.style.display = 'flex';
+    mainContent.style.display = 'none';
+  } else if (tab === 'menu') {
+    buddyScreen.style.display = 'none';
+    mainContent.style.display = 'block';
+  } else {
+    buddyScreen.style.display = 'none';
+    mainContent.style.display = 'none';
+  }
+
+  // 各タブを開く
+  if (tab === 'buddy') {
+    // バディーは常に表示
+  } else if (tab === 'menu') {
+    // メニュー（旧ホーム）表示
   } else if (tab === 'inbox') {
     lockScroll();
     loadInboxContent();
     document.getElementById('inbox-sheet').classList.add('active');
   } else if (tab === 'chat') {
-    lockScroll();
-    document.getElementById('nurse-chat-sheet').classList.add('active');
-    if (!nurseInited) { nurseInited = true; loadNurseGreeting(); } else { nurseScrollBottom(); }
+    // 旧AI相談は削除（バディーに統合）
   } else if (tab === 'mypage') {
     document.getElementById('my-posts-modal').style.display = 'flex';
     openMyPosts();
@@ -3124,8 +3177,8 @@ function closeNurseChat() {
   document.getElementById('nurse-fab').style.display = 'flex';
   var ib = document.getElementById('inbox-fab'); if (ib) ib.style.display = 'flex';
   unlockScroll();
-  // ボトムナビのchatタブから開いた場合、ホームに戻す
-  if (_currentAppTab === 'chat') { switchAppTab('home'); }
+  // ボトムナビのchatタブから開いた場合、バディーに戻す
+  if (_currentAppTab === 'chat') { switchAppTab('buddy'); }
 }
 
 function loadNurseGreeting() {
@@ -3371,10 +3424,219 @@ function nurseScrollBottom() {
     _orig.apply(this, arguments);
     try { initNurseChat(); } catch(e) { console.log('nurse init error', e); }
     try { initInbox(); } catch(e) { console.log('inbox init error', e); }
+    try { initBuddy(); } catch(e) { console.log('buddy init error', e); }
   };
 })();
 </script>
 <!-- ====== /AIヘルスアドバイザーチャットボット ====== -->
+
+<!-- ====== ヘルスバディー ====== -->
+<script>
+// ===== ヘルスバディー =====
+var _buddyHistory = [];
+var _buddyMoodChecked = false;
+
+function initBuddy() {
+  if (!currentUser) return;
+  _buddyHistory = [];
+  _buddyMoodChecked = false;
+  var msgs = document.getElementById('buddy-messages');
+  msgs.innerHTML = '';
+
+  // 時間帯に応じた挨拶
+  var hour = new Date().getHours();
+  var greeting = hour < 11 ? 'おはようございます' : hour < 17 ? 'こんにちは' : 'お疲れ様です';
+  var nickname = currentUser.nickname || 'さん';
+
+  // 挨拶メッセージ
+  addBuddyMessage('ai', greeting + '、' + nickname + 'さん！\n今日の調子はいかがですか？');
+
+  // 体調チェックの選択肢を表示
+  setTimeout(function() { showMoodCheck(); }, 800);
+}
+
+function addBuddyMessage(role, text) {
+  var msgs = document.getElementById('buddy-messages');
+  var time = new Date().toLocaleTimeString('ja-JP', {hour:'2-digit', minute:'2-digit'});
+  var isAI = role === 'ai';
+
+  var div = document.createElement('div');
+  div.className = 'buddy-msg ' + (isAI ? 'ai' : 'user');
+  div.innerHTML = '<div class="buddy-avatar">' + (isAI ? '<i class="fas fa-robot"></i>' : getAvatarHtml(currentUser.avatar, 28)) + '</div>' +
+    '<div><div class="buddy-bubble">' + text.replace(/\n/g, '<br>') + '</div>' +
+    '<div class="buddy-time">' + time + '</div></div>';
+
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+
+  _buddyHistory.push({ role: role, content: text });
+}
+
+function showMoodCheck() {
+  var area = document.getElementById('buddy-quick-area');
+  area.style.display = 'block';
+  area.innerHTML = '<div style="display:flex;justify-content:center;gap:10px;padding:4px 0;">' +
+    '<div class="buddy-mood-btn" onclick="selectMood(\'great\')"><span class="mood-emoji">😊</span><span class="mood-label">元気！</span></div>' +
+    '<div class="buddy-mood-btn" onclick="selectMood(\'normal\')"><span class="mood-emoji">😐</span><span class="mood-label">普通</span></div>' +
+    '<div class="buddy-mood-btn" onclick="selectMood(\'tired\')"><span class="mood-emoji">😔</span><span class="mood-label">少し疲れ</span></div>' +
+    '<div class="buddy-mood-btn" onclick="selectMood(\'bad\')"><span class="mood-emoji">😩</span><span class="mood-label">しんどい</span></div>' +
+  '</div>';
+}
+
+function selectMood(mood) {
+  _buddyMoodChecked = true;
+  document.getElementById('buddy-quick-area').style.display = 'none';
+
+  var moodTexts = { great:'😊 元気！', normal:'😐 普通', tired:'😔 少し疲れ', bad:'😩 しんどい' };
+  addBuddyMessage('user', moodTexts[mood]);
+
+  // 体調をDBに記録
+  saveBuddyMood(mood);
+
+  // 体調に応じた返答
+  setTimeout(function() {
+    if (mood === 'great') {
+      addBuddyMessage('ai', 'いい感じですね！✨\nその調子で今日も頑張りましょう！');
+      setTimeout(function() { showFollowUpTopics(); }, 1000);
+    } else if (mood === 'normal') {
+      addBuddyMessage('ai', 'まずまずですね👍\n何か気になることはありますか？');
+      setTimeout(function() { showConcernOptions(); }, 1000);
+    } else if (mood === 'tired') {
+      addBuddyMessage('ai', '少し疲れてるんですね。\n最近で気になることはありますか？');
+      setTimeout(function() { showConcernOptions(); }, 1000);
+    } else {
+      addBuddyMessage('ai', 'それは心配ですね😢\n無理しないでくださいね。\n何かつらいことがありますか？');
+      setTimeout(function() { showConcernOptions(); }, 1000);
+    }
+  }, 600);
+}
+
+function showConcernOptions() {
+  var area = document.getElementById('buddy-quick-area');
+  area.style.display = 'block';
+  area.innerHTML = '<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;padding:4px 0;">' +
+    '<div class="buddy-quick-btn" onclick="selectConcern(\'sleep\')">💤 睡眠が浅い</div>' +
+    '<div class="buddy-quick-btn" onclick="selectConcern(\'pain\')">🦴 腰・肩が痛い</div>' +
+    '<div class="buddy-quick-btn" onclick="selectConcern(\'stress\')">😣 ストレス</div>' +
+    '<div class="buddy-quick-btn" onclick="selectConcern(\'appetite\')">🍽️ 食欲がない</div>' +
+    '<div class="buddy-quick-btn" onclick="selectConcern(\'eye\')">👁️ 目の疲れ</div>' +
+    '<div class="buddy-quick-btn" onclick="selectConcern(\'none\')">✅ 特にない</div>' +
+    '<div class="buddy-quick-btn" onclick="selectConcern(\'talk\')" style="border-color:#e91e63;color:#e91e63;">💬 自分の言葉で話す</div>' +
+  '</div>';
+}
+
+function showFollowUpTopics() {
+  var area = document.getElementById('buddy-quick-area');
+  area.style.display = 'block';
+  area.innerHTML = '<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;padding:4px 0;">' +
+    '<div class="buddy-quick-btn" onclick="selectConcern(\'food\')">🍱 食事の相談</div>' +
+    '<div class="buddy-quick-btn" onclick="selectConcern(\'exercise\')">🏃 運動の相談</div>' +
+    '<div class="buddy-quick-btn" onclick="selectConcern(\'health_tip\')">💡 健康豆知識</div>' +
+    '<div class="buddy-quick-btn" onclick="selectConcern(\'none\')">👍 大丈夫！</div>' +
+  '</div>';
+}
+
+function selectConcern(concern) {
+  document.getElementById('buddy-quick-area').style.display = 'none';
+
+  var texts = {
+    sleep: '💤 睡眠が浅い', pain: '🦴 腰・肩が痛い', stress: '😣 ストレスを感じる',
+    appetite: '🍽️ 食欲がない', eye: '👁️ 目が疲れる', none: '✅ 特にないです',
+    talk: '💬 相談したいことがあります', food: '🍱 食事について相談したい',
+    exercise: '🏃 運動について相談したい', health_tip: '💡 健康豆知識が聞きたい'
+  };
+
+  addBuddyMessage('user', texts[concern] || concern);
+
+  if (concern === 'none') {
+    setTimeout(function() {
+      addBuddyMessage('ai', 'よかった！😊\n何かあったらいつでも話しかけてくださいね。\n今日も良い1日を！🌟');
+    }, 600);
+    return;
+  }
+
+  if (concern === 'talk') {
+    setTimeout(function() {
+      addBuddyMessage('ai', 'もちろん！なんでも聞かせてください。\nここでの会話はあなただけのものです🔒');
+    }, 600);
+    return;
+  }
+
+  // AIに相談を送信
+  buddyAskAI(concern, texts[concern]);
+}
+
+async function buddyAskAI(concern, userText) {
+  // ローディング表示
+  var loadingId = 'buddy-loading-' + Date.now();
+  var msgs = document.getElementById('buddy-messages');
+  var loadDiv = document.createElement('div');
+  loadDiv.id = loadingId;
+  loadDiv.className = 'buddy-msg ai';
+  loadDiv.innerHTML = '<div class="buddy-avatar"><i class="fas fa-robot"></i></div><div><div class="buddy-bubble"><i class="fas fa-circle-notch fa-spin"></i> 考え中...</div></div>';
+  msgs.appendChild(loadDiv);
+  msgs.scrollTop = msgs.scrollHeight;
+
+  try {
+    // 食事履歴や体調データを含めたプロンプトを構築
+    var context = '以下はユーザーの最近の情報です。\n';
+    context += 'ニックネーム: ' + (currentUser.nickname || '') + '\n';
+    context += '相談内容: ' + userText + '\n';
+
+    var systemPrompt = 'あなたは「ヘルスバディー」という名前のAI健康相棒です。\n' +
+      '以下の原則に従って会話してください：\n' +
+      '・3行以内で簡潔に返答する\n' +
+      '・「〜してください」ではなく「〜してみない？」とコーチング口調\n' +
+      '・小さな変化を見つけたら必ず褒める\n' +
+      '・説教しない。「ダメ」は絶対言わない\n' +
+      '・相手の言葉を受け止めてから提案する\n' +
+      '・最後に1つだけ具体的なアクションを提案する\n' +
+      '・エビデンスがある場合はガイドライン名を添える\n' +
+      '・フレンドリーだが馴れ馴れしすぎない\n' +
+      '・絵文字を適度に使う（1-2個）';
+
+    var res = await fetch('/api/chat/nurse', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
+      body: JSON.stringify({ message: context + '\n' + userText, systemPrompt: systemPrompt })
+    });
+    var data = await res.json();
+
+    // ローディングを削除
+    var loadEl = document.getElementById(loadingId);
+    if (loadEl) loadEl.remove();
+
+    if (data && data.reply) {
+      addBuddyMessage('ai', data.reply);
+    } else {
+      addBuddyMessage('ai', '申し訳ありません、うまく返答できませんでした。\nもう一度お話しいただけますか？');
+    }
+  } catch(e) {
+    var loadEl = document.getElementById(loadingId);
+    if (loadEl) loadEl.remove();
+    addBuddyMessage('ai', '通信エラーが発生しました。\n少し時間をおいて試してみてください。');
+  }
+}
+
+function sendBuddyMessage() {
+  var input = document.getElementById('buddy-input');
+  var msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+
+  addBuddyMessage('user', msg);
+  buddyAskAI('free', msg);
+}
+
+function saveBuddyMood(mood) {
+  fetch('/api/chat/nurse', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
+    body: JSON.stringify({ message: '[MOOD_LOG] ' + mood, systemPrompt: 'ユーザーの体調記録です。返答不要。' })
+  }).catch(function(){});
+}
+</script>
+<!-- ====== /ヘルスバディー ====== -->
 
 <!-- ====== お知らせ Inbox ====== -->
 <style>
@@ -4728,7 +4990,10 @@ function softRefresh() {
   var ptrIcon = document.getElementById('ptr-icon');
   try {
     // 現在のタブに応じてデータを再取得
-    if (_currentAppTab === 'home') {
+    if (_currentAppTab === 'buddy') {
+      // バディータブではソフトリフレッシュ不要
+      updateHeaderStats();
+    } else if (_currentAppTab === 'menu') {
       updateHeaderStats();
       loadTimeline(1, true);
       loadHealthMemos();

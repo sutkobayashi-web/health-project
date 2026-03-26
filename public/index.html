@@ -534,8 +534,9 @@
   </div>
   <div class="app-header">
     <div class="logo"><div class="logo-icon"><i class="fas fa-handshake"></i></div><div><div class="logo-text">CoWell Health Project 2.0</div><div class="logo-sub">みんなで 健康を</div></div></div>
-    <div class="header-stats">
-      <span class="stat-chip" id="font-size-btn" style="cursor:pointer; color:white; background:rgba(255,255,255,0.25); padding:6px 10px; font-size:0.75rem; border-radius:20px;" onclick="toggleFontSize()"><i class="fas fa-font"></i> <span id="font-size-label">大</span></span>
+    <div class="header-stats" style="gap:6px;">
+      <span id="font-size-btn" style="cursor:pointer;color:white;background:rgba(255,255,255,0.2);width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.85rem;" onclick="toggleFontSize()"><i class="fas fa-font"></i></span>
+      <span style="cursor:pointer;color:white;background:rgba(255,255,255,0.2);width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.85rem;" onclick="doUserLogout()"><i class="fas fa-sign-out-alt"></i></span>
     </div>
     <!-- 非表示（JS参照用） -->
     <span id="stat-rank" style="display:none;"></span>

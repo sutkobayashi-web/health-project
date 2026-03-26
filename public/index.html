@@ -517,9 +517,15 @@
       </div>
     </div>
     <!-- バディー変更ボタン -->
-    <div style="padding:0 18px;">
-      <button onclick="openBuddySetup()" style="width:100%;padding:12px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;border-radius:12px;font-size:0.85rem;font-weight:700;cursor:pointer;margin-top:10px;">
+    <div style="padding:0 18px;display:flex;flex-direction:column;gap:8px;margin-top:10px;">
+      <button onclick="openBuddySetup()" style="width:100%;padding:12px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;border-radius:12px;font-size:0.85rem;font-weight:700;cursor:pointer;">
         <i class="fas fa-robot" style="margin-right:4px;"></i>バディーを変更する
+      </button>
+      <button onclick="openAdminFromUser()" style="width:100%;padding:12px;background:rgba(102,126,234,0.1);color:#667eea;border:2px solid #667eea;border-radius:12px;font-size:0.85rem;font-weight:700;cursor:pointer;">
+        <i class="fas fa-shield-alt" style="margin-right:4px;"></i>管理者画面
+      </button>
+      <button onclick="doUserLogout()" style="width:100%;padding:12px;background:rgba(229,62,62,0.1);color:#e53e3e;border:2px solid #e53e3e;border-radius:12px;font-size:0.85rem;font-weight:700;cursor:pointer;">
+        <i class="fas fa-sign-out-alt" style="margin-right:4px;"></i>ログアウト
       </button>
     </div>
     <!-- 投稿一覧 -->
@@ -536,8 +542,6 @@
     <div class="logo"><div class="logo-icon"><i class="fas fa-handshake"></i></div><div><div class="logo-text">CoWell Health Project 2.0</div><div class="logo-sub">みんなで 健康を</div></div></div>
     <div class="header-stats">
       <span class="stat-chip" id="font-size-btn" style="cursor:pointer; color:white; background:rgba(255,255,255,0.25); padding:6px 10px; font-size:0.75rem; border-radius:20px;" onclick="toggleFontSize()"><i class="fas fa-font"></i> <span id="font-size-label">大</span></span>
-      <span class="stat-chip" style="cursor:pointer; color:white; background:rgba(255,255,255,0.15); padding:6px 12px; font-size:0.75rem; border-radius:20px;" onclick="openAdminFromUser()"><i class="fas fa-shield-alt" style="margin-right:3px;"></i>管理者</span>
-      <span class="stat-chip" style="cursor:pointer; color:white; background:rgba(255,255,255,0.2); padding:6px 14px; font-size:0.8rem; border-radius:20px;" onclick="doUserLogout()"><i class="fas fa-sign-out-alt" style="margin-right:4px;"></i>ログアウト</span>
     </div>
     <!-- 非表示（JS参照用） -->
     <span id="stat-rank" style="display:none;"></span>

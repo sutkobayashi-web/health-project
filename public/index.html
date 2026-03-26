@@ -5321,6 +5321,12 @@ function showMyProgress(cid) {
 function softRefresh() {
   var ptrEl = document.getElementById('ptr-indicator');
   var ptrIcon = document.getElementById('ptr-icon');
+  if (!currentUser) {
+    if (ptrEl) ptrEl.style.height = '0';
+    if (ptrIcon) ptrIcon.className = 'fas fa-sync-alt';
+    triggered = false;
+    return;
+  }
   try {
     // 現在のタブに応じてデータを再取得
     if (_currentAppTab === 'buddy') {
@@ -5367,7 +5373,7 @@ var triggered = false;
   }
 
   document.addEventListener('touchstart', function(e) {
-    if (isAtTop() && !triggered) {
+    if (isAtTop() && !triggered && currentUser) {
       startY = e.touches[0].pageY;
       pulling = true;
     }
@@ -5408,7 +5414,7 @@ if ('serviceWorker' in navigator) {
     reg.addEventListener('updatefound', function() {
       var nw = reg.installing;
       nw.addEventListener('statechange', function() {
-        if (nw.state === 'activated') location.reload();
+        if (nw.state === 'activated' && currentUser) location.reload();
       });
     });
     // ページ表示のたびにSW更新チェック（iOS standalone対策）

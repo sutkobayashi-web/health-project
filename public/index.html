@@ -1609,6 +1609,11 @@ function onLoginSuccess() {
   setInterval(checkUnreadNotices, 60000);
   loadMyUnread();
   setInterval(loadMyUnread, 60000);
+  // タブ状態復元
+  try {
+    var savedTab = sessionStorage.getItem('healthCurrentTab');
+    if (savedTab && savedTab !== 'home') { setTimeout(function(){ switchAppTab(savedTab); }, 300); }
+  } catch(e) {}
 }
 
 function loadMyUnread() {
@@ -2972,19 +2977,6 @@ function switchAppTab(tab) {
   if (activeNav) activeNav.classList.add('active');
 }
 
-// ページロード時にタブ復元
-(function() {
-  var saved = null;
-  try { saved = sessionStorage.getItem('healthCurrentTab'); } catch(e) {}
-  if (saved && saved !== 'home') {
-    var restore = function() { switchAppTab(saved); };
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', function() { setTimeout(restore, 200); });
-    } else {
-      setTimeout(restore, 200);
-    }
-  }
-})();
 
 function toggleFabMenu() {
   var items = document.getElementById('fab-speed-items');

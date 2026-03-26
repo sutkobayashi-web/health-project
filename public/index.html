@@ -3073,14 +3073,12 @@ function switchAppTab(tab) {
   var mainContent = document.querySelector('.main-content');
   var buddyScreen = document.getElementById('buddy-chat-screen');
 
-  if (tab === 'buddy') {
-    buddyScreen.style.display = 'flex';
-    mainContent.style.display = 'none';
-  } else if (tab === 'menu') {
+  if (tab === 'menu') {
     buddyScreen.style.display = 'none';
     mainContent.style.display = 'block';
   } else {
-    buddyScreen.style.display = 'none';
+    // バディー画面をベースに残す（ヘッダーが消えないように）
+    buddyScreen.style.display = 'flex';
     mainContent.style.display = 'none';
   }
 

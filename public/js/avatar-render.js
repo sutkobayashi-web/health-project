@@ -2410,9 +2410,9 @@ function drawMouth(ctx, cx, my, faceR, type, lipColorIdx) {
 function _drawHairShine(ctx, cx, topY, faceR, color, paths) {
   // ツヤ線を描画（はっきり見えるように）
   ctx.save();
-  ctx.strokeStyle = _skinLighter(color, 80);
-  ctx.globalAlpha = 0.55;
-  ctx.lineWidth = Math.max(0.8, faceR * 0.035);
+  ctx.strokeStyle = _skinLighter(color, 100);
+  ctx.globalAlpha = 0.65;
+  ctx.lineWidth = Math.max(1.0, faceR * 0.04);
   ctx.lineCap = 'round';
   paths.forEach(function(p) {
     ctx.beginPath();
@@ -2425,8 +2425,8 @@ function _drawHairShine(ctx, cx, topY, faceR, color, paths) {
 function drawHair(ctx, cx, faceY, faceR, type, color) {
   if (type === 0) return;
   var topY = faceY - faceR - faceR * 0.12;
-  var lighter = _skinLighter(color, 50);
-  var darker = _skinDarker(color, 35);
+  var lighter = _skinLighter(color, 70);
+  var darker = _skinDarker(color, 50);
   var detail = faceR >= 20;
 
   // ベースの髪色グラデーション（根元暗く毛先明るい）
@@ -2443,9 +2443,9 @@ function drawHair(ctx, cx, faceY, faceR, type, color) {
   function _drawStrands(paths, alpha) {
     if (!detail) return;
     ctx.save();
-    ctx.strokeStyle = _skinLighter(color, 40);
-    ctx.globalAlpha = alpha || 0.35;
-    ctx.lineWidth = Math.max(0.7, faceR * 0.018);
+    ctx.strokeStyle = _skinLighter(color, 60);
+    ctx.globalAlpha = alpha || 0.45;
+    ctx.lineWidth = Math.max(0.8, faceR * 0.022);
     ctx.lineCap = 'round';
     paths.forEach(function(p) {
       ctx.beginPath();

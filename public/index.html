@@ -18,7 +18,16 @@
 </script>
 <script>
 // 保存済みログイン情報がある場合、ログイン画面を最初から隠す
-(function(){if(localStorage.getItem('co_heart_user_nick')&&localStorage.getItem('co_heart_user_pass')){document.write('<style>#auth-modal{display:none!important}#main-app{display:block!important}</style>');}})();
+(function(){
+  if(localStorage.getItem('co_heart_user_nick')&&localStorage.getItem('co_heart_user_pass')){
+    var css='#auth-modal{display:none!important}#main-app{display:block!important}';
+    try{
+      var s=sessionStorage.getItem('healthAccordionState');
+      if(s){var st=JSON.parse(s);for(var id in st){if(st[id])css+='#'+id+'{display:block!important}'}}
+    }catch(e){}
+    document.write('<style>'+css+'</style>');
+  }
+})();
 </script>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -4180,13 +4189,10 @@ function restoreAccordionState() {
     var state = JSON.parse(saved);
     for (var bodyId in state) {
       if (state[bodyId]) {
-        var body = document.getElementById(bodyId);
-        if (body) {
-          body.style.display = 'block';
-          var labelId = bodyId.replace('-body', '-chevron');
-          var label = document.getElementById(labelId);
-          if (label) { label.innerHTML = '<i class="fas fa-chevron-up" style="font-size:0.6rem;margin-right:3px;"></i>閉じる'; label.style.background = '#e53935'; label.style.color = 'white'; }
-        }
+        // ラベルだけ更新（表示はhead CSSで既に適用済み）
+        var labelId = bodyId.replace('-body', '-chevron');
+        var label = document.getElementById(labelId);
+        if (label) { label.innerHTML = '<i class="fas fa-chevron-up" style="font-size:0.6rem;margin-right:3px;"></i>閉じる'; label.style.background = '#e53935'; label.style.color = 'white'; }
       }
     }
   } catch(e) {}

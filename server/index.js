@@ -62,7 +62,7 @@ app.use(function(req, res, next) {
 
 // レート制限
 const apiLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 500, message: { success: false, msg: 'リクエスト制限を超えました。しばらくしてから再試行してください。' } });
-const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 50, message: { success: false, msg: 'ログイン試行回数を超えました。15分後に再試行してください。' } });
+const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 200, message: { success: false, msg: 'ログイン試行回数を超えました。15分後に再試行してください。' } });
 app.use('/api/', apiLimiter);
 app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/register', authLimiter);

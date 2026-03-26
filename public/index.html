@@ -211,7 +211,7 @@
   .buddy-msg.user .buddy-bubble { max-width:none; }
   .buddy-msg.ai { align-self:flex-start; }
   .buddy-msg.user { align-self:flex-end; flex-direction:row-reverse; }
-  .buddy-avatar { width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,#667eea,#764ba2); display:flex; align-items:center; justify-content:center; color:white; font-size:14px; flex-shrink:0; }
+  .buddy-avatar { width:42px; height:42px; border-radius:50%; background:linear-gradient(135deg,#667eea,#764ba2); display:flex; align-items:center; justify-content:center; color:white; font-size:18px; flex-shrink:0; }
   .buddy-msg.user .buddy-avatar { background:linear-gradient(135deg,#20c997,#0ca678); }
   .buddy-bubble { padding:10px 14px; border-radius:16px; font-size:0.85rem; line-height:1.6; word-break:break-word; }
   .buddy-msg.ai .buddy-bubble { background:white; color:#333; border-bottom-left-radius:4px; box-shadow:0 1px 3px rgba(0,0,0,0.08); }
@@ -3553,7 +3553,7 @@ function initBuddy() {
   // ヘッダーにバディー情報を設定
   var headerAvatar = document.getElementById('buddy-header-avatar');
   var headerName = document.getElementById('buddy-header-name');
-  if (headerAvatar) headerAvatar.innerHTML = getAvatarHtml(buddyData.avatar, 36);
+  if (headerAvatar) headerAvatar.innerHTML = getAvatarHtml(buddyData.avatar, 42);
   if (headerName) headerName.textContent = buddyData.name;
 
   var msgs = document.getElementById('buddy-messages');
@@ -3606,11 +3606,11 @@ function addBuddyMessage(role, text) {
 
   var buddyData = null;
   try { buddyData = JSON.parse(localStorage.getItem('co_heart_buddy')); } catch(e) {}
-  var aiAvatar = buddyData ? getAvatarHtml(buddyData.avatar, 28) : '<i class="fas fa-robot"></i>';
+  var aiAvatar = buddyData ? getAvatarHtml(buddyData.avatar, 38) : '<i class="fas fa-robot"></i>';
 
   var div = document.createElement('div');
   div.className = 'buddy-msg ' + (isAI ? 'ai' : 'user');
-  div.innerHTML = '<div class="buddy-avatar">' + (isAI ? aiAvatar : getAvatarHtml(currentUser.avatar, 28)) + '</div>' +
+  div.innerHTML = '<div class="buddy-avatar">' + (isAI ? aiAvatar : getAvatarHtml(currentUser.avatar, 38)) + '</div>' +
     '<div style="max-width:calc(100% - 44px);"><div class="buddy-bubble">' + bubbleContent + '</div>' +
     '<div class="buddy-time">' + time + '</div></div>';
 

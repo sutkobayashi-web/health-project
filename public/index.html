@@ -1322,9 +1322,16 @@ function doUserLogout() {
   localStorage.removeItem('co_heart_user_pass');
   localStorage.removeItem('co_heart_user_data');
   currentUser = null;
-  // AI相談チャットをリセット（次ユーザーに前のニックネームが残る問題を防止）
+  // AI相談チャットをリセット
   nurseInited = false; nurseHistory = []; nurseReady = true;
   var nurseArea = document.getElementById('nurse-messages'); if (nurseArea) nurseArea.innerHTML = '';
+  // バディー・各画面を非表示
+  var buddyScreen = document.getElementById('buddy-chat-screen'); if (buddyScreen) buddyScreen.style.display = 'none';
+  var buddySetup = document.getElementById('buddy-setup-screen'); if (buddySetup) buddySetup.style.display = 'none';
+  var mainContent = document.querySelector('.main-content'); if (mainContent) mainContent.style.display = 'none';
+  var myPosts = document.getElementById('my-posts-modal'); if (myPosts) myPosts.style.display = 'none';
+  var inboxSheet = document.getElementById('inbox-sheet'); if (inboxSheet) inboxSheet.classList.remove('active');
+  var guideTab = document.getElementById('app-tab-guide'); if (guideTab) guideTab.style.display = 'none';
   document.getElementById('main-app').style.display = 'none';
   document.getElementById('auth-modal').style.display = 'flex';
   var bn = document.getElementById('bottom-nav'); if (bn) bn.style.display = 'none';

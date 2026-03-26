@@ -2484,7 +2484,11 @@ function drawHair(ctx, cx, faceY, faceR, type, color) {
   switch(type) {
     case 1: // ショート
       ctx.fillStyle = hairGrad(topY - faceR * 0.3, topY + faceR * 0.4);
-      hairCapFill(cx, topY + faceR * 0.1, faceR * 0.65, null, Math.PI, 2 * Math.PI);
+      // 控えめなヘアーキャップ（薄く下寄せ）
+      ctx.save(); ctx.globalAlpha = 0.25;
+      ctx.translate(cx, topY + faceR * 0.3); ctx.scale(1, 0.4);
+      ctx.beginPath(); ctx.arc(0, 0, faceR * 0.6, Math.PI, 2 * Math.PI); ctx.fill();
+      ctx.restore();
       _drawHairShine(ctx, cx, topY, faceR, color, [
         [cx - faceR * 0.3, topY + faceR * 0.05, cx - faceR * 0.1, topY - faceR * 0.15, cx + faceR * 0.15, topY - faceR * 0.1],
         [cx + faceR * 0.05, topY + faceR * 0.08, cx + faceR * 0.2, topY - faceR * 0.12, cx + faceR * 0.4, topY - faceR * 0.05]
@@ -3194,7 +3198,11 @@ function drawHair(ctx, cx, faceY, faceR, type, color) {
     case 17: // ベリーショート — 坊主に近い超短髪
       // 非常に短い髪のベース（頭皮にぴったり）
       ctx.fillStyle = hairGrad(topY - faceR * 0.15, topY + faceR * 0.25);
-      hairCapFill(cx, topY + faceR * 0.1, faceR * 0.58, null, Math.PI, 2 * Math.PI);
+      // 控えめなヘアーキャップ（ごく薄く）
+      ctx.save(); ctx.globalAlpha = 0.2;
+      ctx.translate(cx, topY + faceR * 0.25); ctx.scale(1, 0.35);
+      ctx.beginPath(); ctx.arc(0, 0, faceR * 0.55, Math.PI, 2 * Math.PI); ctx.fill();
+      ctx.restore();
       // 短い刈り上げテクスチャ（極短の毛を密に描く）
       if (detail) {
         ctx.save();
@@ -3559,7 +3567,11 @@ function drawHair(ctx, cx, faceY, faceR, type, color) {
     case 24: // 三つ編み — braids hanging down sides
       // 頭頂部ベース
       ctx.fillStyle = hairGrad(topY - faceR * 0.3, topY + faceR * 0.4);
-      hairCapFill(cx, topY + faceR * 0.08, faceR * 0.85, null, Math.PI * 0.75, Math.PI * 2.25);
+      // 控えめなヘアーキャップ
+      ctx.save(); ctx.globalAlpha = 0.25;
+      ctx.translate(cx, topY + faceR * 0.3); ctx.scale(1, 0.4);
+      ctx.beginPath(); ctx.arc(0, 0, faceR * 0.8, Math.PI * 0.75, Math.PI * 2.25); ctx.fill();
+      ctx.restore();
       // 分け目ライン
       if (detail) {
         ctx.strokeStyle = darker;

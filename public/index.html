@@ -26,6 +26,15 @@
 <style>
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html { background: #f0f0f5; overflow-x: hidden; }
+  /* フォントサイズ切替 */
+  html.font-large { font-size: 120%; }
+  html.font-large .buddy-bubble { font-size: 1rem; }
+  html.font-large .buddy-quick-btn { font-size: 0.95rem; padding: 10px 18px; }
+  html.font-large .buddy-mood-btn .mood-emoji { font-size: 30px; }
+  html.font-large .buddy-mood-btn .mood-label { font-size: 0.78rem; }
+  html.font-large .section-title { font-size: 1.1rem; }
+  html.font-large .bnav-label { font-size: 0.68rem; }
+  html.font-large .bnav-icon { font-size: 1.4rem; }
   body { font-family: 'Noto Sans JP', sans-serif; background: linear-gradient(160deg, #f5f0ff 0%, #eef6ff 40%, #f0faf5 100%); margin: 0; padding: 0; min-height: 100vh; padding-bottom: 72px; overscroll-behavior-y: none; }
   body.sheet-open { overflow: hidden !important; position: fixed !important; width: 100% !important; touch-action: none; }
 
@@ -526,6 +535,7 @@
   <div class="app-header">
     <div class="logo"><div class="logo-icon"><i class="fas fa-handshake"></i></div><div><div class="logo-text">CoWell Health Project 2.0</div><div class="logo-sub">みんなで 健康を</div></div></div>
     <div class="header-stats">
+      <span class="stat-chip" id="font-size-btn" style="cursor:pointer; color:white; background:rgba(255,255,255,0.25); padding:6px 10px; font-size:0.75rem; border-radius:20px;" onclick="toggleFontSize()"><i class="fas fa-font"></i> <span id="font-size-label">大</span></span>
       <span class="stat-chip" style="cursor:pointer; color:white; background:rgba(255,255,255,0.15); padding:6px 12px; font-size:0.75rem; border-radius:20px;" onclick="openAdminFromUser()"><i class="fas fa-shield-alt" style="margin-right:3px;"></i>管理者</span>
       <span class="stat-chip" style="cursor:pointer; color:white; background:rgba(255,255,255,0.2); padding:6px 14px; font-size:0.8rem; border-radius:20px;" onclick="doUserLogout()"><i class="fas fa-sign-out-alt" style="margin-right:4px;"></i>ログアウト</span>
     </div>
@@ -1671,6 +1681,24 @@ function doAdminLogin() {
     } else alert(res.msg);
   }).catch(function(e) { hideLoading(); alert("エラー: " + e.message); });
 }
+
+// フォントサイズ切替
+var _fontLarge = localStorage.getItem('co_heart_font_large') === '1';
+function initFontSize() {
+  if (_fontLarge) {
+    document.documentElement.classList.add('font-large');
+    var label = document.getElementById('font-size-label');
+    if (label) label.textContent = '小';
+  }
+}
+function toggleFontSize() {
+  _fontLarge = !_fontLarge;
+  localStorage.setItem('co_heart_font_large', _fontLarge ? '1' : '0');
+  document.documentElement.classList.toggle('font-large', _fontLarge);
+  var label = document.getElementById('font-size-label');
+  if (label) label.textContent = _fontLarge ? '小' : '大';
+}
+initFontSize();
 
 function onLoginSuccess() {
   document.getElementById('auth-modal').style.display = 'none';

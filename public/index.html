@@ -1609,10 +1609,11 @@ function onLoginSuccess() {
   setInterval(checkUnreadNotices, 60000);
   loadMyUnread();
   setInterval(loadMyUnread, 60000);
-  // タブ状態復元
+  // タブ・アコーディオン状態復元
   try {
     var savedTab = sessionStorage.getItem('healthCurrentTab');
     if (savedTab && savedTab !== 'home') { setTimeout(function(){ switchAppTab(savedTab); }, 300); }
+    setTimeout(restoreAccordionState, 500);
   } catch(e) {}
 }
 
@@ -4158,6 +4159,37 @@ function toggleAccordion(bodyId, labelId) {
     body.style.display = 'none';
     if (label) { label.innerHTML = '<i class="fas fa-chevron-down" style="font-size:0.6rem;margin-right:3px;"></i>開く'; label.style.background = ''; label.style.color = ''; }
   }
+  // アコーディオン状態を保存
+  saveAccordionState();
+}
+function saveAccordionState() {
+  try {
+    var ids = ['honne-body','food-body','checkup-body','memo-body','elearn-body','qr-body','vote-body','challenge-combined-body'];
+    var state = {};
+    ids.forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) state[id] = el.style.display !== 'none';
+    });
+    sessionStorage.setItem('healthAccordionState', JSON.stringify(state));
+  } catch(e) {}
+}
+function restoreAccordionState() {
+  try {
+    var saved = sessionStorage.getItem('healthAccordionState');
+    if (!saved) return;
+    var state = JSON.parse(saved);
+    for (var bodyId in state) {
+      if (state[bodyId]) {
+        var body = document.getElementById(bodyId);
+        if (body) {
+          body.style.display = 'block';
+          var labelId = bodyId.replace('-body', '-chevron');
+          var label = document.getElementById(labelId);
+          if (label) { label.innerHTML = '<i class="fas fa-chevron-up" style="font-size:0.6rem;margin-right:3px;"></i>閉じる'; label.style.background = '#e53935'; label.style.color = 'white'; }
+        }
+      }
+    }
+  } catch(e) {}
 }
 // ====== チャレンジ統合セクション表示制御 ======
 function updateChallengeCombiVisibility() {
@@ -4734,7 +4766,7 @@ function showMyProgress(cid) {
   }
 
   document.addEventListener('touchstart', function(e) {
-    if (isAtTop() && _currentAppTab === 'home' && !triggered) {
+    if (isAtTop() && !triggered) {
       startY = e.touches[0].pageY;
       pulling = true;
     }

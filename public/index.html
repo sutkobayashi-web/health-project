@@ -1609,11 +1609,10 @@ function onLoginSuccess() {
   setInterval(checkUnreadNotices, 60000);
   loadMyUnread();
   setInterval(loadMyUnread, 60000);
-  // タブ・アコーディオン状態復元
+  // タブ状態復元
   try {
     var savedTab = sessionStorage.getItem('healthCurrentTab');
     if (savedTab && savedTab !== 'home') { setTimeout(function(){ switchAppTab(savedTab); }, 300); }
-    setTimeout(restoreAccordionState, 500);
   } catch(e) {}
 }
 
@@ -4152,42 +4151,15 @@ function toggleAccordion(bodyId, labelId) {
   var body = document.getElementById(bodyId);
   var label = document.getElementById(labelId);
   if (!body) return;
-  var isHidden = window.getComputedStyle(body).display === 'none';
-  if (isHidden) {
-    body.style.display = 'block';
-    if (label) { label.innerHTML = '<i class="fas fa-chevron-up" style="font-size:0.6rem;margin-right:3px;"></i>閉じる'; label.style.background = '#e53935'; label.style.color = 'white'; }
-  } else {
+  if (body.getAttribute('data-open') === '1') {
     body.style.display = 'none';
+    body.setAttribute('data-open', '0');
     if (label) { label.innerHTML = '<i class="fas fa-chevron-down" style="font-size:0.6rem;margin-right:3px;"></i>開く'; label.style.background = ''; label.style.color = ''; }
+  } else {
+    body.style.display = 'block';
+    body.setAttribute('data-open', '1');
+    if (label) { label.innerHTML = '<i class="fas fa-chevron-up" style="font-size:0.6rem;margin-right:3px;"></i>閉じる'; label.style.background = '#e53935'; label.style.color = 'white'; }
   }
-  // アコーディオン状態を保存
-  saveAccordionState();
-}
-function saveAccordionState() {
-  try {
-    var ids = ['honne-body','food-body','checkup-body','memo-body','elearn-body','qr-body','vote-body','challenge-combined-body'];
-    var state = {};
-    ids.forEach(function(id) {
-      var el = document.getElementById(id);
-      if (el) state[id] = el.style.display !== 'none';
-    });
-    sessionStorage.setItem('healthAccordionState', JSON.stringify(state));
-  } catch(e) {}
-}
-function restoreAccordionState() {
-  try {
-    var saved = sessionStorage.getItem('healthAccordionState');
-    if (!saved) return;
-    var state = JSON.parse(saved);
-    for (var bodyId in state) {
-      if (state[bodyId]) {
-        // ラベルだけ更新（表示はhead CSSで既に適用済み）
-        var labelId = bodyId.replace('-body', '-chevron');
-        var label = document.getElementById(labelId);
-        if (label) { label.innerHTML = '<i class="fas fa-chevron-up" style="font-size:0.6rem;margin-right:3px;"></i>閉じる'; label.style.background = '#e53935'; label.style.color = 'white'; }
-      }
-    }
-  } catch(e) {}
 }
 // ====== チャレンジ統合セクション表示制御 ======
 function updateChallengeCombiVisibility() {

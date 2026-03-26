@@ -4152,7 +4152,8 @@ function toggleAccordion(bodyId, labelId) {
   var body = document.getElementById(bodyId);
   var label = document.getElementById(labelId);
   if (!body) return;
-  if (body.style.display === 'none') {
+  var isHidden = window.getComputedStyle(body).display === 'none';
+  if (isHidden) {
     body.style.display = 'block';
     if (label) { label.innerHTML = '<i class="fas fa-chevron-up" style="font-size:0.6rem;margin-right:3px;"></i>閉じる'; label.style.background = '#e53935'; label.style.color = 'white'; }
   } else {

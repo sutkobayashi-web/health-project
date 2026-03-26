@@ -2489,7 +2489,7 @@ function drawHair(ctx, cx, faceY, faceR, type, color) {
   // 髪のベース描画後に輪郭＋内部の毛束影を追加するヘルパー
   function hairCapFill(x, y, rx, ry, sa, ea) {
     // ベース塗り
-    hairCapFill(x, y, rx, ry, sa, ea);
+    ctx.beginPath(); hairCap(x, y, rx, ry, sa, ea); ctx.fill();
     // 輪郭線（帽子感を消す）
     if (detail) {
       ctx.save();

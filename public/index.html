@@ -14,7 +14,7 @@
 <link rel="icon" type="image/png" sizes="16x16" href="/img/favicon-16.png">
 <script>
 // キャッシュ破棄: バージョンが古い場合は強制リロード
-(function(){var v='20260326a';if(localStorage.getItem('app_version')!==v){localStorage.setItem('app_version',v);if(!window.location.search.includes('_r=')){var p=new URLSearchParams(window.location.search);p.set('_r',Date.now());window.location.replace(window.location.pathname+'?'+p.toString());}}}());
+(function(){var v='20260327a';if(localStorage.getItem('app_version')!==v){localStorage.setItem('app_version',v);if(!window.location.search.includes('_r=')){var p=new URLSearchParams(window.location.search);p.set('_r',Date.now());window.location.replace(window.location.pathname+'?'+p.toString());}}}());
 </script>
 <script>
 // 保存済みログイン情報がある場合、ログイン画面を最初から隠す
@@ -507,6 +507,12 @@
         <button style="background:linear-gradient(135deg,#667eea,#764ba2);border:none;border-radius:10px;padding:8px 12px;font-size:0.7rem;font-weight:700;color:white;cursor:pointer;box-shadow:0 2px 8px rgba(102,126,234,0.3);white-space:nowrap;" onclick="closeMyPosts();openProfileEditModal();"><i class="fas fa-edit"></i> 編集</button>
       </div>
     </div>
+    <!-- バディー変更ボタン -->
+    <div style="padding:0 18px;">
+      <button onclick="openBuddySetup()" style="width:100%;padding:12px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;border-radius:12px;font-size:0.85rem;font-weight:700;cursor:pointer;margin-top:10px;">
+        <i class="fas fa-robot" style="margin-right:4px;"></i>バディーを変更する
+      </button>
+    </div>
     <!-- 投稿一覧 -->
     <div style="padding:8px 12px 4px;font-size:0.78rem;font-weight:700;color:#999;flex-shrink:0;"><i class="fas fa-history"></i> 投稿履歴</div>
     <div id="my-posts-list" style="flex:1;overflow-y:auto;padding:0 12px 12px;"></div>
@@ -531,13 +537,46 @@
     <span id="stat-nickname" style="display:none;"></span>
   </div>
 
+  <!-- ヘルスバディー作成画面 -->
+  <div id="buddy-setup-screen" style="display:none;position:fixed;top:0;left:0;right:0;bottom:68px;z-index:2400;background:linear-gradient(160deg,#f5f0ff,#eef6ff);overflow-y:auto;-webkit-overflow-scrolling:touch;padding:20px 16px 40px;">
+    <div style="text-align:center;margin-bottom:20px;">
+      <div style="font-size:2rem;margin-bottom:8px;">🤝</div>
+      <div style="font-weight:900;font-size:1.1rem;color:#333;">ヘルスバディーを作ろう</div>
+      <div style="font-size:0.78rem;color:#999;margin-top:4px;">あなたの健康を一緒に考える相棒です</div>
+    </div>
+    <!-- アバタープレビュー -->
+    <div style="text-align:center;margin-bottom:16px;">
+      <canvas id="buddy-setup-preview" width="120" height="120" style="border-radius:50%;box-shadow:0 4px 20px rgba(102,126,234,0.3);border:3px solid #fff;"></canvas>
+    </div>
+    <!-- アバターパーツ選択 -->
+    <div style="background:white;border-radius:16px;padding:14px;margin-bottom:16px;box-shadow:0 2px 12px rgba(0,0,0,0.06);">
+      <div style="font-weight:800;font-size:0.85rem;color:#667eea;margin-bottom:10px;"><i class="fas fa-palette" style="margin-right:4px;"></i>見た目をカスタマイズ</div>
+      <div id="buddy-builder-parts" class="avatar-builder-body"></div>
+    </div>
+    <!-- 名前入力 -->
+    <div style="background:white;border-radius:16px;padding:14px;margin-bottom:16px;box-shadow:0 2px 12px rgba(0,0,0,0.06);">
+      <div style="font-weight:800;font-size:0.85rem;color:#667eea;margin-bottom:10px;"><i class="fas fa-pen" style="margin-right:4px;"></i>名前を付けてあげよう</div>
+      <input type="text" id="buddy-name-input" placeholder="例: ハルちゃん、ケンタ先生" value="バディー" style="width:100%;border:2px solid #e0e0e0;border-radius:12px;padding:12px 14px;font-size:0.92rem;outline:none;box-sizing:border-box;" onfocus="this.style.borderColor='#667eea'" onblur="this.style.borderColor='#e0e0e0'">
+    </div>
+    <!-- 性格選択 -->
+    <div style="background:white;border-radius:16px;padding:14px;margin-bottom:20px;box-shadow:0 2px 12px rgba(0,0,0,0.06);">
+      <div style="font-weight:800;font-size:0.85rem;color:#667eea;margin-bottom:10px;"><i class="fas fa-heart" style="margin-right:4px;"></i>性格を選んでね</div>
+      <div id="buddy-personality-grid" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+    </div>
+    <!-- 決定ボタン -->
+    <button onclick="saveBuddySetup()" style="width:100%;padding:16px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;border-radius:14px;font-size:1rem;font-weight:800;cursor:pointer;box-shadow:0 4px 16px rgba(102,126,234,0.3);">
+      <i class="fas fa-check-circle" style="margin-right:6px;"></i>この子に決定！
+    </button>
+    <div style="text-align:center;margin-top:10px;font-size:0.7rem;color:#aaa;">※後からいつでも変更できます</div>
+  </div>
+
   <!-- ヘルスバディーチャット画面 -->
   <div id="buddy-chat-screen" style="display:flex;flex-direction:column;height:calc(100vh - 56px - 68px);background:#f5f0ff;">
     <!-- バディーヘッダー -->
     <div style="padding:10px 16px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;display:flex;align-items:center;gap:10px;flex-shrink:0;">
-      <div style="width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;"><i class="fas fa-robot" style="font-size:20px;"></i></div>
+      <div id="buddy-header-avatar" style="width:40px;height:40px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.2);"><i class="fas fa-robot" style="font-size:20px;"></i></div>
       <div>
-        <div style="font-weight:800;font-size:0.9rem;">ヘルスバディー</div>
+        <div id="buddy-header-name" style="font-weight:800;font-size:0.9rem;">ヘルスバディー</div>
         <div style="font-size:0.65rem;opacity:0.8;">あなたの健康の相棒</div>
       </div>
     </div>
@@ -3438,11 +3477,85 @@ var _buddyHistory = [];
 var _buddyMoodChecked = false;
 var _buddyTurnCount = 0;
 
+var BUDDY_PERSONALITIES = {
+  gentle:  { label: '😊 優しい', desc: '穏やかに寄り添います', color: '#e91e63' },
+  energy:  { label: '💪 元気', desc: '前向きに励まします', color: '#1e88e5' },
+  smart:   { label: '🧠 知的', desc: '根拠を丁寧に説明します', color: '#43a047' },
+  calm:    { label: '🌙 穏やか', desc: 'じっくり話を聞きます', color: '#7e57c2' },
+  reliable:{ label: '🏥 頼もしい', desc: 'データで的確にアドバイス', color: '#455a64' }
+};
+
+var _selectedPersonality = 'gentle';
+
+function renderBuddyPersonalityGrid() {
+  var grid = document.getElementById('buddy-personality-grid');
+  var html = '';
+  for (var key in BUDDY_PERSONALITIES) {
+    var p = BUDDY_PERSONALITIES[key];
+    var sel = key === _selectedPersonality;
+    html += '<div onclick="selectBuddyPersonality(\'' + key + '\')" style="flex:1;min-width:calc(50% - 4px);padding:10px;border:2px solid ' + (sel ? p.color : '#e0e0e0') + ';border-radius:12px;text-align:center;cursor:pointer;background:' + (sel ? p.color + '10' : 'white') + ';">' +
+      '<div style="font-size:1.2rem;">' + p.label.split(' ')[0] + '</div>' +
+      '<div style="font-size:0.78rem;font-weight:700;color:' + (sel ? p.color : '#333') + ';">' + p.label.split(' ')[1] + '</div>' +
+      '<div style="font-size:0.65rem;color:#999;margin-top:2px;">' + p.desc + '</div>' +
+    '</div>';
+  }
+  grid.innerHTML = html;
+}
+
+function selectBuddyPersonality(key) {
+  _selectedPersonality = key;
+  renderBuddyPersonalityGrid();
+}
+
+function saveBuddySetup() {
+  var name = document.getElementById('buddy-name-input').value.trim() || 'バディー';
+  var avatar = abBuildString();
+  var buddy = { avatar: avatar, name: name, personality: _selectedPersonality };
+  localStorage.setItem('co_heart_buddy', JSON.stringify(buddy));
+  document.getElementById('buddy-setup-screen').style.display = 'none';
+  initBuddy();
+}
+
+function openBuddySetup() {
+  document.getElementById('buddy-setup-screen').style.display = 'block';
+  abRenderBuilderUI('buddy-builder-parts', 'buddy-setup-preview');
+  // 既存のバディーデータがあればロード
+  var buddyData = null;
+  try { buddyData = JSON.parse(localStorage.getItem('co_heart_buddy')); } catch(e) {}
+  if (buddyData) {
+    abParseString(buddyData.avatar);
+    document.getElementById('buddy-name-input').value = buddyData.name;
+    _selectedPersonality = buddyData.personality;
+  }
+  renderBuddyPersonalityGrid();
+}
+
 function initBuddy() {
   if (!currentUser) return;
+
+  // バディーデータ読み込み
+  var buddyData = null;
+  try { buddyData = JSON.parse(localStorage.getItem('co_heart_buddy')); } catch(e) {}
+
+  if (!buddyData) {
+    // 未作成 → セットアップ画面表示
+    document.getElementById('buddy-setup-screen').style.display = 'block';
+    abRenderBuilderUI('buddy-builder-parts', 'buddy-setup-preview');
+    renderBuddyPersonalityGrid();
+    return;
+  }
+
+  // バディー作成済み → チャット開始
   _buddyHistory = [];
   _buddyMoodChecked = false;
   _buddyTurnCount = 0;
+
+  // ヘッダーにバディー情報を設定
+  var headerAvatar = document.getElementById('buddy-header-avatar');
+  var headerName = document.getElementById('buddy-header-name');
+  if (headerAvatar) headerAvatar.innerHTML = getAvatarHtml(buddyData.avatar, 36);
+  if (headerName) headerName.textContent = buddyData.name;
+
   var msgs = document.getElementById('buddy-messages');
   msgs.innerHTML = '';
 
@@ -3491,9 +3604,13 @@ function addBuddyMessage(role, text) {
 
   var bubbleContent = isAI ? formatBuddyText(text) : text.replace(/\n/g, '<br>');
 
+  var buddyData = null;
+  try { buddyData = JSON.parse(localStorage.getItem('co_heart_buddy')); } catch(e) {}
+  var aiAvatar = buddyData ? getAvatarHtml(buddyData.avatar, 28) : '<i class="fas fa-robot"></i>';
+
   var div = document.createElement('div');
   div.className = 'buddy-msg ' + (isAI ? 'ai' : 'user');
-  div.innerHTML = '<div class="buddy-avatar">' + (isAI ? '<i class="fas fa-robot"></i>' : getAvatarHtml(currentUser.avatar, 28)) + '</div>' +
+  div.innerHTML = '<div class="buddy-avatar">' + (isAI ? aiAvatar : getAvatarHtml(currentUser.avatar, 28)) + '</div>' +
     '<div style="max-width:calc(100% - 44px);"><div class="buddy-bubble">' + bubbleContent + '</div>' +
     '<div class="buddy-time">' + time + '</div></div>';
 
@@ -3604,7 +3721,10 @@ async function buddyAskAI(concern, userText) {
   var loadDiv = document.createElement('div');
   loadDiv.id = loadingId;
   loadDiv.className = 'buddy-msg ai';
-  loadDiv.innerHTML = '<div class="buddy-avatar"><i class="fas fa-robot"></i></div><div><div class="buddy-bubble"><i class="fas fa-circle-notch fa-spin"></i> 考え中...</div></div>';
+  var _buddyDataForLoading = null;
+  try { _buddyDataForLoading = JSON.parse(localStorage.getItem('co_heart_buddy')); } catch(e) {}
+  var _loadingAvatar = _buddyDataForLoading ? getAvatarHtml(_buddyDataForLoading.avatar, 28) : '<i class="fas fa-robot"></i>';
+  loadDiv.innerHTML = '<div class="buddy-avatar">' + _loadingAvatar + '</div><div><div class="buddy-bubble"><i class="fas fa-circle-notch fa-spin"></i> 考え中...</div></div>';
   msgs.appendChild(loadDiv);
   msgs.scrollTop = msgs.scrollHeight;
 
@@ -3613,6 +3733,21 @@ async function buddyAskAI(concern, userText) {
     var context = '以下はユーザーの最近の情報です。\n';
     context += 'ニックネーム: ' + (currentUser.nickname || '') + '\n';
     context += '相談内容: ' + userText + '\n';
+
+    // バディーの性格を反映
+    var buddyData = null;
+    try { buddyData = JSON.parse(localStorage.getItem('co_heart_buddy')); } catch(e) {}
+    var personalityPrompt = '';
+    if (buddyData) {
+      var p = buddyData.personality;
+      if (p === 'gentle') personalityPrompt = '口調は優しく穏やかに。「〜だね」「〜してみない？」を使う。';
+      else if (p === 'energy') personalityPrompt = '口調は元気で前向きに。「いいね！」「一緒にやろう！」「💪」を使う。';
+      else if (p === 'smart') personalityPrompt = '口調は知的で丁寧に。「実はね」「こんな方法もあるよ」根拠を重視。';
+      else if (p === 'calm') personalityPrompt = '口調は穏やかで共感的に。「そうなんだ」「無理しないでね」急がせない。';
+      else if (p === 'reliable') personalityPrompt = '口調は頼もしく論理的に。「データでは」「エビデンスによると」数値で説明。';
+      context += '性格: ' + personalityPrompt + '\n';
+      context += 'バディーの名前: ' + buddyData.name + '\n';
+    }
 
     var systemPrompt = 'あなたは「ヘルスバディー」という名前のAI健康相棒です。\n' +
       '以下の原則に従って会話してください：\n' +

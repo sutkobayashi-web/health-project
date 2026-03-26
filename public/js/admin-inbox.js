@@ -249,6 +249,13 @@ function renderReportList(data) {
                             '<div id="auto-eval-'+pid+'" style="font-size:0.78rem;"></div>' +
                             '<button class="btn btn-sm btn-outline-primary fw-bold mt-1" style="font-size:0.68rem;" onclick="doAutoEvaluate(\''+pid+'\')"><i class="fas fa-magic me-1"></i>AI評価を実行</button>' +
                         '</div>' +
+                        // 推進メンバーからの返事
+                        '<div style="margin-top:10px; padding-top:8px; border-top:1px solid #eee;">' +
+                            '<div style="font-size:0.7rem; font-weight:700; color:#d63384; margin-bottom:4px;"><i class="fas fa-reply me-1"></i>投稿者への返事</div>' +
+                            '<div id="reply-sent-'+pid+'" style="display:none; font-size:0.78rem; color:#2e7d32; background:#e8f5e9; padding:6px 10px; border-radius:8px; margin-bottom:6px;"><i class="fas fa-check-circle me-1"></i>送信済み</div>' +
+                            '<textarea id="reply-text-'+pid+'" rows="2" placeholder="投稿者に返事を送る..." style="width:100%; border:1.5px solid #e0c0d0; border-radius:8px; padding:8px; font-size:0.8rem; resize:none; outline:none; box-sizing:border-box;" onfocus="this.style.borderColor=\'#d63384\'" onblur="this.style.borderColor=\'#e0c0d0\'"></textarea>' +
+                            '<button class="btn btn-sm fw-bold mt-1" style="font-size:0.68rem; background:linear-gradient(135deg,#d63384,#b0003a); color:white; border:none; border-radius:6px; padding:4px 14px;" onclick="sendReplyToUser(\''+pid+'\',\''+escapeHtml(r[INBOX_COLS.UID]||'')+'\',\''+escapeHtml(r[INBOX_COLS.USER_NAME]||'')+'\')"><i class="fas fa-paper-plane me-1"></i>お知らせで届ける</button>' +
+                        '</div>' +
                     '</div>' +
                     // 右: 回答一覧+チャット
                     '<div style="flex:1; display:flex; flex-direction:column; max-height:450px; background:linear-gradient(180deg, #f5f0ff 0%, #f0f4ff 100%);">' +
@@ -833,5 +840,36 @@ function likePost(pid, rowId) {
     }).catch(function(err) {
         if(btn) { btn.disabled = false; }
         alert("通信エラー: " + err.message);
+    });
+}
+
+// 投稿者への返事（お知らせ通知として送信）
+function sendReplyToUser(postId, targetUid, userName) {
+    var textarea = document.getElementById('reply-text-' + postId);
+    if (!textarea) return;
+    var replyText = textarea.value.trim();
+    if (!replyText) { alert('返事の内容を入力してください'); return; }
+
+    var content = '🛡️ 推進メンバーからの返事\n━━━━━━━━━━━━━━\n' + replyText;
+
+    fetch('/api/notices/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getAdminToken() },
+        body: JSON.stringify({
+            content: content,
+            isBroadcast: false,
+            targetUid: targetUid
+        })
+    }).then(function(r) { return r.json(); }).then(function(data) {
+        if (data && data.success) {
+            textarea.value = '';
+            var sent = document.getElementById('reply-sent-' + postId);
+            if (sent) { sent.style.display = 'block'; sent.innerHTML = '<i class="fas fa-check-circle me-1"></i>' + userName + 'さんへ送信しました'; }
+            alert(userName + 'さんにお知らせで返事を送りました');
+        } else {
+            alert('送信失敗: ' + (data ? data.msg : ''));
+        }
+    }).catch(function(e) {
+        alert('通信エラー: ' + e.message);
     });
 }

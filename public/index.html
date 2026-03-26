@@ -4759,9 +4759,43 @@ function showMyProgress(cid) {
 }
 </script>
 <script>
+// ソフトリフレッシュ（画面状態を維持してデータだけ再取得）
+function softRefresh() {
+  var ptrEl = document.getElementById('ptr-indicator');
+  var ptrIcon = document.getElementById('ptr-icon');
+  try {
+    // 現在のタブに応じてデータを再取得
+    if (_currentAppTab === 'home') {
+      updateHeaderStats();
+      loadTimeline(1, true);
+      loadHealthMemos();
+      loadAvatarChallenge();
+      loadThemeVoting();
+      loadActiveChallenge();
+      loadEmpathyAnswered();
+      loadMyUnread();
+    } else if (_currentAppTab === 'inbox') {
+      loadInboxContent();
+    } else if (_currentAppTab === 'chat') {
+      // チャットは自動更新中なので特に不要
+    } else if (_currentAppTab === 'mypage') {
+      if (typeof openMyPosts === 'function') openMyPosts();
+    }
+    checkUnreadNotices();
+  } catch(e) { console.error('softRefresh error:', e); }
+  // インジケーターを閉じる
+  setTimeout(function() {
+    if (ptrEl) { ptrEl.style.height = '0'; }
+    if (ptrIcon) { ptrIcon.className = 'fas fa-sync-alt'; }
+  }, 600);
+  // triggered をリセット（次のプルを許可）
+  setTimeout(function() { triggered = false; }, 1000);
+}
+var triggered = false;
+
 // Pull-to-refresh
 (function() {
-  var startY = 0, currentY = 0, pulling = false, triggered = false;
+  var startY = 0, currentY = 0, pulling = false;
   var ptrEl = document.getElementById('ptr-indicator');
   var ptrIcon = document.getElementById('ptr-icon');
   var ptrText = document.getElementById('ptr-text');
@@ -4799,7 +4833,7 @@ function showMyProgress(cid) {
       ptrText.textContent = '更新中...';
       ptrIcon.className = 'fas fa-sync-alt fa-spin';
       ptrEl.style.height = '40px';
-      location.reload();
+      softRefresh();
     } else {
       ptrEl.style.height = '0';
     }

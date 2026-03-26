@@ -2477,6 +2477,21 @@ function drawHair(ctx, cx, faceY, faceR, type, color) {
     ctx.restore();
   }
 
+  // 頭頂部を自然な形にする：arc呼び出し時に縦を潰して楕円に
+  var _origArc = ctx.arc.bind(ctx);
+  ctx.arc = function(x, y, r, sa, ea, ccw) {
+    // 頭頂部付近のarc（上半円）を楕円化
+    if (sa >= Math.PI * 0.7 && ea <= Math.PI * 2.3 && r > faceR * 0.4) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.scale(1, 0.82);
+      _origArc(0, 0, r, sa, ea, ccw);
+      ctx.restore();
+    } else {
+      _origArc(x, y, r, sa, ea, ccw);
+    }
+  };
+
   ctx.save();
   switch(type) {
     case 1: // ショート
@@ -3653,6 +3668,7 @@ function drawHair(ctx, cx, faceY, faceR, type, color) {
       ]);
       break;
   }
+  ctx.arc = _origArc; // arcを元に戻す
   ctx.restore();
 }
 

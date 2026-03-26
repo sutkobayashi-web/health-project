@@ -3595,10 +3595,13 @@ async function buddyAskAI(concern, userText) {
       '・フレンドリーだが馴れ馴れしすぎない\n' +
       '・絵文字を適度に使う（1-2個）';
 
-    var res = await fetch('/api/chat/nurse', {
+    var buddyHistory = _buddyHistory.map(function(h) {
+      return { role: h.role === 'ai' ? 'assistant' : 'user', content: h.content };
+    });
+    var res = await fetch('/api/chat/message', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
-      body: JSON.stringify({ message: context + '\n' + userText, systemPrompt: systemPrompt })
+      body: JSON.stringify({ userMessage: userText, history: buddyHistory, userName: currentUser.nickname || '' })
     });
     var data = await res.json();
 
@@ -3629,10 +3632,10 @@ function sendBuddyMessage() {
 }
 
 function saveBuddyMood(mood) {
-  fetch('/api/chat/nurse', {
+  fetch('/api/chat/message', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
-    body: JSON.stringify({ message: '[MOOD_LOG] ' + mood, systemPrompt: 'ユーザーの体調記録です。返答不要。' })
+    body: JSON.stringify({ userMessage: '[MOOD_LOG] ' + mood, history: [], userName: currentUser.nickname || '' })
   }).catch(function(){});
 }
 </script>

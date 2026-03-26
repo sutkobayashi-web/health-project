@@ -88,8 +88,8 @@ function renderCustomAvatar(avatarStr, size) {
     var ctx = canvas.getContext('2d');
     var cx = size / 2, cy = size / 2, r = size / 2;
 
-    // 背景円
-    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fillStyle = bgColor; ctx.fill();
+    // 背景円（無効化）
+    // ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fillStyle = bgColor; ctx.fill();
 
     // 顔（輪郭形状反映）- 少し下寄せで髪との間隔を確保
     var faceR = r * faceSize / 24 * (1 + sizeFaceVal * 0.06);

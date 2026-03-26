@@ -219,16 +219,16 @@
   .buddy-msg.user .buddy-bubble { max-width:none; }
   .buddy-msg.ai { align-self:flex-start; }
   .buddy-msg.user { align-self:flex-end; flex-direction:row-reverse; text-align:right; }
-  .buddy-avatar { width:42px; height:42px; border-radius:50%; background:linear-gradient(135deg,#667eea,#764ba2); display:flex; align-items:center; justify-content:center; color:white; font-size:18px; flex-shrink:0; }
+  .buddy-avatar { width:42px; height:42px; border-radius:50%; background:linear-gradient(135deg,#0ea5e9,#0284c7); display:flex; align-items:center; justify-content:center; color:white; font-size:18px; flex-shrink:0; }
   .buddy-msg.user .buddy-avatar { background:linear-gradient(135deg,#20c997,#0ca678); }
   .buddy-bubble { padding:10px 14px; border-radius:16px; font-size:0.85rem; line-height:1.6; word-break:break-word; display:inline-block; }
   .buddy-msg.ai .buddy-bubble { background:white; color:#333; border-bottom-left-radius:4px; box-shadow:0 1px 3px rgba(0,0,0,0.08); }
-  .buddy-msg.user .buddy-bubble { background:linear-gradient(135deg,#667eea,#764ba2); color:white; border-bottom-right-radius:4px; }
+  .buddy-msg.user .buddy-bubble { background:linear-gradient(135deg,#0ea5e9,#0284c7); color:white; border-bottom-right-radius:4px; }
   .buddy-time { font-size:0.6rem; color:#aaa; margin-top:2px; }
-  .buddy-quick-btn { display:inline-flex; align-items:center; gap:6px; padding:8px 16px; border:2px solid #667eea; border-radius:20px; background:white; color:#667eea; font-size:0.82rem; font-weight:700; cursor:pointer; transition:all 0.15s; }
-  .buddy-quick-btn:active { background:#667eea; color:white; }
+  .buddy-quick-btn { display:inline-flex; align-items:center; gap:6px; padding:8px 16px; border:2px solid #0ea5e9; border-radius:20px; background:white; color:#0284c7; font-size:0.82rem; font-weight:700; cursor:pointer; transition:all 0.15s; }
+  .buddy-quick-btn:active { background:#0ea5e9; color:white; }
   .buddy-mood-btn { display:flex; flex-direction:column; align-items:center; gap:2px; padding:10px 14px; border:2px solid #e0e0e0; border-radius:14px; background:white; cursor:pointer; transition:all 0.15s; min-width:65px; }
-  .buddy-mood-btn:active { border-color:#667eea; background:#f5f0ff; }
+  .buddy-mood-btn:active { border-color:#0ea5e9; background:#e0f2fe; }
   .buddy-mood-btn .mood-emoji { font-size:24px; }
   .buddy-mood-btn .mood-label { font-size:0.65rem; font-weight:700; color:#666; }
 </style>
@@ -546,7 +546,7 @@
   </div>
 
   <!-- ヘルスバディー作成画面 -->
-  <div id="buddy-setup-screen" style="display:none;position:fixed;top:0;left:0;right:0;bottom:68px;z-index:2400;background:linear-gradient(160deg,#f5f0ff,#eef6ff);overflow-y:auto;-webkit-overflow-scrolling:touch;padding:20px 16px 40px;">
+  <div id="buddy-setup-screen" style="display:none;position:fixed;top:0;left:0;right:0;bottom:68px;z-index:2400;background:linear-gradient(160deg,#f0f9ff,#e0f2fe);overflow-y:auto;-webkit-overflow-scrolling:touch;padding:20px 16px 40px;">
     <div style="text-align:center;margin-bottom:20px;">
       <div style="font-size:2rem;margin-bottom:8px;">🤝</div>
       <div style="font-weight:900;font-size:1.1rem;color:#333;">ヘルスバディーを作ろう</div>
@@ -558,30 +558,30 @@
     </div>
     <!-- アバターパーツ選択 -->
     <div style="background:white;border-radius:16px;padding:14px;margin-bottom:16px;box-shadow:0 2px 12px rgba(0,0,0,0.06);">
-      <div style="font-weight:800;font-size:0.85rem;color:#667eea;margin-bottom:10px;"><i class="fas fa-palette" style="margin-right:4px;"></i>見た目をカスタマイズ</div>
+      <div style="font-weight:800;font-size:0.85rem;color:#0284c7;margin-bottom:10px;"><i class="fas fa-palette" style="margin-right:4px;"></i>見た目をカスタマイズ</div>
       <div id="buddy-builder-parts" class="avatar-builder-body"></div>
     </div>
     <!-- 名前入力 -->
     <div style="background:white;border-radius:16px;padding:14px;margin-bottom:16px;box-shadow:0 2px 12px rgba(0,0,0,0.06);">
-      <div style="font-weight:800;font-size:0.85rem;color:#667eea;margin-bottom:10px;"><i class="fas fa-pen" style="margin-right:4px;"></i>名前を付けてあげよう</div>
-      <input type="text" id="buddy-name-input" placeholder="例: ハルちゃん、ケンタ先生" value="バディー" style="width:100%;border:2px solid #e0e0e0;border-radius:12px;padding:12px 14px;font-size:0.92rem;outline:none;box-sizing:border-box;" onfocus="this.style.borderColor='#667eea'" onblur="this.style.borderColor='#e0e0e0'">
+      <div style="font-weight:800;font-size:0.85rem;color:#0284c7;margin-bottom:10px;"><i class="fas fa-pen" style="margin-right:4px;"></i>名前を付けてあげよう</div>
+      <input type="text" id="buddy-name-input" placeholder="例: ハルちゃん、ケンタ先生" value="バディー" style="width:100%;border:2px solid #e0e0e0;border-radius:12px;padding:12px 14px;font-size:0.92rem;outline:none;box-sizing:border-box;" onfocus="this.style.borderColor='#0ea5e9'" onblur="this.style.borderColor='#e0e0e0'">
     </div>
     <!-- 性格選択 -->
     <div style="background:white;border-radius:16px;padding:14px;margin-bottom:20px;box-shadow:0 2px 12px rgba(0,0,0,0.06);">
-      <div style="font-weight:800;font-size:0.85rem;color:#667eea;margin-bottom:10px;"><i class="fas fa-heart" style="margin-right:4px;"></i>性格を選んでね</div>
+      <div style="font-weight:800;font-size:0.85rem;color:#0284c7;margin-bottom:10px;"><i class="fas fa-heart" style="margin-right:4px;"></i>性格を選んでね</div>
       <div id="buddy-personality-grid" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
     </div>
     <!-- 決定ボタン -->
-    <button onclick="saveBuddySetup()" style="width:100%;padding:16px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;border-radius:14px;font-size:1rem;font-weight:800;cursor:pointer;box-shadow:0 4px 16px rgba(102,126,234,0.3);">
+    <button onclick="saveBuddySetup()" style="width:100%;padding:16px;background:linear-gradient(135deg,#0ea5e9,#0284c7);color:white;border:none;border-radius:14px;font-size:1rem;font-weight:800;cursor:pointer;box-shadow:0 4px 16px rgba(14,165,233,0.3);">
       <i class="fas fa-check-circle" style="margin-right:6px;"></i>この子に決定！
     </button>
     <div style="text-align:center;margin-top:10px;font-size:0.7rem;color:#aaa;">※後からいつでも変更できます</div>
   </div>
 
   <!-- ヘルスバディーチャット画面 -->
-  <div id="buddy-chat-screen" style="display:flex;flex-direction:column;height:calc(100vh - 56px - 68px);background:#f5f0ff;">
+  <div id="buddy-chat-screen" style="display:flex;flex-direction:column;height:calc(100vh - 56px - 68px);background:#f0f9ff;">
     <!-- バディーヘッダー -->
-    <div style="padding:10px 16px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;display:flex;align-items:center;gap:10px;flex-shrink:0;">
+    <div style="padding:10px 16px;background:linear-gradient(135deg,#0ea5e9,#0284c7);color:white;display:flex;align-items:center;gap:10px;flex-shrink:0;box-shadow:0 2px 10px rgba(14,165,233,0.3);">
       <div id="buddy-header-avatar" style="width:40px;height:40px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.2);"><i class="fas fa-robot" style="font-size:20px;"></i></div>
       <div>
         <div id="buddy-header-name" style="font-weight:800;font-size:0.9rem;">ヘルスバディー</div>
@@ -596,7 +596,7 @@
     <div style="flex-shrink:0;background:white;border-top:1px solid #eee;padding:8px 12px;">
       <div style="display:flex;align-items:center;gap:8px;">
         <input type="text" id="buddy-input" placeholder="メッセージを入力..." style="flex:1;border:1.5px solid #e0e0e0;border-radius:20px;padding:10px 14px;font-size:0.88rem;outline:none;" onkeydown="if(event.key==='Enter')sendBuddyMessage()">
-        <button onclick="sendBuddyMessage()" style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fas fa-paper-plane"></i></button>
+        <button onclick="sendBuddyMessage()" style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#0ea5e9,#0284c7);color:white;border:none;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fas fa-paper-plane"></i></button>
       </div>
     </div>
   </div>

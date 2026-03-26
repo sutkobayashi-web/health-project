@@ -517,16 +517,10 @@
       </div>
     </div>
     <!-- バディー変更ボタン -->
-    <div style="padding:0 18px;display:flex;flex-direction:column;gap:8px;margin-top:10px;">
-      <button onclick="openBuddySetup()" style="width:100%;padding:12px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;border-radius:12px;font-size:0.85rem;font-weight:700;cursor:pointer;">
-        <i class="fas fa-robot" style="margin-right:4px;"></i>バディーを変更する
-      </button>
-      <button onclick="openAdminFromUser()" style="width:100%;padding:12px;background:rgba(102,126,234,0.1);color:#667eea;border:2px solid #667eea;border-radius:12px;font-size:0.85rem;font-weight:700;cursor:pointer;">
-        <i class="fas fa-shield-alt" style="margin-right:4px;"></i>管理者画面
-      </button>
-      <button onclick="doUserLogout()" style="width:100%;padding:12px;background:rgba(229,62,62,0.1);color:#e53e3e;border:2px solid #e53e3e;border-radius:12px;font-size:0.85rem;font-weight:700;cursor:pointer;">
-        <i class="fas fa-sign-out-alt" style="margin-right:4px;"></i>ログアウト
-      </button>
+    <div style="padding:6px 18px;display:flex;gap:6px;">
+      <button onclick="openBuddySetup()" style="flex:1;padding:8px 4px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;border-radius:10px;font-size:0.7rem;font-weight:700;cursor:pointer;"><i class="fas fa-robot"></i> バディー変更</button>
+      <button onclick="openAdminFromUser()" style="flex:1;padding:8px 4px;background:white;color:#667eea;border:1.5px solid #667eea;border-radius:10px;font-size:0.7rem;font-weight:700;cursor:pointer;"><i class="fas fa-shield-alt"></i> 管理者</button>
+      <button onclick="doUserLogout()" style="flex:1;padding:8px 4px;background:white;color:#e53e3e;border:1.5px solid #e53e3e;border-radius:10px;font-size:0.7rem;font-weight:700;cursor:pointer;"><i class="fas fa-sign-out-alt"></i> ログアウト</button>
     </div>
     <!-- 投稿一覧 -->
     <div style="padding:8px 12px 4px;font-size:0.78rem;font-weight:700;color:#999;flex-shrink:0;"><i class="fas fa-history"></i> 投稿履歴</div>

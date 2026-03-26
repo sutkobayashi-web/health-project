@@ -3435,11 +3435,13 @@ function nurseScrollBottom() {
 // ===== ヘルスバディー =====
 var _buddyHistory = [];
 var _buddyMoodChecked = false;
+var _buddyTurnCount = 0;
 
 function initBuddy() {
   if (!currentUser) return;
   _buddyHistory = [];
   _buddyMoodChecked = false;
+  _buddyTurnCount = 0;
   var msgs = document.getElementById('buddy-messages');
   msgs.innerHTML = '';
 
@@ -3639,6 +3641,9 @@ async function buddyAskAI(concern, userText) {
 
     if (data && data.reply) {
       addBuddyMessage('ai', data.reply);
+      _buddyTurnCount++;
+      // 1往復のアドバイス後に締めの選択肢を表示
+      setTimeout(function() { showBuddyWrapUp(); }, 1200);
     } else {
       addBuddyMessage('ai', '申し訳ありません、うまく返答できませんでした。\nもう一度お話しいただけますか？');
     }
@@ -3646,6 +3651,38 @@ async function buddyAskAI(concern, userText) {
     var loadEl = document.getElementById(loadingId);
     if (loadEl) loadEl.remove();
     addBuddyMessage('ai', '通信エラーが発生しました。\n少し時間をおいて試してみてください。');
+  }
+}
+
+function showBuddyWrapUp() {
+  var area = document.getElementById('buddy-quick-area');
+  area.style.display = 'block';
+  area.innerHTML = '<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;padding:4px 0;">' +
+    '<div class="buddy-quick-btn" onclick="buddyWrapUp(\'another\')" style="border-color:#667eea;color:#667eea;">🔄 別の相談をする</div>' +
+    '<div class="buddy-quick-btn" onclick="buddyWrapUp(\'food\')" style="border-color:#20c997;color:#20c997;">🍱 食事を記録する</div>' +
+    '<div class="buddy-quick-btn" onclick="buddyWrapUp(\'done\')" style="border-color:#ff9800;color:#ff9800;">👍 ありがとう！</div>' +
+  '</div>';
+}
+
+function buddyWrapUp(action) {
+  document.getElementById('buddy-quick-area').style.display = 'none';
+  if (action === 'done') {
+    addBuddyMessage('user', '👍 ありがとう！');
+    setTimeout(function() {
+      addBuddyMessage('ai', 'いつでも話しかけてくださいね！\n今日も良い1日を🌟');
+    }, 500);
+  } else if (action === 'another') {
+    addBuddyMessage('user', '🔄 別の相談をしたい');
+    setTimeout(function() {
+      addBuddyMessage('ai', 'もちろん！何について話しましょうか？');
+      setTimeout(function() { showConcernOptions(); }, 800);
+    }, 500);
+  } else if (action === 'food') {
+    addBuddyMessage('user', '🍱 食事を記録する');
+    setTimeout(function() {
+      addBuddyMessage('ai', '食事チェックに移動しますね！📸');
+      setTimeout(function() { switchAppTab('menu'); }, 800);
+    }, 500);
   }
 }
 

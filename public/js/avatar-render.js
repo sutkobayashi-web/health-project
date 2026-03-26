@@ -2482,7 +2482,7 @@ function drawHair(ctx, cx, faceY, faceR, type, color) {
     ctx.save();
     ctx.globalAlpha = 0.3;
     ctx.translate(x, y + r * 0.35);
-    ctx.scale(1, 0.5);
+    ctx.scale(1, 0.25);
     ctx.beginPath(); ctx.arc(0, 0, r * 0.85, sa, ea); ctx.fill();
     ctx.restore();
   }

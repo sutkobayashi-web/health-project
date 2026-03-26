@@ -2931,6 +2931,8 @@ function hideLoading() { document.getElementById('loading-overlay').style.displa
 <script>
 var _currentAppTab = 'home';
 function switchAppTab(tab) {
+  // タブ状態を保存（リロード時復元用）
+  try { sessionStorage.setItem('healthCurrentTab', tab); } catch(e) {}
   // 全タブを閉じる
   if (_currentAppTab !== 'home') {
     if (_currentAppTab === 'inbox') { document.getElementById('inbox-sheet').classList.remove('active'); unlockScroll(); }
@@ -2969,6 +2971,20 @@ function switchAppTab(tab) {
   var activeNav = document.getElementById('bnav-' + tab);
   if (activeNav) activeNav.classList.add('active');
 }
+
+// ページロード時にタブ復元
+(function() {
+  var saved = null;
+  try { saved = sessionStorage.getItem('healthCurrentTab'); } catch(e) {}
+  if (saved && saved !== 'home') {
+    var restore = function() { switchAppTab(saved); };
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', function() { setTimeout(restore, 200); });
+    } else {
+      setTimeout(restore, 200);
+    }
+  }
+})();
 
 function toggleFabMenu() {
   var items = document.getElementById('fab-speed-items');

@@ -3540,6 +3540,14 @@ function saveBuddySetup() {
   var avatar = abBuildString();
   var buddy = { avatar: avatar, name: name, personality: _selectedPersonality };
   localStorage.setItem('co_heart_buddy', JSON.stringify(buddy));
+  // サーバーにも保存（端末間同期）
+  if (currentUser && currentUser.uid) {
+    fetch('/api/auth/save-buddy', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
+      body: JSON.stringify({ uid: currentUser.uid, buddyData: buddy })
+    }).catch(function(){});
+  }
   document.getElementById('buddy-setup-screen').style.display = 'none';
   initBuddy();
 }
@@ -3561,19 +3569,39 @@ function openBuddySetup() {
 function initBuddy() {
   if (!currentUser) return;
 
-  // バディーデータ読み込み
+  // バディーデータ読み込み（localStorage優先、なければサーバーから取得）
   var buddyData = null;
   try { buddyData = JSON.parse(localStorage.getItem('co_heart_buddy')); } catch(e) {}
 
   if (!buddyData) {
-    // 未作成 → セットアップ画面表示
-    document.getElementById('buddy-setup-screen').style.display = 'block';
-    abRenderBuilderUI('buddy-builder-parts', 'buddy-setup-preview');
-    renderBuddyPersonalityGrid();
+    // サーバーから取得を試みる
+    fetch('/api/auth/get-buddy/' + currentUser.uid, {
+      headers: { 'Authorization': 'Bearer ' + getToken() }
+    }).then(function(r) { return r.json(); }).then(function(data) {
+      if (data && data.buddyData) {
+        // サーバーにあった → localStorageに同期してチャット開始
+        localStorage.setItem('co_heart_buddy', JSON.stringify(data.buddyData));
+        startBuddyChat(data.buddyData);
+      } else {
+        // サーバーにもない → セットアップ画面表示
+        document.getElementById('buddy-setup-screen').style.display = 'block';
+        abRenderBuilderUI('buddy-builder-parts', 'buddy-setup-preview');
+        renderBuddyPersonalityGrid();
+      }
+    }).catch(function() {
+      // 通信エラー → セットアップ画面表示
+      document.getElementById('buddy-setup-screen').style.display = 'block';
+      abRenderBuilderUI('buddy-builder-parts', 'buddy-setup-preview');
+      renderBuddyPersonalityGrid();
+    });
     return;
   }
 
   // バディー作成済み → チャット開始
+  startBuddyChat(buddyData);
+}
+
+function startBuddyChat(buddyData) {
   _buddyHistory = [];
   _buddyMoodChecked = false;
   _buddyTurnCount = 0;

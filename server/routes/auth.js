@@ -204,6 +204,30 @@ router.post('/update-avatar', authUser, (req, res) => {
   }
 });
 
+// バディーデータ保存
+router.post('/save-buddy', authUser, (req, res) => {
+  try {
+    const { uid, buddyData } = req.body;
+    if (!uid || !buddyData) return res.json({ success: false, msg: 'uid と buddyData を指定してください' });
+    const db = getDb();
+    db.prepare('UPDATE users SET buddy_data = ? WHERE id = ?').run(JSON.stringify(buddyData), uid);
+    res.json({ success: true });
+  } catch (e) { res.json({ success: false, msg: e.message }); }
+});
+
+// バディーデータ取得
+router.get('/get-buddy/:uid', authUser, (req, res) => {
+  try {
+    const db = getDb();
+    const row = db.prepare('SELECT buddy_data FROM users WHERE id = ?').get(req.params.uid);
+    if (row && row.buddy_data) {
+      res.json({ success: true, buddyData: JSON.parse(row.buddy_data) });
+    } else {
+      res.json({ success: true, buddyData: null });
+    }
+  } catch (e) { res.json({ success: false, buddyData: null }); }
+});
+
 // 実名更新（認証必須）
 router.post('/update-realname', authUser, (req, res) => {
   try {

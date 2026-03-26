@@ -89,6 +89,9 @@ function getDb() {
       created_at TEXT DEFAULT (datetime('now'))
     )`);
 
+    // buddyカラム追加
+    try { db.exec("ALTER TABLE users ADD COLUMN buddy_data TEXT DEFAULT ''"); } catch(e) {}
+
     db.exec(`CREATE TABLE IF NOT EXISTS notice_reads (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       notice_id TEXT NOT NULL,

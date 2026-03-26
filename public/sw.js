@@ -2,14 +2,14 @@
 const CACHE_NAME = 'cowell-health-v2';
 
 self.addEventListener('install', (event) => {
-  self.skipWaiting();
+  // skipWaitingしない（ログイン中のリロードを防止）
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
-    ).then(() => self.clients.claim())
+    )
   );
 });
 

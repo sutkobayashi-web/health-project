@@ -4151,13 +4151,12 @@ function toggleAccordion(bodyId, labelId) {
   var body = document.getElementById(bodyId);
   var label = document.getElementById(labelId);
   if (!body) return;
-  if (body.getAttribute('data-open') === '1') {
-    body.style.display = 'none';
-    body.setAttribute('data-open', '0');
+  var isOpen = body.style.display === 'block';
+  if (isOpen) {
+    body.style.cssText = body.style.cssText.replace(/display:\s*block/i, 'display:none');
     if (label) { label.innerHTML = '<i class="fas fa-chevron-down" style="font-size:0.6rem;margin-right:3px;"></i>開く'; label.style.background = ''; label.style.color = ''; }
   } else {
-    body.style.display = 'block';
-    body.setAttribute('data-open', '1');
+    body.style.cssText = body.style.cssText.replace(/display:\s*none/i, 'display:block');
     if (label) { label.innerHTML = '<i class="fas fa-chevron-up" style="font-size:0.6rem;margin-right:3px;"></i>閉じる'; label.style.background = '#e53935'; label.style.color = 'white'; }
   }
 }

@@ -2477,26 +2477,20 @@ function drawHair(ctx, cx, faceY, faceR, type, color) {
     ctx.restore();
   }
 
-  // 頭頂部を自然な形にする：arc呼び出し時に縦を潰して楕円に
-  var _origArc = ctx.arc.bind(ctx);
-  ctx.arc = function(x, y, r, sa, ea, ccw) {
-    // 頭頂部付近のarc（上半円）を楕円化
-    if (sa >= Math.PI * 0.7 && ea <= Math.PI * 2.3 && r > faceR * 0.4) {
-      ctx.save();
-      ctx.translate(x, y);
-      ctx.scale(1, 0.82);
-      _origArc(0, 0, r, sa, ea, ccw);
-      ctx.restore();
+  // 頭頂部を自然な形にする：arcの代わりにellipseを使うヘルパー
+  function hairCap(x, y, rx, ry, sa, ea) {
+    if (ctx.ellipse) {
+      ctx.ellipse(x, y, rx, ry, 0, sa, ea);
     } else {
-      _origArc(x, y, r, sa, ea, ccw);
+      ctx.arc(x, y, rx, sa, ea); // fallback
     }
-  };
+  }
 
   ctx.save();
   switch(type) {
     case 1: // ショート
       ctx.fillStyle = hairGrad(topY - faceR * 0.3, topY + faceR * 0.4);
-      ctx.beginPath(); ctx.arc(cx, topY + faceR * 0.1, faceR * 0.65, Math.PI, 2 * Math.PI); ctx.fill();
+      ctx.beginPath(); hairCap(cx, topY + faceR * 0.1, faceR * 0.65, faceR * 0.65 * 0.82, Math.PI, 2 * Math.PI); ctx.fill();
       _drawHairShine(ctx, cx, topY, faceR, color, [
         [cx - faceR * 0.3, topY + faceR * 0.05, cx - faceR * 0.1, topY - faceR * 0.15, cx + faceR * 0.15, topY - faceR * 0.1],
         [cx + faceR * 0.05, topY + faceR * 0.08, cx + faceR * 0.2, topY - faceR * 0.12, cx + faceR * 0.4, topY - faceR * 0.05]
@@ -2516,7 +2510,7 @@ function drawHair(ctx, cx, faceY, faceR, type, color) {
     case 2: // ミディアム — ふんわり内巻き
       // ベースの頭頂部（丸みのあるシルエット）
       ctx.fillStyle = hairGrad(topY - faceR * 0.35, topY + faceR * 0.5);
-      ctx.beginPath(); ctx.arc(cx, topY + faceR * 0.1, faceR * 0.82, Math.PI * 0.82, Math.PI * 2.18); ctx.fill();
+      ctx.beginPath(); hairCap(cx, topY + faceR * 0.1, faceR * 0.82, faceR * 0.82 * 0.82, Math.PI * 0.82, Math.PI * 2.18); ctx.fill();
       // サイドの髪（肩にかかる長さ、ふんわり内巻き）
       [-1, 1].forEach(function(s) {
         var sideGrad2 = ctx.createLinearGradient(cx + s * faceR * 0.45, topY, cx + s * faceR * 0.8, faceY + faceR * 0.58);
@@ -2561,7 +2555,7 @@ function drawHair(ctx, cx, faceY, faceR, type, color) {
     case 3: // ロング — 胸元まで伸びる長い髪
       // ベースの頭頂部（ふっくら丸みのあるシルエット）
       ctx.fillStyle = hairGrad(topY - faceR * 0.38, topY + faceR * 0.6);
-      ctx.beginPath(); ctx.arc(cx, topY + faceR * 0.1, faceR * 0.88, Math.PI * 0.7, Math.PI * 2.3); ctx.fill();
+      ctx.beginPath(); hairCap(cx, topY + faceR * 0.1, faceR * 0.88, faceR * 0.88 * 0.82, Math.PI * 0.7, Math.PI * 2.3); ctx.fill();
       // サイドの長い髪（胸元まで、自然なウェーブ）
       [-1, 1].forEach(function(s) {
         var longGrad = ctx.createLinearGradient(cx + s * faceR * 0.45, topY, cx + s * faceR * 0.85, faceY + faceR * 1.05);
@@ -2634,7 +2628,7 @@ function drawHair(ctx, cx, faceY, faceR, type, color) {
         }
       }
       ctx.fillStyle = hairGrad(topY, topY + faceR * 0.4);
-      ctx.beginPath(); ctx.arc(cx, topY + faceR * 0.2, faceR * 0.55, Math.PI, 2 * Math.PI); ctx.fill();
+      ctx.beginPath(); hairCap(cx, topY + faceR * 0.2, faceR * 0.55, faceR * 0.55 * 0.82, Math.PI, 2 * Math.PI); ctx.fill();
       _drawStrands([
         [cx - faceR * 0.3, topY + faceR * 0.2, cx - faceR * 0.15, topY + faceR * 0.05, cx, topY + faceR * 0.1],
         [cx, topY + faceR * 0.18, cx + faceR * 0.1, topY + faceR * 0.05, cx + faceR * 0.25, topY + faceR * 0.1],
@@ -2729,7 +2723,7 @@ function drawHair(ctx, cx, faceY, faceR, type, color) {
     case 7: // ポニテ — 流し前髪、後ろに集まる流れ
       // ベースの頭頂部（後ろへ自然に流れるシルエット）
       ctx.fillStyle = hairGrad(topY - faceR * 0.35, topY + faceR * 0.42);
-      ctx.beginPath(); ctx.arc(cx, topY + faceR * 0.08, faceR * 0.75, Math.PI * 0.85, Math.PI * 2.15); ctx.fill();
+      ctx.beginPath(); hairCap(cx, topY + faceR * 0.08, faceR * 0.75, faceR * 0.75 * 0.82, Math.PI * 0.85, Math.PI * 2.15); ctx.fill();
       // 頭頂部から後ろへ集まる髪の流れ（ボリューム感のある膨らみ）
       ctx.fillStyle = hairGrad(topY - faceR * 0.2, topY + faceR * 0.3);
       ctx.beginPath();
@@ -2778,7 +2772,7 @@ function drawHair(ctx, cx, faceY, faceR, type, color) {
     case 8: // ボブ — ふっくら丸みのある顎ライン内巻き、ぱっつん前髪
       // ベースの頭頂部（丸く膨らんだシルエット）
       ctx.fillStyle = hairGrad(topY - faceR * 0.35, topY + faceR * 0.5);
-      ctx.beginPath(); ctx.arc(cx, topY + faceR * 0.08, faceR * 0.85, Math.PI * 0.78, Math.PI * 2.22); ctx.fill();
+      ctx.beginPath(); hairCap(cx, topY + faceR * 0.08, faceR * 0.85, faceR * 0.85 * 0.82, Math.PI * 0.78, Math.PI * 2.22); ctx.fill();
       // サイドの髪（ふっくら丸い、顎ラインで内巻き）
       [-1, 1].forEach(function(s) {
         var bobGrad = ctx.createLinearGradient(cx + s * faceR * 0.45, topY, cx + s * faceR * 0.85, faceY + faceR * 0.45);
@@ -2841,7 +2835,7 @@ function drawHair(ctx, cx, faceY, faceR, type, color) {
     case 9: // おだんご — ふんわりベース + シースルー前髪
       // ベースの頭頂部（丸みのあるシルエット）
       ctx.fillStyle = hairGrad(topY - faceR * 0.35, topY + faceR * 0.5);
-      ctx.beginPath(); ctx.arc(cx, topY + faceR * 0.1, faceR * 0.82, Math.PI * 0.82, Math.PI * 2.18); ctx.fill();
+      ctx.beginPath(); hairCap(cx, topY + faceR * 0.1, faceR * 0.82, faceR * 0.82 * 0.82, Math.PI * 0.82, Math.PI * 2.18); ctx.fill();
       // サイドの髪（ふんわりミディアム風）
       [-1, 1].forEach(function(s) {
         var dSideGrad = ctx.createLinearGradient(cx + s * faceR * 0.45, topY, cx + s * faceR * 0.78, faceY + faceR * 0.48);
@@ -2888,7 +2882,7 @@ function drawHair(ctx, cx, faceY, faceR, type, color) {
     case 10: // ツインテ — 左右にテール、かわいい前髪
       // ベースの頭頂部（ふんわり丸い）
       ctx.fillStyle = hairGrad(topY - faceR * 0.35, topY + faceR * 0.42);
-      ctx.beginPath(); ctx.arc(cx, topY + faceR * 0.08, faceR * 0.75, Math.PI * 0.85, Math.PI * 2.15); ctx.fill();
+      ctx.beginPath(); hairCap(cx, topY + faceR * 0.08, faceR * 0.75, faceR * 0.75 * 0.82, Math.PI * 0.85, Math.PI * 2.15); ctx.fill();
       // サイドヘア（こめかみから耳横へ流れる短い髪）
       [-1, 1].forEach(function(s) {
         var twSideGrad = ctx.createLinearGradient(cx + s * faceR * 0.5, topY + faceR * 0.1, cx + s * faceR * 0.65, faceY + faceR * 0.05);
@@ -2929,7 +2923,7 @@ function drawHair(ctx, cx, faceY, faceR, type, color) {
     case 11: // ウェーブ — ボリューミーなウェーブ、センターパート
       // ベースの頭頂部（大きめ、ふっくらボリューム）
       ctx.fillStyle = hairGrad(topY - faceR * 0.4, topY + faceR * 0.5);
-      ctx.beginPath(); ctx.arc(cx, topY + faceR * 0.1, faceR * 0.9, Math.PI * 0.68, Math.PI * 2.32); ctx.fill();
+      ctx.beginPath(); hairCap(cx, topY + faceR * 0.1, faceR * 0.9, faceR * 0.9 * 0.82, Math.PI * 0.68, Math.PI * 2.32); ctx.fill();
       // サイドのウェーブ髪（はっきりとしたS字カーブ）
       [-1, 1].forEach(function(s) {
         var wvGrad = ctx.createLinearGradient(cx + s * faceR * 0.45, topY, cx + s * faceR * 0.95, faceY + faceR * 0.85);
@@ -2976,7 +2970,7 @@ function drawHair(ctx, cx, faceY, faceR, type, color) {
     case 12: // ワンレン — ストレート、7:3サイドパート
       // ベースの頭頂部
       ctx.fillStyle = hairGrad(topY - faceR * 0.3, topY + faceR * 0.5);
-      ctx.beginPath(); ctx.arc(cx, topY + faceR * 0.12, faceR * 0.82, Math.PI * 0.8, Math.PI * 2.2); ctx.fill();
+      ctx.beginPath(); hairCap(cx, topY + faceR * 0.12, faceR * 0.82, faceR * 0.82 * 0.82, Math.PI * 0.8, Math.PI * 2.2); ctx.fill();
       // サイドの髪（ストレート、均一な長さ）
       [-1, 1].forEach(function(s) {
         var wlSideGrad = ctx.createLinearGradient(cx + s * faceR * 0.5, topY, cx + s * faceR * 0.8, faceY + faceR * 0.5);
@@ -3021,7 +3015,7 @@ function drawHair(ctx, cx, faceY, faceR, type, color) {
     case 13: // ハーフアップ — 上半分を後ろで留め、下半分はおろす
       // ベースの頭頂部（きれいに後ろへまとまるシルエット）
       ctx.fillStyle = hairGrad(topY - faceR * 0.35, topY + faceR * 0.42);
-      ctx.beginPath(); ctx.arc(cx, topY + faceR * 0.08, faceR * 0.78, Math.PI * 0.82, Math.PI * 2.18); ctx.fill();
+      ctx.beginPath(); hairCap(cx, topY + faceR * 0.08, faceR * 0.78, faceR * 0.78 * 0.82, Math.PI * 0.82, Math.PI * 2.18); ctx.fill();
       // 後ろに留めた上半分の膨らみ
       ctx.fillStyle = hairGrad(topY - faceR * 0.18, topY + faceR * 0.28);
       ctx.beginPath();
@@ -3072,7 +3066,7 @@ function drawHair(ctx, cx, faceY, faceR, type, color) {
     case 14: // マッシュ — 丸いマッシュルームシルエット
       // ベースの丸いシルエット（耳が隠れる大きさ）
       ctx.fillStyle = hairGrad(topY - faceR * 0.35, topY + faceR * 0.5);
-      ctx.beginPath(); ctx.arc(cx, topY + faceR * 0.15, faceR * 0.85, Math.PI * 0.75, Math.PI * 2.25); ctx.fill();
+      ctx.beginPath(); hairCap(cx, topY + faceR * 0.15, faceR * 0.85, faceR * 0.85 * 0.82, Math.PI * 0.75, Math.PI * 2.25); ctx.fill();
       // サイドの丸い髪（耳を隠す）
       [-1, 1].forEach(function(s) {
         var msGrad = ctx.createLinearGradient(cx + s * faceR * 0.5, topY, cx + s * faceR * 0.8, faceY + faceR * 0.25);
@@ -3111,7 +3105,7 @@ function drawHair(ctx, cx, faceY, faceR, type, color) {
     case 15: // センター分け — 真ん中分けストレート、知的な印象
       // ベースの頭頂部
       ctx.fillStyle = hairGrad(topY - faceR * 0.3, topY + faceR * 0.5);
-      ctx.beginPath(); ctx.arc(cx, topY + faceR * 0.12, faceR * 0.82, Math.PI * 0.8, Math.PI * 2.2); ctx.fill();
+      ctx.beginPath(); hairCap(cx, topY + faceR * 0.12, faceR * 0.82, faceR * 0.82 * 0.82, Math.PI * 0.8, Math.PI * 2.2); ctx.fill();
       // サイドの髪（ストレート、耳下まで）
       [-1, 1].forEach(function(s) {
         var cpSideGrad = ctx.createLinearGradient(cx + s * faceR * 0.5, topY, cx + s * faceR * 0.8, faceY + faceR * 0.5);
@@ -3159,7 +3153,7 @@ function drawHair(ctx, cx, faceY, faceR, type, color) {
     case 16: // 外ハネ — 毛先が元気に外にハネるミディアム
       // ベースの頭頂部（ふんわり丸い）
       ctx.fillStyle = hairGrad(topY - faceR * 0.35, topY + faceR * 0.5);
-      ctx.beginPath(); ctx.arc(cx, topY + faceR * 0.1, faceR * 0.82, Math.PI * 0.82, Math.PI * 2.18); ctx.fill();
+      ctx.beginPath(); hairCap(cx, topY + faceR * 0.1, faceR * 0.82, faceR * 0.82 * 0.82, Math.PI * 0.82, Math.PI * 2.18); ctx.fill();
       // サイドの髪（外ハネ — 毛先が勢いよく外側へ）
       [-1, 1].forEach(function(s) {
         var ohSideGrad = ctx.createLinearGradient(cx + s * faceR * 0.45, topY, cx + s * faceR * 0.88, faceY + faceR * 0.55);
@@ -3206,7 +3200,7 @@ function drawHair(ctx, cx, faceY, faceR, type, color) {
     case 17: // ベリーショート — 坊主に近い超短髪
       // 非常に短い髪のベース（頭皮にぴったり）
       ctx.fillStyle = hairGrad(topY - faceR * 0.15, topY + faceR * 0.25);
-      ctx.beginPath(); ctx.arc(cx, topY + faceR * 0.1, faceR * 0.58, Math.PI, 2 * Math.PI); ctx.fill();
+      ctx.beginPath(); hairCap(cx, topY + faceR * 0.1, faceR * 0.58, faceR * 0.58 * 0.82, Math.PI, 2 * Math.PI); ctx.fill();
       // 短い刈り上げテクスチャ（極短の毛を密に描く）
       if (detail) {
         ctx.save();
@@ -3246,7 +3240,7 @@ function drawHair(ctx, cx, faceY, faceR, type, color) {
     case 18: // ゆるふわ — ふんわりパーマ、エアリーなボリューム感
       // ベースの頭頂部（大きめ、ふわっとボリューム）
       ctx.fillStyle = hairGrad(topY - faceR * 0.42, topY + faceR * 0.5);
-      ctx.beginPath(); ctx.arc(cx, topY + faceR * 0.1, faceR * 0.92, Math.PI * 0.65, Math.PI * 2.35); ctx.fill();
+      ctx.beginPath(); hairCap(cx, topY + faceR * 0.1, faceR * 0.92, faceR * 0.92 * 0.82, Math.PI * 0.65, Math.PI * 2.35); ctx.fill();
       // サイドのふわふわ髪（柔らかいカール感）
       [-1, 1].forEach(function(s) {
         var yfSideGrad = ctx.createLinearGradient(cx + s * faceR * 0.45, topY, cx + s * faceR * 1.0, faceY + faceR * 0.78);
@@ -3297,7 +3291,7 @@ function drawHair(ctx, cx, faceY, faceR, type, color) {
     case 19: // 姫カット — サイド顎ライン切り揃え＋後ろストレートロング
       // ベースの頭頂部（ストレートで滑らかなシルエット）
       ctx.fillStyle = hairGrad(topY - faceR * 0.35, topY + faceR * 0.5);
-      ctx.beginPath(); ctx.arc(cx, topY + faceR * 0.1, faceR * 0.88, Math.PI * 0.72, Math.PI * 2.28); ctx.fill();
+      ctx.beginPath(); hairCap(cx, topY + faceR * 0.1, faceR * 0.88, faceR * 0.88 * 0.82, Math.PI * 0.72, Math.PI * 2.28); ctx.fill();
       // サイドの髪（顎ラインで切り揃え — 姫カットの特徴、ストレートで厚み）
       [-1, 1].forEach(function(s) {
         var hmSideGrad = ctx.createLinearGradient(cx + s * faceR * 0.45, topY, cx + s * faceR * 0.85, faceY + faceR * 0.3);
@@ -3447,7 +3441,7 @@ function drawHair(ctx, cx, faceY, faceR, type, color) {
     case 21: // クレオ — クレオパトラ風（重厚なぱっつん前髪＋ストレートサイド＋肩で切り揃え）
       // ベースの頭頂部（滑らかで重厚なシルエット）
       ctx.fillStyle = hairGrad(topY - faceR * 0.35, topY + faceR * 0.5);
-      ctx.beginPath(); ctx.arc(cx, topY + faceR * 0.08, faceR * 0.88, Math.PI * 0.72, Math.PI * 2.28); ctx.fill();
+      ctx.beginPath(); hairCap(cx, topY + faceR * 0.08, faceR * 0.88, faceR * 0.88 * 0.82, Math.PI * 0.72, Math.PI * 2.28); ctx.fill();
       // サイドの直線的な髪（ストレートで肩まで、外側にやや広がる台形）
       [-1, 1].forEach(function(s) {
         var cleoGrad = ctx.createLinearGradient(cx + s * faceR * 0.45, topY, cx + s * faceR * 0.9, faceY + faceR * 0.75);
@@ -3571,7 +3565,7 @@ function drawHair(ctx, cx, faceY, faceR, type, color) {
     case 24: // 三つ編み — braids hanging down sides
       // 頭頂部ベース
       ctx.fillStyle = hairGrad(topY - faceR * 0.3, topY + faceR * 0.4);
-      ctx.beginPath(); ctx.arc(cx, topY + faceR * 0.08, faceR * 0.85, Math.PI * 0.75, Math.PI * 2.25); ctx.fill();
+      ctx.beginPath(); hairCap(cx, topY + faceR * 0.08, faceR * 0.85, faceR * 0.85 * 0.82, Math.PI * 0.75, Math.PI * 2.25); ctx.fill();
       // 分け目ライン
       if (detail) {
         ctx.strokeStyle = darker;
@@ -3668,7 +3662,6 @@ function drawHair(ctx, cx, faceY, faceR, type, color) {
       ]);
       break;
   }
-  ctx.arc = _origArc; // arcを元に戻す
   ctx.restore();
 }
 

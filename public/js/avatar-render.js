@@ -2486,22 +2486,20 @@ function drawHair(ctx, cx, faceY, faceR, type, color) {
     }
   }
 
-  // 髪のベース描画後に輪郭＋内部の毛束影を追加するヘルパー
+  // 髪のベース描画ヘルパー
   function hairCapFill(x, y, rx, ry, sa, ea) {
     // ベース塗り
     ctx.beginPath(); hairCap(x, y, rx, ry, sa, ea); ctx.fill();
-    // 輪郭線（帽子感を消す）
+    // 下端（生え際）にだけ影を入れて立体感
     if (detail) {
       ctx.save();
       ctx.strokeStyle = darker;
-      ctx.lineWidth = Math.max(0.8, faceR * 0.015);
-      ctx.globalAlpha = 0.3;
-      ctx.beginPath(); hairCap(x, y, rx, ry, sa, ea); ctx.stroke();
-      // 内側に明るい弧線（立体感）
-      ctx.strokeStyle = lighter;
-      ctx.globalAlpha = 0.4;
-      ctx.lineWidth = Math.max(0.5, faceR * 0.02);
-      ctx.beginPath(); hairCap(x, y, rx * 0.85, ry * 0.8, sa + 0.15, ea - 0.15); ctx.stroke();
+      ctx.lineWidth = Math.max(1, faceR * 0.025);
+      ctx.globalAlpha = 0.25;
+      ctx.beginPath();
+      // 下側の弧だけ描画（左端〜右端の下部分）
+      hairCap(x, y + ry * 0.15, rx * 0.95, ry * 0.3, Math.PI * 0.15, Math.PI * 0.85);
+      ctx.stroke();
       ctx.restore();
     }
   }

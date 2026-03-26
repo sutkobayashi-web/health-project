@@ -2477,9 +2477,12 @@ function drawHair(ctx, cx, faceY, faceR, type, color) {
     ctx.restore();
   }
 
-  // 髪のベース描画ヘルパー（半円ベースを無効化して確認中）
+  // 髪のベース描画ヘルパー（控えめに配置）
   function hairCapFill(x, y, r, _ry, sa, ea) {
-    // ctx.beginPath(); ctx.arc(x, y, r, sa, ea); ctx.fill();
+    ctx.save();
+    ctx.globalAlpha = 0.35;
+    ctx.beginPath(); ctx.arc(x, y + r * 0.15, r * 0.85, sa, ea); ctx.fill();
+    ctx.restore();
   }
 
   ctx.save();

@@ -275,12 +275,36 @@ async function callGeminiVision(systemPrompt, base64Data, mimeType) {
 // AIヘルスアドバイザーチャット用
 async function chatWithNurse(userMessage, history, userName) {
   try {
+    // 現在進行中のチャレンジ・テーマ情報を取得
+    let challengeInfo = '';
+    try {
+      const db = getDb();
+      const activeChallenges = db.prepare("SELECT title, description, icon, period_start, period_end FROM challenges WHERE status = 'active' ORDER BY created_at DESC LIMIT 3").all();
+      const votingThemes = db.prepare("SELECT t.name, t.description, t.icon FROM themes t JOIN vote_cycles vc ON t.cycle_number = vc.cycle_number WHERE vc.status = 'voting' LIMIT 5").all();
+      if (activeChallenges.length > 0) {
+        challengeInfo += '\n# 現在進行中のチャレンジ（会話の中で自然に紹介・参加を促すこと）\n';
+        activeChallenges.forEach(c => {
+          challengeInfo += `- ${c.icon || '💪'} ${c.title}: ${c.description || ''}（${c.period_start || ''}〜${c.period_end || ''}）\n`;
+        });
+        challengeInfo += '→ 会話の内容がチャレンジのテーマに関連する場合、「今ちょうどこんなチャレンジをやってるよ！参加してみない？」と自然に紹介する\n';
+        challengeInfo += '→ 押し付けず、興味を持たせる程度に。「メニュータブから参加できるよ」と案内する\n';
+      }
+      if (votingThemes.length > 0) {
+        challengeInfo += '\n# 現在投票中のテーマ（関連する話題が出たら投票を促す）\n';
+        votingThemes.forEach(t => {
+          challengeInfo += `- ${t.icon || '💡'} ${t.name}: ${t.description || ''}\n`;
+        });
+        challengeInfo += '→ 「みんなで次のアクションプランを決める投票をやってるよ！」と自然に案内する\n';
+      }
+    } catch(e) { /* DB取得失敗しても会話は続行 */ }
+
     const systemPrompt = `# 役割
 あなたは、エビデンスに基づく健康支援を行う「AIヘルスアドバイザー」です。
 最新のガイドラインと行動科学理論に基づき、対象者の行動変容を支援します。
 
 # エビデンス基盤（必ずこれらに基づいて助言すること）
 ${EVIDENCE_BASE}
+${challengeInfo}
 
 # 基本姿勢（保健指導15の「し」と「じ」に基づく）
 1. 【準備】エビデンスのない助言は絶対にしない。助言する際は根拠となるガイドラインや研究を簡潔に示す

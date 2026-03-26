@@ -2477,15 +2477,8 @@ function drawHair(ctx, cx, faceY, faceR, type, color) {
     ctx.restore();
   }
 
-  // 髪のベース描画ヘルパー（薄く・下寄せ・上下潰し）
-  function hairCapFill(x, y, r, _ry, sa, ea) {
-    ctx.save();
-    ctx.globalAlpha = 0.3;
-    ctx.translate(x, y + r * 0.35);
-    ctx.scale(1, 0.12);
-    ctx.beginPath(); ctx.arc(0, 0, r * 0.85, sa, ea); ctx.fill();
-    ctx.restore();
-  }
+  // 髪のベース描画ヘルパー（無効化）
+  function hairCapFill() {}
 
   ctx.save();
   switch(type) {

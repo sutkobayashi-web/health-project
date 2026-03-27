@@ -220,7 +220,8 @@
   .buddy-msg.user .buddy-bubble { max-width:none; }
   .buddy-msg.ai { align-self:flex-start; }
   .buddy-msg.user { align-self:flex-end; flex-direction:row-reverse; text-align:right; }
-  .buddy-avatar { width:42px; height:42px; border-radius:50%; background:linear-gradient(135deg,#0ea5e9,#0284c7); display:flex; align-items:center; justify-content:center; color:white; font-size:18px; flex-shrink:0; }
+  .buddy-avatar { width:42px; height:42px; border-radius:50%; background:linear-gradient(135deg,#0ea5e9,#0284c7); display:flex; align-items:center; justify-content:center; color:white; font-size:18px; flex-shrink:0; align-self:flex-start; }
+  .buddy-msg.ai .buddy-avatar { position:sticky; top:12px; }
   .buddy-msg.user .buddy-avatar { background:linear-gradient(135deg,#20c997,#0ca678); }
   .buddy-bubble { padding:10px 14px; border-radius:16px; font-size:0.85rem; line-height:1.6; word-break:break-word; display:inline-block; }
   .buddy-msg.ai .buddy-bubble { background:white; color:#333; border-bottom-left-radius:4px; box-shadow:0 1px 3px rgba(0,0,0,0.08); }

@@ -3689,12 +3689,10 @@ function startBuddyChatFresh(buddyData) {
 }
 
 function loadBuddyNotices() {
-  if (!currentUser) { console.log('[BUDDY] no currentUser'); return; }
-  console.log('[BUDDY] fetching for uid:', currentUser.uid);
+  if (!currentUser) return;
   fetch('/api/notices/buddy/' + currentUser.uid)
     .then(function(r) { return r.json(); })
     .then(function(buddyNotices) {
-      console.log('[BUDDY] got', buddyNotices ? buddyNotices.length : 0, 'notices');
       if (!buddyNotices || buddyNotices.length === 0) return;
       var readIds = [];
       setTimeout(function() {

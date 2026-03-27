@@ -3644,8 +3644,40 @@ function startBuddyChat(buddyData) {
   // 挨拶メッセージ
   addBuddyMessage('ai', greeting + '、' + nickname + 'さん！\n今日の調子はいかがですか？');
 
+  // バディー経由のお知らせを取得して表示
+  loadBuddyNotices();
+
   // 体調チェックの選択肢を表示
   setTimeout(function() { showMoodCheck(); }, 800);
+}
+
+function loadBuddyNotices() {
+  if (!currentUser) return;
+  fetch('/api/notices/all/' + currentUser.uid)
+    .then(function(r) { return r.json(); })
+    .then(function(notices) {
+      if (!notices || notices.length === 0) return;
+      var buddyNotices = notices.filter(function(n) {
+        return n.message && n.message.startsWith('【BUDDY】') && !n.isPersonal;
+      });
+      // 直近3件まで、既読でないもの
+      var readIds = [];
+      try { readIds = JSON.parse(localStorage.getItem('co_heart_buddy_read') || '[]'); } catch(e) {}
+      var unread = buddyNotices.filter(function(n) { return readIds.indexOf(n.id) === -1; }).slice(0, 3);
+      if (unread.length === 0) return;
+      setTimeout(function() {
+        unread.forEach(function(n, i) {
+          setTimeout(function() {
+            var content = n.message.replace('【BUDDY】', '').trim();
+            addBuddyMessage('ai', '🛡️ 推進メンバーからのお知らせ\n━━━━━━━━━━━━\n' + content);
+            // 既読にする
+            readIds.push(n.id);
+            localStorage.setItem('co_heart_buddy_read', JSON.stringify(readIds));
+          }, i * 1200);
+        });
+      }, 1500);
+    })
+    .catch(function() {});
 }
 
 function formatBuddyText(text) {

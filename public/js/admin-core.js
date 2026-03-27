@@ -807,6 +807,10 @@ function sendBroadcastNotice() {
     if(!bodyEl) { alert("通知フォームが見つかりません"); return; }
     var body = bodyEl.value.trim();
     if(!body) { alert("内容を入力してください"); return; }
+    var viaBuddy = document.getElementById('broadcast-via-buddy');
+    if(viaBuddy && viaBuddy.checked) {
+        body = '【BUDDY】' + body;
+    }
     showLoading("送信中...");
-    saveAdminNotice({ content: body, isBroadcast: true }).then(function(res) { hideLoading(); alert(res.msg); closeBroadcastModal(); bodyEl.value = ""; });
+    saveAdminNotice({ content: body, isBroadcast: true }).then(function(res) { hideLoading(); alert(res.msg); closeBroadcastModal(); bodyEl.value = ""; if(viaBuddy) viaBuddy.checked = false; });
 }

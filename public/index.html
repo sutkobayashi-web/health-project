@@ -5498,9 +5498,12 @@ var triggered = false;
 })();
 
 if ('serviceWorker' in navigator) {
+  var _swRefreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', function() {
+    // 新しいSWが制御を取った → 自動リロード（1回だけ）
+    if (!_swRefreshing) { _swRefreshing = true; window.location.reload(); }
+  });
   navigator.serviceWorker.register('/sw.js').then(function(reg) {
-    // SW更新時はリロードしない（ログイン画面に戻る問題を防止）
-    // 次回アクセス時に自動で新しいキャッシュが使われる
     setInterval(function() { reg.update(); }, 60000);
     document.addEventListener('visibilitychange', function() {
       if (document.visibilityState === 'visible') {

@@ -1,5 +1,5 @@
 // Service Worker - Network First (常に最新を取得、オフライン時のみキャッシュ使用)
-const CACHE_NAME = 'cowell-health-v2';
+const CACHE_NAME = 'cowell-health-v3';
 
 self.addEventListener('install', (event) => {
   // 自動ログイン実装済みのため即座に有効化

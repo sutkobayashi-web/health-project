@@ -3686,14 +3686,10 @@ function startBuddyChatFresh(buddyData) {
 
 function loadBuddyNotices() {
   if (!currentUser) return;
-  fetch('/api/notices/all/' + currentUser.uid)
+  fetch('/api/notices/buddy/' + currentUser.uid)
     .then(function(r) { return r.json(); })
-    .then(function(notices) {
-      if (!notices || notices.length === 0) return;
-      // 【BUDDY】プレフィックス付き = 全体配信・個別配信どちらもバディーに表示
-      var buddyNotices = notices.filter(function(n) {
-        return n.message && n.message.startsWith('【BUDDY】');
-      });
+    .then(function(buddyNotices) {
+      if (!buddyNotices || buddyNotices.length === 0) return;
       // 直近3件まで、既読でないもの
       var readIds = [];
       try { readIds = JSON.parse(localStorage.getItem('co_heart_buddy_read') || '[]'); } catch(e) {}

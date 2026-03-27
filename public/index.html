@@ -1280,27 +1280,27 @@ function abToggleAcc(idx, previewCanvasId) {
   selectedAvatar = abBuildString();
 }
 
-// ★ ページ読み込み時に保存済みログイン情報をセット（自動ログインはしない）
+// ★ ページ読み込み時に保存済みログイン情報で自動ログイン
 (function() {
   var savedNick = localStorage.getItem('co_heart_user_nick');
   var savedPass = localStorage.getItem('co_heart_user_pass');
   if (savedNick && savedPass) {
-    // DOMが準備できてからプリセット
-    function presetLogin() {
+    function autoLogin() {
       var nickInput = document.getElementById('login-nickname');
       var passInput = document.getElementById('login-password');
       if (nickInput && passInput) {
         nickInput.value = savedNick;
         passInput.value = savedPass;
-        showStep('login');
+        // 自動ログイン実行
+        doLogin();
       } else {
-        setTimeout(presetLogin, 50);
+        setTimeout(autoLogin, 50);
       }
     }
     if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', presetLogin);
+      document.addEventListener('DOMContentLoaded', autoLogin);
     } else {
-      presetLogin();
+      autoLogin();
     }
   }
 })();
@@ -1578,7 +1578,9 @@ function doRegister() {
 function doLogin() {
   var n = document.getElementById('login-nickname').value.trim();
   var p = document.getElementById('login-password').value.trim();
-  var remember = document.getElementById('user-remember').checked;
+  var rememberEl = document.getElementById('user-remember');
+  // 自動ログイン時（localStorageに保存済み）はremember=trueとして扱う
+  var remember = (rememberEl && rememberEl.checked) || !!localStorage.getItem('co_heart_user_nick');
   if (!n || !p) return alert("入力してください");
   showLoading("ログイン中...");
   console.log('LOGIN attempt:', n);

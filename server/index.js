@@ -114,7 +114,7 @@ app.get('/api/health', (req, res) => {
 
 // アプリバージョン（クライアント強制更新用）
 app.get('/api/version', (req, res) => {
-  res.json({ version: '20260327c' });
+  res.json({ version: '20260327d' });
 });
 
 const { authAdmin } = require('./middleware/auth');

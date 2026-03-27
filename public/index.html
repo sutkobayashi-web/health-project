@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260327c">
+<html data-app-version="20260327d">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -1298,6 +1298,7 @@ function abToggleAcc(idx, previewCanvasId) {
         nickInput.value = savedNick;
         passInput.value = savedPass;
         // 自動ログイン実行
+        window._isAutoLogin = true;
         doLogin();
       } else {
         setTimeout(autoLogin, 50);
@@ -1607,8 +1608,18 @@ function doLogin() {
       }
       onLoginSuccess();
     }
-    else alert(res ? res.msg : "応答がありません");
-  }).catch(function(e) { hideLoading(); console.error('LOGIN error:', e); alert("通信エラー: " + e.message); });
+    else {
+      if (window._isAutoLogin) {
+        // 自動ログイン失敗 → 保存パスワードをクリアしてログイン画面表示
+        localStorage.removeItem('co_heart_user_pass');
+        document.getElementById('login-password').value = '';
+        showStep('login');
+      } else {
+        alert(res ? res.msg : "応答がありません");
+      }
+      window._isAutoLogin = false;
+    }
+  }).catch(function(e) { hideLoading(); window._isAutoLogin = false; console.error('LOGIN error:', e); alert("通信エラー: " + e.message); });
 }
 
 function goToReset() {

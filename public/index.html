@@ -3907,10 +3907,36 @@ function addBuddyMessage(role, text) {
 
   _buddyHistory.push({ role: role, content: text });
 
-  // フローティングアバター用: 最後のAIアバターを記録
-  if (isAI) {
-    var avatarEl = div.querySelector('.buddy-avatar');
-    if (avatarEl) window._lastBuddyAvatarEl = avatarEl;
+  // フローティングアバター: スクロール監視を初回のみセットアップ
+  if (!window._buddyScrollSetup) {
+    window._buddyScrollSetup = true;
+    msgs.addEventListener('scroll', function() {
+      var floatEl = document.getElementById('buddy-float-avatar');
+      if (!floatEl) return;
+      var msgsRect = msgs.getBoundingClientRect();
+      var show = false;
+
+      // 全AIメッセージを逆順チェック（最新から）
+      var aiMsgs = msgs.querySelectorAll('.buddy-msg.ai');
+      for (var i = aiMsgs.length - 1; i >= 0; i--) {
+        var msg = aiMsgs[i];
+        var msgRect = msg.getBoundingClientRect();
+        // メッセージが画面内にある場合
+        if (msgRect.bottom > msgsRect.top + 50 && msgRect.top < msgsRect.bottom) {
+          var av = msg.querySelector('.buddy-avatar');
+          if (av) {
+            var avRect = av.getBoundingClientRect();
+            // アバターが画面上部から消えている場合
+            if (avRect.bottom < msgsRect.top) {
+              floatEl.innerHTML = av.innerHTML;
+              show = true;
+            }
+          }
+          break;
+        }
+      }
+      floatEl.style.display = show ? 'flex' : 'none';
+    });
   }
 
   // DB に履歴保存（復元用フラグ付きは保存しない）
@@ -3922,35 +3948,6 @@ function addBuddyMessage(role, text) {
     }).catch(function(){});
   }
 }
-
-// フローティングアバター: AIアバターが画面外に出たら固定表示
-(function() {
-  var msgs = document.getElementById('buddy-messages');
-  if (!msgs) return;
-  msgs.addEventListener('scroll', function() {
-    var floatEl = document.getElementById('buddy-float-avatar');
-    var avatarEl = window._lastBuddyAvatarEl;
-    if (!floatEl || !avatarEl) return;
-
-    var msgsRect = msgs.getBoundingClientRect();
-    var avatarRect = avatarEl.getBoundingClientRect();
-
-    // AIアバターがチャットエリア上部より上に消えた場合
-    if (avatarRect.bottom < msgsRect.top) {
-      // 対応するメッセージがまだ画面内にあるか確認
-      var msgEl = avatarEl.closest('.buddy-msg');
-      if (msgEl) {
-        var msgRect = msgEl.getBoundingClientRect();
-        if (msgRect.bottom > msgsRect.top + 50) {
-          floatEl.innerHTML = avatarEl.innerHTML;
-          floatEl.style.display = 'flex';
-          return;
-        }
-      }
-    }
-    floatEl.style.display = 'none';
-  });
-})();
 
 function showMoodCheck() {
   addBuddyInlineQuick('<div style="display:flex;justify-content:center;gap:10px;padding:4px 0;">' +

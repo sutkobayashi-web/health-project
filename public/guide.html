@@ -718,6 +718,79 @@ body {
   </div>
 </div>
 
+<!-- ====== セクション5-2: バディー経由メッセージ配信 ====== -->
+<div class="guide-card" data-keywords="バディー メッセージ 配信 推進メンバー 通知 お知らせ">
+  <div class="guide-card-header">
+    <div class="guide-card-icon" style="background:linear-gradient(135deg,#0ea5e9,#0284c7);"><i class="fas fa-paper-plane"></i></div>
+    <div class="guide-card-title">セクション5-2: バディー経由メッセージ配信</div>
+  </div>
+  <div class="guide-card-body">
+    <p>推進メンバーがバディーを通じてユーザーにメッセージを届ける機能です。お知らせとは別に、バディーチャット内に自然にメッセージが表示されます。</p>
+
+    <p><strong style="color:#0284c7;">送信方法（admin画面）</strong></p>
+    <ul>
+      <li><strong>個別送信:</strong> インボックスで投稿を開く → 返事を入力 → 青い<strong>「バディー経由」</strong>ボタンをクリック</li>
+      <li><strong>全体配信:</strong>「全員へお知らせ配信」モーダル →<strong>「ヘルスバディー経由で届ける」</strong>にチェック → 配信</li>
+    </ul>
+
+    <p><strong style="color:#0284c7;">ユーザー側の表示</strong></p>
+    <ul>
+      <li>バディーチャット画面に表示（お知らせ一覧には出ません）</li>
+      <li>個別メッセージ: 「💌 ○○さんからのメッセージ」</li>
+      <li>全体配信: 「🛡️ 推進メンバーからのお知らせ」</li>
+      <li>30秒ごとに新着を自動チェック（リロード不要）</li>
+      <li>PWAを閉じて再度開いた時にも自動チェック</li>
+    </ul>
+
+    <p><strong style="color:#0284c7;">仕組み</strong></p>
+    <ul>
+      <li>メッセージはDB管理で既読追跡（一度表示されたメッセージは再表示されない）</li>
+      <li>お知らせAPIとバディーAPIは完全に分離</li>
+      <li>バディーチャットの会話履歴にも保存され、同日の再訪問時に履歴として表示</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ====== セクション5-3: 話題共感（バディー経由の声集め） ====== -->
+<div class="guide-card" data-keywords="話題 共感 アンケート テーマ 投票 ボトムアップ バディー">
+  <div class="guide-card-header">
+    <div class="guide-card-icon" style="background:linear-gradient(135deg,#ff7043,#e64a19);"><i class="fas fa-comments"></i></div>
+    <div class="guide-card-title">セクション5-3: 話題共感（バディー経由の声集め）</div>
+  </div>
+  <div class="guide-card-body">
+    <p>推進メンバーが話題（テーマ）を設定すると、バディーがユーザーに自然に問いかけ、共感や意見を収集する機能です。従来の受け身な共感収集を、<strong>バディーから能動的に問いかける形</strong>に変えることで、参加率の向上を狙います。</p>
+
+    <p><strong style="color:#e64a19;">推進メンバーの操作（admin画面）</strong></p>
+    <ol>
+      <li>サイドバーの<strong>「話題共感」</strong>タブを開く</li>
+      <li>話題テーマを入力（例：「階段を使う習慣、どう思いますか？」）</li>
+      <li>選択肢を編集（デフォルト4つ、最大6つまで追加可能）</li>
+      <li><strong>「話題を配信」</strong>をクリック → 既存の配信中話題は自動終了</li>
+    </ol>
+
+    <p><strong style="color:#e64a19;">ユーザー側の体験</strong></p>
+    <ol>
+      <li>バディーチャットを開くと「📢 今週の話題です！」と問いかけ</li>
+      <li>選択肢ボタンをタップして回答</li>
+      <li>任意でコメントを追加（スキップ可）</li>
+      <li>回答後、通常の体調チェックに移行</li>
+    </ol>
+    <p>※ 各ユーザーは1つの話題に1回のみ回答できます。回答済みの話題は再表示されません。</p>
+    <p>※ ページを開いたままでも30秒ごとに新しい話題をチェックします。adminが配信したら自動で問いかけが始まります。</p>
+
+    <p><strong style="color:#e64a19;">集計の確認（admin画面）</strong></p>
+    <ul>
+      <li>話題カードに選択肢ごとの回答数がグラフ表示</li>
+      <li>回答率（回答者数 / 全ユーザー数）を表示</li>
+      <li><strong>「詳細・コメント」</strong>ボタンで、回答者名・部署・コメント一覧を確認</li>
+      <li>話題は<strong>「終了」</strong>で配信停止、<strong>「削除」</strong>で回答データごと完全削除</li>
+    </ul>
+
+    <p><strong style="color:#e64a19;">v2スキームとの連携</strong></p>
+    <p>テーマ凝集 → 全社投票 → チャレンジ の流れに、バディー経由の「空気感の汲み取り」を加えることで、投票前の温度感を測定できます。話題共感の結果をテーマ選定の参考材料として活用してください。</p>
+  </div>
+</div>
+
 <!-- ============================================================ -->
 <!-- スキーム本流（6〜13）: 投稿→共感→評価→凝集→承認→チャレンジ -->
 <!-- ============================================================ -->

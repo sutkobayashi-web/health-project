@@ -5503,7 +5503,11 @@ if ('serviceWorker' in navigator) {
     // 次回アクセス時に自動で新しいキャッシュが使われる
     setInterval(function() { reg.update(); }, 60000);
     document.addEventListener('visibilitychange', function() {
-      if (document.visibilityState === 'visible') reg.update();
+      if (document.visibilityState === 'visible') {
+        reg.update();
+        // PWA復帰時に新着バディーメッセージをチェック
+        if (typeof loadBuddyNotices === 'function' && currentUser) loadBuddyNotices();
+      }
     });
   });
 }

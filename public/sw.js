@@ -2,7 +2,8 @@
 const CACHE_NAME = 'cowell-health-v2';
 
 self.addEventListener('install', (event) => {
-  // skipWaitingしない（ログイン中のリロードを防止）
+  // 自動ログイン実装済みのため即座に有効化
+  self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {

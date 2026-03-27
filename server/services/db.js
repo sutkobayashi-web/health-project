@@ -92,6 +92,15 @@ function getDb() {
     // buddyカラム追加
     try { db.exec("ALTER TABLE users ADD COLUMN buddy_data TEXT DEFAULT ''"); } catch(e) {}
 
+    // マイグレーション: バディーチャット履歴テーブル
+    db.exec(`CREATE TABLE IF NOT EXISTS buddy_messages (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id TEXT NOT NULL,
+      role TEXT NOT NULL,
+      content TEXT NOT NULL,
+      created_at TEXT DEFAULT (datetime('now'))
+    )`);
+
     db.exec(`CREATE TABLE IF NOT EXISTS notice_reads (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       notice_id TEXT NOT NULL,

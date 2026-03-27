@@ -3636,6 +3636,39 @@ function startBuddyChat(buddyData) {
   var msgs = document.getElementById('buddy-messages');
   msgs.innerHTML = '';
 
+  // 当日の履歴をサーバーから取得
+  if (currentUser && currentUser.uid) {
+    fetch('/api/chat/buddy-history/' + currentUser.uid, {
+      headers: { 'Authorization': 'Bearer ' + getToken() }
+    }).then(function(r) { return r.json(); }).then(function(data) {
+      if (data && data.success && data.messages && data.messages.length > 0) {
+        // 当日の履歴がある → 復元
+        window._buddyRestoring = true;
+        data.messages.forEach(function(m) {
+          addBuddyMessage(m.role, m.content);
+        });
+        window._buddyRestoring = false;
+        _buddyMoodChecked = true;
+        // 最後のメッセージがAIの場合、入力待ち状態にする
+        var lastMsg = data.messages[data.messages.length - 1];
+        if (lastMsg.role === 'ai') {
+          // 会話が続けられるよう、簡易メニューを表示
+          setTimeout(function() { showBuddyWrapUp(); }, 500);
+        }
+      } else {
+        // 履歴なし → 通常の初回フロー
+        startBuddyChatFresh(buddyData);
+      }
+    }).catch(function() {
+      // 取得失敗 → 通常フロー
+      startBuddyChatFresh(buddyData);
+    });
+  } else {
+    startBuddyChatFresh(buddyData);
+  }
+}
+
+function startBuddyChatFresh(buddyData) {
   // 時間帯に応じた挨拶
   var hour = new Date().getHours();
   var greeting = hour < 11 ? 'おはようございます' : hour < 17 ? 'こんにちは' : 'お疲れ様です';
@@ -3727,6 +3760,15 @@ function addBuddyMessage(role, text) {
   msgs.scrollTop = msgs.scrollHeight;
 
   _buddyHistory.push({ role: role, content: text });
+
+  // DB に履歴保存（復元用フラグ付きは保存しない）
+  if (!window._buddyRestoring && currentUser && currentUser.uid) {
+    fetch('/api/chat/buddy-history', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
+      body: JSON.stringify({ uid: currentUser.uid, role: role, content: text })
+    }).catch(function(){});
+  }
 }
 
 function showMoodCheck() {

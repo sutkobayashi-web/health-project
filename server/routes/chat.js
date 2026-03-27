@@ -60,6 +60,32 @@ ${EVIDENCE_BASE}
   }
 });
 
+// バディーチャット履歴保存
+router.post('/buddy-history', (req, res) => {
+  try {
+    const { uid, role, content } = req.body;
+    if (!uid || !role || !content) return res.json({ success: false, msg: 'uid, role, content required' });
+    const db = getDb();
+    db.prepare('INSERT INTO buddy_messages (user_id, role, content) VALUES (?, ?, ?)').run(uid, role, content);
+    res.json({ success: true });
+  } catch (e) {
+    res.json({ success: false, msg: e.message });
+  }
+});
+
+// バディーチャット当日履歴取得
+router.get('/buddy-history/:uid', (req, res) => {
+  try {
+    const db = getDb();
+    const rows = db.prepare(
+      "SELECT role, content, created_at FROM buddy_messages WHERE user_id = ? AND date(created_at) = date('now') ORDER BY id ASC"
+    ).all(req.params.uid);
+    res.json({ success: true, messages: rows });
+  } catch (e) {
+    res.json({ success: false, msg: e.message });
+  }
+});
+
 // メモ保存
 router.post('/save-memo', (req, res) => {
   try {

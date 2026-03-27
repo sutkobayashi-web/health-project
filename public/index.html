@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html data-app-version="20260327b">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -5620,6 +5620,22 @@ if ('serviceWorker' in navigator) {
     });
   });
 }
+
+// バージョンチェック: サーバーと不一致なら強制リロード
+(function() {
+  var localVer = document.documentElement.getAttribute('data-app-version') || '';
+  function checkVersion() {
+    fetch('/api/version').then(function(r) { return r.json(); }).then(function(data) {
+      if (data && data.version && localVer && data.version !== localVer) {
+        window.location.reload(true);
+      }
+    }).catch(function() {});
+  }
+  // 30秒後にチェック（初回読み込み直後は不要）
+  setTimeout(checkVersion, 30000);
+  // 以降60秒ごとにチェック
+  setInterval(checkVersion, 60000);
+})();
 </script>
 
 </body>

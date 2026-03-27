@@ -112,6 +112,11 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
+// アプリバージョン（クライアント強制更新用）
+app.get('/api/version', (req, res) => {
+  res.json({ version: '20260327b' });
+});
+
 const { authAdmin } = require('./middleware/auth');
 
 // 手動バックアップAPI（管理者用・認証必須）

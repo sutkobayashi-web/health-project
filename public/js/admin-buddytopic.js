@@ -121,7 +121,7 @@ function showTopicDetail(topicId) {
     }).then(function(r) { return r.json(); }).then(function(data) {
         if (!data || !data.success) { alert('取得失敗'); return; }
 
-        var html = '<div style="position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:9999; display:flex; align-items:center; justify-content:center;" onclick="if(event.target===this)this.remove()">';
+        var html = '<div id="bt-detail-modal" style="position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:9999; display:flex; align-items:center; justify-content:center;" onclick="if(event.target===this)closeBtDetailModal()">';
         html += '<div style="background:white; border-radius:16px; padding:20px; width:90%; max-width:500px; max-height:80vh; overflow-y:auto;">';
         html += '<div style="font-weight:700; font-size:1rem; color:#ff7043; margin-bottom:4px;"><i class="fas fa-comments me-1"></i>' + escapeHtml(data.title) + '</div>';
         html += '<div style="font-size:0.75rem; color:#999; margin-bottom:12px;">' + (data.weekLabel || '') + ' | 回答率 ' + data.totalResponses + '/' + data.totalUsers + '人</div>';
@@ -154,9 +154,16 @@ function showTopicDetail(topicId) {
             });
         }
 
-        html += '<div style="text-align:center; margin-top:16px;"><button onclick="this.closest(\'div[style*=position\\:fixed]\').remove()" style="padding:8px 30px; background:#667eea; color:white; border:none; border-radius:8px; font-weight:700; cursor:pointer;">閉じる</button></div>';
+        html += '<div style="text-align:center; margin-top:16px;"><button onclick="closeBtDetailModal()" style="padding:8px 30px; background:#667eea; color:white; border:none; border-radius:8px; font-weight:700; cursor:pointer;">閉じる</button></div>';
         html += '</div></div>';
 
+        var old = document.getElementById('bt-detail-modal');
+        if (old) old.remove();
         document.body.insertAdjacentHTML('beforeend', html);
     });
+}
+
+function closeBtDetailModal() {
+    var el = document.getElementById('bt-detail-modal');
+    if (el) el.remove();
 }

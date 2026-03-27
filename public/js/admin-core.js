@@ -455,7 +455,7 @@ function renderGeneralUsers(users) {
         '<thead style="background:#f8f9fa;"><tr><th style="width:50px;"></th><th>ニックネーム</th><th>本名</th><th>部署</th><th>投稿数</th><th>登録日</th><th style="width:130px;">操作</th></tr></thead>' +
         '<tbody>' + users.map(function(u) {
             var avatarHtml = _renderMemberAvatar(u.avatar, '😀', 32);
-            var dateStr = u.created_at ? new Date(u.created_at).toLocaleDateString('ja-JP') : '';
+            var dateStr = u.created_at ? new Date(u.created_at + 'Z').toLocaleDateString('ja-JP', { timeZone: 'Asia/Tokyo' }) : '';
             return '<tr>' +
                 '<td class="text-center"><div style="width:32px;height:32px;border-radius:50%;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;font-size:1.3rem;">' + avatarHtml + '</div></td>' +
                 '<td class="fw-bold">' + escapeHtml(u.nickname) + '</td>' +

@@ -60,7 +60,7 @@ router.get('/archived', (req, res) => {
       draft: r.proposal_draft || 'ドラフトなし',
       scores: { legal: r.score_legal, risk: r.score_risk, freq: r.score_freq, urgency: r.score_urgency, safety: r.score_safety, value: r.score_value, needs: r.score_needs },
       score: r.total_score, sourcePid: r.source_post_id, status: r.status,
-      date: r.created_at ? new Date(r.created_at).toLocaleDateString('ja-JP') : '',
+      date: r.created_at ? new Date(r.created_at + 'Z').toLocaleDateString('ja-JP', { timeZone: 'Asia/Tokyo' }) : '',
       aiLog: r.ai_log || '', owner: r.owner || '', deadline: r.deadline || '',
       kpiTarget: r.kpi_target || '', kpiCurrent: r.kpi_current || ''
     })));
@@ -224,7 +224,7 @@ router.get('/exec-pending', (req, res) => {
       id: r.plan_id, title: r.title, category: r.category, score: r.total_score,
       draft: r.proposal_draft || '',
       scores: { legal: r.score_legal, risk: r.score_risk, freq: r.score_freq, urgency: r.score_urgency, safety: r.score_safety, value: r.score_value, needs: r.score_needs },
-      date: r.created_at ? new Date(r.created_at).toLocaleDateString('ja-JP') : '',
+      date: r.created_at ? new Date(r.created_at + 'Z').toLocaleDateString('ja-JP', { timeZone: 'Asia/Tokyo' }) : '',
       aiLog: r.ai_log || '', approvalLog: r.approval_log || '[]'
     })));
   } catch (e) { res.json([]); }

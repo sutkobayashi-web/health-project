@@ -11,7 +11,7 @@ router.get('/all/:uid', (req, res) => {
     const notices = db.prepare("SELECT * FROM notices WHERE target_id = ? OR target_id = 'ALL' ORDER BY created_at DESC LIMIT 50").all(uid);
     const result = notices.map(n => ({
       id: n.notice_id,
-      date: new Date(n.created_at).toLocaleString('ja-JP', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Tokyo' }),
+      date: new Date(n.created_at + 'Z').toLocaleString('ja-JP', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Tokyo' }),
       sender: n.sender,
       message: n.content,
       isPersonal: n.target_id !== 'ALL',
@@ -43,7 +43,7 @@ router.get('/unread/:uid', (req, res) => {
     if (notice) {
       res.json({
         id: notice.notice_id,
-        date: new Date(notice.created_at).toLocaleString('ja-JP', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Tokyo' }),
+        date: new Date(notice.created_at + 'Z').toLocaleString('ja-JP', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Tokyo' }),
         message: notice.content
       });
     } else { res.json(null); }
@@ -59,7 +59,7 @@ router.get('/latest/:uid', (req, res) => {
     if (notice) {
       res.json({
         id: notice.notice_id,
-        date: new Date(notice.created_at).toLocaleString('ja-JP', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Tokyo' }),
+        date: new Date(notice.created_at + 'Z').toLocaleString('ja-JP', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Tokyo' }),
         sender: notice.sender, message: notice.content
       });
     } else { res.json(null); }
@@ -122,7 +122,7 @@ router.get('/admin-list', (req, res) => {
       if (n.status === 'read' && !n.admin_read) unreadCount++;
       return {
         id: n.notice_id,
-        date: new Date(n.created_at).toLocaleString('ja-JP', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Tokyo' }),
+        date: new Date(n.created_at + 'Z').toLocaleString('ja-JP', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Tokyo' }),
         targetName: userMap[n.target_id] || '不明', content: n.content,
         status: n.status, reply: n.reply,
         readAt: n.read_at ? new Date(n.read_at).toLocaleString('ja-JP', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Tokyo' }) : '',

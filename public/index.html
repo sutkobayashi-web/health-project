@@ -3418,7 +3418,7 @@ function loadHealthMemos() {
     list.innerHTML = '';
     res.memos.forEach(function(m) {
       var safe = m.memo_text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-      var dateStr = m.created_at ? new Date(m.created_at).toLocaleString('ja-JP', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
+      var dateStr = m.created_at ? new Date(m.created_at + 'Z').toLocaleString('ja-JP', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit', timeZone:'Asia/Tokyo' }) : '';
       list.innerHTML += '<div class="health-memo-card">' +
         '<div class="memo-text">' + safe + '</div>' +
         '<div class="memo-meta">' +

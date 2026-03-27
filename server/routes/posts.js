@@ -52,7 +52,7 @@ router.get('/public', (req, res) => {
 
       return {
         id: p.post_id, row: p.id,
-        date: new Date(p.created_at).toLocaleString('ja-JP', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Tokyo' }),
+        date: new Date(p.created_at + 'Z').toLocaleString('ja-JP', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Tokyo' }),
         content: (p.content || '').replace(/^【写真】/, ''),
         analysis: parsed.text,
         nickname: p.nickname || '匿名', avatar: p.avatar || '🙂',
@@ -90,7 +90,7 @@ router.get('/my-posts/:uid', (req, res) => {
       const parsed = parsePostScore(p.analysis);
       return {
         id: p.post_id, row: p.id,
-        date: new Date(p.created_at).toLocaleString('ja-JP', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Tokyo' }),
+        date: new Date(p.created_at + 'Z').toLocaleString('ja-JP', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Tokyo' }),
         content: (p.content || '').replace(/^【写真】/, ''),
         analysis: parsed.text,
         nickname: p.nickname || '匿名', avatar: p.avatar || '🙂',

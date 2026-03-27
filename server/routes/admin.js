@@ -42,7 +42,7 @@ router.get('/inbox', (req, res) => {
       } else { nurse = parsed.text; }
       const likesArr = r.likes ? r.likes.split(',').filter(x => x) : [];
       const demotesArr = r.demotes ? r.demotes.split(',').filter(x => x) : [];
-      const dateStr = new Date(r.created_at).toLocaleString('ja-JP', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Tokyo' });
+      const dateStr = new Date(r.created_at + 'Z').toLocaleString('ja-JP', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Tokyo' });
       const latestAvatar = userAvatars[r.user_id] || r.avatar;
       return [r.id, r.post_id, r.content, r.analysis, r.nickname, latestAvatar, likesArr.length, r.post_id, r.category, r.status, r.user_id, r.image_url, nurse, nutri, dateStr, chatCounts[r.post_id] || 0, isTarget, isPlanned, demotesArr.length];
     });
@@ -56,7 +56,7 @@ router.get('/resolved', (req, res) => {
     const db = getDb();
     const posts = db.prepare("SELECT * FROM posts WHERE status = 'resolved' ORDER BY created_at DESC").all();
     const result = posts.map(r => {
-      const dateStr = new Date(r.created_at).toLocaleString('ja-JP', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Tokyo' });
+      const dateStr = new Date(r.created_at + 'Z').toLocaleString('ja-JP', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Tokyo' });
       return [r.id, r.post_id, r.content, r.analysis, r.nickname, r.avatar, 0, r.post_id, r.category, r.status, r.user_id, r.image_url, '', '', dateStr, 0, false, false, 0];
     });
     res.json(result);
@@ -77,7 +77,7 @@ router.get('/discussion/:voiceId', (req, res) => {
       if (d.role === 'AI_Council') av = d.avatar;
       return {
         row: d.id, member: d.member_name, role: d.role, comment: d.comment,
-        timestamp: new Date(d.created_at).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Tokyo' }),
+        timestamp: new Date(d.created_at + 'Z').toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Tokyo' }),
         avatar: av || '🤖'
       };
     });
@@ -100,7 +100,7 @@ router.post('/discussion/post', (req, res) => {
     const logs = db.prepare('SELECT * FROM admin_discussions WHERE voice_id = ? ORDER BY created_at').all(voiceId);
     res.json(logs.map(d => ({
       row: d.id, member: d.member_name, role: d.role, comment: d.comment,
-      timestamp: new Date(d.created_at).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Tokyo' }),
+      timestamp: new Date(d.created_at + 'Z').toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Tokyo' }),
       avatar: d.avatar || '🤖'
     })));
   } catch (e) { res.json([]); }
@@ -265,7 +265,7 @@ router.get('/evaluation/:postId', (req, res) => {
       memberName: e.member_name,
       scores: { legal: e.legal, risk: e.risk, freq: e.freq, urgency: e.urgency, safety: e.safety, value: e.value, needs: e.needs },
       comment: e.comment,
-      date: new Date(e.created_at).toLocaleString('ja-JP', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Tokyo' })
+      date: new Date(e.created_at + 'Z').toLocaleString('ja-JP', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Tokyo' })
     })));
   } catch (e) { res.json([]); }
 });
@@ -447,7 +447,7 @@ router.post('/food-report', async (req, res) => {
         const parts = p.analysis.split('【AI食事アドバイザー】');
         nutrition = parts[1] ? parts[1].split('【AIヘルスアドバイザー】')[0].trim() : '';
       }
-      const date = new Date(p.created_at).toLocaleDateString('ja-JP');
+      const date = new Date(p.created_at + 'Z').toLocaleDateString('ja-JP', { timeZone: 'Asia/Tokyo' });
       const comment = (p.content || '').replace(/^【写真】/, '').trim();
       return `[${date}] ${comment} → 分析: ${nutrition.substring(0, 150)}`;
     }).join('\n');
@@ -601,7 +601,7 @@ router.post('/similar-posts', async (req, res) => {
       postId: allPosts[i].post_id,
       content: allPosts[i].content.substring(0, 60),
       nickname: allPosts[i].nickname,
-      date: new Date(allPosts[i].created_at).toLocaleDateString('ja-JP')
+      date: new Date(allPosts[i].created_at + 'Z').toLocaleDateString('ja-JP', { timeZone: 'Asia/Tokyo' })
     }));
 
     res.json({ posts: similar, count: similar.length });
@@ -620,7 +620,7 @@ router.post('/inbox-comment', (req, res) => {
       id: c.id,
       name: c.member_name,
       comment: c.comment,
-      date: new Date(c.created_at).toLocaleString('ja-JP', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', timeZone:'Asia/Tokyo' })
+      date: new Date(c.created_at + 'Z').toLocaleString('ja-JP', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', timeZone:'Asia/Tokyo' })
     }))});
   } catch(e) { res.json({ success: false, msg: e.message }); }
 });
@@ -634,7 +634,7 @@ router.get('/inbox-comments/:postId', (req, res) => {
       id: c.id,
       name: c.member_name,
       comment: c.comment,
-      date: new Date(c.created_at).toLocaleString('ja-JP', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', timeZone:'Asia/Tokyo' })
+      date: new Date(c.created_at + 'Z').toLocaleString('ja-JP', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', timeZone:'Asia/Tokyo' })
     })));
   } catch(e) { res.json([]); }
 });

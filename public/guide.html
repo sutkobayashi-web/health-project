@@ -352,6 +352,10 @@ body {
   プロジェクトの目的、フロー、役割分担、各機能の仕組みを分かりやすく解説します。</p>
 </div>
 
+<!-- ============================================================ -->
+<!-- 概要セクション（1〜3）                                       -->
+<!-- ============================================================ -->
+
 <!-- ====== セクション1: プロジェクトの目的 ====== -->
 <div class="guide-card theme-purple" data-keywords="目的 ボトムアップ 全員参加 エビデンス">
   <div class="guide-card-header">
@@ -563,56 +567,166 @@ body {
   </div>
 </div>
 
-<!-- ====== セクション4: 承認フロー ====== -->
-<div class="guide-card theme-red" data-keywords="承認 内部統制 フロー 保健師 役員 投票 確定">
+<!-- ============================================================ -->
+<!-- 画面・操作セクション（4〜5）                                 -->
+<!-- ============================================================ -->
+
+<!-- ====== セクション4: UI刷新・LINE風デザイン ====== -->
+<div class="guide-card" data-keywords="UI LINE デザイン ボトムナビ タブ リフレッシュ">
   <div class="guide-card-header">
-    <div class="guide-card-icon"><i class="fas fa-shield-alt"></i></div>
-    <div class="guide-card-title">セクション4: 承認フロー（内部統制）</div>
+    <div class="guide-card-icon" style="background:linear-gradient(135deg,#667eea,#764ba2);"><i class="fas fa-mobile-alt"></i></div>
+    <div class="guide-card-title">セクション4: UI・LINE風デザイン</div>
   </div>
   <div class="guide-card-body">
-    <p>テーマが確定するまでに5段階の承認ステップを設けています。</p>
+    <h4 style="color:#667eea;"><i class="fas fa-th-large me-2"></i>ボトムナビゲーション</h4>
+    <p>画面下部に5つのタブを配置。LINEのような直感的な操作感を実現しました。</p>
 
-    <div class="approval-flow">
-      <div class="approval-step">
-        <div class="approval-num">1</div>
-        <div class="approval-label">推進メンバー<br>精査</div>
-      </div>
-      <div class="approval-arrow"><i class="fas fa-chevron-right"></i></div>
-      <div class="approval-step">
-        <div class="approval-num">2</div>
-        <div class="approval-label">保健師<br>助言</div>
-      </div>
-      <div class="approval-arrow"><i class="fas fa-chevron-right"></i></div>
-      <div class="approval-step">
-        <div class="approval-num">3</div>
-        <div class="approval-label">役員<br>承認</div>
-      </div>
-      <div class="approval-arrow"><i class="fas fa-chevron-right"></i></div>
-      <div class="approval-step">
-        <div class="approval-num">4</div>
-        <div class="approval-label">全社<br>投票</div>
-      </div>
-      <div class="approval-arrow"><i class="fas fa-chevron-right"></i></div>
-      <div class="approval-step">
-        <div class="approval-num">5</div>
-        <div class="approval-label">テーマ<br>確定</div>
-      </div>
-    </div>
+    <table class="guide-table">
+      <thead><tr><th>タブ</th><th>アイコン</th><th>内容</th></tr></thead>
+      <tbody>
+        <tr><td><strong>バディー</strong></td><td>🤖</td><td>ヘルスバディーとの会話（ホーム画面）</td></tr>
+        <tr><td><strong>メニュー</strong></td><td>📋</td><td>投稿・食事チェック・チャレンジなど全機能</td></tr>
+        <tr><td><strong>お知らせ</strong></td><td>🔔</td><td>事務局・推進メンバーからの通知</td></tr>
+        <tr><td><strong>マイページ</strong></td><td>👤</td><td>プロフィール・バディー変更・ログアウト</td></tr>
+        <tr><td><strong>ガイド</strong></td><td>📖</td><td>このガイドページ</td></tr>
+      </tbody>
+    </table>
 
-    <div class="warn-box">
-      <strong><i class="fas fa-exclamation-triangle" style="color:#ffa000;"></i> 統制ルール</strong><br>
-      ・保健師助言なしでは役員承認に進めない<br>
-      ・役員承認なしでは投票を開始できない<br>
-      ・Exec権限のアカウントのみ承認可能（なりすまし防止）
-    </div>
+    <h4 style="color:#667eea; margin-top:20px;"><i class="fas fa-sync-alt me-2"></i>その他の改善</h4>
+
+    <table class="guide-table">
+      <thead><tr><th>機能</th><th>内容</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Pull-to-refresh</strong></td><td>下にスワイプでデータ更新（ページリロードなし、画面状態を維持）</td></tr>
+        <tr><td><strong>フォントサイズ切替</strong></td><td>ヘッダー右の「A」ボタンで大/小を切替（高年齢者対応）</td></tr>
+        <tr><td><strong>ログイン状態保持</strong></td><td>ニックネーム・パスワードを保存し、次回はプリセット表示</td></tr>
+        <tr><td><strong>タブ状態復元</strong></td><td>ブラウザリロード後も開いていたタブに戻る</td></tr>
+        <tr><td><strong>健康eラーニング</strong></td><td>厚労省公認の無料教材へのリンクをメニュー内に配置</td></tr>
+      </tbody>
+    </table>
   </div>
 </div>
 
-<!-- ====== セクション5: 共感の仕組み ====== -->
+<!-- ====== セクション5: ヘルスバディー ====== -->
+<div class="guide-card" data-keywords="バディー AI 相棒 体調 チェック 会話 性格 カスタマイズ">
+  <div class="guide-card-header">
+    <div class="guide-card-icon" style="background:linear-gradient(135deg,#0ea5e9,#0284c7);"><i class="fas fa-robot"></i></div>
+    <div class="guide-card-title">セクション5: ヘルスバディー</div>
+  </div>
+  <div class="guide-card-body">
+    <h4 style="color:#0284c7;"><i class="fas fa-robot me-2"></i>ヘルスバディーとは</h4>
+    <p>アプリを開くと最初に表示されるAI健康相棒です。毎日あなたに話しかけ、体調を確認し、健康に関する悩みを自然な会話の中で引き出します。</p>
+
+    <div class="guide-step">
+      <div class="step-number" style="background:linear-gradient(135deg,#0ea5e9,#0284c7);">1</div>
+      <div class="step-content">
+        <strong>毎日の体調チェック</strong><br>
+        アプリを開くとバディーが「今日の調子はどう？」と話しかけます。<br>
+        😊元気 / 😐普通 / 😔少し疲れ / 😩しんどい の4択をタップするだけ。
+      </div>
+    </div>
+
+    <div class="guide-step">
+      <div class="step-number" style="background:linear-gradient(135deg,#0ea5e9,#0284c7);">2</div>
+      <div class="step-content">
+        <strong>悩みの深掘り</strong><br>
+        体調に応じて「何か気になることは？」と選択肢を提示します。<br>
+        💤睡眠 / 🦴腰・肩 / 😣ストレス / 🍽️食欲 / 👁️目の疲れ など。<br>
+        「💬 自分の言葉で話す」で自由に相談することもできます。
+      </div>
+    </div>
+
+    <div class="guide-step">
+      <div class="step-number" style="background:linear-gradient(135deg,#0ea5e9,#0284c7);">3</div>
+      <div class="step-content">
+        <strong>エビデンスに基づくアドバイス</strong><br>
+        AIが厚生労働省のガイドラインや最新の研究に基づいてアドバイスします。<br>
+        具体的なアクション（🎯やってみよう）と出典（📚）がカード形式で表示されます。
+      </div>
+    </div>
+
+    <div class="guide-step">
+      <div class="step-number" style="background:linear-gradient(135deg,#0ea5e9,#0284c7);">4</div>
+      <div class="step-content">
+        <strong>推進メンバーへの橋渡し</strong><br>
+        AIだけでは解決できない悩み（職場の人間関係、医療相談など）は「🛡️推進メンバーに相談」で匿名で届けられます。<br>
+        推進メンバーがお知らせ通知で返事をします。
+      </div>
+    </div>
+
+    <div class="guide-step">
+      <div class="step-number" style="background:linear-gradient(135deg,#0ea5e9,#0284c7);">5</div>
+      <div class="step-content">
+        <strong>チャレンジとの連動</strong><br>
+        会話の中で現在進行中のチャレンジに関連する話題が出ると、AIが自然に参加を促します。
+      </div>
+    </div>
+
+    <h4 style="color:#0284c7; margin-top:20px;"><i class="fas fa-palette me-2"></i>バディーのカスタマイズ</h4>
+    <p>マイページの「バディーを変更する」ボタンから、いつでもカスタマイズできます。</p>
+
+    <table class="guide-table">
+      <thead><tr><th>項目</th><th>内容</th></tr></thead>
+      <tbody>
+        <tr><td><strong>見た目</strong></td><td>アバタービルダーで髪型・目・口・アクセサリーなどを自由にカスタマイズ</td></tr>
+        <tr><td><strong>名前</strong></td><td>好きな名前を付けられます（例：ハルちゃん、ケンタ先生）</td></tr>
+        <tr><td><strong>性格</strong></td><td>5種類から選択。AIの口調が変わります</td></tr>
+      </tbody>
+    </table>
+
+    <table class="guide-table">
+      <thead><tr><th>性格</th><th>特徴</th><th>口調の例</th></tr></thead>
+      <tbody>
+        <tr><td>😊 優しい</td><td>穏やかに寄り添う</td><td>「〜だね」「〜してみない？」</td></tr>
+        <tr><td>💪 元気</td><td>前向きに励ます</td><td>「いいね！」「一緒にやろう！」</td></tr>
+        <tr><td>🧠 知的</td><td>根拠を丁寧に説明</td><td>「実はね」「こんな方法もあるよ」</td></tr>
+        <tr><td>🌙 穏やか</td><td>じっくり話を聞く</td><td>「そうなんだ」「無理しないでね」</td></tr>
+        <tr><td>🏥 頼もしい</td><td>データで的確にアドバイス</td><td>「データでは」「エビデンスによると」</td></tr>
+      </tbody>
+    </table>
+
+    <h4 style="color:#0284c7; margin-top:20px;"><i class="fas fa-shield-alt me-2"></i>AIの行動原則（保健指導15の極意）</h4>
+    <p>バディーは「保健指導を成功させる15の『し』と『じ』」に基づいて設計されています。</p>
+
+    <table class="guide-table">
+      <thead><tr><th>原則</th><th>AIでの実装</th></tr></thead>
+      <tbody>
+        <tr><td><strong>準備を怠らず</strong></td><td>食事・体調・健診データを会話前に自動読み込み</td></tr>
+        <tr><td><strong>信頼関係を築く</strong></td><td>過去の会話を覚えている。名前で呼ぶ</td></tr>
+        <tr><td><strong>柔軟に対応</strong></td><td>ユーザーの性格設定に合わせて口調を変える</td></tr>
+        <tr><td><strong>しゃべりすぎない</strong></td><td>3〜4文以内で簡潔に。選択肢を提示</td></tr>
+        <tr><td><strong>指示にならない</strong></td><td>「〜してください」ではなく「〜してみない？」</td></tr>
+        <tr><td><strong>自分で考えてもらう</strong></td><td>選択肢を出して本人に選ばせる</td></tr>
+        <tr><td><strong>じっくり、あせらず</strong></td><td>小さな変化を褒める。失敗を責めない</td></tr>
+        <tr><td><strong>自己完結しない</strong></td><td>深刻な悩みは推進メンバーへ橋渡し</td></tr>
+      </tbody>
+    </table>
+
+    <h4 style="color:#0284c7; margin-top:20px;"><i class="fas fa-cogs me-2"></i>裏側の仕組み</h4>
+
+    <table class="guide-table">
+      <thead><tr><th>仕組み</th><th>内容</th></tr></thead>
+      <tbody>
+        <tr><td><strong>テーマ織り込み</strong></td><td>推進メンバーが設定したテーマをAI会話に自然に織り込む</td></tr>
+        <tr><td><strong>食事データ連動</strong></td><td>食事投稿から生活状態を読み取り、自然な気づきを促す</td></tr>
+        <tr><td><strong>匿名の声の吸い上げ</strong></td><td>会話データを匿名でテーマ凝集分析に投入→v2サイクルに接続</td></tr>
+        <tr><td><strong>異常検知</strong></td><td>体調不良が続く場合、推進メンバーへアラート</td></tr>
+        <tr><td><strong>チャレンジ連動</strong></td><td>進行中のチャレンジをDBから都度取得し、関連する話題で自然に紹介</td></tr>
+        <tr><td><strong>サーバー同期</strong></td><td>バディーデータはサーバーDBに保存。端末を変えても同じバディー</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- スキーム本流（6〜13）: 投稿→共感→評価→凝集→承認→チャレンジ -->
+<!-- ============================================================ -->
+
+<!-- ====== セクション6: 共感の仕組み ====== -->
 <div class="guide-card theme-pink" data-keywords="共感 ハート リアクション 投稿 相談 食事">
   <div class="guide-card-header">
     <div class="guide-card-icon"><i class="fas fa-heart"></i></div>
-    <div class="guide-card-title">セクション5: 共感の仕組み</div>
+    <div class="guide-card-title">セクション6: 共感の仕組み</div>
   </div>
   <div class="guide-card-body">
     <p><strong>相談投稿への共感（7種）</strong></p>
@@ -666,11 +780,80 @@ body {
   </div>
 </div>
 
-<!-- ====== セクション6: AI7軸評価 ====== -->
+<!-- ====== セクション7: 自分の投稿 & チャット通知 ====== -->
+<div class="guide-card theme-red" data-keywords="自分の投稿 履歴 チャット 通知 推進メンバー コメント 新着">
+  <div class="guide-card-header">
+    <div class="guide-card-icon"><i class="fas fa-user-edit"></i></div>
+    <div class="guide-card-title">セクション7: 自分の投稿を確認する</div>
+  </div>
+  <div class="guide-card-body">
+    <p>自分が過去に投稿した内容と、推進メンバーからのフィードバックを確認できます。</p>
+
+    <div class="highlight-box">
+      <strong>自分の投稿の見方</strong><br>
+      1. 画面右下の <strong>＋ボタン</strong>（FABメニュー）をタップ<br>
+      2. <strong>「自分の投稿」</strong> を選択<br>
+      3. 自分の投稿が新しい順に一覧表示されます
+    </div>
+
+    <p style="margin-top:16px;"><strong>投稿カードに表示されるバッジ</strong></p>
+    <table class="guide-table">
+      <thead>
+        <tr><th>バッジ</th><th>意味</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><span style="background:#667eea;color:white;padding:2px 8px;border-radius:8px;font-size:0.75rem;">&#10084;&#65039; 共感 N</span></td><td>他のメンバーからの共感リアクション数</td></tr>
+        <tr><td><span style="background:#d32f2f;color:white;padding:2px 8px;border-radius:8px;font-size:0.75rem;">&#128172; メンバーから N件</span></td><td>推進メンバーからのチャットコメント数</td></tr>
+      </tbody>
+    </table>
+
+    <p style="margin-top:16px;"><strong>推進メンバーのチャットを読む</strong></p>
+    <p>投稿カードをタップすると詳細画面が開きます。推進メンバーがチャットで議論した内容がある場合、<strong style="color:#d32f2f;">「推進メンバーからのコメント」</strong>セクションに表示されます。</p>
+
+    <div class="tip-box">
+      <i class="fas fa-lock" style="color:#ff9800;"></i>
+      推進メンバーのチャット内容は<strong>投稿した本人だけ</strong>が閲覧できます。他の一般ユーザーには表示されません。
+    </div>
+
+    <p style="margin-top:16px;"><strong>管理画面（推進メンバー向け）のチャット通知</strong></p>
+    <p>推進メンバーが投稿にチャットを書き込むと、他のメンバーの管理画面に通知されます。</p>
+    <table class="guide-table">
+      <thead>
+        <tr><th>表示場所</th><th>内容</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>ナビバー「投稿一覧」</td><td>赤い未読数バッジ（全体の未読チャット数）</td></tr>
+        <tr><td>投稿カード</td><td><span style="background:#e8eaf6;color:#5c6bc0;padding:1px 6px;border-radius:8px;font-size:0.75rem;">&#128172; 議論N</span> チャット総数</td></tr>
+        <tr><td>投稿カード</td><td><span style="background:linear-gradient(135deg,#667eea,#764ba2);color:white;padding:1px 8px;border-radius:8px;font-size:0.75rem;">&#128276; NEW +N</span> 未読の新着</td></tr>
+      </tbody>
+    </table>
+    <p>投稿の詳細を開くと自動的に既読になります。既読管理はメンバーごとに個別なので、自分が読んでも他のメンバーのバッジは消えません。</p>
+  </div>
+</div>
+
+<!-- ====== セクション8: 投稿新着バッジ ====== -->
+<div class="guide-card theme-purple" data-keywords="新着 バッジ 通知 未読 コメント">
+  <div class="guide-card-header">
+    <div class="guide-card-icon"><i class="fas fa-bell"></i></div>
+    <div class="guide-card-title">セクション8: 投稿新着バッジ</div>
+  </div>
+  <div class="guide-card-body">
+    <p>自分の投稿に推進メンバーからのコメントがあると、投稿カードに「新着N件」バッジが表示されます。</p>
+
+    <div class="step-flow">
+      <div class="step-item"><div class="step-num">1</div><div class="step-text">推進メンバーが投稿にチャットコメントを追加</div></div>
+      <div class="step-item"><div class="step-num">2</div><div class="step-text">ユーザーの画面で60秒ポーリングにより未読を検知</div></div>
+      <div class="step-item"><div class="step-num">3</div><div class="step-text">自分の投稿カードに「新着N件」バッジが表示</div></div>
+      <div class="step-item"><div class="step-num">4</div><div class="step-text">バッジをタップ or マイページで投稿を開くと既読化→バッジ消去</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== セクション9: AI 7軸評価 ====== -->
 <div class="guide-card theme-indigo" data-keywords="AI 7軸 評価 法令 リスク 頻度 緊急 安全 価値 ニーズ レーダー">
   <div class="guide-card-header">
     <div class="guide-card-icon"><i class="fas fa-brain"></i></div>
-    <div class="guide-card-title">セクション6: AI 7軸評価</div>
+    <div class="guide-card-title">セクション9: AI 7軸評価</div>
   </div>
   <div class="guide-card-body">
     <p>AIが投稿・共感データ・メンバーコメント・チャット・エビデンス18領域を総合的に分析し、<br>7つの軸でテーマ候補を自動評価します。</p>
@@ -785,11 +968,77 @@ body {
   </div>
 </div>
 
-<!-- ====== セクション7: チャレンジの仕組み ====== -->
+<!-- ====== セクション10: AI凝集の改善 ====== -->
+<div class="guide-card theme-blue" data-keywords="凝集 7軸評価 レートリミット Gemini フォールバック">
+  <div class="guide-card-header">
+    <div class="guide-card-icon"><i class="fas fa-magic"></i></div>
+    <div class="guide-card-title">セクション10: AI凝集の改善</div>
+  </div>
+  <div class="guide-card-body">
+    <p>AIテーマ凝集の安定性と効率性を大幅に改善しました。</p>
+
+    <table class="guide-table">
+      <thead><tr><th>改善項目</th><th>内容</th></tr></thead>
+      <tbody>
+        <tr><td><strong>食事投稿除外</strong></td><td>7軸評価・凝集の対象から食事投稿を除外。評価対象が98件→9件に削減</td></tr>
+        <tr><td><strong>投稿時リアルタイム評価</strong></td><td>相談投稿時にAIスコアをauto_evaluationsテーブルに即時保存。凝集時の一括評価が不要に</td></tr>
+        <tr><td><strong>バックグラウンド処理</strong></td><td>7軸一括評価をバックグラウンドジョブ化。5秒ポーリングで進捗表示（504タイムアウト回避）</td></tr>
+        <tr><td><strong>Geminiフォールバック</strong></td><td>Groq APIが429（レートリミット）の場合、自動的にGeminiで実行</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ====== セクション11: 承認フロー（内部統制） ====== -->
+<div class="guide-card theme-red" data-keywords="承認 内部統制 フロー 保健師 役員 投票 確定">
+  <div class="guide-card-header">
+    <div class="guide-card-icon"><i class="fas fa-shield-alt"></i></div>
+    <div class="guide-card-title">セクション11: 承認フロー（内部統制）</div>
+  </div>
+  <div class="guide-card-body">
+    <p>テーマが確定するまでに5段階の承認ステップを設けています。</p>
+
+    <div class="approval-flow">
+      <div class="approval-step">
+        <div class="approval-num">1</div>
+        <div class="approval-label">推進メンバー<br>精査</div>
+      </div>
+      <div class="approval-arrow"><i class="fas fa-chevron-right"></i></div>
+      <div class="approval-step">
+        <div class="approval-num">2</div>
+        <div class="approval-label">保健師<br>助言</div>
+      </div>
+      <div class="approval-arrow"><i class="fas fa-chevron-right"></i></div>
+      <div class="approval-step">
+        <div class="approval-num">3</div>
+        <div class="approval-label">役員<br>承認</div>
+      </div>
+      <div class="approval-arrow"><i class="fas fa-chevron-right"></i></div>
+      <div class="approval-step">
+        <div class="approval-num">4</div>
+        <div class="approval-label">全社<br>投票</div>
+      </div>
+      <div class="approval-arrow"><i class="fas fa-chevron-right"></i></div>
+      <div class="approval-step">
+        <div class="approval-num">5</div>
+        <div class="approval-label">テーマ<br>確定</div>
+      </div>
+    </div>
+
+    <div class="warn-box">
+      <strong><i class="fas fa-exclamation-triangle" style="color:#ffa000;"></i> 統制ルール</strong><br>
+      ・保健師助言なしでは役員承認に進めない<br>
+      ・役員承認なしでは投票を開始できない<br>
+      ・Exec権限のアカウントのみ承認可能（なりすまし防止）
+    </div>
+  </div>
+</div>
+
+<!-- ====== セクション12: チャレンジの仕組み ====== -->
 <div class="guide-card theme-teal" data-keywords="チャレンジ KPI ランキング バッジ EAST エントリー">
   <div class="guide-card-header">
     <div class="guide-card-icon"><i class="fas fa-fire"></i></div>
-    <div class="guide-card-title">セクション7: チャレンジの仕組み</div>
+    <div class="guide-card-title">セクション12: チャレンジの仕組み</div>
   </div>
   <div class="guide-card-body">
     <p>確定したテーマに基づき、AIがチャレンジ企画書を自動生成します。<br>
@@ -835,11 +1084,141 @@ body {
   </div>
 </div>
 
-<!-- ====== セクション8: エビデンスベース ====== -->
+<!-- ====== セクション13: ランキング＆バッジ ====== -->
+<div class="guide-card theme-orange" data-keywords="ランキング バッジ 投稿 紹介 アバター 順位">
+  <div class="guide-card-header">
+    <div class="guide-card-icon"><i class="fas fa-trophy"></i></div>
+    <div class="guide-card-title">セクション13: ランキング＆バッジ</div>
+  </div>
+  <div class="guide-card-body">
+    <p>ユーザー画面で<strong>自分のアバターをタップ</strong>すると、ランキングとバッジ情報がポップアップで表示されます。</p>
+
+    <div class="highlight-box">
+      <strong>表示される情報</strong><br>
+      1. あなたの現在のランク・投稿数・次ランクまでの進捗バー<br>
+      2. 投稿数ランキング TOP5（アバター＋ニックネーム付き）<br>
+      3. 紹介者数ランキング TOP5（アバター＋ニックネーム付き）
+    </div>
+
+    <p style="margin-top:16px;"><strong>ランク一覧（投稿数で自動昇格）</strong></p>
+    <table class="guide-table">
+      <thead>
+        <tr><th>ランク</th><th>アイコン</th><th>必要投稿数</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Beginner</td><td>🌱</td><td>0回〜</td></tr>
+        <tr><td>Bronze</td><td>🥉</td><td>5回〜</td></tr>
+        <tr><td>Silver</td><td>🥈</td><td>10回〜</td></tr>
+        <tr><td>Gold</td><td>🥇</td><td>30回〜</td></tr>
+        <tr><td>Platinum</td><td>👑</td><td>50回〜</td></tr>
+        <tr><td>Black</td><td>💎</td><td>80回〜</td></tr>
+      </tbody>
+    </table>
+
+    <p style="margin-top:16px;"><strong>紹介者数の仕組み</strong></p>
+    <p>アプリ内でQRコードを表示し、そのQRから<strong>新規ユーザーが登録</strong>すると紹介者としてカウントされます。</p>
+
+    <div class="tip-box">
+      <i class="fas fa-lightbulb" style="color:#4caf50;"></i>
+      ランキングは全ユーザーの中でのTOP5を表示。自分がランクインしていれば青くハイライトされ「(あなた)」と表示されます。
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- 補助機能セクション（14〜15）                                 -->
+<!-- ============================================================ -->
+
+<!-- ====== セクション14: 週間食事分析レポート ====== -->
+<div class="guide-card theme-green" data-keywords="食事 栄養 週間 レポート 分析 自動配信">
+  <div class="guide-card-header">
+    <div class="guide-card-icon"><i class="fas fa-utensils"></i></div>
+    <div class="guide-card-title">セクション14: 週間食事分析レポート</div>
+  </div>
+  <div class="guide-card-body">
+    <p>毎週月曜7:00に自動実行。先週の食事投稿をユーザーごとに集計し、AI管理栄養士が週間栄養分析レポートを生成・配信します。</p>
+
+    <div class="step-flow">
+      <div class="step-item"><div class="step-num">1</div><div class="step-text"><strong>自動集計</strong>：先週月曜〜日曜の食事投稿（写真投稿）をユーザーごとに収集</div></div>
+      <div class="step-item"><div class="step-num">2</div><div class="step-text"><strong>AI分析</strong>：各ユーザーの1週間分の食事を栄養学的に分析（Groq/Geminiフォールバック）</div></div>
+      <div class="step-item"><div class="step-num">3</div><div class="step-text"><strong>本人通知</strong>：「お知らせ」に個人レポートとして自動配信</div></div>
+      <div class="step-item"><div class="step-num">4</div><div class="step-text"><strong>管理者閲覧</strong>：管理画面で全ユーザーのレポートを一覧表示、推進メンバーが議論・コメント</div></div>
+    </div>
+
+    <p style="margin-top:12px;"><strong>レポート内容：</strong></p>
+    <table class="guide-table">
+      <thead><tr><th>項目</th><th>内容</th></tr></thead>
+      <tbody>
+        <tr><td><strong>今週の食事傾向</strong></td><td>全体の傾向を2〜3文で要約</td></tr>
+        <tr><td><strong>過剰な栄養素</strong></td><td>推定で過剰摂取の栄養素と具体的理由（例：塩分→味噌汁+漬物が毎食）</td></tr>
+        <tr><td><strong>不足している栄養素</strong></td><td>推定で不足している栄養素と具体的理由（例：食物繊維→野菜が少ない）</td></tr>
+        <tr><td><strong>良かった点</strong></td><td>具体的に1〜2つ褒めて継続を促す</td></tr>
+        <tr><td><strong>来週の心がけ</strong></td><td>スモールステップで実践しやすいアドバイスを2〜3つ</td></tr>
+        <tr><td><strong>出典</strong></td><td>根拠となる厚労省ガイドライン等を明記</td></tr>
+      </tbody>
+    </table>
+
+    <div class="warn-box">
+      <strong><i class="fas fa-info-circle" style="color:#1976d2;"></i> 運用ポイント</strong><br>
+      ・投稿がない週のユーザーはスキップされます<br>
+      ・管理画面から手動実行も可能です<br>
+      ・食事投稿は7軸評価・凝集の対象外です（相談・提案投稿のみが凝集対象）
+    </div>
+  </div>
+</div>
+
+<!-- ====== セクション15: 健康診断結果閲覧 ====== -->
+<div class="guide-card theme-red" data-keywords="健診 健康診断 Box 判定結果 経年推移 誓約">
+  <div class="guide-card-header">
+    <div class="guide-card-icon"><i class="fas fa-file-medical"></i></div>
+    <div class="guide-card-title">セクション15: 健康診断結果閲覧</div>
+  </div>
+  <div class="guide-card-body">
+    <p>エルスケアネットワークの健診データをBox APIから都度取得し、本人のみが閲覧できる機能です。健診データはサーバーに一切保存されません。</p>
+
+    <div class="step-flow">
+      <div class="step-item"><div class="step-num">1</div><div class="step-text"><strong>3重認証</strong>：JWTログイン + パスワード入力 + 生年月日入力で本人確認</div></div>
+      <div class="step-item"><div class="step-num">2</div><div class="step-text"><strong>誓約チェック</strong>：6項目の誓約事項に全て同意が必要（なりすまし禁止、第三者非開示、キャプチャ禁止、目的外利用禁止、医療免責、ログ同意）</div></div>
+      <div class="step-item"><div class="step-num">3</div><div class="step-text"><strong>データ取得</strong>：Box APIから判定結果xlsmをダウンロードし、本人の行のみ抽出して表示</div></div>
+    </div>
+
+    <p style="margin-top:12px;"><strong>表示モード（2タブ）：</strong></p>
+    <table class="guide-table">
+      <thead><tr><th>タブ</th><th>内容</th></tr></thead>
+      <tbody>
+        <tr><td><strong>年度別</strong></td><td>各年度の健診データを詳細表示。総合判定（肥満/高血圧/脂質異常/高血糖/肝機能/腎機能/貧血）、生体計測、血液検査、視力・聴力等</td></tr>
+        <tr><td><strong>経年推移</strong></td><td>全年度の数値を横並び比較。トレンド矢印（↑悪化/↓改善）、危険値の色分け（橙:要改善/赤:要医療）、ミニバーで基準値内の位置を視覚化。判定推移も年度横断で表示</td></tr>
+      </tbody>
+    </table>
+
+    <p style="margin-top:12px;"><strong>基準値（エビデンス）：</strong></p>
+    <ul>
+      <li>BMI：日本肥満学会基準（25以上:要改善、30以上:要医療）</li>
+      <li>腹囲：メタボ診断基準2005（男85cm/女90cm）性別で自動分岐</li>
+      <li>血圧：JSH2019高血圧治療ガイドライン（130/85以上:要改善、140/90以上:要医療）</li>
+      <li>脂質：動脈硬化性疾患予防ガイドライン2022</li>
+      <li>血糖：日本糖尿病学会診断基準（空腹時100以上:要改善、126以上:要医療）</li>
+      <li>ヘモグロビン：WHO貧血基準（男13.0/女12.0未満）性別で自動分岐</li>
+    </ul>
+
+    <div class="warn-box">
+      <strong><i class="fas fa-shield-alt" style="color:#e91e63;"></i> 内部統制</strong><br>
+      ・閲覧ごとにアクセスログ（user_id, IP, user_agent, 日時）をDBに記録<br>
+      ・レスポンスから氏名を削除（万が一の通信傍受対策）<br>
+      ・健診データはDBに一切保存しない（Box API都度取得方式）
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- リファレンスセクション（16〜18）                             -->
+<!-- ============================================================ -->
+
+<!-- ====== セクション16: エビデンスベース ====== -->
 <div class="guide-card theme-green" data-keywords="エビデンス ガイドライン 公的 18領域 学習">
   <div class="guide-card-header">
     <div class="guide-card-icon"><i class="fas fa-graduation-cap"></i></div>
-    <div class="guide-card-title">セクション8: エビデンスベース</div>
+    <div class="guide-card-title">セクション16: エビデンスベース</div>
   </div>
   <div class="guide-card-body">
     <p>AI評価の基盤となる全18領域の公的ガイドラインです。</p>
@@ -891,159 +1270,11 @@ body {
   </div>
 </div>
 
-<!-- ====== セクション9: 画面一覧 ====== -->
-<div class="guide-card theme-cyan" data-keywords="画面 URL ページ 管理 ユーザー アンバサダー">
-  <div class="guide-card-header">
-    <div class="guide-card-icon"><i class="fas fa-desktop"></i></div>
-    <div class="guide-card-title">セクション9: 画面一覧</div>
-  </div>
-  <div class="guide-card-body">
-    <table class="guide-table">
-      <thead>
-        <tr><th>URL</th><th>画面名</th><th>対象者</th></tr>
-      </thead>
-      <tbody>
-        <tr><td><code>/</code></td><td>ユーザー画面</td><td>全社員</td></tr>
-        <tr><td><code>/admin</code></td><td>管理画面</td><td>推進メンバー・役員</td></tr>
-        <tr><td><code>/ambassador</code></td><td>アンバサダー画面</td><td>保健師</td></tr>
-        <tr><td><code>/knowledge</code></td><td>学習資料</td><td>全員</td></tr>
-        <tr><td><code>/guide</code></td><td>このガイド</td><td>全員</td></tr>
-      </tbody>
-    </table>
-  </div>
-</div>
-
-<!-- ====== セクション10: ランキング＆バッジ ====== -->
-<div class="guide-card theme-orange" data-keywords="ランキング バッジ 投稿 紹介 アバター 順位">
-  <div class="guide-card-header">
-    <div class="guide-card-icon"><i class="fas fa-trophy"></i></div>
-    <div class="guide-card-title">セクション10: ランキング＆バッジ</div>
-  </div>
-  <div class="guide-card-body">
-    <p>ユーザー画面で<strong>自分のアバターをタップ</strong>すると、ランキングとバッジ情報がポップアップで表示されます。</p>
-
-    <div class="highlight-box">
-      <strong>表示される情報</strong><br>
-      1. あなたの現在のランク・投稿数・次ランクまでの進捗バー<br>
-      2. 投稿数ランキング TOP5（アバター＋ニックネーム付き）<br>
-      3. 紹介者数ランキング TOP5（アバター＋ニックネーム付き）
-    </div>
-
-    <p style="margin-top:16px;"><strong>ランク一覧（投稿数で自動昇格）</strong></p>
-    <table class="guide-table">
-      <thead>
-        <tr><th>ランク</th><th>アイコン</th><th>必要投稿数</th></tr>
-      </thead>
-      <tbody>
-        <tr><td>Beginner</td><td>🌱</td><td>0回〜</td></tr>
-        <tr><td>Bronze</td><td>🥉</td><td>5回〜</td></tr>
-        <tr><td>Silver</td><td>🥈</td><td>10回〜</td></tr>
-        <tr><td>Gold</td><td>🥇</td><td>30回〜</td></tr>
-        <tr><td>Platinum</td><td>👑</td><td>50回〜</td></tr>
-        <tr><td>Black</td><td>💎</td><td>80回〜</td></tr>
-      </tbody>
-    </table>
-
-    <p style="margin-top:16px;"><strong>紹介者数の仕組み</strong></p>
-    <p>アプリ内でQRコードを表示し、そのQRから<strong>新規ユーザーが登録</strong>すると紹介者としてカウントされます。</p>
-
-    <div class="tip-box">
-      <i class="fas fa-lightbulb" style="color:#4caf50;"></i>
-      ランキングは全ユーザーの中でのTOP5を表示。自分がランクインしていれば青くハイライトされ「(あなた)」と表示されます。
-    </div>
-  </div>
-</div>
-
-<!-- ====== セクション10.5: 自分の投稿 & チャット通知 ====== -->
-<div class="guide-card theme-red" data-keywords="自分の投稿 履歴 チャット 通知 推進メンバー コメント 新着">
-  <div class="guide-card-header">
-    <div class="guide-card-icon"><i class="fas fa-user-edit"></i></div>
-    <div class="guide-card-title">自分の投稿を確認する</div>
-  </div>
-  <div class="guide-card-body">
-    <p>自分が過去に投稿した内容と、推進メンバーからのフィードバックを確認できます。</p>
-
-    <div class="highlight-box">
-      <strong>自分の投稿の見方</strong><br>
-      1. 画面右下の <strong>＋ボタン</strong>（FABメニュー）をタップ<br>
-      2. <strong>「自分の投稿」</strong> を選択<br>
-      3. 自分の投稿が新しい順に一覧表示されます
-    </div>
-
-    <p style="margin-top:16px;"><strong>投稿カードに表示されるバッジ</strong></p>
-    <table class="guide-table">
-      <thead>
-        <tr><th>バッジ</th><th>意味</th></tr>
-      </thead>
-      <tbody>
-        <tr><td><span style="background:#667eea;color:white;padding:2px 8px;border-radius:8px;font-size:0.75rem;">&#10084;&#65039; 共感 N</span></td><td>他のメンバーからの共感リアクション数</td></tr>
-        <tr><td><span style="background:#d32f2f;color:white;padding:2px 8px;border-radius:8px;font-size:0.75rem;">&#128172; メンバーから N件</span></td><td>推進メンバーからのチャットコメント数</td></tr>
-      </tbody>
-    </table>
-
-    <p style="margin-top:16px;"><strong>推進メンバーのチャットを読む</strong></p>
-    <p>投稿カードをタップすると詳細画面が開きます。推進メンバーがチャットで議論した内容がある場合、<strong style="color:#d32f2f;">「推進メンバーからのコメント」</strong>セクションに表示されます。</p>
-
-    <div class="tip-box">
-      <i class="fas fa-lock" style="color:#ff9800;"></i>
-      推進メンバーのチャット内容は<strong>投稿した本人だけ</strong>が閲覧できます。他の一般ユーザーには表示されません。
-    </div>
-
-    <p style="margin-top:16px;"><strong>管理画面（推進メンバー向け）のチャット通知</strong></p>
-    <p>推進メンバーが投稿にチャットを書き込むと、他のメンバーの管理画面に通知されます。</p>
-    <table class="guide-table">
-      <thead>
-        <tr><th>表示場所</th><th>内容</th></tr>
-      </thead>
-      <tbody>
-        <tr><td>ナビバー「投稿一覧」</td><td>赤い未読数バッジ（全体の未読チャット数）</td></tr>
-        <tr><td>投稿カード</td><td><span style="background:#e8eaf6;color:#5c6bc0;padding:1px 6px;border-radius:8px;font-size:0.75rem;">&#128172; 議論N</span> チャット総数</td></tr>
-        <tr><td>投稿カード</td><td><span style="background:linear-gradient(135deg,#667eea,#764ba2);color:white;padding:1px 8px;border-radius:8px;font-size:0.75rem;">&#128276; NEW +N</span> 未読の新着</td></tr>
-      </tbody>
-    </table>
-    <p>投稿の詳細を開くと自動的に既読になります。既読管理はメンバーごとに個別なので、自分が読んでも他のメンバーのバッジは消えません。</p>
-  </div>
-</div>
-
-<!-- ====== セクション11: FAQ ====== -->
-<div class="guide-card theme-gray" data-keywords="FAQ 質問 匿名 共感 チャレンジ 保健師 役員 承認">
-  <div class="guide-card-header">
-    <div class="guide-card-icon"><i class="fas fa-question-circle"></i></div>
-    <div class="guide-card-title">セクション11: よくある質問（FAQ）</div>
-  </div>
-  <div class="guide-card-body">
-    <div class="faq-item">
-      <div class="faq-q"><span>Q.</span> 投稿は匿名ですか？</div>
-      <div class="faq-a">ニックネームで表示されます。実名は管理者のみ確認可能です。</div>
-    </div>
-
-    <div class="faq-item">
-      <div class="faq-q"><span>Q.</span> 共感は何回できますか？</div>
-      <div class="faq-a">1つの投稿につき1回です。種別を選んでタップするだけで完了します。</div>
-    </div>
-
-    <div class="faq-item">
-      <div class="faq-q"><span>Q.</span> チャレンジは強制ですか？</div>
-      <div class="faq-a">任意参加です。途中参加・途中離脱もOKです。</div>
-    </div>
-
-    <div class="faq-item">
-      <div class="faq-q"><span>Q.</span> 保健師はどこからアクセスしますか？</div>
-      <div class="faq-a"><a href="/ambassador" style="color:#764ba2; font-weight:700;">/ambassador</a> のアンバサダー画面からアクセスします。</div>
-    </div>
-
-    <div class="faq-item">
-      <div class="faq-q"><span>Q.</span> 役員承認は誰ができますか？</div>
-      <div class="faq-a">メンバー管理で<strong>Exec権限</strong>が設定されたアカウントのみ承認可能です。</div>
-    </div>
-  </div>
-</div>
-
-<!-- ====== セクション12: AI プロンプト一覧 ====== -->
+<!-- ====== セクション17: AIプロンプト一覧 ====== -->
 <div class="guide-card theme-indigo" data-keywords="AI プロンプト Groq Gemini LLM モデル チャット 評価 分析">
   <div class="guide-card-header">
     <div class="guide-card-icon"><i class="fas fa-robot"></i></div>
-    <div class="guide-card-title">セクション12: AIプロンプト一覧</div>
+    <div class="guide-card-title">セクション17: AIプロンプト一覧</div>
   </div>
   <div class="guide-card-body">
     <p>本システムでは<strong>22種のAIプロンプト</strong>を使用しています。<br>
@@ -1105,11 +1336,37 @@ body {
   </div>
 </div>
 
-<!-- ====== セクション13: セキュリティ対策 ====== -->
+<!-- ====== セクション18: 画面一覧 ====== -->
+<div class="guide-card theme-cyan" data-keywords="画面 URL ページ 管理 ユーザー アンバサダー">
+  <div class="guide-card-header">
+    <div class="guide-card-icon"><i class="fas fa-desktop"></i></div>
+    <div class="guide-card-title">セクション18: 画面一覧</div>
+  </div>
+  <div class="guide-card-body">
+    <table class="guide-table">
+      <thead>
+        <tr><th>URL</th><th>画面名</th><th>対象者</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>/</code></td><td>ユーザー画面</td><td>全社員</td></tr>
+        <tr><td><code>/admin</code></td><td>管理画面</td><td>推進メンバー・役員</td></tr>
+        <tr><td><code>/ambassador</code></td><td>アンバサダー画面</td><td>保健師</td></tr>
+        <tr><td><code>/knowledge</code></td><td>学習資料</td><td>全員</td></tr>
+        <tr><td><code>/guide</code></td><td>このガイド</td><td>全員</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- 技術基盤セクション（19〜20）                                 -->
+<!-- ============================================================ -->
+
+<!-- ====== セクション19: セキュリティ対策 ====== -->
 <div class="guide-card theme-red" data-keywords="セキュリティ 認証 暗号化 HTTPS CORS レート制限 JWT">
   <div class="guide-card-header">
     <div class="guide-card-icon"><i class="fas fa-shield-alt"></i></div>
-    <div class="guide-card-title">セクション13: セキュリティ対策</div>
+    <div class="guide-card-title">セクション19: セキュリティ対策</div>
   </div>
   <div class="guide-card-body">
     <p>本システムは外部アクセス（大学関係者・保健師等）を想定し、以下のセキュリティ対策を実装しています。</p>
@@ -1142,92 +1399,11 @@ body {
   </div>
 </div>
 
-<!-- ====== セクション14: 健康診断結果閲覧 ====== -->
-<div class="guide-card theme-red" data-keywords="健診 健康診断 Box 判定結果 経年推移 誓約">
-  <div class="guide-card-header">
-    <div class="guide-card-icon"><i class="fas fa-file-medical"></i></div>
-    <div class="guide-card-title">セクション14: 健康診断結果閲覧</div>
-  </div>
-  <div class="guide-card-body">
-    <p>エルスケアネットワークの健診データをBox APIから都度取得し、本人のみが閲覧できる機能です。健診データはサーバーに一切保存されません。</p>
-
-    <div class="step-flow">
-      <div class="step-item"><div class="step-num">1</div><div class="step-text"><strong>3重認証</strong>：JWTログイン + パスワード入力 + 生年月日入力で本人確認</div></div>
-      <div class="step-item"><div class="step-num">2</div><div class="step-text"><strong>誓約チェック</strong>：6項目の誓約事項に全て同意が必要（なりすまし禁止、第三者非開示、キャプチャ禁止、目的外利用禁止、医療免責、ログ同意）</div></div>
-      <div class="step-item"><div class="step-num">3</div><div class="step-text"><strong>データ取得</strong>：Box APIから判定結果xlsmをダウンロードし、本人の行のみ抽出して表示</div></div>
-    </div>
-
-    <p style="margin-top:12px;"><strong>表示モード（2タブ）：</strong></p>
-    <table class="guide-table">
-      <thead><tr><th>タブ</th><th>内容</th></tr></thead>
-      <tbody>
-        <tr><td><strong>年度別</strong></td><td>各年度の健診データを詳細表示。総合判定（肥満/高血圧/脂質異常/高血糖/肝機能/腎機能/貧血）、生体計測、血液検査、視力・聴力等</td></tr>
-        <tr><td><strong>経年推移</strong></td><td>全年度の数値を横並び比較。トレンド矢印（↑悪化/↓改善）、危険値の色分け（橙:要改善/赤:要医療）、ミニバーで基準値内の位置を視覚化。判定推移も年度横断で表示</td></tr>
-      </tbody>
-    </table>
-
-    <p style="margin-top:12px;"><strong>基準値（エビデンス）：</strong></p>
-    <ul>
-      <li>BMI：日本肥満学会基準（25以上:要改善、30以上:要医療）</li>
-      <li>腹囲：メタボ診断基準2005（男85cm/女90cm）性別で自動分岐</li>
-      <li>血圧：JSH2019高血圧治療ガイドライン（130/85以上:要改善、140/90以上:要医療）</li>
-      <li>脂質：動脈硬化性疾患予防ガイドライン2022</li>
-      <li>血糖：日本糖尿病学会診断基準（空腹時100以上:要改善、126以上:要医療）</li>
-      <li>ヘモグロビン：WHO貧血基準（男13.0/女12.0未満）性別で自動分岐</li>
-    </ul>
-
-    <div class="warn-box">
-      <strong><i class="fas fa-shield-alt" style="color:#e91e63;"></i> 内部統制</strong><br>
-      ・閲覧ごとにアクセスログ（user_id, IP, user_agent, 日時）をDBに記録<br>
-      ・レスポンスから氏名を削除（万が一の通信傍受対策）<br>
-      ・健診データはDBに一切保存しない（Box API都度取得方式）
-    </div>
-  </div>
-</div>
-
-<!-- ====== セクション15: 週間食事分析レポート ====== -->
-<div class="guide-card theme-green" data-keywords="食事 栄養 週間 レポート 分析 自動配信">
-  <div class="guide-card-header">
-    <div class="guide-card-icon"><i class="fas fa-utensils"></i></div>
-    <div class="guide-card-title">セクション15: 週間食事分析レポート</div>
-  </div>
-  <div class="guide-card-body">
-    <p>毎週月曜7:00に自動実行。先週の食事投稿をユーザーごとに集計し、AI管理栄養士が週間栄養分析レポートを生成・配信します。</p>
-
-    <div class="step-flow">
-      <div class="step-item"><div class="step-num">1</div><div class="step-text"><strong>自動集計</strong>：先週月曜〜日曜の食事投稿（写真投稿）をユーザーごとに収集</div></div>
-      <div class="step-item"><div class="step-num">2</div><div class="step-text"><strong>AI分析</strong>：各ユーザーの1週間分の食事を栄養学的に分析（Groq/Geminiフォールバック）</div></div>
-      <div class="step-item"><div class="step-num">3</div><div class="step-text"><strong>本人通知</strong>：「お知らせ」に個人レポートとして自動配信</div></div>
-      <div class="step-item"><div class="step-num">4</div><div class="step-text"><strong>管理者閲覧</strong>：管理画面で全ユーザーのレポートを一覧表示、推進メンバーが議論・コメント</div></div>
-    </div>
-
-    <p style="margin-top:12px;"><strong>レポート内容：</strong></p>
-    <table class="guide-table">
-      <thead><tr><th>項目</th><th>内容</th></tr></thead>
-      <tbody>
-        <tr><td><strong>今週の食事傾向</strong></td><td>全体の傾向を2〜3文で要約</td></tr>
-        <tr><td><strong>過剰な栄養素</strong></td><td>推定で過剰摂取の栄養素と具体的理由（例：塩分→味噌汁+漬物が毎食）</td></tr>
-        <tr><td><strong>不足している栄養素</strong></td><td>推定で不足している栄養素と具体的理由（例：食物繊維→野菜が少ない）</td></tr>
-        <tr><td><strong>良かった点</strong></td><td>具体的に1〜2つ褒めて継続を促す</td></tr>
-        <tr><td><strong>来週の心がけ</strong></td><td>スモールステップで実践しやすいアドバイスを2〜3つ</td></tr>
-        <tr><td><strong>出典</strong></td><td>根拠となる厚労省ガイドライン等を明記</td></tr>
-      </tbody>
-    </table>
-
-    <div class="warn-box">
-      <strong><i class="fas fa-info-circle" style="color:#1976d2;"></i> 運用ポイント</strong><br>
-      ・投稿がない週のユーザーはスキップされます<br>
-      ・管理画面から手動実行も可能です<br>
-      ・食事投稿は7軸評価・凝集の対象外です（相談・提案投稿のみが凝集対象）
-    </div>
-  </div>
-</div>
-
-<!-- ====== セクション16: 同時ログイン防止 ====== -->
+<!-- ====== セクション20: 同時ログイン防止 ====== -->
 <div class="guide-card theme-blue" data-keywords="セッション ログイン 同時接続 セキュリティ">
   <div class="guide-card-header">
     <div class="guide-card-icon"><i class="fas fa-user-lock"></i></div>
-    <div class="guide-card-title">セクション16: 同時ログイン防止</div>
+    <div class="guide-card-title">セクション20: 同時ログイン防止</div>
   </div>
   <div class="guide-card-body">
     <p>1アカウントにつき1端末のみログイン可能です。別の端末でログインすると、前の端末のセッションは自動的に無効化されます。</p>
@@ -1244,191 +1420,41 @@ body {
   </div>
 </div>
 
-<!-- ====== セクション17: 投稿新着バッジ ====== -->
-<div class="guide-card theme-purple" data-keywords="新着 バッジ 通知 未読 コメント">
+<!-- ============================================================ -->
+<!-- FAQ（常に最後）                                               -->
+<!-- ============================================================ -->
+
+<!-- ====== セクション21: FAQ ====== -->
+<div class="guide-card theme-gray" data-keywords="FAQ 質問 匿名 共感 チャレンジ 保健師 役員 承認">
   <div class="guide-card-header">
-    <div class="guide-card-icon"><i class="fas fa-bell"></i></div>
-    <div class="guide-card-title">セクション17: 投稿新着バッジ</div>
+    <div class="guide-card-icon"><i class="fas fa-question-circle"></i></div>
+    <div class="guide-card-title">セクション21: よくある質問（FAQ）</div>
   </div>
   <div class="guide-card-body">
-    <p>自分の投稿に推進メンバーからのコメントがあると、投稿カードに「新着N件」バッジが表示されます。</p>
-
-    <div class="step-flow">
-      <div class="step-item"><div class="step-num">1</div><div class="step-text">推進メンバーが投稿にチャットコメントを追加</div></div>
-      <div class="step-item"><div class="step-num">2</div><div class="step-text">ユーザーの画面で60秒ポーリングにより未読を検知</div></div>
-      <div class="step-item"><div class="step-num">3</div><div class="step-text">自分の投稿カードに「新着N件」バッジが表示</div></div>
-      <div class="step-item"><div class="step-num">4</div><div class="step-text">バッジをタップ or マイページで投稿を開くと既読化→バッジ消去</div></div>
-    </div>
-  </div>
-</div>
-
-<!-- ====== セクション18: AI凝集の改善 ====== -->
-<div class="guide-card theme-blue" data-keywords="凝集 7軸評価 レートリミット Gemini フォールバック">
-  <div class="guide-card-header">
-    <div class="guide-card-icon"><i class="fas fa-magic"></i></div>
-    <div class="guide-card-title">セクション18: AI凝集の改善（2026-03-25）</div>
-  </div>
-  <div class="guide-card-body">
-    <p>AIテーマ凝集の安定性と効率性を大幅に改善しました。</p>
-
-    <table class="guide-table">
-      <thead><tr><th>改善項目</th><th>内容</th></tr></thead>
-      <tbody>
-        <tr><td><strong>食事投稿除外</strong></td><td>7軸評価・凝集の対象から食事投稿を除外。評価対象が98件→9件に削減</td></tr>
-        <tr><td><strong>投稿時リアルタイム評価</strong></td><td>相談投稿時にAIスコアをauto_evaluationsテーブルに即時保存。凝集時の一括評価が不要に</td></tr>
-        <tr><td><strong>バックグラウンド処理</strong></td><td>7軸一括評価をバックグラウンドジョブ化。5秒ポーリングで進捗表示（504タイムアウト回避）</td></tr>
-        <tr><td><strong>Geminiフォールバック</strong></td><td>Groq APIが429（レートリミット）の場合、自動的にGeminiで実行</td></tr>
-      </tbody>
-    </table>
-  </div>
-</div>
-
-<!-- ===== ヘルスバディー ===== -->
-
-<div class="guide-card">
-  <div class="guide-card-header">
-    <div class="guide-card-icon" style="background:linear-gradient(135deg,#0ea5e9,#0284c7);"><i class="fas fa-robot"></i></div>
-    <div class="guide-card-title">セクション19: ヘルスバディー（2026-03-27）</div>
-  </div>
-  <div class="guide-card-body">
-    <h4 style="color:#0284c7;"><i class="fas fa-robot me-2"></i>ヘルスバディーとは</h4>
-    <p>アプリを開くと最初に表示されるAI健康相棒です。毎日あなたに話しかけ、体調を確認し、健康に関する悩みを自然な会話の中で引き出します。</p>
-
-    <div class="guide-step">
-      <div class="step-number" style="background:linear-gradient(135deg,#0ea5e9,#0284c7);">1</div>
-      <div class="step-content">
-        <strong>毎日の体調チェック</strong><br>
-        アプリを開くとバディーが「今日の調子はどう？」と話しかけます。<br>
-        😊元気 / 😐普通 / 😔少し疲れ / 😩しんどい の4択をタップするだけ。
-      </div>
+    <div class="faq-item">
+      <div class="faq-q"><span>Q.</span> 投稿は匿名ですか？</div>
+      <div class="faq-a">ニックネームで表示されます。実名は管理者のみ確認可能です。</div>
     </div>
 
-    <div class="guide-step">
-      <div class="step-number" style="background:linear-gradient(135deg,#0ea5e9,#0284c7);">2</div>
-      <div class="step-content">
-        <strong>悩みの深掘り</strong><br>
-        体調に応じて「何か気になることは？」と選択肢を提示します。<br>
-        💤睡眠 / 🦴腰・肩 / 😣ストレス / 🍽️食欲 / 👁️目の疲れ など。<br>
-        「💬 自分の言葉で話す」で自由に相談することもできます。
-      </div>
+    <div class="faq-item">
+      <div class="faq-q"><span>Q.</span> 共感は何回できますか？</div>
+      <div class="faq-a">1つの投稿につき1回です。種別を選んでタップするだけで完了します。</div>
     </div>
 
-    <div class="guide-step">
-      <div class="step-number" style="background:linear-gradient(135deg,#0ea5e9,#0284c7);">3</div>
-      <div class="step-content">
-        <strong>エビデンスに基づくアドバイス</strong><br>
-        AIが厚生労働省のガイドラインや最新の研究に基づいてアドバイスします。<br>
-        具体的なアクション（🎯やってみよう）と出典（📚）がカード形式で表示されます。
-      </div>
+    <div class="faq-item">
+      <div class="faq-q"><span>Q.</span> チャレンジは強制ですか？</div>
+      <div class="faq-a">任意参加です。途中参加・途中離脱もOKです。</div>
     </div>
 
-    <div class="guide-step">
-      <div class="step-number" style="background:linear-gradient(135deg,#0ea5e9,#0284c7);">4</div>
-      <div class="step-content">
-        <strong>推進メンバーへの橋渡し</strong><br>
-        AIだけでは解決できない悩み（職場の人間関係、医療相談など）は「🛡️推進メンバーに相談」で匿名で届けられます。<br>
-        推進メンバーがお知らせ通知で返事をします。
-      </div>
+    <div class="faq-item">
+      <div class="faq-q"><span>Q.</span> 保健師はどこからアクセスしますか？</div>
+      <div class="faq-a"><a href="/ambassador" style="color:#764ba2; font-weight:700;">/ambassador</a> のアンバサダー画面からアクセスします。</div>
     </div>
 
-    <div class="guide-step">
-      <div class="step-number" style="background:linear-gradient(135deg,#0ea5e9,#0284c7);">5</div>
-      <div class="step-content">
-        <strong>チャレンジとの連動</strong><br>
-        会話の中で現在進行中のチャレンジに関連する話題が出ると、AIが自然に参加を促します。
-      </div>
+    <div class="faq-item">
+      <div class="faq-q"><span>Q.</span> 役員承認は誰ができますか？</div>
+      <div class="faq-a">メンバー管理で<strong>Exec権限</strong>が設定されたアカウントのみ承認可能です。</div>
     </div>
-
-    <h4 style="color:#0284c7; margin-top:20px;"><i class="fas fa-palette me-2"></i>バディーのカスタマイズ</h4>
-    <p>マイページの「バディーを変更する」ボタンから、いつでもカスタマイズできます。</p>
-
-    <table class="guide-table">
-      <thead><tr><th>項目</th><th>内容</th></tr></thead>
-      <tbody>
-        <tr><td><strong>見た目</strong></td><td>アバタービルダーで髪型・目・口・アクセサリーなどを自由にカスタマイズ</td></tr>
-        <tr><td><strong>名前</strong></td><td>好きな名前を付けられます（例：ハルちゃん、ケンタ先生）</td></tr>
-        <tr><td><strong>性格</strong></td><td>5種類から選択。AIの口調が変わります</td></tr>
-      </tbody>
-    </table>
-
-    <table class="guide-table">
-      <thead><tr><th>性格</th><th>特徴</th><th>口調の例</th></tr></thead>
-      <tbody>
-        <tr><td>😊 優しい</td><td>穏やかに寄り添う</td><td>「〜だね」「〜してみない？」</td></tr>
-        <tr><td>💪 元気</td><td>前向きに励ます</td><td>「いいね！」「一緒にやろう！」</td></tr>
-        <tr><td>🧠 知的</td><td>根拠を丁寧に説明</td><td>「実はね」「こんな方法もあるよ」</td></tr>
-        <tr><td>🌙 穏やか</td><td>じっくり話を聞く</td><td>「そうなんだ」「無理しないでね」</td></tr>
-        <tr><td>🏥 頼もしい</td><td>データで的確にアドバイス</td><td>「データでは」「エビデンスによると」</td></tr>
-      </tbody>
-    </table>
-
-    <h4 style="color:#0284c7; margin-top:20px;"><i class="fas fa-shield-alt me-2"></i>AIの行動原則（保健指導15の極意）</h4>
-    <p>バディーは「保健指導を成功させる15の『し』と『じ』」に基づいて設計されています。</p>
-
-    <table class="guide-table">
-      <thead><tr><th>原則</th><th>AIでの実装</th></tr></thead>
-      <tbody>
-        <tr><td><strong>準備を怠らず</strong></td><td>食事・体調・健診データを会話前に自動読み込み</td></tr>
-        <tr><td><strong>信頼関係を築く</strong></td><td>過去の会話を覚えている。名前で呼ぶ</td></tr>
-        <tr><td><strong>柔軟に対応</strong></td><td>ユーザーの性格設定に合わせて口調を変える</td></tr>
-        <tr><td><strong>しゃべりすぎない</strong></td><td>3〜4文以内で簡潔に。選択肢を提示</td></tr>
-        <tr><td><strong>指示にならない</strong></td><td>「〜してください」ではなく「〜してみない？」</td></tr>
-        <tr><td><strong>自分で考えてもらう</strong></td><td>選択肢を出して本人に選ばせる</td></tr>
-        <tr><td><strong>じっくり、あせらず</strong></td><td>小さな変化を褒める。失敗を責めない</td></tr>
-        <tr><td><strong>自己完結しない</strong></td><td>深刻な悩みは推進メンバーへ橋渡し</td></tr>
-      </tbody>
-    </table>
-
-    <h4 style="color:#0284c7; margin-top:20px;"><i class="fas fa-cogs me-2"></i>裏側の仕組み</h4>
-
-    <table class="guide-table">
-      <thead><tr><th>仕組み</th><th>内容</th></tr></thead>
-      <tbody>
-        <tr><td><strong>テーマ織り込み</strong></td><td>推進メンバーが設定したテーマをAI会話に自然に織り込む</td></tr>
-        <tr><td><strong>食事データ連動</strong></td><td>食事投稿から生活状態を読み取り、自然な気づきを促す</td></tr>
-        <tr><td><strong>匿名の声の吸い上げ</strong></td><td>会話データを匿名でテーマ凝集分析に投入→v2サイクルに接続</td></tr>
-        <tr><td><strong>異常検知</strong></td><td>体調不良が続く場合、推進メンバーへアラート</td></tr>
-        <tr><td><strong>チャレンジ連動</strong></td><td>進行中のチャレンジをDBから都度取得し、関連する話題で自然に紹介</td></tr>
-        <tr><td><strong>サーバー同期</strong></td><td>バディーデータはサーバーDBに保存。端末を変えても同じバディー</td></tr>
-      </tbody>
-    </table>
-  </div>
-</div>
-
-<!-- ===== UI刷新 ===== -->
-
-<div class="guide-card">
-  <div class="guide-card-header">
-    <div class="guide-card-icon" style="background:linear-gradient(135deg,#667eea,#764ba2);"><i class="fas fa-mobile-alt"></i></div>
-    <div class="guide-card-title">セクション20: UI刷新・LINE風デザイン（2026-03-27）</div>
-  </div>
-  <div class="guide-card-body">
-    <h4 style="color:#667eea;"><i class="fas fa-th-large me-2"></i>ボトムナビゲーション</h4>
-    <p>画面下部に5つのタブを配置。LINEのような直感的な操作感を実現しました。</p>
-
-    <table class="guide-table">
-      <thead><tr><th>タブ</th><th>アイコン</th><th>内容</th></tr></thead>
-      <tbody>
-        <tr><td><strong>バディー</strong></td><td>🤖</td><td>ヘルスバディーとの会話（ホーム画面）</td></tr>
-        <tr><td><strong>メニュー</strong></td><td>📋</td><td>投稿・食事チェック・チャレンジなど全機能</td></tr>
-        <tr><td><strong>お知らせ</strong></td><td>🔔</td><td>事務局・推進メンバーからの通知</td></tr>
-        <tr><td><strong>マイページ</strong></td><td>👤</td><td>プロフィール・バディー変更・ログアウト</td></tr>
-        <tr><td><strong>ガイド</strong></td><td>📖</td><td>このガイドページ</td></tr>
-      </tbody>
-    </table>
-
-    <h4 style="color:#667eea; margin-top:20px;"><i class="fas fa-sync-alt me-2"></i>その他の改善</h4>
-
-    <table class="guide-table">
-      <thead><tr><th>機能</th><th>内容</th></tr></thead>
-      <tbody>
-        <tr><td><strong>Pull-to-refresh</strong></td><td>下にスワイプでデータ更新（ページリロードなし、画面状態を維持）</td></tr>
-        <tr><td><strong>フォントサイズ切替</strong></td><td>ヘッダー右の「A」ボタンで大/小を切替（高年齢者対応）</td></tr>
-        <tr><td><strong>ログイン状態保持</strong></td><td>ニックネーム・パスワードを保存し、次回はプリセット表示</td></tr>
-        <tr><td><strong>タブ状態復元</strong></td><td>ブラウザリロード後も開いていたタブに戻る</td></tr>
-        <tr><td><strong>健康eラーニング</strong></td><td>厚労省公認の無料教材へのリンクをメニュー内に配置</td></tr>
-      </tbody>
-    </table>
   </div>
 </div>
 

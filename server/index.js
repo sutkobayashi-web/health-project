@@ -69,8 +69,8 @@ function getClientIp(req) {
 }
 
 // レート制限（IP単位）
-const apiLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 3000, keyGenerator: getClientIp, standardHeaders: true, legacyHeaders: false, message: { success: false, msg: 'リクエスト制限を超えました。しばらくしてから再試行してください。' } });
-const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 50, keyGenerator: getClientIp, standardHeaders: true, legacyHeaders: false, message: { success: false, msg: 'ログイン試行回数を超えました。15分後に再試行してください。' } });
+const apiLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 3000, keyGenerator: getClientIp, standardHeaders: true, legacyHeaders: false, validate: false, message: { success: false, msg: 'リクエスト制限を超えました。しばらくしてから再試行してください。' } });
+const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 50, keyGenerator: getClientIp, standardHeaders: true, legacyHeaders: false, validate: false, message: { success: false, msg: 'ログイン試行回数を超えました。15分後に再試行してください。' } });
 app.use('/api/', apiLimiter);
 app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/register', authLimiter);

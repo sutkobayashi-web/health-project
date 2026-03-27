@@ -3688,8 +3688,18 @@ function startBuddyChatFresh(buddyData) {
   setTimeout(function() { showMoodCheck(); }, 800);
 }
 
+// 30秒ごとにバディー新着メッセージをチェック
+var _buddyPollTimer = null;
+function startBuddyPoll() {
+  if (_buddyPollTimer) return;
+  _buddyPollTimer = setInterval(function() {
+    if (currentUser && document.visibilityState === 'visible') loadBuddyNotices();
+  }, 30000);
+}
+
 function loadBuddyNotices() {
   if (!currentUser) return;
+  startBuddyPoll();
   fetch('/api/notices/buddy/' + currentUser.uid)
     .then(function(r) { return r.json(); })
     .then(function(buddyNotices) {

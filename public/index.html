@@ -3649,6 +3649,8 @@ function startBuddyChat(buddyData) {
         });
         window._buddyRestoring = false;
         _buddyMoodChecked = true;
+        // バディー経由メッセージも読み込む
+        loadBuddyNotices();
         // 最後のメッセージがAIの場合、入力待ち状態にする
         var lastMsg = data.messages[data.messages.length - 1];
         if (lastMsg.role === 'ai') {

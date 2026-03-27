@@ -4281,6 +4281,9 @@ function checkInboxBadge() {
 
   loadBroadcastReads().then(function() { return getAllNotices(currentUser.uid); }).then(function(notices) {
     if (!notices || notices.length === 0) return;
+    // バディー経由メッセージはお知らせに表示しない
+    notices = notices.filter(function(n) { return !(n.message && n.message.startsWith('【BUDDY】')); });
+    if (notices.length === 0) return;
     var totalUnread = 0;
     notices.forEach(function(n) {
       if (n.isPersonal) {
@@ -4333,8 +4336,10 @@ function loadInboxContent() {
   body.innerHTML = '<div style="text-align:center;padding:30px;"><div class="spinner-border text-primary" role="status"></div></div>';
 
   loadBroadcastReads().then(function() { return getAllNotices(currentUser.uid); }).then(function(notices) {
-    _inboxNoticesCache = notices || [];
-    if (!notices || notices.length === 0) {
+    // バディー経由メッセージはお知らせに表示しない
+    notices = (notices || []).filter(function(n) { return !(n.message && n.message.startsWith('【BUDDY】')); });
+    _inboxNoticesCache = notices;
+    if (notices.length === 0) {
       body.innerHTML = '<div class="inbox-empty"><i class="far fa-bell-slash"></i><div class="inbox-empty-text">お知らせはありません</div></div>';
       var mab = document.getElementById('inbox-mark-all-btn'); if (mab) mab.style.display = 'none';
       return;

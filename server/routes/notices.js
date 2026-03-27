@@ -26,11 +26,12 @@ router.get('/all/:uid', (req, res) => {
 // お知らせ保存
 router.post('/save', (req, res) => {
   try {
-    const { content, isBroadcast, targetUid } = req.body;
+    const { content, isBroadcast, targetUid, sender } = req.body;
     const db = getDb();
     const noticeId = 'notice_' + Date.now();
     const target = isBroadcast ? 'ALL' : targetUid;
-    db.prepare('INSERT INTO notices (notice_id, content, sender, target_id) VALUES (?,?,?,?)').run(noticeId, content, '事務局', target);
+    const senderName = sender || '事務局';
+    db.prepare('INSERT INTO notices (notice_id, content, sender, target_id) VALUES (?,?,?,?)').run(noticeId, content, senderName, target);
     res.json({ success: true, msg: 'お知らせを送信しました' });
   } catch (e) { res.json({ success: false, msg: e.message }); }
 });

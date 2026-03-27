@@ -3690,8 +3690,9 @@ function loadBuddyNotices() {
     .then(function(r) { return r.json(); })
     .then(function(notices) {
       if (!notices || notices.length === 0) return;
+      // 【BUDDY】プレフィックス付き = 全体配信・個別配信どちらもバディーに表示
       var buddyNotices = notices.filter(function(n) {
-        return n.message && n.message.startsWith('【BUDDY】') && !n.isPersonal;
+        return n.message && n.message.startsWith('【BUDDY】');
       });
       // 直近3件まで、既読でないもの
       var readIds = [];
@@ -3702,7 +3703,10 @@ function loadBuddyNotices() {
         unread.forEach(function(n, i) {
           setTimeout(function() {
             var content = n.message.replace('【BUDDY】', '').trim();
-            addBuddyMessage('ai', '🛡️ 推進メンバーからのお知らせ\n━━━━━━━━━━━━\n' + content);
+            var header = n.isPersonal
+              ? '💌 ' + (n.sender || '推進メンバー') + 'さんからのメッセージ'
+              : '🛡️ 推進メンバーからのお知らせ';
+            addBuddyMessage('ai', header + '\n━━━━━━━━━━━━\n' + content);
             // 既読にする
             readIds.push(n.id);
             localStorage.setItem('co_heart_buddy_read', JSON.stringify(readIds));

@@ -232,10 +232,8 @@
   .buddy-mood-btn:active { border-color:#0ea5e9; background:#e0f2fe; }
   .buddy-mood-btn .mood-emoji { font-size:24px; }
   .buddy-mood-btn .mood-label { font-size:0.65rem; font-weight:700; color:#666; }
-  #buddy-quick-toggle { width:36px; height:36px; border-radius:50%; border:none; background:#e0e0e0; color:#999; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:all 0.2s; }
-  #buddy-quick-toggle.has-options { background:linear-gradient(135deg,#667eea,#764ba2); color:white; animation:buddy-pulse 1.5s ease-in-out 2; }
-  #buddy-quick-toggle.active { background:linear-gradient(135deg,#0ea5e9,#0284c7); color:white; }
-  @keyframes buddy-pulse { 0%,100%{transform:scale(1);} 50%{transform:scale(1.15);} }
+  .buddy-inline-quick { padding:4px 12px; display:flex; flex-wrap:wrap; gap:6px; justify-content:center; }
+  .buddy-inline-quick.used { opacity:0.45; pointer-events:none; }
 </style>
 </head>
 <body>
@@ -604,12 +602,9 @@
     </div>
     <!-- チャットメッセージエリア -->
     <div id="buddy-messages" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:12px;display:flex;flex-direction:column;gap:8px;"></div>
-    <!-- クイック選択エリア -->
-    <div id="buddy-quick-area" style="flex-shrink:0;padding:8px 12px;background:white;border-top:1px solid #eee;display:none;position:relative;"></div>
     <!-- 入力バー -->
     <div style="flex-shrink:0;background:white;border-top:1px solid #eee;padding:8px 12px;">
       <div style="display:flex;align-items:center;gap:8px;">
-        <button id="buddy-quick-toggle" onclick="toggleBuddyQuickArea()" title="回答候補"><i class="fas fa-list-ul"></i></button>
         <input type="text" id="buddy-input" placeholder="メッセージを入力..." style="flex:1;border:1.5px solid #e0e0e0;border-radius:20px;padding:10px 14px;font-size:0.88rem;outline:none;" onkeydown="if(event.key==='Enter')sendBuddyMessage()">
         <button onclick="sendBuddyMessage()" style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#0ea5e9,#0284c7);color:white;border:none;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fas fa-paper-plane"></i></button>
       </div>
@@ -3783,31 +3778,20 @@ function checkBuddyTopic() {
     .catch(function() { showMoodCheck(); });
 }
 
-function setBuddyQuickContent(html) {
-  var area = document.getElementById('buddy-quick-area');
-  area.innerHTML = html;
-  area.style.display = 'block';
-  var toggle = document.getElementById('buddy-quick-toggle');
-  if (toggle) { toggle.classList.add('active'); toggle.classList.remove('has-options'); }
+var _buddyQuickId = 0;
+function addBuddyInlineQuick(html) {
+  var msgs = document.getElementById('buddy-messages');
+  var div = document.createElement('div');
+  div.className = 'buddy-inline-quick';
+  div.id = 'buddy-quick-' + (++_buddyQuickId);
+  div.innerHTML = html;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  return div.id;
 }
-function toggleBuddyQuickArea() {
-  var area = document.getElementById('buddy-quick-area');
-  var toggle = document.getElementById('buddy-quick-toggle');
-  if (!area.innerHTML.trim()) return;
-  if (area.style.display === 'none') {
-    area.style.display = 'block';
-    if (toggle) { toggle.classList.add('active'); toggle.classList.remove('has-options'); }
-  } else {
-    area.style.display = 'none';
-    if (toggle) { toggle.classList.remove('active'); }
-  }
-}
-function clearBuddyQuickArea() {
-  var area = document.getElementById('buddy-quick-area');
-  area.style.display = 'none';
-  area.innerHTML = '';
-  var toggle = document.getElementById('buddy-quick-toggle');
-  if (toggle) { toggle.classList.remove('has-options', 'active'); }
+function markBuddyQuickUsed() {
+  var els = document.querySelectorAll('.buddy-inline-quick:not(.used)');
+  els.forEach(function(el) { el.classList.add('used'); });
 }
 
 function showBuddyTopicQuestion(topic) {
@@ -3824,13 +3808,14 @@ function showBuddyTopicQuestion(topic) {
       html += '<div class="buddy-quick-btn" onclick="selectTopicChoice(\'' + topic.topicId + '\',' + i + ',\'' + c.replace(/'/g, "\\'") + '\')" style="border-color:' + colors[i % 4] + ';color:' + colors[i % 4] + ';">' + c + '</div>';
     });
     html += '</div>';
-    setBuddyQuickContent(html);
+    addBuddyInlineQuick(html);
   }, 600);
 }
 
 function selectTopicChoice(topicId, index, text) {
+  markBuddyQuickUsed();
   addBuddyMessage('user', text);
-  setBuddyQuickContent('<div style="padding:8px;">' +
+  addBuddyInlineQuick('<div style="padding:8px;width:100%;">' +
     '<div style="font-size:0.75rem;color:#667eea;font-weight:700;margin-bottom:6px;"><i class="fas fa-comment-dots me-1"></i>一言あれば教えてね（なくてもOK！）</div>' +
     '<textarea id="topic-comment" rows="2" placeholder="コメント（任意）" style="width:100%;border:1.5px solid #d0d5ff;border-radius:10px;padding:8px 10px;font-size:0.82rem;resize:none;outline:none;box-sizing:border-box;"></textarea>' +
     '<div style="display:flex;gap:8px;margin-top:6px;">' +
@@ -3843,7 +3828,7 @@ function selectTopicChoice(topicId, index, text) {
 function submitTopicResponse(topicId, choiceIndex, choiceText) {
   var commentEl = document.getElementById('topic-comment');
   var comment = commentEl ? commentEl.value.trim() : '';
-  clearBuddyQuickArea();
+  markBuddyQuickUsed();
 
   fetch('/api/buddy-topics/respond', {
     method: 'POST',
@@ -3929,7 +3914,7 @@ function addBuddyMessage(role, text) {
 }
 
 function showMoodCheck() {
-  setBuddyQuickContent('<div style="display:flex;justify-content:center;gap:10px;padding:4px 0;">' +
+  addBuddyInlineQuick('<div style="display:flex;justify-content:center;gap:10px;padding:4px 0;">' +
     '<div class="buddy-mood-btn" onclick="selectMood(\'great\')"><span class="mood-emoji">😊</span><span class="mood-label">元気！</span></div>' +
     '<div class="buddy-mood-btn" onclick="selectMood(\'normal\')"><span class="mood-emoji">😐</span><span class="mood-label">普通</span></div>' +
     '<div class="buddy-mood-btn" onclick="selectMood(\'tired\')"><span class="mood-emoji">😔</span><span class="mood-label">少し疲れ</span></div>' +
@@ -3939,7 +3924,7 @@ function showMoodCheck() {
 
 function selectMood(mood) {
   _buddyMoodChecked = true;
-  clearBuddyQuickArea();
+  markBuddyQuickUsed();
 
   var moodTexts = { great:'😊 元気！', normal:'😐 普通', tired:'😔 少し疲れ', bad:'😩 しんどい' };
   addBuddyMessage('user', moodTexts[mood]);
@@ -3966,7 +3951,7 @@ function selectMood(mood) {
 }
 
 function showConcernOptions() {
-  setBuddyQuickContent('<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;padding:4px 0;">' +
+  addBuddyInlineQuick('<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;padding:4px 0;">' +
     '<div class="buddy-quick-btn" onclick="selectConcern(\'sleep\')">💤 睡眠が浅い</div>' +
     '<div class="buddy-quick-btn" onclick="selectConcern(\'pain\')">🦴 腰・肩が痛い</div>' +
     '<div class="buddy-quick-btn" onclick="selectConcern(\'stress\')">😣 ストレス</div>' +
@@ -3978,7 +3963,7 @@ function showConcernOptions() {
 }
 
 function showFollowUpTopics() {
-  setBuddyQuickContent('<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;padding:4px 0;">' +
+  addBuddyInlineQuick('<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;padding:4px 0;">' +
     '<div class="buddy-quick-btn" onclick="selectConcern(\'food\')">🍱 食事の相談</div>' +
     '<div class="buddy-quick-btn" onclick="selectConcern(\'exercise\')">🏃 運動の相談</div>' +
     '<div class="buddy-quick-btn" onclick="selectConcern(\'health_tip\')">💡 健康豆知識</div>' +
@@ -3987,7 +3972,7 @@ function showFollowUpTopics() {
 }
 
 function selectConcern(concern) {
-  clearBuddyQuickArea();
+  markBuddyQuickUsed();
 
   var texts = {
     sleep: '💤 睡眠が浅い', pain: '🦴 腰・肩が痛い', stress: '😣 ストレスを感じる',

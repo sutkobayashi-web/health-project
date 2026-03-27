@@ -98,6 +98,17 @@ router.post('/admin/create', (req, res) => {
   } catch (e) { res.json({ success: false, msg: e.message }); }
 });
 
+// 話題を削除（回答データも含む）
+router.post('/admin/delete', (req, res) => {
+  try {
+    const { topicId } = req.body;
+    const db = getDb();
+    db.prepare('DELETE FROM buddy_topic_responses WHERE topic_id = ?').run(topicId);
+    db.prepare('DELETE FROM buddy_topics WHERE topic_id = ?').run(topicId);
+    res.json({ success: true });
+  } catch (e) { res.json({ success: false, msg: e.message }); }
+});
+
 // 話題を終了
 router.post('/admin/close', (req, res) => {
   try {

@@ -69,6 +69,7 @@ function renderBuddyTopicAdmin() {
             if (isActive) {
                 html += ' <button onclick="closeBuddyTopic(\'' + t.topicId + '\')" style="font-size:0.68rem; background:#f44336; color:white; border:none; border-radius:6px; padding:3px 10px; cursor:pointer;">終了</button>';
             }
+            html += ' <button onclick="deleteBuddyTopic(\'' + t.topicId + '\')" style="font-size:0.68rem; background:#757575; color:white; border:none; border-radius:6px; padding:3px 10px; cursor:pointer;"><i class="fas fa-trash-alt me-1"></i>削除</button>';
             html += '</div></div>';
 
             // 集計バー
@@ -97,6 +98,21 @@ function renderBuddyTopicAdmin() {
         area.innerHTML = html;
     }).catch(function() {
         area.innerHTML = '<div style="color:red; padding:10px;">読み込みエラー</div>';
+    });
+}
+
+function deleteBuddyTopic(topicId) {
+    if (!confirm('この話題と回答データを完全に削除しますか？')) return;
+    fetch('/api/buddy-topics/admin/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getAdminToken() },
+        body: JSON.stringify({ topicId: topicId })
+    }).then(function(r) { return r.json(); }).then(function(data) {
+        if (data && data.success) {
+            renderBuddyTopicAdmin();
+        } else {
+            alert('失敗: ' + (data ? data.msg : ''));
+        }
     });
 }
 

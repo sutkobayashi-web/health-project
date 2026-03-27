@@ -3693,7 +3693,10 @@ var _buddyPollTimer = null;
 function startBuddyPoll() {
   if (_buddyPollTimer) return;
   _buddyPollTimer = setInterval(function() {
-    if (currentUser && document.visibilityState === 'visible') loadBuddyNotices();
+    if (currentUser && document.visibilityState === 'visible') {
+      loadBuddyNotices();
+      checkBuddyTopicPoll();
+    }
   }, 30000);
 }
 
@@ -3730,6 +3733,20 @@ function loadBuddyNotices() {
 }
 
 // === バディー話題共感機能 ===
+// ポーリング用（途中で新しい話題が来たら問いかける）
+function checkBuddyTopicPoll() {
+  if (!currentUser) return;
+  fetch('/api/buddy-topics/check/' + currentUser.uid)
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data && data.hasTopic) {
+        showBuddyTopicQuestion(data.topic);
+      }
+    })
+    .catch(function() {});
+}
+
+// 初回用（話題なければ体調チェックへ）
 function checkBuddyTopic() {
   if (!currentUser) { showMoodCheck(); return; }
   fetch('/api/buddy-topics/check/' + currentUser.uid)

@@ -3786,9 +3786,9 @@ function checkBuddyTopic() {
 function setBuddyQuickContent(html) {
   var area = document.getElementById('buddy-quick-area');
   area.innerHTML = html;
-  area.style.display = 'none';
+  area.style.display = 'block';
   var toggle = document.getElementById('buddy-quick-toggle');
-  if (toggle) { toggle.classList.add('has-options'); toggle.classList.remove('active'); }
+  if (toggle) { toggle.classList.add('active'); toggle.classList.remove('has-options'); }
 }
 function toggleBuddyQuickArea() {
   var area = document.getElementById('buddy-quick-area');
@@ -3838,7 +3838,6 @@ function selectTopicChoice(topicId, index, text) {
       '<button onclick="submitTopicResponse(\'' + topicId + '\',' + index + ',\'' + text.replace(/'/g, "\\'") + '\')" style="padding:10px 14px;background:#f5f5f5;border:none;border-radius:10px;font-size:0.82rem;color:#999;cursor:pointer;">スキップ</button>' +
     '</div>' +
   '</div>');
-  toggleBuddyQuickArea();
 }
 
 function submitTopicResponse(topicId, choiceIndex, choiceText) {

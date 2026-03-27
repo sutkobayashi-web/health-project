@@ -3684,8 +3684,8 @@ function startBuddyChatFresh(buddyData) {
   // バディー経由のお知らせを取得して表示
   loadBuddyNotices();
 
-  // 体調チェックの選択肢を表示
-  setTimeout(function() { showMoodCheck(); }, 800);
+  // 話題共感チェック → 体調チェック
+  setTimeout(function() { checkBuddyTopic(); }, 800);
 }
 
 // 30秒ごとにバディー新着メッセージをチェック
@@ -3727,6 +3727,85 @@ function loadBuddyNotices() {
       }, 1500);
     })
     .catch(function() {});
+}
+
+// === バディー話題共感機能 ===
+function checkBuddyTopic() {
+  if (!currentUser) { showMoodCheck(); return; }
+  fetch('/api/buddy-topics/check/' + currentUser.uid)
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data && data.hasTopic) {
+        showBuddyTopicQuestion(data.topic);
+      } else {
+        showMoodCheck();
+      }
+    })
+    .catch(function() { showMoodCheck(); });
+}
+
+function showBuddyTopicQuestion(topic) {
+  var buddyData = null;
+  try { buddyData = JSON.parse(localStorage.getItem('co_heart_buddy')); } catch(e) {}
+  var buddyName = buddyData ? buddyData.name : 'バディー';
+
+  addBuddyMessage('ai', '📢 今週の話題です！\n━━━━━━━━━━━━\n「' + topic.title + '」\n\nみんなはどう思う？教えてほしいな！');
+
+  setTimeout(function() {
+    var area = document.getElementById('buddy-quick-area');
+    area.style.display = 'block';
+    var html = '<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;padding:4px 0;">';
+    topic.choices.forEach(function(c, i) {
+      var colors = ['#667eea', '#20c997', '#ff9800', '#e91e63'];
+      html += '<div class="buddy-quick-btn" onclick="selectTopicChoice(\'' + topic.topicId + '\',' + i + ',\'' + c.replace(/'/g, "\\'") + '\')" style="border-color:' + colors[i % 4] + ';color:' + colors[i % 4] + ';">' + c + '</div>';
+    });
+    html += '</div>';
+    area.innerHTML = html;
+  }, 600);
+}
+
+function selectTopicChoice(topicId, index, text) {
+  addBuddyMessage('user', text);
+  var area = document.getElementById('buddy-quick-area');
+  area.style.display = 'block';
+  area.innerHTML = '<div style="padding:8px;">' +
+    '<div style="font-size:0.75rem;color:#667eea;font-weight:700;margin-bottom:6px;"><i class="fas fa-comment-dots me-1"></i>一言あれば教えてね（なくてもOK！）</div>' +
+    '<textarea id="topic-comment" rows="2" placeholder="コメント（任意）" style="width:100%;border:1.5px solid #d0d5ff;border-radius:10px;padding:8px 10px;font-size:0.82rem;resize:none;outline:none;box-sizing:border-box;"></textarea>' +
+    '<div style="display:flex;gap:8px;margin-top:6px;">' +
+      '<button onclick="submitTopicResponse(\'' + topicId + '\',' + index + ',\'' + text.replace(/'/g, "\\'") + '\')" style="flex:1;padding:10px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;border-radius:10px;font-size:0.82rem;font-weight:700;cursor:pointer;"><i class="fas fa-paper-plane me-1"></i>送信</button>' +
+      '<button onclick="submitTopicResponse(\'' + topicId + '\',' + index + ',\'' + text.replace(/'/g, "\\'") + '\')" style="padding:10px 14px;background:#f5f5f5;border:none;border-radius:10px;font-size:0.82rem;color:#999;cursor:pointer;">スキップ</button>' +
+    '</div>' +
+  '</div>';
+}
+
+function submitTopicResponse(topicId, choiceIndex, choiceText) {
+  var commentEl = document.getElementById('topic-comment');
+  var comment = commentEl ? commentEl.value.trim() : '';
+  document.getElementById('buddy-quick-area').style.display = 'none';
+
+  fetch('/api/buddy-topics/respond', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      topicId: topicId,
+      userId: currentUser.uid,
+      choiceIndex: choiceIndex,
+      choiceText: choiceText,
+      comment: comment
+    })
+  }).then(function(r) { return r.json(); }).then(function(data) {
+    if (data && data.success) {
+      var msg = 'ありがとう！みんなの声を集めて推進メンバーに届けるね✨';
+      if (comment) msg += '\nコメントもしっかり伝えるよ📝';
+      addBuddyMessage('ai', msg);
+    } else {
+      addBuddyMessage('ai', '送信できませんでした。また聞くね！');
+    }
+    setTimeout(function() { showMoodCheck(); }, 1000);
+  }).catch(function() {
+    addBuddyMessage('ai', '通信エラーが起きちゃった。また聞くね！');
+    setTimeout(function() { showMoodCheck(); }, 1000);
+  });
 }
 
 function formatBuddyText(text) {

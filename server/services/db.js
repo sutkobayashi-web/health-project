@@ -108,6 +108,28 @@ function getDb() {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       UNIQUE(notice_id, user_id)
     )`);
+
+    db.exec(`CREATE TABLE IF NOT EXISTS buddy_topics (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      topic_id TEXT UNIQUE NOT NULL,
+      title TEXT NOT NULL,
+      choices TEXT NOT NULL,
+      status TEXT DEFAULT 'active',
+      week_label TEXT,
+      created_at TEXT DEFAULT (datetime('now')),
+      closed_at TEXT
+    )`);
+
+    db.exec(`CREATE TABLE IF NOT EXISTS buddy_topic_responses (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      topic_id TEXT NOT NULL,
+      user_id TEXT NOT NULL,
+      choice_index INTEGER NOT NULL,
+      choice_text TEXT NOT NULL,
+      comment TEXT DEFAULT '',
+      created_at TEXT DEFAULT (datetime('now')),
+      UNIQUE(topic_id, user_id)
+    )`);
   }
   return db;
 }

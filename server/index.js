@@ -103,6 +103,7 @@ app.use('/api/chat', require('./routes/chat'));
 app.use('/api/themes', require('./routes/themes'));
 app.use('/api/avatar-challenge', require('./routes/avatar-challenge'));
 app.use('/api/checkup', require('./routes/checkup'));
+app.use('/api/buddy-topics', require('./routes/buddy-topics'));
 // 採用チャットBOTは公開エンドポイント（CORSはnginxで処理）
 app.use('/api/recruit-chat', require('./routes/recruit-chat'));
 

@@ -334,6 +334,9 @@ if(localStorage.getItem('co_heart_admin_token') && localStorage.getItem('co_hear
       <i class="fas fa-envelope-open-text nav-icon"></i><div class="nav-label" style="font-size:0.55rem;">メール</div>
       <span id="personal-badge" class="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-danger border border-light" style="display:none; font-size:0.6rem;">!</span>
     </div>
+    <div class="nav-item" onclick="switchTab('buddytopic')" id="nav-buddytopic">
+      <i class="fas fa-comments nav-icon" style="color:#ff7043;"></i><div class="nav-label" style="font-size:0.55rem; line-height:1.2;">話題<br>共感</div>
+    </div>
     <div class="nav-item" onclick="switchTab('food')" id="nav-food">
       <i class="fas fa-utensils nav-icon" style="color:#20c997;"></i><div class="nav-label" style="font-size:0.55rem;">食事</div>
     </div>
@@ -543,6 +546,29 @@ if(localStorage.getItem('co_heart_admin_token') && localStorage.getItem('co_hear
       </div>
       <div id="mail-box-title" class="fw-bold text-muted small mb-2"></div>
       <div id="personal-list-area"></div>
+    </div>
+
+    <!-- Tab: 話題共感 -->
+    <div id="tab-buddytopic" class="tab-view">
+      <div class="section-header"><i class="fas fa-comments text-warning"></i> 話題共感 — バディー経由の声集め</div>
+      <!-- 新規作成 -->
+      <div style="background:white; border-radius:12px; padding:16px; margin-bottom:16px; box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+        <div style="font-weight:700; font-size:0.85rem; color:#ff7043; margin-bottom:10px;"><i class="fas fa-plus-circle me-1"></i>新しい話題を作成</div>
+        <input id="bt-title" type="text" placeholder="話題（例：階段を使う習慣、どう思いますか？）" style="width:100%; border:1.5px solid #e0e0e0; border-radius:8px; padding:10px; font-size:0.85rem; margin-bottom:8px; box-sizing:border-box;">
+        <div style="font-size:0.75rem; color:#999; margin-bottom:6px;">選択肢（最大6つ）</div>
+        <div id="bt-choices" style="display:flex; flex-direction:column; gap:4px; margin-bottom:8px;">
+          <input class="bt-choice-input" type="text" value="共感する😊" style="border:1px solid #ddd; border-radius:6px; padding:6px 10px; font-size:0.82rem;">
+          <input class="bt-choice-input" type="text" value="やってみたい💪" style="border:1px solid #ddd; border-radius:6px; padding:6px 10px; font-size:0.82rem;">
+          <input class="bt-choice-input" type="text" value="難しいかも😅" style="border:1px solid #ddd; border-radius:6px; padding:6px 10px; font-size:0.82rem;">
+          <input class="bt-choice-input" type="text" value="もっと知りたい🤔" style="border:1px solid #ddd; border-radius:6px; padding:6px 10px; font-size:0.82rem;">
+        </div>
+        <button onclick="addBtChoiceInput()" style="font-size:0.72rem; color:#667eea; background:none; border:1px dashed #667eea; border-radius:6px; padding:4px 12px; cursor:pointer; margin-bottom:10px;"><i class="fas fa-plus me-1"></i>選択肢追加</button>
+        <div style="display:flex; gap:8px;">
+          <button onclick="createBuddyTopic()" style="flex:1; padding:10px; background:linear-gradient(135deg,#ff7043,#e64a19); color:white; border:none; border-radius:10px; font-weight:700; cursor:pointer;"><i class="fas fa-paper-plane me-1"></i>話題を配信</button>
+        </div>
+      </div>
+      <!-- 話題一覧 -->
+      <div id="bt-list-area" style="font-size:0.82rem;"></div>
     </div>
 
     <!-- Tab: 週間食事レポート -->
@@ -869,6 +895,7 @@ if(localStorage.getItem('co_heart_admin_token') && localStorage.getItem('co_hear
 <script src="/js/admin-meeting.js?v=20260324a"></script>
 <script src="/js/admin-mail.js?v=20260324a"></script>
 <script src="/js/admin-chat-notify.js?v=20260324a"></script>
+<script src="/js/admin-buddytopic.js?v=20260327a"></script>
 <script src="/js/admin-food.js?v=20260324a"></script>
 <script src="/js/admin-v2.js?v=20260320a"></script>
 <script>

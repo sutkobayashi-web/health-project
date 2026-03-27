@@ -23,22 +23,33 @@ router.get('/all/:uid', (req, res) => {
   } catch (e) { res.json([]); }
 });
 
-// バディー経由メッセージ取得（【BUDDY】プレフィックス付きのみ）
+// バディー経由メッセージ取得（【BUDDY】プレフィックス付き・未読のみ）
 router.get('/buddy/:uid', (req, res) => {
   try {
     const db = getDb();
     const uid = req.params.uid;
-    const notices = db.prepare("SELECT * FROM notices WHERE (target_id = ? OR target_id = 'ALL') AND content LIKE '【BUDDY】%' ORDER BY created_at DESC LIMIT 20").all(uid);
+    const notices = db.prepare("SELECT * FROM notices WHERE (target_id = ? OR target_id = 'ALL') AND content LIKE '【BUDDY】%' AND (status IS NULL OR status != 'buddy_read') ORDER BY created_at DESC LIMIT 5").all(uid);
     const result = notices.map(n => ({
       id: n.notice_id,
       date: new Date(n.created_at + 'Z').toLocaleString('ja-JP', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Tokyo' }),
       sender: n.sender,
       message: n.content,
       isPersonal: n.target_id !== 'ALL',
-      status: n.status
     }));
     res.json(result);
   } catch (e) { res.json([]); }
+});
+
+// バディーメッセージ既読マーク
+router.post('/buddy-read', (req, res) => {
+  try {
+    const { noticeIds } = req.body;
+    if (!noticeIds || noticeIds.length === 0) return res.json({ success: true });
+    const db = getDb();
+    const stmt = db.prepare("UPDATE notices SET status = 'buddy_read' WHERE notice_id = ?");
+    noticeIds.forEach(id => stmt.run(id));
+    res.json({ success: true });
+  } catch (e) { res.json({ success: false, msg: e.message }); }
 });
 
 // お知らせ保存

@@ -4271,11 +4271,11 @@ async function buddyAskAI(concern, userText) {
     if (data && data.reply) {
       addBuddyMessage('ai', data.reply);
       _buddyTurnCount++;
-      // チャレンジ言及検知 → 反応ボタン表示
+      // チャレンジ言及検知 → タイトル一致のみ反応ボタン表示
       var challengeMentioned = null;
       if (data.activeChallenges && data.activeChallenges.length > 0) {
         data.activeChallenges.forEach(function(c) {
-          if (data.reply.indexOf(c.title) !== -1 || data.reply.indexOf('チャレンジ') !== -1) {
+          if (c.title && data.reply.indexOf(c.title) !== -1) {
             challengeMentioned = c;
           }
         });

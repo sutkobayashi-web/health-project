@@ -280,4 +280,173 @@ router.post('/my', authUser, async (req, res) => {
   }
 });
 
+// ===== 全社健診データ匿名集計 + AI分析 =====
+
+// 全員分のデータを匿名で集計
+function extractAllCheckupData(buffer) {
+  const wb = XLSX.read(buffer, { type: 'buffer' });
+  const sheet = wb.Sheets['判定結果'];
+  if (!sheet) return [];
+  const data = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+  if (data.length < 5) return [];
+
+  var results = [];
+  for (let i = 4; i < data.length; i++) {
+    const row = data[i];
+    if (!row || !row[2]) continue;
+    results.push({
+      年齢: row[8] || '',
+      性別: row[9] || '',
+      肥満判定: row[11] || '',
+      高血圧判定: row[12] || '',
+      脂質異常判定: row[13] || '',
+      高血糖判定: row[14] || '',
+      肝機能判定: row[17] || '',
+      腎機能判定: row[18] || '',
+      貧血判定: row[19] || '',
+      BMI: row[31] || '',
+      腹囲: row[32] || '',
+      収縮期血圧: row[38] || '',
+      拡張期血圧: row[39] || '',
+      LDLコレステロール: row[43] || '',
+      中性脂肪: row[44] || '',
+      HbA1c: row[47] || '',
+      γGTP: row[52] || '',
+    });
+  }
+  return results;
+}
+
+// 集計関数
+function aggregateCheckupData(allData) {
+  var total = allData.length;
+  if (total === 0) return null;
+
+  // 判定カウント（要受診/要精検/要治療を異常とする）
+  var abnormalKeywords = ['要受診', '要精検', '要治療', 'D', 'E', 'D1', 'D2', 'E1'];
+  function isAbnormal(val) { return abnormalKeywords.some(function(k) { return String(val).indexOf(k) !== -1; }); }
+
+  var counts = { 肥満: 0, 高血圧: 0, 脂質異常: 0, 高血糖: 0, 肝機能: 0, 腎機能: 0, 貧血: 0 };
+  var bmiOver25 = 0;
+  var ageSum = 0, ageCount = 0;
+
+  allData.forEach(function(d) {
+    if (isAbnormal(d.肥満判定)) counts.肥満++;
+    if (isAbnormal(d.高血圧判定)) counts.高血圧++;
+    if (isAbnormal(d.脂質異常判定)) counts.脂質異常++;
+    if (isAbnormal(d.高血糖判定)) counts.高血糖++;
+    if (isAbnormal(d.肝機能判定)) counts.肝機能++;
+    if (isAbnormal(d.腎機能判定)) counts.腎機能++;
+    if (isAbnormal(d.貧血判定)) counts.貧血++;
+    var bmi = parseFloat(d.BMI);
+    if (!isNaN(bmi) && bmi >= 25) bmiOver25++;
+    var age = parseInt(d.年齢);
+    if (!isNaN(age)) { ageSum += age; ageCount++; }
+  });
+
+  return {
+    total: total,
+    averageAge: ageCount > 0 ? Math.round(ageSum / ageCount) : 0,
+    bmiOver25: bmiOver25,
+    bmiOver25Pct: Math.round(bmiOver25 / total * 100),
+    counts: counts,
+    rates: Object.fromEntries(Object.entries(counts).map(function(e) { return [e[0], Math.round(e[1] / total * 100)]; }))
+  };
+}
+
+// Admin用: 全社健診分析 + AI 3パターン提案
+router.get('/company-analysis', async (req, res) => {
+  try {
+    const token = await getBoxToken();
+    const items = await boxListFolder(token, CHECKUP_FOLDER_ID);
+    // 最新の年度フォルダを探す
+    var yearFolders = items.filter(function(i) { return i.type === 'folder' && /\d{4}/.test(i.name); });
+    yearFolders.sort(function(a, b) { return b.name.localeCompare(a.name); });
+
+    if (yearFolders.length === 0) return res.json({ success: false, msg: '健診データフォルダが見つかりません' });
+
+    var latestFolder = yearFolders[0];
+    var xlsmFiles = await findCheckupFiles(token, latestFolder.id, 0);
+    if (xlsmFiles.length === 0) return res.json({ success: false, msg: '健診ファイルが見つかりません' });
+
+    // 全ファイルからデータ取得
+    var allData = [];
+    for (var f of xlsmFiles) {
+      try {
+        var buffer = await boxDownloadFile(token, f.id);
+        var rows = extractAllCheckupData(buffer);
+        allData = allData.concat(rows);
+      } catch (e) { console.log('健診ファイル読込エラー:', f.name, e.message); }
+    }
+
+    var summary = aggregateCheckupData(allData);
+    if (!summary) return res.json({ success: false, msg: 'データの集計に失敗しました' });
+
+    // AI分析 - 3パターン提案
+    const { callAIWithFallback, EVIDENCE_BASE } = require('../services/ai');
+    var prompt = `あなたは産業保健の専門家（保健師）を支援するAIコンサルタントです。
+以下の全社健康診断の集計結果に基づいて、会社として取り組むべきアクションプランを3パターン提案してください。
+
+【会社概要】
+業種: 運輸業（トラックドライバー中心）
+従業員数: ${summary.total}名
+平均年齢: ${summary.averageAge}歳
+
+【健診集計結果】
+BMI25以上: ${summary.bmiOver25}名（${summary.bmiOver25Pct}%）
+肥満判定異常: ${summary.rates.肥満}%
+高血圧判定異常: ${summary.rates.高血圧}%
+脂質異常判定異常: ${summary.rates.脂質異常}%
+高血糖判定異常: ${summary.rates.高血糖}%
+肝機能判定異常: ${summary.rates.肝機能}%
+腎機能判定異常: ${summary.rates.腎機能}%
+貧血判定異常: ${summary.rates.貧血}%
+
+【エビデンス基盤】
+${EVIDENCE_BASE}
+
+【出力形式】以下のJSON形式のみ出力。
+{
+  "summary": "全体所見（3文以内）",
+  "topRisks": ["リスク1", "リスク2", "リスク3"],
+  "plans": [
+    {
+      "title": "プランA名称",
+      "priority": "高/中/低",
+      "targetRisk": "対象リスク",
+      "description": "概要説明（3文）",
+      "evidence": "根拠となるエビデンス・ガイドライン名",
+      "kpi": "測定指標",
+      "duration": "推奨期間",
+      "eastDesign": {"easy":"ハードルを下げる工夫","attractive":"魅力","social":"仲間の力","timely":"タイミング"}
+    },
+    { プランB... },
+    { プランC... }
+  ],
+  "advisorNote": "保健師・産業医への申し送り事項（2文）"
+}`;
+
+    var aiResult = await callAIWithFallback('JSON出力専門AI。指定JSON形式のみ出力。', prompt);
+    var analysis = null;
+    if (aiResult) {
+      try {
+        var jsonStr = aiResult.replace(/```json?\s*/g, '').replace(/```/g, '').trim();
+        analysis = JSON.parse(jsonStr);
+      } catch (e) { console.log('AI分析JSON解析エラー'); }
+    }
+
+    // テーマ凝集用にキャッシュ保存
+    try {
+      var cacheText = `従業員${summary.total}名 平均${summary.averageAge}歳\nBMI25↑:${summary.bmiOver25Pct}% 肥満:${summary.rates.肥満}% 高血圧:${summary.rates.高血圧}% 脂質異常:${summary.rates.脂質異常}% 高血糖:${summary.rates.高血糖}% 肝機能:${summary.rates.肝機能}% 腎機能:${summary.rates.腎機能}% 貧血:${summary.rates.貧血}%`;
+      const db = getDb();
+      db.prepare("INSERT OR REPLACE INTO system_cache (key, data, updated_at) VALUES ('checkup_summary', ?, datetime('now'))").run(cacheText);
+    } catch(e) {}
+
+    res.json({ success: true, year: latestFolder.name, summary: summary, analysis: analysis });
+  } catch (e) {
+    console.error('全社健診分析エラー:', e.message);
+    res.json({ success: false, msg: e.message });
+  }
+});
+
 module.exports = router;

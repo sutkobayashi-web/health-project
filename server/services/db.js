@@ -132,6 +132,15 @@ function getDb() {
     )`);
   }
 
+  // システムキャッシュテーブル
+  try {
+    db.exec(`CREATE TABLE IF NOT EXISTS system_cache (
+      key TEXT PRIMARY KEY,
+      data TEXT,
+      updated_at TEXT DEFAULT (datetime('now'))
+    )`);
+  } catch(e) {}
+
   // チャレンジ反応テーブル
   try {
     db.exec(`CREATE TABLE IF NOT EXISTS challenge_reactions (

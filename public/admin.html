@@ -387,6 +387,11 @@ if(localStorage.getItem('co_heart_admin_token') && localStorage.getItem('co_hear
         <div class="section-icon" style="background:linear-gradient(135deg,#ff6b35,#ff9a5c);"><i class="fas fa-fire"></i></div>
         <div><div class="section-title">チャレンジ管理</div><div class="section-subtitle">アクションプランの作成・実行管理</div></div>
       </div>
+      <!-- 健診データ分析 -->
+      <div style="margin-bottom:16px;">
+        <button onclick="runCheckupAnalysis()" class="btn btn-outline-danger btn-sm fw-bold" id="btn-checkup-analysis"><i class="fas fa-heartbeat me-1"></i>健診データから全社分析＋3パターン提案</button>
+        <div id="checkup-analysis-result" style="margin-top:12px;"></div>
+      </div>
       <div id="v2-challenges-list"></div>
     </div>
 

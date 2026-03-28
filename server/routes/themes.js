@@ -139,7 +139,35 @@ router.post('/generate-themes', async (req, res) => {
       return `[${i+1}] ${p.department || '不明'}部署 | ${content} | ${empStr}${mcStr ? ' | ' + mcStr : ''}${chatStr ? ' | ' + chatStr : ''}${evStr ? ' | ' + evStr : ''}`;
     }).join('\n');
 
-    const prompt = `あなたは健康経営アナリストです。以下の社員の声を、共感データ・推進メンバーの議論・AI評価を総合的に考慮して、3〜5個の健康テーマに分類してください。
+    // 健診集計データを取得（可能であれば）
+    let checkupContext = '';
+    try {
+      const { getBoxToken } = require('../services/backup');
+      const checkupRoute = require('./checkup');
+      // 簡易集計: DBにキャッシュがあれば使う、なければスキップ
+      const cachedAnalysis = db.prepare("SELECT data FROM system_cache WHERE key = 'checkup_summary' AND updated_at > datetime('now', '-7 days')").get();
+      if (cachedAnalysis) {
+        checkupContext = '\n\n【全社健診データ集計（直近）】\n' + cachedAnalysis.data;
+      }
+    } catch(e) {}
+
+    // チャレンジ反応データ
+    let reactionContext = '';
+    try {
+      const reactions = db.prepare("SELECT cr.challenge_id, c.title, cr.reaction, COUNT(*) as cnt FROM challenge_reactions cr JOIN challenges c ON cr.challenge_id = c.challenge_id GROUP BY cr.challenge_id, cr.reaction").all();
+      if (reactions.length > 0) {
+        reactionContext = '\n\n【チャレンジ反応データ（バディー経由）】\n';
+        var byChallenge = {};
+        reactions.forEach(function(r) {
+          if (!byChallenge[r.title]) byChallenge[r.title] = [];
+          var labels = { want_to_try:'やってみたい', interested:'興味あり', too_much:'面倒', already_in:'参加中' };
+          byChallenge[r.title].push((labels[r.reaction]||r.reaction) + ':' + r.cnt + '人');
+        });
+        Object.keys(byChallenge).forEach(function(t) { reactionContext += t + ' → ' + byChallenge[t].join(', ') + '\n'; });
+      }
+    } catch(e) {}
+
+    const prompt = `あなたは健康経営アナリストです。以下の社員の声を、共感データ・推進メンバーの議論・AI評価・健診データ・チャレンジ反応を総合的に考慮して、3〜5個の健康テーマに分類してください。
 
 ★★★重要★★★
 - 共感数が多い投稿ほど重要度が高い
@@ -150,6 +178,10 @@ router.post('/generate-themes', async (req, res) => {
 
 【社員の声（${posts.length}件・共感データ・メンバー議論・AI評価付き）】
 ${postSummaries}
+${checkupContext}
+${reactionContext}
+- 健診データで異常率が高い項目に関連するテーマは severity を高めに設定すること
+- チャレンジ反応で「面倒」が多い施策は改善案を含むテーマ設計にすること
 
 【出力形式】JSON配列のみ。他のテキスト不要。
 [

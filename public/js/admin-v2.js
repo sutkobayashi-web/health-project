@@ -1,6 +1,81 @@
 /*  admin-v2.js – 凝集型健康アクションプラン管理画面  */
 
 // ============================================================
+// 全社健診データ分析
+// ============================================================
+function runCheckupAnalysis() {
+  var btn = document.getElementById('btn-checkup-analysis');
+  var area = document.getElementById('checkup-analysis-result');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Box APIから取得・分析中...（30秒ほどかかります）';
+  area.innerHTML = '';
+
+  fetch('/api/checkup/company-analysis', {
+    headers: { 'Authorization': 'Bearer ' + getAdminToken() }
+  }).then(function(r) { return r.json(); }).then(function(data) {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-heartbeat me-1"></i>健診データから全社分析＋3パターン提案';
+    if (!data.success) { area.innerHTML = '<div class="alert alert-danger">' + (data.msg || 'エラー') + '</div>'; return; }
+
+    var s = data.summary;
+    var a = data.analysis;
+    var html = '<div class="plan-card mb-3">';
+    html += '<div class="fw-bold fs-5 mb-2"><i class="fas fa-heartbeat text-danger me-2"></i>全社健診分析レポート（' + escapeHtml(data.year) + '）</div>';
+
+    // 集計
+    html += '<div class="p-2 mb-3" style="background:#fff3e0;border-radius:10px;border-left:3px solid #ff9800;">';
+    html += '<div class="fw-bold small text-warning mb-1"><i class="fas fa-chart-bar me-1"></i>集計結果（' + s.total + '名 / 平均' + s.averageAge + '歳）</div>';
+    html += '<div class="row g-2 small">';
+    html += '<div class="col-4">BMI25↑: <strong>' + s.bmiOver25Pct + '%</strong></div>';
+    Object.keys(s.rates).forEach(function(k) {
+      html += '<div class="col-4">' + k + ': <strong>' + s.rates[k] + '%</strong></div>';
+    });
+    html += '</div></div>';
+
+    if (a) {
+      // 全体所見
+      html += '<div class="mb-2 small"><strong>所見:</strong> ' + escapeHtml(a.summary || '') + '</div>';
+      html += '<div class="mb-3 small"><strong>重点リスク:</strong> ' + (a.topRisks || []).map(function(r) { return '<span class="badge bg-danger me-1">' + escapeHtml(r) + '</span>'; }).join('') + '</div>';
+
+      // 3パターン
+      (a.plans || []).forEach(function(p, i) {
+        var colors = ['#e53935', '#1e88e5', '#43a047'];
+        html += '<div class="p-3 mb-2" style="background:white;border-radius:12px;border-left:4px solid ' + colors[i] + ';">';
+        html += '<div class="fw-bold" style="color:' + colors[i] + ';">提案' + String.fromCharCode(65 + i) + ': ' + escapeHtml(p.title) + ' <span class="badge bg-' + (p.priority === '高' ? 'danger' : p.priority === '中' ? 'warning' : 'secondary') + '">' + p.priority + '</span></div>';
+        html += '<div class="small text-muted mb-1">対象: ' + escapeHtml(p.targetRisk || '') + ' / 期間: ' + escapeHtml(p.duration || '') + '</div>';
+        html += '<div class="small mb-1">' + escapeHtml(p.description || '') + '</div>';
+        html += '<div class="small mb-1" style="color:#1565c0;"><i class="fas fa-book me-1"></i>' + escapeHtml(p.evidence || '') + '</div>';
+        html += '<div class="small text-muted">KPI: ' + escapeHtml(p.kpi || '') + '</div>';
+        if (p.eastDesign) {
+          html += '<div class="mt-1 small" style="display:grid;grid-template-columns:1fr 1fr;gap:2px;color:#555;">';
+          if (p.eastDesign.easy) html += '<div><strong>Easy:</strong> ' + escapeHtml(p.eastDesign.easy) + '</div>';
+          if (p.eastDesign.attractive) html += '<div><strong>Attractive:</strong> ' + escapeHtml(p.eastDesign.attractive) + '</div>';
+          if (p.eastDesign.social) html += '<div><strong>Social:</strong> ' + escapeHtml(p.eastDesign.social) + '</div>';
+          if (p.eastDesign.timely) html += '<div><strong>Timely:</strong> ' + escapeHtml(p.eastDesign.timely) + '</div>';
+          html += '</div>';
+        }
+        html += '</div>';
+      });
+
+      // 保健師への申し送り
+      if (a.advisorNote) {
+        html += '<div class="p-2 mt-2" style="background:#e8f5e9;border-radius:10px;border-left:3px solid #43a047;">';
+        html += '<div class="fw-bold small text-success"><i class="fas fa-user-md me-1"></i>保健師・産業医への申し送り</div>';
+        html += '<div class="small">' + escapeHtml(a.advisorNote) + '</div>';
+        html += '</div>';
+      }
+    }
+
+    html += '</div>';
+    area.innerHTML = html;
+  }).catch(function(e) {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-heartbeat me-1"></i>健診データから全社分析＋3パターン提案';
+    area.innerHTML = '<div class="alert alert-danger">通信エラー: ' + e.message + '</div>';
+  });
+}
+
+// ============================================================
 // ダッシュボード
 // ============================================================
 function renderV2Dashboard() {

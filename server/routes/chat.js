@@ -86,6 +86,99 @@ router.get('/buddy-history/:uid', (req, res) => {
   }
 });
 
+// デイリーグリーティング（今日は何の日 + 天気 + 季節の健康トピック）
+let _dailyGreetingCache = { date: '', data: null };
+
+router.get('/daily-greeting', async (req, res) => {
+  try {
+    const today = new Date().toISOString().slice(0, 10);
+
+    // 当日キャッシュがあればそのまま返す
+    if (_dailyGreetingCache.date === today && _dailyGreetingCache.data) {
+      return res.json({ success: true, ..._dailyGreetingCache.data });
+    }
+
+    // 天気取得（静岡）
+    let weatherText = '';
+    const weatherKey = process.env.OPENWEATHER_API_KEY;
+    if (weatherKey) {
+      try {
+        const lat = process.env.WEATHER_LAT || '34.98';
+        const lon = process.env.WEATHER_LON || '138.38';
+        const wRes = await fetch(
+          `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${weatherKey}&units=metric&lang=ja`
+        );
+        if (wRes.ok) {
+          const w = await wRes.json();
+          const desc = w.weather[0].description;
+          const temp = Math.round(w.main.temp);
+          const tempMax = Math.round(w.main.temp_max);
+          const tempMin = Math.round(w.main.temp_min);
+          const humidity = w.main.humidity;
+          const cityName = process.env.WEATHER_CITY || '静岡';
+          weatherText = `${cityName}の天気: ${desc} ${temp}℃（最高${tempMax}℃/最低${tempMin}℃）湿度${humidity}%`;
+        }
+      } catch (e) { console.log('[Weather] fetch error:', e.message); }
+    }
+
+    // AIで今日の話題を生成
+    const { callAIWithFallback } = require('../services/ai');
+    const d = new Date();
+    const month = d.getMonth() + 1;
+    const day = d.getDate();
+    const weekday = ['日','月','火','水','木','金','土'][d.getDay()];
+    const dateStr = `${month}月${day}日（${weekday}）`;
+
+    const prompt = `今日は${dateStr}です。${weatherText ? '天気情報: ' + weatherText : ''}
+
+以下の3つを簡潔に生成してください。JSON形式で返してください。
+
+{
+  "dateInfo": "${dateStr}の記念日や歴史的出来事を1つ選び、20文字以内で紹介（例: 三ツ矢の日🥤）",
+  "dateFact": "その記念日・出来事の簡単な説明を30文字以内で",
+  "weather": "天気情報があれば天気と気温を絵文字付きで15文字以内にまとめる。なければ空文字",
+  "healthTip": "今の季節・天気に合った健康アドバイスを40文字以内で1つ。具体的な行動を提案"
+}
+
+必ず有効なJSONのみ返してください。コードブロックや説明は不要です。`;
+
+    const aiResult = await callAIWithFallback(
+      'あなたは日本の記念日・歴史に詳しいアシスタントです。正確な情報を簡潔に返してください。',
+      prompt
+    );
+
+    let parsed = { dateInfo: dateStr, dateFact: '', weather: '', healthTip: '' };
+    if (aiResult) {
+      try {
+        const jsonStr = aiResult.replace(/```json?\s*/g, '').replace(/```/g, '').trim();
+        parsed = JSON.parse(jsonStr);
+      } catch (e) {
+        console.log('[DailyGreeting] JSON parse error, using fallback');
+        parsed.dateInfo = dateStr;
+      }
+    }
+
+    const result = {
+      dateStr: dateStr,
+      dateInfo: parsed.dateInfo || dateStr,
+      dateFact: parsed.dateFact || '',
+      weather: parsed.weather || '',
+      healthTip: parsed.healthTip || '',
+      weatherRaw: weatherText
+    };
+
+    _dailyGreetingCache = { date: today, data: result };
+    res.json({ success: true, ...result });
+  } catch (e) {
+    console.log('[DailyGreeting] error:', e.message);
+    const d = new Date();
+    const month = d.getMonth() + 1;
+    const day = d.getDate();
+    const weekday = ['日','月','火','水','木','金','土'][d.getDay()];
+    res.json({ success: true, dateStr: `${month}月${day}日（${weekday}）`, dateInfo: '', dateFact: '', weather: '', healthTip: '' });
+  }
+});
+
 // メモ保存
 router.post('/save-memo', (req, res) => {
   try {

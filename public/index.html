@@ -3802,14 +3802,28 @@ function startBuddyChatFresh(buddyData) {
   var greeting = hour < 11 ? 'おはようございます' : hour < 17 ? 'こんにちは' : 'お疲れ様です';
   var nickname = currentUser.nickname || 'さん';
 
-  // 挨拶メッセージ
-  addBuddyMessage('ai', greeting + '、' + nickname + 'さん！\n今日の調子はいかがですか？');
-
-  // バディー経由のお知らせを取得して表示
-  loadBuddyNotices();
-
-  // 話題共感チェック → 体調チェック
-  setTimeout(function() { checkBuddyTopic(); }, 800);
+  // デイリーグリーティング取得 → 挨拶メッセージ
+  fetch('/api/chat/daily-greeting', {
+    headers: { 'Authorization': 'Bearer ' + getToken() }
+  }).then(function(r) { return r.json(); }).then(function(data) {
+    var msg = greeting + '、' + nickname + 'さん！';
+    if (data.success && (data.dateInfo || data.weather || data.healthTip)) {
+      msg += '\n━━━━━━━━━━━━';
+      if (data.dateInfo) msg += '\n📅 ' + data.dateInfo;
+      if (data.dateFact) msg += '：' + data.dateFact;
+      if (data.weather) msg += '\n' + data.weather;
+      if (data.healthTip) msg += '\n💡 ' + data.healthTip;
+      msg += '\n━━━━━━━━━━━━';
+    }
+    msg += '\n今日の調子はいかがですか？';
+    addBuddyMessage('ai', msg);
+    loadBuddyNotices();
+    setTimeout(function() { checkBuddyTopic(); }, 800);
+  }).catch(function() {
+    addBuddyMessage('ai', greeting + '、' + nickname + 'さん！\n今日の調子はいかがですか？');
+    loadBuddyNotices();
+    setTimeout(function() { checkBuddyTopic(); }, 800);
+  });
 }
 
 // 30秒ごとにバディー新着メッセージをチェック

@@ -1406,7 +1406,8 @@ function doUserLogout() {
       body: JSON.stringify({ uid: currentUser.uid })
     }).catch(function(){});
   }
-  // ニックネーム・パスワードは保持（次回プリセット用）
+  // 自動ログイン用パスワードを削除（ログイン画面で止まるように）
+  localStorage.removeItem('co_heart_user_pass');
   localStorage.removeItem('co_heart_user_data');
   currentUser = null;
   // AI相談チャットをリセット

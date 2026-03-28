@@ -354,6 +354,38 @@ function aggregateCheckupData(allData) {
   };
 }
 
+// デバッグ: 判定値サンプル確認
+router.get('/debug-judgments', async (req, res) => {
+  try {
+    const token = await getBoxToken();
+    const items = await boxListFolder(token, CHECKUP_FOLDER_ID);
+    var yearFolders = items.filter(function(i) { return i.type === 'folder' && /\d{4}/.test(i.name); });
+    yearFolders.sort(function(a, b) { return b.name.localeCompare(a.name); });
+    if (yearFolders.length === 0) return res.json({ msg: 'no folders' });
+    var xlsmFiles = await findCheckupFiles(token, yearFolders[0].id, 0);
+    if (xlsmFiles.length === 0) return res.json({ msg: 'no files' });
+    var buffer = await boxDownloadFile(token, xlsmFiles[0].id);
+    var wb = XLSX.read(buffer, { type: 'buffer' });
+    var sheet = wb.Sheets['判定結果'];
+    if (!sheet) return res.json({ msg: 'no sheet' });
+    var data = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+    // ヘッダー行と最初の3データ行の判定列を返す
+    var header = (data[3] || []).slice(0, 25);
+    var samples = [];
+    for (var i = 4; i < Math.min(7, data.length); i++) {
+      var row = data[i];
+      if (!row) continue;
+      samples.push({
+        row: i,
+        cols_0_25: (row || []).slice(0, 25).map(function(v) { return v === undefined ? '' : String(v); })
+      });
+    }
+    res.json({ file: xlsmFiles[0].name, header: header, samples: samples });
+  } catch (e) {
+    res.json({ error: e.message });
+  }
+});
+
 // Admin用: 全社健診分析 + AI 3パターン提案
 router.get('/company-analysis', async (req, res) => {
   try {

@@ -4578,19 +4578,19 @@ function loadBuddyChallengeBar() {
       bar.style.display = 'none';
       return;
     }
-    var html = '<div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;">';
+    var html = '<div onclick="switchAppTab(\'menu\');setTimeout(function(){' +
+      'var el=document.getElementById(\'challenge-combined-section\');if(el)el.scrollIntoView({behavior:\'smooth\'});' +
+      'toggleAccordion(\'challenge-combined-body\',\'challenge-combined-chevron\');' +
+      '},300);" style="background:rgba(255,255,255,0.95);border-radius:12px;padding:8px 10px;box-shadow:0 2px 10px rgba(0,0,0,0.12);cursor:pointer;min-width:140px;">';
+    html += '<div style="font-size:0.58rem;font-weight:800;color:#ff6b35;margin-bottom:5px;display:flex;align-items:center;gap:4px;"><i class="fas fa-fire"></i> チャレンジ</div>';
     data.challenges.forEach(function(c) {
       var recorded = c.todayRecorded;
-      var icon = recorded ? '✅' : '⏳';
-      var statusColors = { active:'#43a047', recruiting:'#1e88e5', draft:'#999' };
-      var bgColor = recorded ? 'rgba(255,255,255,0.9)' : 'rgba(255,243,224,0.95)';
-      var borderColor = statusColors[c.status] || '#999';
-      html += '<div onclick="switchAppTab(\'menu\');setTimeout(function(){' +
-        'var el=document.getElementById(\'challenge-combined-section\');if(el)el.scrollIntoView({behavior:\'smooth\'});' +
-        'toggleAccordion(\'challenge-combined-body\',\'challenge-combined-chevron\');' +
-        '},300);" style="display:flex;align-items:center;gap:4px;background:' + bgColor + ';border:1.5px solid ' + borderColor + ';border-radius:14px;padding:3px 8px;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.1);">';
+      var statusLabel = c.status === 'recruiting' ? '<span style="color:#1e88e5;">募集中</span>' : (recorded ? '<span style="color:#43a047;">✅済</span>' : '<span style="color:#e65100;">⏳未記録</span>');
+      var title = c.title.replace(/【デモ】/g, '');
+      html += '<div style="display:flex;align-items:center;gap:5px;padding:2px 0;border-top:1px solid #f0f0f0;">';
       html += '<span style="font-size:0.75rem;">' + (c.icon || '💪') + '</span>';
-      html += '<span style="font-size:0.6rem;font-weight:700;color:#333;">' + icon + '</span>';
+      html += '<span style="font-size:0.62rem;font-weight:700;color:#333;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + title + '</span>';
+      html += '<span style="font-size:0.58rem;font-weight:700;">' + statusLabel + '</span>';
       html += '</div>';
     });
     html += '</div>';

@@ -4672,9 +4672,8 @@ function toggleChallengeTabDetail(cid) {
     if (!res || !res.success) { el.innerHTML = '<div style="color:#e53935;font-size:0.82rem;">読み込み失敗</div>'; return; }
     _challengeDetails[cid] = res;
     challengeDetail = res;
-    // _getChBodyを一時的にオーバーライド
-    var origGetChBody = _getChBody;
-    _getChBody = function() { return el; };
+    // チャレンジタブ内に描画するため、ch-body要素を動的に作る
+    el.innerHTML = '<div id="ch-body-' + cid + '"></div>';
     if (!res.myParticipation) {
       renderChallengeEntry(res.challenge, cid);
     } else if (res.todayRecord) {
@@ -4682,7 +4681,6 @@ function toggleChallengeTabDetail(cid) {
     } else {
       renderChallengeRecordForm(res, cid);
     }
-    _getChBody = origGetChBody;
   });
 }
 

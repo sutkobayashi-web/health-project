@@ -288,6 +288,16 @@ async function chatWithNurse(userMessage, history, userName) {
         });
         challengeInfo += '→ 会話の内容がチャレンジのテーマに関連する場合、「今ちょうどこんなチャレンジをやってるよ！参加してみない？」と自然に紹介する\n';
         challengeInfo += '→ 押し付けず、興味を持たせる程度に。「メニュータブから参加できるよ」と案内する\n';
+        // チャレンジ反応データ（温度感）
+        activeChallenges.forEach(c => {
+          try {
+            const reactions = db.prepare('SELECT reaction, COUNT(*) as count FROM challenge_reactions WHERE challenge_id = ? GROUP BY reaction').all(c.challenge_id || '');
+            if (reactions.length > 0) {
+              const labels = { want_to_try:'やってみたい', interested:'興味あり', too_much:'面倒', already_in:'参加中' };
+              challengeInfo += `  [みんなの反応] ` + reactions.map(r => `${labels[r.reaction]||r.reaction}:${r.count}人`).join(' / ') + '\n';
+            }
+          } catch(e) {}
+        });
       }
       if (votingThemes.length > 0) {
         challengeInfo += '\n# 現在投票中のテーマ（関連する話題が出たら投票を促す）\n';
@@ -446,6 +456,26 @@ function parsePostScore(analysisText) {
 // 7軸AI評価（COM-Bモデル準拠）
 async function evaluateVoiceByAI(content, discussionLog, humanScores) {
   try {
+    // チャレンジ反応データを取得
+    let challengeReactionInfo = '';
+    try {
+      const db = getDb();
+      const activeChallenges = db.prepare("SELECT challenge_id, title FROM challenges WHERE status IN ('active','recruiting') LIMIT 5").all();
+      if (activeChallenges.length > 0) {
+        challengeReactionInfo = '\n\n【チャレンジへのバディー経由の反応（参考情報）】\n';
+        activeChallenges.forEach(c => {
+          const reactions = db.prepare('SELECT reaction, COUNT(*) as count FROM challenge_reactions WHERE challenge_id = ? GROUP BY reaction').all(c.challenge_id);
+          if (reactions.length > 0) {
+            const labels = { want_to_try:'やってみたい', interested:'興味がある', too_much:'面倒', already_in:'参加中' };
+            const total = reactions.reduce((s, r) => s + r.count, 0);
+            challengeReactionInfo += `${c.title}（計${total}件）: `;
+            challengeReactionInfo += reactions.map(r => `${labels[r.reaction] || r.reaction} ${r.count}件(${Math.round(r.count/total*100)}%)`).join(', ') + '\n';
+          }
+        });
+        challengeReactionInfo += '→ 「面倒」が多い施策はアクションプランの簡素化を検討。「やってみたい」が多いテーマは優先度を上げる材料とする\n';
+      }
+    } catch(e) {}
+
     const prompt = `あなたは健康経営コンサルタントです。COM-Bモデル（Capability・Opportunity・Motivation → Behavior）の観点も踏まえ、以下の【社員の声】を健康経営の7軸で1-5点評価し、JSON形式で出力してください。
 
 【評価の視点（COM-Bモデル準拠）】
@@ -465,7 +495,7 @@ ${discussionLog || '（議論なし）'}
 
 【人間評価（参考）】
 ${JSON.stringify(humanScores || {})}
-
+${challengeReactionInfo}
 【出力形式】JSONのみ出力。他のテキストは不要。
 {"legal":3, "risk":3, "freq":3, "urgency":3, "safety":3, "value":3, "needs":3}`;
 

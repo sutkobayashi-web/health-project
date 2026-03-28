@@ -4264,8 +4264,20 @@ async function buddyAskAI(concern, userText) {
     if (data && data.reply) {
       addBuddyMessage('ai', data.reply);
       _buddyTurnCount++;
+      // チャレンジ言及検知 → 反応ボタン表示
+      var challengeMentioned = null;
+      if (data.activeChallenges && data.activeChallenges.length > 0) {
+        data.activeChallenges.forEach(function(c) {
+          if (data.reply.indexOf(c.title) !== -1 || data.reply.indexOf('チャレンジ') !== -1) {
+            challengeMentioned = c;
+          }
+        });
+      }
+      if (challengeMentioned) {
+        setTimeout(function() { showChallengeReaction(challengeMentioned); }, 800);
+      }
       // 1往復のアドバイス後に締めの選択肢を表示
-      setTimeout(function() { showBuddyWrapUp(); }, 1200);
+      setTimeout(function() { showBuddyWrapUp(); }, challengeMentioned ? 2000 : 1200);
     } else {
       addBuddyMessage('ai', '申し訳ありません、うまく返答できませんでした。\nもう一度お話しいただけますか？');
     }
@@ -4274,6 +4286,39 @@ async function buddyAskAI(concern, userText) {
     if (loadEl) loadEl.remove();
     addBuddyMessage('ai', '通信エラーが発生しました。\n少し時間をおいて試してみてください。');
   }
+}
+
+function showChallengeReaction(challenge) {
+  addBuddyInlineQuick(
+    '<div style="text-align:center;padding:4px 0;">' +
+      '<div style="font-size:0.68rem;color:#667eea;font-weight:700;margin-bottom:6px;">' + escapeHtml(challenge.title) + ' について</div>' +
+      '<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;">' +
+        '<div class="buddy-quick-btn" onclick="submitChallengeReaction(\'' + challenge.challenge_id + '\',\'want_to_try\')" style="border-color:#20c997;color:#20c997;">🙋 やってみたい</div>' +
+        '<div class="buddy-quick-btn" onclick="submitChallengeReaction(\'' + challenge.challenge_id + '\',\'interested\')" style="border-color:#667eea;color:#667eea;">💡 興味がある</div>' +
+        '<div class="buddy-quick-btn" onclick="submitChallengeReaction(\'' + challenge.challenge_id + '\',\'too_much\')" style="border-color:#ff9800;color:#ff9800;">😅 ちょっと面倒</div>' +
+        '<div class="buddy-quick-btn" onclick="submitChallengeReaction(\'' + challenge.challenge_id + '\',\'already_in\')" style="border-color:#e91e63;color:#e91e63;">✅ もう参加中</div>' +
+      '</div>' +
+    '</div>'
+  );
+}
+
+function submitChallengeReaction(challengeId, reaction) {
+  markBuddyQuickUsed();
+  var labels = { want_to_try:'🙋 やってみたい', interested:'💡 興味がある', too_much:'😅 ちょっと面倒', already_in:'✅ もう参加中' };
+  addBuddyMessage('user', labels[reaction] || reaction);
+  fetch('/api/chat/challenge-reaction', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
+    body: JSON.stringify({ uid: currentUser.uid, challengeId: challengeId, reaction: reaction })
+  }).then(function(r) { return r.json(); }).then(function() {
+    var responses = {
+      want_to_try: 'いいね！メニュータブから参加できるよ💪',
+      interested: '気になるよね！詳しくはメニュータブをチェックしてみて✨',
+      too_much: 'そうだよね、無理しなくて大丈夫。気が向いたらいつでも！',
+      already_in: 'さすが！一緒に頑張ろうね🌟'
+    };
+    setTimeout(function() { addBuddyMessage('ai', responses[reaction] || 'ありがとう！'); }, 500);
+  }).catch(function() {});
 }
 
 function showBuddyWrapUp() {

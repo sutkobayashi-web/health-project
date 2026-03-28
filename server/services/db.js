@@ -131,6 +131,19 @@ function getDb() {
       UNIQUE(topic_id, user_id)
     )`);
   }
+
+  // チャレンジ反応テーブル
+  try {
+    db.exec(`CREATE TABLE IF NOT EXISTS challenge_reactions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id TEXT NOT NULL,
+      challenge_id TEXT NOT NULL,
+      reaction TEXT NOT NULL,
+      created_at TEXT DEFAULT (datetime('now')),
+      UNIQUE(user_id, challenge_id)
+    )`);
+  } catch(e) {}
+
   return db;
 }
 

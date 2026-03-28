@@ -452,6 +452,8 @@ function renderV2Challenges() {
         html += '</div>';
       }
       html += '<div class="small text-muted mb-2"><i class="fas fa-users me-1"></i>参加者: ' + (c.participantCount || 0) + '名</div>';
+      // バディー反応集計表示エリア
+      html += '<div id="challenge-reaction-' + c.challenge_id + '" class="mb-2"></div>';
       // アクション
       html += '<div class="d-flex gap-2 mt-2">';
       if (c.status === 'draft') {
@@ -469,7 +471,36 @@ function renderV2Challenges() {
       html += '</div>';
     });
     area.innerHTML = html;
+    // 各チャレンジの反応集計を取得
+    res.challenges.forEach(function(c) {
+      loadChallengeReactions(c.challenge_id);
+    });
   });
+}
+
+function loadChallengeReactions(challengeId) {
+  fetch('/api/chat/challenge-reactions/' + challengeId, {
+    headers: { 'Authorization': 'Bearer ' + getToken() }
+  }).then(function(r) { return r.json(); }).then(function(data) {
+    var el = document.getElementById('challenge-reaction-' + challengeId);
+    if (!el || !data.success || data.total === 0) return;
+    var labels = { want_to_try: { text:'やってみたい', color:'#20c997', icon:'🙋' }, interested: { text:'興味がある', color:'#667eea', icon:'💡' }, too_much: { text:'ちょっと面倒', color:'#ff9800', icon:'😅' }, already_in: { text:'もう参加中', color:'#e91e63', icon:'✅' } };
+    var html = '<div style="padding:8px 10px;background:#f8f9ff;border-radius:10px;border-left:3px solid #667eea;">';
+    html += '<div style="font-size:0.68rem;font-weight:700;color:#667eea;margin-bottom:6px;"><i class="fas fa-comment-dots me-1"></i>バディー経由の反応（' + data.total + '件）</div>';
+    data.reactions.forEach(function(r) {
+      var l = labels[r.reaction] || { text:r.reaction, color:'#999', icon:'❓' };
+      var pct = Math.round(r.count / data.total * 100);
+      html += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">';
+      html += '<span style="font-size:0.7rem;min-width:100px;">' + l.icon + ' ' + l.text + '</span>';
+      html += '<div style="flex:1;height:16px;background:#e0e0e0;border-radius:8px;overflow:hidden;">';
+      html += '<div style="height:100%;width:' + pct + '%;background:' + l.color + ';border-radius:8px;transition:width 0.3s;"></div>';
+      html += '</div>';
+      html += '<span style="font-size:0.68rem;font-weight:700;color:#555;min-width:40px;text-align:right;">' + r.count + '(' + pct + '%)</span>';
+      html += '</div>';
+    });
+    html += '</div>';
+    el.innerHTML = html;
+  }).catch(function() {});
 }
 
 function doStartRecruiting(cid) {

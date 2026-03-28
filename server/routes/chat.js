@@ -8,6 +8,12 @@ const router = express.Router();
 router.post('/message', async (req, res) => {
   const { userMessage, history, userName } = req.body;
   const result = await chatWithNurse(userMessage, history, userName);
+  // アクティブなチャレンジ情報を付与（フロントでチャレンジ言及検知に使用）
+  try {
+    const db = getDb();
+    const activeChallenges = db.prepare("SELECT challenge_id, title FROM challenges WHERE status = 'active' LIMIT 3").all();
+    result.activeChallenges = activeChallenges;
+  } catch(e) { result.activeChallenges = []; }
   res.json(result);
 });
 
@@ -81,6 +87,35 @@ router.get('/buddy-history/:uid', (req, res) => {
       "SELECT role, content, created_at FROM buddy_messages WHERE user_id = ? AND date(created_at) = date('now') ORDER BY id ASC"
     ).all(req.params.uid);
     res.json({ success: true, messages: rows });
+  } catch (e) {
+    res.json({ success: false, msg: e.message });
+  }
+});
+
+// チャレンジ反応を保存（UPSERT）
+router.post('/challenge-reaction', (req, res) => {
+  try {
+    const { uid, challengeId, reaction } = req.body;
+    if (!uid || !challengeId || !reaction) return res.json({ success: false, msg: 'missing params' });
+    const db = getDb();
+    db.prepare(`INSERT INTO challenge_reactions (user_id, challenge_id, reaction)
+      VALUES (?, ?, ?) ON CONFLICT(user_id, challenge_id) DO UPDATE SET reaction = ?, created_at = datetime('now')`)
+      .run(uid, challengeId, reaction, reaction);
+    res.json({ success: true });
+  } catch (e) {
+    res.json({ success: false, msg: e.message });
+  }
+});
+
+// チャレンジ反応集計
+router.get('/challenge-reactions/:challengeId', (req, res) => {
+  try {
+    const db = getDb();
+    const rows = db.prepare(
+      'SELECT reaction, COUNT(*) as count FROM challenge_reactions WHERE challenge_id = ? GROUP BY reaction'
+    ).all(req.params.challengeId);
+    const total = rows.reduce((s, r) => s + r.count, 0);
+    res.json({ success: true, reactions: rows, total });
   } catch (e) {
     res.json({ success: false, msg: e.message });
   }

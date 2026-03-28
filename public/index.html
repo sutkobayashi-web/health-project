@@ -527,8 +527,8 @@
             <span id="mypage-rank" style="font-size:0.6rem;"></span>
           </div>
           <div style="display:flex;align-items:center;gap:8px;margin-top:5px;">
-            <span id="mypage-posts" style="flex:1;font-size:0.65rem;font-weight:700;color:#555;background:#f0f0f0;padding:4px 10px;border-radius:10px;text-align:center;"><i class="fas fa-pen" style="font-size:0.55rem;"></i> 投稿数 0</span>
-            <span id="mypage-invites" style="flex:1;font-size:0.65rem;font-weight:700;color:#555;background:#f0f0f0;padding:4px 10px;border-radius:10px;text-align:center;"><i class="fas fa-user-plus" style="font-size:0.55rem;"></i> 紹介者数 0</span>
+            <span id="mypage-posts" style="flex:1;font-size:0.65rem;font-weight:700;color:#555;background:#f0f0f0;padding:4px 10px;border-radius:10px;text-align:center;"><i class="fas fa-pen" style="font-size:0.55rem;"></i> 投稿 0</span>
+            <span id="mypage-invites" style="flex:1;font-size:0.65rem;font-weight:700;color:#555;background:#f0f0f0;padding:4px 10px;border-radius:10px;text-align:center;"><i class="fas fa-user-plus" style="font-size:0.55rem;"></i> 紹介者 0</span>
           </div>
         </div>
       </div>
@@ -2101,9 +2101,9 @@ function updateHeaderStats() {
     var prRank = document.getElementById('profile-rank');
     if (prRank) prRank.innerHTML = getRankBadgeHtml(res.rank);
     var prPosts = document.getElementById('profile-posts');
-    if (prPosts) prPosts.innerHTML = '<i class="fas fa-pen"></i> 投稿数 ' + res.postCount + (res.postRankPos ? '<span style="color:#667eea;">（' + res.postRankPos + '位）</span>' : '');
+    if (prPosts) prPosts.innerHTML = '<i class="fas fa-pen"></i> 投稿 ' + res.postCount + (res.postRankPos ? '<span style="color:#667eea;">（' + res.postRankPos + '位）</span>' : '');
     var prInvites = document.getElementById('profile-invites');
-    if (prInvites) prInvites.innerHTML = '<i class="fas fa-user-plus"></i> 紹介者数 ' + (res.inviteCount || 0) + (res.inviteRankPos ? '<span style="color:#667eea;">（' + res.inviteRankPos + '位）</span>' : '');
+    if (prInvites) prInvites.innerHTML = '<i class="fas fa-user-plus"></i> 紹介者 ' + (res.inviteCount || 0) + (res.inviteRankPos ? '<span style="color:#667eea;">（' + res.inviteRankPos + '位）</span>' : '');
   });
 }
 

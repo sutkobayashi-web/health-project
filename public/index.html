@@ -1862,6 +1862,7 @@ function nextOnboardingSlide() {
 function skipOnboarding() {
   document.getElementById('onboarding-overlay').style.display = 'none';
   localStorage.setItem('co_heart_onboarded', '1');
+  localStorage.setItem('co_heart_buddy_intro', '1');
 }
 
 function onLoginSuccess() {

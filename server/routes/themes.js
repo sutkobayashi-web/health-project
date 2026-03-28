@@ -274,6 +274,29 @@ router.post('/update-theme', (req, res) => {
   }
 });
 
+// テーマ議論チャット
+router.post('/theme-discussion', (req, res) => {
+  try {
+    const { themeId, memberName, message } = req.body;
+    if (!themeId || !memberName || !message) return res.json({ success: false, msg: 'missing params' });
+    const db = getDb();
+    db.prepare('INSERT INTO theme_discussions (theme_id, member_name, message) VALUES (?, ?, ?)').run(themeId, memberName, message);
+    res.json({ success: true });
+  } catch (e) {
+    res.json({ success: false, msg: e.message });
+  }
+});
+
+router.get('/theme-discussions/:themeId', (req, res) => {
+  try {
+    const db = getDb();
+    const rows = db.prepare('SELECT member_name, message, created_at FROM theme_discussions WHERE theme_id = ? ORDER BY created_at ASC').all(req.params.themeId);
+    res.json({ success: true, discussions: rows });
+  } catch (e) {
+    res.json({ success: false, msg: e.message });
+  }
+});
+
 // 管理者: 投票開始
 // ステータス変更（汎用）
 router.post('/change-status', (req, res) => {
@@ -412,6 +435,12 @@ router.post('/generate-challenge', async (req, res) => {
     `).all(themeId);
     const commentsText = voteComments.map(c => `- ${c.nickname || '匿名'}: ${c.comment}`).join('\n') || '（なし）';
 
+    // 推進メンバーのテーマ議論を取得
+    const discussions = db.prepare('SELECT member_name, message FROM theme_discussions WHERE theme_id = ? ORDER BY created_at ASC').all(themeId);
+    const discussionText = discussions.length > 0
+      ? discussions.map(d => `- ${d.member_name}: ${d.message}`).join('\n')
+      : '（議論なし）';
+
     const prompt = `あなたはエビデンスに基づく健康経営プランナーです。社員の声と投票で選ばれたテーマに基づき、参加型アクションプラン（チャレンジ）を設計してください。
 
 ★★★最重要★★★
@@ -427,6 +456,8 @@ ${EVIDENCE_BASE}
 ${voices || '（詳細なし）'}
 【投票時のコメント】
 ${commentsText}
+【推進メンバーの議論（重要: この意見を最大限反映すること）】
+${discussionText}
 
 【設計要件】
 - 期間: 30日間

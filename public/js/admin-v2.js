@@ -214,11 +214,59 @@ function renderV2Dashboard() {
         html += '<button class="btn btn-sm btn-outline-danger" style="font-size:0.68rem;" onclick="doDeleteTheme(\'' + t.theme_id + '\',\'' + escapeHtml(t.name).replace(/'/g,"\\'") + '\')"><i class="fas fa-trash me-1"></i>削除</button>';
         html += '</div>';
       }
+      // テーマ議論チャット
+      if (cycle.status === 'candidate' || cycle.status === 'advisor_review') {
+        html += '<div class="mt-2 p-2" style="background:#f8f9ff;border-radius:8px;border:1px solid #e0e0e0;">';
+        html += '<div style="font-size:0.68rem;font-weight:700;color:#667eea;margin-bottom:6px;"><i class="fas fa-comments me-1"></i>メンバー議論</div>';
+        html += '<div id="theme-disc-' + t.theme_id + '" style="max-height:150px;overflow-y:auto;margin-bottom:6px;font-size:0.75rem;"></div>';
+        html += '<div class="d-flex gap-1">';
+        html += '<input type="text" id="theme-disc-input-' + t.theme_id + '" class="form-control form-control-sm" placeholder="意見を入力..." style="font-size:0.75rem;">';
+        html += '<button class="btn btn-sm btn-primary" style="font-size:0.68rem;white-space:nowrap;" onclick="postThemeDiscussion(\'' + t.theme_id + '\')"><i class="fas fa-paper-plane"></i></button>';
+        html += '</div></div>';
+      }
       html += '</div></div>';
     });
     html += '</div>';
     themesArea.innerHTML = html;
+    // 各テーマの議論を読み込み
+    themes.forEach(function(t) {
+      loadThemeDiscussions(t.theme_id);
+    });
   });
+}
+
+function loadThemeDiscussions(themeId) {
+  var el = document.getElementById('theme-disc-' + themeId);
+  if (!el) return;
+  fetch('/api/themes/theme-discussions/' + themeId, {
+    headers: { 'Authorization': 'Bearer ' + getAdminToken() }
+  }).then(function(r) { return r.json(); }).then(function(data) {
+    if (!data.success || !data.discussions.length) {
+      el.innerHTML = '<div style="color:#bbb;font-size:0.7rem;text-align:center;">まだ議論がありません</div>';
+      return;
+    }
+    el.innerHTML = data.discussions.map(function(d) {
+      var time = d.created_at ? d.created_at.substring(5, 16).replace('T', ' ') : '';
+      return '<div style="margin-bottom:4px;"><strong style="color:#667eea;">' + escapeHtml(d.member_name) + '</strong> <span style="color:#bbb;font-size:0.65rem;">' + time + '</span><br>' + escapeHtml(d.message) + '</div>';
+    }).join('');
+    el.scrollTop = el.scrollHeight;
+  }).catch(function() {});
+}
+
+function postThemeDiscussion(themeId) {
+  var input = document.getElementById('theme-disc-input-' + themeId);
+  if (!input || !input.value.trim()) return;
+  var memberName = currentAdmin ? currentAdmin.name : '不明';
+  fetch('/api/themes/theme-discussion', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getAdminToken() },
+    body: JSON.stringify({ themeId: themeId, memberName: memberName, message: input.value.trim() })
+  }).then(function(r) { return r.json(); }).then(function(data) {
+    if (data.success) {
+      input.value = '';
+      loadThemeDiscussions(themeId);
+    }
+  }).catch(function() {});
 }
 
 function doDirectDecide(cycleNum) {

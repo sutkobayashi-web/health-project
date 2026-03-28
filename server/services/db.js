@@ -132,6 +132,17 @@ function getDb() {
     )`);
   }
 
+  // テーマ議論テーブル
+  try {
+    db.exec(`CREATE TABLE IF NOT EXISTS theme_discussions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      theme_id TEXT NOT NULL,
+      member_name TEXT NOT NULL,
+      message TEXT NOT NULL,
+      created_at TEXT DEFAULT (datetime('now'))
+    )`);
+  } catch(e) {}
+
   // システムキャッシュテーブル
   try {
     db.exec(`CREATE TABLE IF NOT EXISTS system_cache (

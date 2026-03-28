@@ -5876,6 +5876,8 @@ var challengeDetail = null;
 var _challengeDetails = {};
 
 function loadActiveChallenge() {
+  // チャレンジはタブに移管済み。メニューには表示しない。
+  return;
   if (!currentUser) return;
   getChallenges().then(function(res) {
     if (!res || !res.success) return;

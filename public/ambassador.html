@@ -109,6 +109,7 @@ function loadAmbDashboard() {
             themeHtml += '<div class="small fw-bold" style="color:' + colors[pi % 3] + ';">案' + String.fromCharCode(65+pi) + ': ' + escapeHtml(p.title) + '</div>';
             if (p.description) themeHtml += '<div class="small text-muted">' + escapeHtml(p.description) + '</div>';
             if (p.kpi) themeHtml += '<div class="small text-muted">KPI: ' + escapeHtml(p.kpi) + '</div>';
+            themeHtml += '<div id="amb-plan-emp-' + t.theme_id + '-' + pi + '" style="margin-top:4px;"></div>';
             themeHtml += '<textarea id="plan-advice-' + t.theme_id + '-' + pi + '" class="form-control form-control-sm mt-1" rows="2" placeholder="このプランへの助言..." style="font-size:0.75rem;"></textarea>';
             themeHtml += '</div>';
           });
@@ -177,6 +178,8 @@ function loadAmbDashboard() {
       // メンバー自由提案と議論を読み込み
       if (typeof _ambThemes !== 'undefined' && _ambThemes) {
         _ambThemes.forEach(function(t) {
+          var plans = []; try { plans = JSON.parse(t.action_plans || '[]'); } catch(e) {}
+          plans.forEach(function(p, pi) { loadAmbPlanEmpathy(t.theme_id, pi); });
           loadAmbCustomPlans(t.theme_id);
           loadAmbDiscussions(t.theme_id);
         });
@@ -184,6 +187,25 @@ function loadAmbDashboard() {
     });
   }).catch(function() {
     area.innerHTML = '<div class="card-box text-center py-5 text-muted">読み込みに失敗しました</div>';
+  });
+}
+
+var AMB_EMPATHY_LABELS = { agree:'👍賛成', urgent:'🔥最優先', effective:'💡効果的', engaging:'👥巻き込める', discuss:'🤔要議論', difficult:'⚠️難しい', postpone:'❌見送り' };
+
+function loadAmbPlanEmpathy(themeId, planIndex) {
+  var el = document.getElementById('amb-plan-emp-' + themeId + '-' + planIndex);
+  if (!el) return;
+  fetch('/api/themes/plan-empathy/' + themeId).then(function(r) { return r.json(); }).then(function(data) {
+    if (!data.success) return;
+    var counts = (data.counts || []).filter(function(c) { return c.plan_index === planIndex; });
+    if (!counts.length) { el.innerHTML = '<div class="small text-muted" style="font-size:0.7rem;">メンバー評価なし</div>'; return; }
+    var html = '<div style="display:flex;flex-wrap:wrap;gap:3px;">';
+    counts.forEach(function(c) {
+      var label = AMB_EMPATHY_LABELS[c.empathy_type] || c.empathy_type;
+      html += '<span style="font-size:0.68rem;padding:2px 6px;border-radius:10px;background:#f0f0f0;color:#555;">' + label + ' ' + c.count + '</span>';
+    });
+    html += '</div>';
+    el.innerHTML = html;
   });
 }
 

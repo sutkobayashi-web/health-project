@@ -511,25 +511,25 @@
       <div style="flex:1;font-weight:800;font-size:0.95rem;">マイページ</div>
     </div>
     <!-- プロフィールカード -->
-    <div style="padding:16px 18px;background:linear-gradient(180deg,#f5f0ff,#fff);border-bottom:1px solid #eee;">
-      <!-- アバター行 -->
-      <div style="display:flex;align-items:center;justify-content:center;gap:0;">
-        <div id="mypage-avatar" style="width:64px;height:64px;border-radius:50%;overflow:hidden;border:3px solid #fff;box-shadow:0 4px 12px rgba(102,126,234,0.2);display:flex;align-items:center;justify-content:center;font-size:2rem;background:#f0f0f0;cursor:pointer;z-index:1;" onclick="showRanking();"></div>
-        <div id="mypage-buddy-avatar" style="width:44px;height:44px;border-radius:50%;overflow:hidden;border:2.5px solid #fff;box-shadow:0 2px 8px rgba(14,165,233,0.25);display:flex;align-items:center;justify-content:center;font-size:1.2rem;background:linear-gradient(135deg,#0ea5e9,#0284c7);color:white;margin-left:-14px;z-index:2;cursor:pointer;" onclick="openBuddySetup();closeMyPosts();"><i class="fas fa-robot" style="font-size:18px;"></i></div>
-      </div>
-      <!-- ユーザー情報 -->
-      <div style="text-align:center;margin-top:10px;">
-        <div style="display:flex;align-items:baseline;justify-content:center;gap:6px;">
-          <span style="font-weight:800;font-size:1.1rem;color:#2c3e50;" id="mypage-nickname">--</span>
-          <span style="font-size:0.7rem;color:#0ea5e9;font-weight:700;">& <span id="mypage-buddy-name">バディー</span></span>
+    <div style="padding:12px 18px;background:linear-gradient(180deg,#f5f0ff,#fff);border-bottom:1px solid #eee;">
+      <div style="display:flex;align-items:center;gap:14px;">
+        <!-- アバター -->
+        <div style="flex-shrink:0;display:flex;align-items:flex-end;">
+          <div id="mypage-avatar" style="width:56px;height:56px;border-radius:50%;overflow:hidden;border:3px solid #fff;box-shadow:0 4px 12px rgba(102,126,234,0.2);display:flex;align-items:center;justify-content:center;font-size:1.7rem;background:#f0f0f0;cursor:pointer;z-index:1;" onclick="showRanking();"></div>
+          <div id="mypage-buddy-avatar" style="width:38px;height:38px;border-radius:50%;overflow:hidden;border:2.5px solid #fff;box-shadow:0 2px 8px rgba(14,165,233,0.25);display:flex;align-items:center;justify-content:center;font-size:1rem;background:linear-gradient(135deg,#0ea5e9,#0284c7);color:white;margin-left:-14px;z-index:2;cursor:pointer;" onclick="openBuddySetup();closeMyPosts();"><i class="fas fa-robot" style="font-size:15px;"></i></div>
         </div>
-        <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:6px;flex-wrap:wrap;">
-          <span id="mypage-dept" style="font-size:0.65rem;font-weight:700;color:#667eea;background:#eef0ff;padding:2px 8px;border-radius:10px;"></span>
-          <span id="mypage-rank" style="font-size:0.65rem;"></span>
-        </div>
-        <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:6px;">
-          <span id="mypage-posts" style="font-size:0.65rem;font-weight:700;color:#555;background:#f0f0f0;padding:2px 8px;border-radius:10px;"><i class="fas fa-pen" style="font-size:0.55rem;"></i> 投稿 0</span>
-          <span id="mypage-invites" style="font-size:0.65rem;font-weight:700;color:#555;background:#f0f0f0;padding:2px 8px;border-radius:10px;"><i class="fas fa-user-plus" style="font-size:0.55rem;"></i> 紹介 0</span>
+        <!-- ユーザー情報 -->
+        <div style="flex:1;min-width:0;">
+          <div style="display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;">
+            <span style="font-weight:800;font-size:1.05rem;color:#2c3e50;" id="mypage-nickname">--</span>
+            <span style="font-size:0.65rem;color:#0ea5e9;font-weight:700;">& <span id="mypage-buddy-name">バディー</span></span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:4px;flex-wrap:wrap;">
+            <span id="mypage-dept" style="font-size:0.65rem;font-weight:700;color:#667eea;background:#eef0ff;padding:2px 8px;border-radius:10px;"></span>
+            <span id="mypage-rank" style="font-size:0.65rem;"></span>
+            <span id="mypage-posts" style="font-size:0.65rem;font-weight:700;color:#555;background:#f0f0f0;padding:2px 8px;border-radius:10px;"><i class="fas fa-pen" style="font-size:0.55rem;"></i> 投稿 0</span>
+            <span id="mypage-invites" style="font-size:0.65rem;font-weight:700;color:#555;background:#f0f0f0;padding:2px 8px;border-radius:10px;"><i class="fas fa-user-plus" style="font-size:0.55rem;"></i> 紹介 0</span>
+          </div>
         </div>
       </div>
     </div>

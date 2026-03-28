@@ -6228,15 +6228,16 @@ function veggiePhotoSelected(cid) {
 
 function resetKpiForm(cid) {
   kpiAnswers = {};
-  // チャレンジ詳細を再読み込みしてフォームをリセット
-  if (document.getElementById('chtab-detail-' + cid)) {
-    // チャレンジタブ内
-    toggleChallengeTabDetail(cid);
-    setTimeout(function() { toggleChallengeTabDetail(cid); }, 100);
-  } else {
-    // メニュー内
-    loadChallengeDetail(cid);
-  }
+  // チャレンジ詳細を再取得してフォームをリセット
+  currentChallengeId = cid;
+  getChallengeDetail(cid, currentUser.uid).then(function(res) {
+    if (!res || !res.success) return;
+    _challengeDetails[cid] = res;
+    challengeDetail = res;
+    // 今日の記録をnullにして記録フォームを強制表示
+    res.todayRecord = null;
+    renderChallengeRecordForm(res, cid);
+  });
 }
 
 function doRecordKpi(cid) {

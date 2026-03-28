@@ -3766,12 +3766,8 @@ function startBuddyChat(buddyData) {
         _buddyMoodChecked = true;
         // バディー経由メッセージも読み込む
         loadBuddyNotices();
-        // 最後のメッセージがAIの場合、入力待ち状態にする
-        var lastMsg = data.messages[data.messages.length - 1];
-        if (lastMsg.role === 'ai') {
-          // 会話が続けられるよう、簡易メニューを表示
-          setTimeout(function() { showBuddyWrapUp(); }, 500);
-        }
+        // 履歴復元後はフォローアップ選択肢を表示
+        setTimeout(function() { showFollowUpTopics(); }, 500);
       } else {
         // 履歴なし → 通常の初回フロー
         startBuddyChatFresh(buddyData);

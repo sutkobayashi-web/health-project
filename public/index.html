@@ -4605,29 +4605,35 @@ function loadChallengeTabContent() {
 
     if (active.length) {
       html += '<div style="font-size:0.78rem;font-weight:800;color:#ff6b35;margin-bottom:8px;"><i class="fas fa-fire"></i> 開催中のチャレンジ</div>';
-      active.forEach(function(c) {
+      active.forEach(function(c, idx) {
         var icon = c.todayRecorded ? '✅ 記録済み' : '⏳ 今日の記録がまだです';
         var iconColor = c.todayRecorded ? '#43a047' : '#e65100';
-        html += '<div style="background:white;border-radius:14px;padding:14px;margin-bottom:10px;box-shadow:0 2px 8px rgba(0,0,0,0.06);cursor:pointer;" onclick="switchAppTab(\'menu\');setTimeout(function(){var el=document.getElementById(\'challenge-combined-section\');if(el)el.scrollIntoView({behavior:\'smooth\'});toggleAccordion(\'challenge-combined-body\',\'challenge-combined-chevron\');},300);">';
-        html += '<div style="display:flex;align-items:center;gap:10px;">';
+        var cid = c.challenge_id;
+        html += '<div style="background:white;border-radius:14px;margin-bottom:10px;box-shadow:0 2px 8px rgba(0,0,0,0.06);overflow:hidden;">';
+        html += '<div style="display:flex;align-items:center;gap:10px;padding:14px;cursor:pointer;" onclick="toggleChallengeTabDetail(\'' + cid + '\')">';
         html += '<div style="font-size:1.5rem;">' + (c.icon || '💪') + '</div>';
         html += '<div style="flex:1;">';
         html += '<div style="font-weight:800;font-size:0.88rem;color:#333;">' + c.title.replace(/【デモ】/g,'') + '</div>';
         html += '<div style="font-size:0.72rem;font-weight:700;color:' + iconColor + ';margin-top:2px;">' + icon + '</div>';
-        html += '</div></div></div>';
+        html += '</div></div>';
+        html += '<div id="chtab-detail-' + cid + '" style="display:none;padding:0 14px 14px;"></div>';
+        html += '</div>';
       });
     }
 
     if (recruiting.length) {
       html += '<div style="font-size:0.78rem;font-weight:800;color:#1e88e5;margin-bottom:8px;margin-top:16px;"><i class="fas fa-bullhorn"></i> 参加者募集中</div>';
       recruiting.forEach(function(c) {
-        html += '<div style="background:white;border-radius:14px;padding:14px;margin-bottom:10px;box-shadow:0 2px 8px rgba(0,0,0,0.06);cursor:pointer;" onclick="switchAppTab(\'menu\');setTimeout(function(){var el=document.getElementById(\'challenge-combined-section\');if(el)el.scrollIntoView({behavior:\'smooth\'});toggleAccordion(\'challenge-combined-body\',\'challenge-combined-chevron\');},300);">';
-        html += '<div style="display:flex;align-items:center;gap:10px;">';
+        var cid = c.challenge_id;
+        html += '<div style="background:white;border-radius:14px;margin-bottom:10px;box-shadow:0 2px 8px rgba(0,0,0,0.06);overflow:hidden;">';
+        html += '<div style="display:flex;align-items:center;gap:10px;padding:14px;cursor:pointer;" onclick="toggleChallengeTabDetail(\'' + cid + '\')">';
         html += '<div style="font-size:1.5rem;">' + (c.icon || '💪') + '</div>';
         html += '<div style="flex:1;">';
         html += '<div style="font-weight:800;font-size:0.88rem;color:#333;">' + c.title.replace(/【デモ】/g,'') + '</div>';
         html += '<div style="font-size:0.72rem;font-weight:700;color:#1e88e5;margin-top:2px;">エントリー受付中！</div>';
-        html += '</div></div></div>';
+        html += '</div></div>';
+        html += '<div id="chtab-detail-' + cid + '" style="display:none;padding:0 14px 14px;"></div>';
+        html += '</div>';
       });
     }
 
@@ -4635,6 +4641,37 @@ function loadChallengeTabContent() {
     area.innerHTML = html;
   }).catch(function() {
     area.innerHTML = '<div style="text-align:center;padding:30px;color:#e53935;">読み込みに失敗しました</div>';
+  });
+}
+
+function toggleChallengeTabDetail(cid) {
+  var el = document.getElementById('chtab-detail-' + cid);
+  if (!el) return;
+  if (el.style.display === 'block') {
+    el.style.display = 'none';
+    return;
+  }
+  // 他を閉じる
+  document.querySelectorAll('[id^="chtab-detail-"]').forEach(function(d) { d.style.display = 'none'; });
+  el.style.display = 'block';
+  el.innerHTML = '<div style="text-align:center;padding:10px;"><i class="fas fa-spinner fa-spin"></i></div>';
+  // チャレンジ詳細を取得してここに描画
+  currentChallengeId = cid;
+  getChallengeDetail(cid, currentUser.uid).then(function(res) {
+    if (!res || !res.success) { el.innerHTML = '<div style="color:#e53935;font-size:0.82rem;">読み込み失敗</div>'; return; }
+    _challengeDetails[cid] = res;
+    challengeDetail = res;
+    // _getChBodyを一時的にオーバーライド
+    var origGetChBody = _getChBody;
+    _getChBody = function() { return el; };
+    if (!res.myParticipation) {
+      renderChallengeEntry(res.challenge, cid);
+    } else if (res.todayRecord) {
+      renderChallengeStatus(res, cid);
+    } else {
+      renderChallengeRecordForm(res, cid);
+    }
+    _getChBody = origGetChBody;
   });
 }
 
@@ -4667,7 +4704,7 @@ function loadBuddyChallengeBar() {
       active.forEach(function(c) {
         var icon = c.todayRecorded ? '✅' : '⏳';
         var label = c.todayRecorded ? '<span style="color:#43a047;">済</span>' : '<span style="color:#e65100;">未記録</span>';
-        html += '<div onclick="event.stopPropagation();switchAppTab(\'menu\');setTimeout(function(){var el=document.getElementById(\'challenge-combined-section\');if(el)el.scrollIntoView({behavior:\'smooth\'});toggleAccordion(\'challenge-combined-body\',\'challenge-combined-chevron\');},300);" style="display:flex;align-items:center;gap:4px;padding:3px 0;cursor:pointer;">';
+        html += '<div onclick="event.stopPropagation();switchAppTab(\'challenge\');" style="display:flex;align-items:center;gap:4px;padding:3px 0;cursor:pointer;">';
         html += '<span style="font-size:0.7rem;">' + (c.icon || '💪') + '</span>';
         html += '<span style="font-size:0.6rem;font-weight:700;color:#333;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + c.title.replace(/【デモ】/g,'') + '</span>';
         html += '<span style="font-size:0.55rem;font-weight:700;">' + label + '</span>';
@@ -4685,7 +4722,7 @@ function loadBuddyChallengeBar() {
       html += '</div>';
       html += '<div id="cb-recruit" style="display:none;padding:4px 8px;">';
       recruiting.forEach(function(c) {
-        html += '<div onclick="event.stopPropagation();switchAppTab(\'menu\');setTimeout(function(){var el=document.getElementById(\'challenge-combined-section\');if(el)el.scrollIntoView({behavior:\'smooth\'});toggleAccordion(\'challenge-combined-body\',\'challenge-combined-chevron\');},300);" style="display:flex;align-items:center;gap:4px;padding:3px 0;cursor:pointer;">';
+        html += '<div onclick="event.stopPropagation();switchAppTab(\'challenge\');" style="display:flex;align-items:center;gap:4px;padding:3px 0;cursor:pointer;">';
         html += '<span style="font-size:0.7rem;">' + (c.icon || '💪') + '</span>';
         html += '<span style="font-size:0.6rem;font-weight:700;color:#333;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + c.title.replace(/【デモ】/g,'') + '</span>';
         html += '<span style="font-size:0.55rem;font-weight:700;color:#1e88e5;">募集中</span>';
@@ -5551,15 +5588,13 @@ function toggleAccordion(bodyId, labelId) {
 // ====== チャレンジ統合セクション表示制御 ======
 function updateChallengeCombiVisibility() {
   var avSec = document.getElementById('avatar-challenge-section');
-  var chSec = document.getElementById('challenge-section');
   var combi = document.getElementById('challenge-combined-section');
   var avVisible = avSec && avSec.style.display !== 'none';
-  var chVisible = chSec && chSec.style.display !== 'none';
-  if (avVisible || chVisible) {
+  // チャレンジはタブに移管、アバターチャレンジのみメニューに残す
+  if (avVisible) {
     combi.style.display = 'block';
-    // 両方表示時に仕切り線を出す
     var divider = document.getElementById('challenge-divider');
-    if (divider) divider.style.display = (avVisible && chVisible) ? 'block' : 'none';
+    if (divider) divider.style.display = 'none';
     // サブタイトル更新
     var sub = document.getElementById('challenge-combined-subtitle');
     if (sub) {

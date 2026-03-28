@@ -3365,14 +3365,13 @@ function switchAppTab(tab) {
   // タブ状態を保存
   try { sessionStorage.setItem('healthCurrentTab', tab); } catch(e) {}
 
-  // 全タブを閉じる
-  if (_currentAppTab !== 'buddy') {
-    if (_currentAppTab === 'inbox') { document.getElementById('inbox-sheet').classList.remove('active'); unlockScroll(); }
-    if (_currentAppTab === 'chat') { document.getElementById('nurse-chat-sheet').classList.remove('active'); unlockScroll(); }
-    if (_currentAppTab === 'mypage') { document.getElementById('my-posts-modal').style.display = 'none'; unlockScroll(); }
-    if (_currentAppTab === 'guide') { document.getElementById('app-tab-guide').style.display = 'none'; }
-    if (_currentAppTab === 'challenge') { document.getElementById('challenge-tab-screen').style.display = 'none'; }
-  }
+  // 全タブを閉じる（全画面を確実に非表示）
+  var _inboxSheet = document.getElementById('inbox-sheet'); if (_inboxSheet) _inboxSheet.classList.remove('active');
+  var _nurseSheet = document.getElementById('nurse-chat-sheet'); if (_nurseSheet) _nurseSheet.classList.remove('active');
+  var _myPosts = document.getElementById('my-posts-modal'); if (_myPosts) _myPosts.style.display = 'none';
+  var _guideTab = document.getElementById('app-tab-guide'); if (_guideTab) _guideTab.style.display = 'none';
+  var _challengeTab = document.getElementById('challenge-tab-screen'); if (_challengeTab) _challengeTab.style.display = 'none';
+  unlockScroll();
 
   // メインコンテンツとバディー画面の切替
   var mainContent = document.querySelector('.main-content');

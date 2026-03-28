@@ -102,11 +102,14 @@ function loadAmbDashboard() {
         themeHtml += '<div class="fw-bold">' + (t.icon || '💡') + ' ' + escapeHtml(t.name) + ' <span class="small text-muted">(' + t.post_count + '件の声)</span></div>';
         themeHtml += '<div class="small text-muted mb-1">' + escapeHtml(t.description || '') + '</div>';
         if (plans.length > 0) {
-          themeHtml += '<div class="small fw-bold mt-1" style="color:#f57c00;">プラン案:</div>';
+          themeHtml += '<div class="small fw-bold mt-1" style="color:#f57c00;">AIプラン案:</div>';
           plans.forEach(function(p, pi) {
             themeHtml += '<div class="small" style="padding-left:8px;">案' + String.fromCharCode(65+pi) + ': ' + escapeHtml(p.title) + (p.description ? ' — ' + escapeHtml(p.description) : '') + '</div>';
           });
         }
+        // メンバー自由提案と議論を読み込む領域
+        themeHtml += '<div id="amb-custom-plans-' + t.theme_id + '"></div>';
+        themeHtml += '<div id="amb-discussions-' + t.theme_id + '"></div>';
         themeHtml += '</div>';
       });
       // 助言入力
@@ -115,6 +118,8 @@ function loadAmbDashboard() {
       themeHtml += '<textarea id="theme-advice-text" class="form-control form-control-sm mb-2" rows="4" placeholder="テーマの妥当性、プラン案への意見、追加すべき観点など..."></textarea>';
       themeHtml += '<button class="btn btn-sm fw-bold" style="background:#9c27b0;color:white;" onclick="submitThemeAdvice(' + cycle.cycle_number + ')"><i class="fas fa-paper-plane me-1"></i>助言を送信</button>';
       themeHtml += '</div></div>';
+      // テーマHTML挿入後にメンバー提案と議論を読み込む
+      var _ambThemes = themes.filter(function(t) { return t.status !== 'excluded'; });
     }
 
     // チャレンジ一覧
@@ -163,9 +168,42 @@ function loadAmbDashboard() {
       }
 
       area.innerHTML = html;
+      // メンバー自由提案と議論を読み込み
+      if (typeof _ambThemes !== 'undefined' && _ambThemes) {
+        _ambThemes.forEach(function(t) {
+          loadAmbCustomPlans(t.theme_id);
+          loadAmbDiscussions(t.theme_id);
+        });
+      }
     });
   }).catch(function() {
     area.innerHTML = '<div class="card-box text-center py-5 text-muted">読み込みに失敗しました</div>';
+  });
+}
+
+function loadAmbCustomPlans(themeId) {
+  var el = document.getElementById('amb-custom-plans-' + themeId);
+  if (!el) return;
+  fetch('/api/themes/custom-plans/' + themeId).then(function(r) { return r.json(); }).then(function(data) {
+    if (!data.success || !data.plans.length) return;
+    var html = '<div class="small fw-bold mt-2" style="color:#9c27b0;">メンバー提案:</div>';
+    data.plans.forEach(function(p, i) {
+      html += '<div class="small" style="padding-left:8px;">案' + String.fromCharCode(68+i) + ': ' + escapeHtml(p.title) + (p.description ? ' — ' + escapeHtml(p.description) : '') + ' <span style="color:#bbb;">(' + escapeHtml(p.member_name) + ')</span></div>';
+    });
+    el.innerHTML = html;
+  });
+}
+
+function loadAmbDiscussions(themeId) {
+  var el = document.getElementById('amb-discussions-' + themeId);
+  if (!el) return;
+  fetch('/api/themes/theme-discussions/' + themeId).then(function(r) { return r.json(); }).then(function(data) {
+    if (!data.success || !data.discussions.length) return;
+    var html = '<div class="small fw-bold mt-2" style="color:#667eea;">メンバー議論:</div>';
+    data.discussions.forEach(function(d) {
+      html += '<div class="small" style="padding-left:8px;color:#555;"><strong>' + escapeHtml(d.member_name) + ':</strong> ' + escapeHtml(d.message) + '</div>';
+    });
+    el.innerHTML = html;
   });
 }
 

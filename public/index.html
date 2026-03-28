@@ -3970,26 +3970,23 @@ function startBuddyChatFresh(buddyData) {
       if (data.weather) msg += '\n\n' + data.weather;
       if (data.healthTip) msg += '\n💡 ' + data.healthTip;
     }
-    msg += '\n\nさて、今日の調子はいかがですか？';
-    addBuddyMessage('ai', msg);
-
-    // 初回のみ仕組み説明
+    // 初回のみ仕組み説明（挨拶→説明→体調チェックの流れ）
     if (!localStorage.getItem('co_heart_buddy_intro')) {
       localStorage.setItem('co_heart_buddy_intro', '1');
+      addBuddyMessage('ai', msg);
       setTimeout(function() {
-        addBuddyMessage('ai', 'はじめに少しだけ、このアプリの仕組みを紹介させてね！');
+        addBuddyMessage('ai', 'はじめに少しだけ、このアプリの仕組みを紹介させてね！\n\n🤖 私（バディー）は「あなた個人」の健康アドバイスが得意だよ。体調相談、食事、睡眠、なんでも聞いてね！\n\n🛡️ でも「職場の環境を変えたい」時は推進メンバーの出番！チャットの中で「推進メンバーに相談」を選ぶと、あなたの声が届くよ。\n\n📢→🗳️→💪 届いた声はテーマ候補になって、みんなの投票でチャレンジに変わるんだ！\n\nあなたの一言が、職場を変える力になるよ✨');
         setTimeout(function() {
-          addBuddyMessage('ai', '🤖 私（バディー）は「あなた個人」の健康アドバイスが得意だよ。体調相談、食事、睡眠、なんでも聞いてね！\n\n🛡️ でも「職場の環境を変えたい」時は推進メンバーの出番！チャットの中で「推進メンバーに相談」を選ぶと、あなたの声が届くよ。\n\n📢→🗳️→💪 届いた声はテーマ候補になって、みんなの投票でチャレンジに変わるんだ！\n\nあなたの一言が、職場を変える力になるよ✨');
-          setTimeout(function() {
-            addBuddyInlineQuick('<div style="display:flex;justify-content:center;gap:8px;padding:4px 0;">' +
-              '<div class="buddy-quick-btn" onclick="markBuddyQuickUsed();addBuddyMessage(\'user\',\'わかった！\');setTimeout(function(){checkBuddyTopic();},500);" style="border-color:#667eea;color:#667eea;">👍 わかった！</div>' +
-            '</div>');
-          }, 600);
-        }, 800);
-      }, 1000);
+          addBuddyMessage('ai', 'さて、今日の調子はいかがですか？');
+          loadBuddyNotices();
+          setTimeout(function() { checkBuddyTopic(); }, 800);
+        }, 1000);
+      }, 1200);
       return;
     }
 
+    msg += '\n\nさて、今日の調子はいかがですか？';
+    addBuddyMessage('ai', msg);
     loadBuddyNotices();
     setTimeout(function() { checkBuddyTopic(); }, 800);
   }).catch(function() {

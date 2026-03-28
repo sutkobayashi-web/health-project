@@ -256,7 +256,7 @@ function loadThemeDiscussions(themeId) {
 function postThemeDiscussion(themeId) {
   var input = document.getElementById('theme-disc-input-' + themeId);
   if (!input || !input.value.trim()) return;
-  var memberName = currentAdmin ? currentAdmin.name : '不明';
+  var memberName = currentAdminProfile ? currentAdminProfile.name : '不明';
   fetch('/api/themes/theme-discussion', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getAdminToken() },

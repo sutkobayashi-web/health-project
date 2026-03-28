@@ -419,28 +419,35 @@ body {
 
       <div class="flow-step" style="border-top-color:#6c5ce7;">
         <div class="flow-icon">🧩</div>
-        <div class="flow-label">AI<br>テーマ凝集</div>
+        <div class="flow-label">AI<br>テーマ凝集<br>(5候補+各A/B/Cプラン)</div>
         <div class="flow-who">AI自動</div>
       </div>
       <div class="flow-arrow"><i class="fas fa-chevron-right"></i></div>
 
       <div class="flow-step" style="border-top-color:#f2994a;">
         <div class="flow-icon">🔍</div>
-        <div class="flow-label">推進メンバー<br>精査</div>
+        <div class="flow-label">テーマ精査<br>(採用/除外トグル)</div>
+        <div class="flow-who">推進メンバー</div>
+      </div>
+      <div class="flow-arrow"><i class="fas fa-chevron-right"></i></div>
+
+      <div class="flow-step" style="border-top-color:#00b4db;">
+        <div class="flow-icon">📝</div>
+        <div class="flow-label">メンバー<br>プラン追加(D〜)</div>
         <div class="flow-who">推進メンバー</div>
       </div>
       <div class="flow-arrow"><i class="fas fa-chevron-right"></i></div>
 
       <div class="flow-step" style="border-top-color:#e17055;">
         <div class="flow-icon">💬</div>
-        <div class="flow-label">テーマ<br>ディスカッション</div>
+        <div class="flow-label">7種共感評価<br>+ディスカッション</div>
         <div class="flow-who">推進メンバー</div>
       </div>
       <div class="flow-arrow"><i class="fas fa-chevron-right"></i></div>
 
       <div class="flow-step" style="border-top-color:#11998e;">
         <div class="flow-icon">🩺</div>
-        <div class="flow-label">保健師<br>助言</div>
+        <div class="flow-label">保健師<br>プラン別助言</div>
         <div class="flow-who">保健師</div>
       </div>
       <div class="flow-arrow"><i class="fas fa-chevron-right"></i></div>
@@ -544,7 +551,9 @@ body {
           <li>投稿一覧を確認、注目投稿にコメント</li>
           <li>メンバー同士でチャット議論</li>
           <li>AIが自動実行した7軸評価の結果をレビュー</li>
-          <li>テーマ候補を精査・編集</li>
+          <li>テーマ候補を採用/除外トグルで絞り込み</li>
+          <li>カスタムプラン（D以降）を追加（タイトル・説明・KPI付き）</li>
+          <li>全プラン（AI案+メンバー案）に7種共感ボタンで評価</li>
           <li>チャレンジ内容をレビュー</li>
           <li>実行中の伴走（声かけ・励まし）</li>
         </ul>
@@ -554,7 +563,9 @@ body {
       <div class="role-card role-nurse">
         <h4><span class="role-emoji">🩺</span> 保健師（アンバサダー）</h4>
         <ul>
-          <li>テーマ候補への専門的助言（必須）</li>
+          <li>採用テーマのみ表示（除外テーマは非表示）</li>
+          <li>AIプラン+メンバープラン+共感データ+議論を一覧で確認</li>
+          <li>プランごとに専門的助言を記入（必須）</li>
           <li>チャレンジ中間チェック</li>
           <li>最終レポートへの所見</li>
           <li>/ambassador 画面からアクセス</li>
@@ -608,7 +619,7 @@ body {
       <thead><tr><th>機能</th><th>内容</th></tr></thead>
       <tbody>
         <tr><td><strong>Pull-to-refresh</strong></td><td>下にスワイプでデータ更新（ページリロードなし、画面状態を維持）</td></tr>
-        <tr><td><strong>フォントサイズ切替</strong></td><td>ヘッダー右の「A」ボタンで大/小を切替（高年齢者対応）</td></tr>
+        <tr><td><strong>フォントサイズ切替</strong></td><td>ヘッダー右の「A」ボタンで3段階ズーム（小/中/大）を切替。管理画面にも対応（高年齢者対応）</td></tr>
         <tr><td><strong>ログイン状態保持</strong></td><td>ニックネーム・パスワードを保存し、次回はプリセット表示</td></tr>
         <tr><td><strong>タブ状態復元</strong></td><td>ブラウザリロード後も開いていたタブに戻る</td></tr>
         <tr><td><strong>健康eラーニング</strong></td><td>厚労省公認の無料教材へのリンクをメニュー内に配置</td></tr>
@@ -1087,6 +1098,10 @@ body {
     <table class="guide-table">
       <thead><tr><th>改善項目</th><th>内容</th></tr></thead>
       <tbody>
+        <tr><td><strong>5テーマ+プラン案生成</strong></td><td>AIが5つのテーマ候補を生成し、各テーマにA/B/Cの3つのアクションプラン案（タイトル・説明・KPI付き）を自動提案</td></tr>
+        <tr><td><strong>メンバーカスタムプラン</strong></td><td>推進メンバーがD以降のプランを自由に追加可能（タイトル・説明・KPI）。AI案と同列に並ぶ</td></tr>
+        <tr><td><strong>7種共感ボタン</strong></td><td>全プラン（AI案+メンバー案）に対し7種の共感ボタンで評価: 👍賛成 / 🔥最優先 / 💡効果的 / 👥巻き込める / 🤔要議論 / ⚠️難しい / ❌見送り</td></tr>
+        <tr><td><strong>採用/除外トグル</strong></td><td>メンバーがテーマを採用・除外に切り替えて候補を絞り込み。保健師画面には採用テーマのみ表示</td></tr>
         <tr><td><strong>食事投稿除外</strong></td><td>7軸評価・凝集の対象から食事投稿を除外。評価対象が98件→9件に削減</td></tr>
         <tr><td><strong>投稿時リアルタイム評価</strong></td><td>相談投稿時にAIスコアをauto_evaluationsテーブルに即時保存。凝集時の一括評価が不要に</td></tr>
         <tr><td><strong>バックグラウンド処理</strong></td><td>7軸一括評価をバックグラウンドジョブ化。5秒ポーリングで進捗表示（504タイムアウト回避）</td></tr>
@@ -1103,33 +1118,54 @@ body {
     <div class="guide-card-title">セクション10-2: テーマディスカッション</div>
   </div>
   <div class="guide-card-body">
-    <p>テーマ候補段階から推進メンバーがチャット形式で議論できる機能です。AI凝集の前後を問わず、候補の精査段階で合意形成を図ります。</p>
+    <p>テーマ候補段階から推進メンバーがプラン案の評価・追加・議論を行い、合意形成を図る機能です。</p>
 
     <h4 style="color:#e64a19;"><i class="fas fa-comments me-2"></i>機能概要</h4>
     <table class="guide-table">
       <thead><tr><th>項目</th><th>内容</th></tr></thead>
       <tbody>
-        <tr><td><strong>対象</strong></td><td>テーマ候補ごとに個別のチャットスレッド（候補段階から利用可能）</td></tr>
+        <tr><td><strong>対象</strong></td><td>テーマ候補ごとに個別のチャットスレッド + プラン案一覧（候補段階から利用可能）</td></tr>
         <tr><td><strong>参加者</strong></td><td>推進メンバー全員（管理画面からアクセス）</td></tr>
-        <tr><td><strong>タイミング</strong></td><td>テーマ候補段階から利用可能。AI凝集の前後問わず、保健師助言・役員承認の前</td></tr>
-        <tr><td><strong>目的</strong></td><td>テーマ候補の妥当性・優先度・実現可能性について推進メンバー間で議論し、精査・編集の判断材料とする</td></tr>
+        <tr><td><strong>タイミング</strong></td><td>AI凝集後。採用/除外トグルで絞り込み → プラン評価・追加 → 保健師助言・役員承認の前</td></tr>
+        <tr><td><strong>目的</strong></td><td>AIプラン（A/B/C）+メンバー追加プラン（D〜）に共感ボタンで評価し、ディスカッションで合意形成</td></tr>
+      </tbody>
+    </table>
+
+    <h4 style="color:#e64a19; margin-top:20px;"><i class="fas fa-hand-pointer me-2"></i>7種共感ボタン</h4>
+    <table class="guide-table">
+      <thead><tr><th>ボタン</th><th>意味</th></tr></thead>
+      <tbody>
+        <tr><td>👍 賛成</td><td>このプランに賛成する</td></tr>
+        <tr><td>🔥 最優先</td><td>最も優先して取り組むべき</td></tr>
+        <tr><td>💡 効果的</td><td>効果が高いと思う</td></tr>
+        <tr><td>👥 巻き込める</td><td>多くのメンバーを巻き込めそう</td></tr>
+        <tr><td>🤔 要議論</td><td>もう少し議論が必要</td></tr>
+        <tr><td>⚠️ 難しい</td><td>実現が難しいと思う</td></tr>
+        <tr><td>❌ 見送り</td><td>今回は見送るべき</td></tr>
       </tbody>
     </table>
 
     <h4 style="color:#e64a19; margin-top:20px;"><i class="fas fa-cogs me-2"></i>使い方</h4>
     <ol style="font-size:0.85rem; line-height:2;">
-      <li>管理画面でAI凝集を実行し、テーマ候補を生成</li>
-      <li>各テーマ候補カードの<strong>「ディスカッション」</strong>ボタンをクリック</li>
-      <li>チャット画面でメンバー名入りのメッセージを投稿</li>
-      <li>他のメンバーのコメントをリアルタイムで確認しながら議論</li>
-      <li>議論の結論をもとにテーマ候補を編集・統合・削除</li>
-      <li>精査が完了したら保健師助言 → 役員承認へ進行</li>
+      <li>管理画面でAI凝集を実行し、5テーマ候補（各A/B/Cプラン付き）を生成</li>
+      <li>テーマを<strong>採用/除外トグル</strong>で絞り込み（除外テーマは保健師画面に表示されない）</li>
+      <li>各プラン（AI案A/B/C）に<strong>7種共感ボタン</strong>で評価</li>
+      <li>必要に応じて<strong>カスタムプラン（D以降）</strong>を追加（タイトル・説明・KPI）</li>
+      <li>各テーマ候補カードの<strong>「ディスカッション」</strong>ボタンで議論</li>
+      <li>チャット画面でメンバー名入りのメッセージを投稿し合意形成</li>
+      <li>精査が完了したら保健師プラン別助言 → 役員承認へ進行</li>
     </ol>
 
     <div class="highlight-box">
       <strong>v2サイクルでの位置づけ</strong><br>
-      AI凝集 → <strong>テーマディスカッション（推進メンバー議論）</strong> → 保健師助言 → 役員承認 → 全社投票<br>
-      ディスカッションの内容は次回以降のAI凝集にも反映され、テーマの質が継続的に向上します。
+      AI凝集（5候補+A/B/Cプラン） → <strong>採用/除外トグル → メンバープラン追加（D〜） → 7種共感評価 → ディスカッション</strong> → 保健師プラン別助言 → 役員承認 → 全社投票<br>
+      共感データ・議論の内容は次回以降のAI凝集にも反映され、テーマとプランの質が継続的に向上します。
+    </div>
+
+    <div class="highlight-box" style="border-left-color:#11998e;">
+      <strong><i class="fas fa-user-md" style="color:#11998e; margin-right:4px;"></i>保健師（アンバサダー）画面</strong><br>
+      採用テーマのみが表示され、各テーマのAIプラン・メンバー追加プラン・共感データ集計・メンバー議論を一覧で確認。<br>
+      保健師はプランごとに専門的助言を記入できます（全体コメントではなくプラン単位）。
     </div>
   </div>
 </div>
@@ -1141,43 +1177,54 @@ body {
     <div class="guide-card-title">セクション11: 承認フロー（内部統制）</div>
   </div>
   <div class="guide-card-body">
-    <p>テーマが確定するまでに6段階の承認ステップを設けています。</p>
+    <p>テーマが確定するまでに8段階の承認ステップを設けています。</p>
 
     <div class="approval-flow">
       <div class="approval-step">
         <div class="approval-num">1</div>
-        <div class="approval-label">推進メンバー<br>精査</div>
+        <div class="approval-label">採用/除外<br>トグル</div>
       </div>
       <div class="approval-arrow"><i class="fas fa-chevron-right"></i></div>
       <div class="approval-step">
         <div class="approval-num">2</div>
-        <div class="approval-label">テーマ<br>ディスカッション</div>
+        <div class="approval-label">プラン追加<br>(D〜)</div>
       </div>
       <div class="approval-arrow"><i class="fas fa-chevron-right"></i></div>
       <div class="approval-step">
         <div class="approval-num">3</div>
-        <div class="approval-label">保健師<br>助言</div>
+        <div class="approval-label">7種共感<br>評価</div>
       </div>
       <div class="approval-arrow"><i class="fas fa-chevron-right"></i></div>
       <div class="approval-step">
         <div class="approval-num">4</div>
-        <div class="approval-label">役員<br>承認</div>
+        <div class="approval-label">テーマ<br>ディスカッション</div>
       </div>
       <div class="approval-arrow"><i class="fas fa-chevron-right"></i></div>
       <div class="approval-step">
         <div class="approval-num">5</div>
-        <div class="approval-label">全社<br>投票</div>
+        <div class="approval-label">保健師<br>プラン別助言</div>
       </div>
       <div class="approval-arrow"><i class="fas fa-chevron-right"></i></div>
       <div class="approval-step">
         <div class="approval-num">6</div>
+        <div class="approval-label">役員<br>承認</div>
+      </div>
+      <div class="approval-arrow"><i class="fas fa-chevron-right"></i></div>
+      <div class="approval-step">
+        <div class="approval-num">7</div>
+        <div class="approval-label">全社<br>投票</div>
+      </div>
+      <div class="approval-arrow"><i class="fas fa-chevron-right"></i></div>
+      <div class="approval-step">
+        <div class="approval-num">8</div>
         <div class="approval-label">テーマ<br>確定</div>
       </div>
     </div>
 
     <div class="warn-box">
       <strong><i class="fas fa-exclamation-triangle" style="color:#ffa000;"></i> 統制ルール</strong><br>
-      ・保健師助言なしでは役員承認に進めない<br>
+      ・保健師のプラン別助言なしでは役員承認に進めない<br>
+      ・保健師画面には採用テーマのみ表示（除外テーマは非表示）<br>
       ・役員承認なしでは投票を開始できない<br>
       ・Exec権限のアカウントのみ承認可能（なりすまし防止）
     </div>

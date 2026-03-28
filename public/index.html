@@ -6463,9 +6463,10 @@ var triggered = false;
 
   document.addEventListener('touchstart', function(e) {
     if (isAtTop() && !triggered && currentUser) {
-      // ヘッダー（上部56px）上でのスワイプのみ有効
+      // ヘッダー〜その下(56〜120px)のエリアでのスワイプのみ有効
+      // 上部56px以内はiPhone通知センターと干渉するため除外
       var touchY = e.touches[0].clientY;
-      if (touchY > 56) return;
+      if (touchY < 40 || touchY > 120) return;
       startY = e.touches[0].pageY;
       pulling = true;
     }

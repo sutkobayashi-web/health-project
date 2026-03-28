@@ -129,18 +129,22 @@ router.get('/daily-greeting', async (req, res) => {
     const weekday = ['日','月','火','水','木','金','土'][d.getDay()];
     const dateStr = `${month}月${day}日（${weekday}）`;
 
-    const prompt = `今日は${dateStr}です。${weatherText ? '天気情報: ' + weatherText : ''}
+    const weatherField = weatherText
+      ? `\n  "weather": "天気と気温を絵文字付きで15文字以内にまとめる",`
+      : '';
+    const weatherInstruction = weatherText ? '\n天気情報: ' + weatherText : '';
 
-以下の3つを簡潔に生成してください。JSON形式で返してください。
+    const prompt = `今日は${dateStr}です。${weatherInstruction}
+
+以下を簡潔に生成してください。JSON形式で返してください。
 
 {
   "dateInfo": "${dateStr}の記念日や歴史的出来事を1つ選び、20文字以内で紹介（例: 三ツ矢の日🥤）",
-  "dateFact": "その記念日・出来事の簡単な説明を30文字以内で",
-  "weather": "天気情報があれば天気と気温を絵文字付きで15文字以内にまとめる。なければ空文字",
-  "healthTip": "今の季節・天気に合った健康アドバイスを40文字以内で1つ。具体的な行動を提案"
+  "dateFact": "その記念日・出来事の簡単な説明を30文字以内で",${weatherField}
+  "healthTip": "今の季節に合った健康アドバイスを40文字以内で1つ。具体的な行動を提案"
 }
 
-必ず有効なJSONのみ返してください。コードブロックや説明は不要です。`;
+必ず有効なJSONのみ返してください。コードブロックや説明は不要です。weatherフィールドがない場合は天気情報を生成しないでください。`;
 
     const aiResult = await callAIWithFallback(
       'あなたは日本の記念日・歴史に詳しいアシスタントです。正確な情報を簡潔に返してください。',

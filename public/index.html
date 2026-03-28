@@ -3707,6 +3707,12 @@ var DEFAULT_BUDDY = {
 function initBuddy() {
   if (!currentUser) return;
 
+  // バディー画面を表示状態にする
+  var buddyScreen = document.getElementById('buddy-chat-screen');
+  if (buddyScreen) buddyScreen.style.display = 'flex';
+  var mainContent = document.querySelector('.main-content');
+  if (mainContent) mainContent.style.display = 'none';
+
   // バディーデータ読み込み（localStorage優先→サーバー→デフォルト）
   var buddyData = null;
   try { buddyData = JSON.parse(localStorage.getItem('co_heart_buddy')); } catch(e) {}

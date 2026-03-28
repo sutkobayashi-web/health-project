@@ -3876,18 +3876,37 @@ function checkBuddyTopic() {
 
 function saveBuddyMemo(btn) {
   if (!currentUser || !currentUser.uid) return;
-  var text = btn.getAttribute('data-text');
+  var memoId = btn.getAttribute('data-memo-id');
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-  fetch('/api/chat/save-memo', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
-    body: JSON.stringify({ uid: currentUser.uid, memoText: text })
-  }).then(function(r) { return r.json(); }).then(function() {
-    btn.innerHTML = '<i class="fas fa-check"></i> 保存済み';
-    btn.classList.add('saved');
-  }).catch(function() {
-    btn.innerHTML = '<i class="fas fa-bookmark"></i> メモ';
-  });
+
+  if (memoId) {
+    // 既に保存済み → 削除
+    fetch('/api/chat/delete-memo', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
+      body: JSON.stringify({ memoId: Number(memoId) })
+    }).then(function(r) { return r.json(); }).then(function() {
+      btn.removeAttribute('data-memo-id');
+      btn.innerHTML = '<i class="far fa-bookmark"></i> メモ';
+      btn.classList.remove('saved');
+    }).catch(function() {
+      btn.innerHTML = '<i class="fas fa-bookmark"></i> 保存済み';
+    });
+  } else {
+    // 未保存 → 保存
+    var text = btn.getAttribute('data-text');
+    fetch('/api/chat/save-memo', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
+      body: JSON.stringify({ uid: currentUser.uid, memoText: text })
+    }).then(function(r) { return r.json(); }).then(function(data) {
+      btn.setAttribute('data-memo-id', data.id);
+      btn.innerHTML = '<i class="fas fa-bookmark"></i> 保存済み';
+      btn.classList.add('saved');
+    }).catch(function() {
+      btn.innerHTML = '<i class="far fa-bookmark"></i> メモ';
+    });
+  }
 }
 
 var _buddyQuickId = 0;
@@ -4006,7 +4025,7 @@ function addBuddyMessage(role, text) {
 
   var div = document.createElement('div');
   div.className = 'buddy-msg ' + (isAI ? 'ai' : 'user');
-  var memoBtn = isAI ? '<button class="buddy-memo-btn" onclick="saveBuddyMemo(this)" data-text="' + text.replace(/"/g, '&quot;').replace(/'/g, '&#39;') + '"><i class="fas fa-bookmark"></i> メモ</button>' : '';
+  var memoBtn = isAI ? '<button class="buddy-memo-btn" onclick="saveBuddyMemo(this)" data-text="' + text.replace(/"/g, '&quot;').replace(/'/g, '&#39;') + '"><i class="far fa-bookmark"></i> メモ</button>' : '';
   div.innerHTML = '<div class="buddy-avatar">' + (isAI ? aiAvatar : getAvatarHtml(currentUser.avatar, 38)) + '</div>' +
     '<div style="flex:1;min-width:0;"><div class="buddy-bubble">' + bubbleContent + '</div>' +
     '<div class="buddy-time">' + time + memoBtn + '</div></div>';

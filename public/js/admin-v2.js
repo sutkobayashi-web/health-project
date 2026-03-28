@@ -236,9 +236,10 @@ function renderV2Dashboard() {
           html += '<div style="margin-top:6px;padding-top:6px;border-top:1px solid #eee;">';
           html += '<div style="font-size:0.65rem;color:#999;margin-bottom:4px;">案D以降: メンバーからの自由提案</div>';
           html += '<div id="custom-plans-' + t.theme_id + '"></div>';
-          html += '<div class="d-flex gap-1 mt-1">';
-          html += '<input type="text" id="custom-plan-title-' + t.theme_id + '" class="form-control form-control-sm" placeholder="プラン名" style="font-size:0.72rem;flex:2;">';
-          html += '<input type="text" id="custom-plan-desc-' + t.theme_id + '" class="form-control form-control-sm" placeholder="概要（任意）" style="font-size:0.72rem;flex:3;">';
+          html += '<div class="d-flex gap-1 mt-1 flex-wrap">';
+          html += '<input type="text" id="custom-plan-title-' + t.theme_id + '" class="form-control form-control-sm" placeholder="プラン名" style="font-size:0.72rem;flex:2;min-width:80px;">';
+          html += '<input type="text" id="custom-plan-desc-' + t.theme_id + '" class="form-control form-control-sm" placeholder="概要" style="font-size:0.72rem;flex:3;min-width:100px;">';
+          html += '<input type="text" id="custom-plan-kpi-' + t.theme_id + '" class="form-control form-control-sm" placeholder="KPI" style="font-size:0.72rem;flex:1;min-width:60px;">';
           html += '<button class="btn btn-sm btn-warning" style="font-size:0.65rem;white-space:nowrap;" onclick="postCustomPlan(\'' + t.theme_id + '\')"><i class="fas fa-plus"></i></button>';
           html += '</div></div>';
           html += '</div>';
@@ -375,6 +376,7 @@ function loadCustomPlans(themeId) {
       html += '<div style="padding:5px 8px;margin-bottom:4px;background:white;border-radius:6px;border-left:3px solid #9c27b0;">';
       html += '<div style="font-size:0.7rem;font-weight:700;color:#9c27b0;">案' + letter + ': ' + escapeHtml(p.title) + ' <span style="font-size:0.6rem;color:#bbb;">(' + escapeHtml(p.member_name) + ')</span></div>';
       if (p.description) html += '<div style="font-size:0.65rem;color:#555;">' + escapeHtml(p.description) + '</div>';
+      if (p.kpi) html += '<div style="font-size:0.62rem;color:#888;">KPI: ' + escapeHtml(p.kpi) + '</div>';
       // 共感ボタン
       var countsMap = {};
       (p.empathy || []).forEach(function(e) { countsMap[e.empathy_type] = e.count; });
@@ -399,12 +401,13 @@ function postCustomPlan(themeId) {
   var descInput = document.getElementById('custom-plan-desc-' + themeId);
   if (!titleInput || !titleInput.value.trim()) { alert('プラン名を入力してください'); return; }
   var memberName = currentAdminProfile ? currentAdminProfile.name : '不明';
+  var kpiInput = document.getElementById('custom-plan-kpi-' + themeId);
   fetch('/api/themes/custom-plan', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getAdminToken() },
-    body: JSON.stringify({ themeId: themeId, memberName: memberName, title: titleInput.value.trim(), description: (descInput ? descInput.value.trim() : '') })
+    body: JSON.stringify({ themeId: themeId, memberName: memberName, title: titleInput.value.trim(), description: (descInput ? descInput.value.trim() : ''), kpi: (kpiInput ? kpiInput.value.trim() : '') })
   }).then(function(r) { return r.json(); }).then(function(data) {
-    if (data.success) { titleInput.value = ''; if (descInput) descInput.value = ''; loadCustomPlans(themeId); }
+    if (data.success) { titleInput.value = ''; if (descInput) descInput.value = ''; if (kpiInput) kpiInput.value = ''; loadCustomPlans(themeId); }
   });
 }
 

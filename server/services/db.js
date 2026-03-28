@@ -156,9 +156,11 @@ function getDb() {
       member_name TEXT NOT NULL,
       title TEXT NOT NULL,
       description TEXT,
+      kpi TEXT DEFAULT '',
       created_at TEXT DEFAULT (datetime('now'))
     )`);
   } catch(e) {}
+  try { db.exec("ALTER TABLE theme_custom_plans ADD COLUMN kpi TEXT DEFAULT ''"); } catch(e) {}
 
   // 自由提案共感テーブル
   try {

@@ -368,7 +368,8 @@ router.post('/custom-plan', (req, res) => {
     const { themeId, memberName, title, description } = req.body;
     if (!themeId || !title) return res.json({ success: false, msg: 'missing params' });
     const db = getDb();
-    const result = db.prepare('INSERT INTO theme_custom_plans (theme_id, member_name, title, description) VALUES (?, ?, ?, ?)').run(themeId, memberName || '不明', title, description || '');
+    const { kpi } = req.body;
+    const result = db.prepare('INSERT INTO theme_custom_plans (theme_id, member_name, title, description, kpi) VALUES (?, ?, ?, ?, ?)').run(themeId, memberName || '不明', title, description || '', kpi || '');
     res.json({ success: true, id: result.lastInsertRowid });
   } catch (e) { res.json({ success: false, msg: e.message }); }
 });

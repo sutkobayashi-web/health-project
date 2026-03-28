@@ -220,6 +220,7 @@ function loadAmbCustomPlans(themeId) {
       html += '<div class="p-2 mb-1" style="background:#f8f8f8;border-radius:8px;border-left:3px solid #9c27b0;">';
       html += '<div class="small fw-bold" style="color:#9c27b0;">案' + letter + ': ' + escapeHtml(p.title) + ' <span style="color:#bbb;font-weight:400;">(' + escapeHtml(p.member_name) + ')</span></div>';
       if (p.description) html += '<div class="small text-muted">' + escapeHtml(p.description) + '</div>';
+      if (p.kpi) html += '<div class="small text-muted">KPI: ' + escapeHtml(p.kpi) + '</div>';
       // 共感データ
       var empCounts = p.empathy || [];
       if (empCounts.length > 0) {

@@ -86,6 +86,19 @@ router.get('/buddy-history/:uid', (req, res) => {
   }
 });
 
+// バディーチャット履歴削除
+router.post('/buddy-history/clear', (req, res) => {
+  try {
+    const { uid } = req.body;
+    if (!uid) return res.json({ success: false, msg: 'uid required' });
+    const db = getDb();
+    db.prepare("DELETE FROM buddy_messages WHERE user_id = ?").run(uid);
+    res.json({ success: true });
+  } catch (e) {
+    res.json({ success: false, msg: e.message });
+  }
+});
+
 // デイリーグリーティング（今日は何の日 + 天気 + 季節の健康トピック）
 let _dailyGreetingCache = { date: '', data: null };
 

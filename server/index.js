@@ -250,6 +250,9 @@ app.get('/whitepaper', (req, res) => {
 // SPA フォールバック (ユーザー画面)
 app.get('*', (req, res) => {
   if (req.path.startsWith('/api/') || req.path.startsWith('/uploads/')) return;
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
   res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
 });
 

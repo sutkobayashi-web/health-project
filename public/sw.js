@@ -1,5 +1,6 @@
 // Service Worker - Network First (常に最新を取得、オフライン時のみキャッシュ使用)
-const CACHE_NAME = 'cowell-health-v4';
+// CACHE_NAME を変更するとSWが自動更新される
+const CACHE_NAME = 'cowell-health-20260328b';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();

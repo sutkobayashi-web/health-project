@@ -286,8 +286,10 @@ async function chatWithNurse(userMessage, history, userName) {
         activeChallenges.forEach(c => {
           challengeInfo += `- ${c.icon || '💪'} ${c.title}: ${c.description || ''}（${c.period_start || ''}〜${c.period_end || ''}）\n`;
         });
-        challengeInfo += '→ 会話の内容がチャレンジのテーマに関連する場合、「今ちょうどこんなチャレンジをやってるよ！参加してみない？」と自然に紹介する\n';
-        challengeInfo += '→ 押し付けず、興味を持たせる程度に。「メニュータブから参加できるよ」と案内する\n';
+        challengeInfo += '→ 会話の内容がチャレンジのテーマに関連する場合、チャレンジを自然に紹介する\n';
+        challengeInfo += '→ 【重要】チャレンジを紹介する際は、必ず上記の正確なタイトル（「」で囲んで）を本文に含めること。タイトルを言い換えたり省略しないこと\n';
+        challengeInfo += '→ 例: 「今ちょうど「〇〇チャレンジ」をやってるよ！メニュータブから参加できるよ」\n';
+        challengeInfo += '→ 押し付けず、興味を持たせる程度に\n';
         // チャレンジ反応データ（温度感）
         activeChallenges.forEach(c => {
           try {

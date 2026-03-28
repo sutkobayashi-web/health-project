@@ -2101,9 +2101,9 @@ function updateHeaderStats() {
     var prRank = document.getElementById('profile-rank');
     if (prRank) prRank.innerHTML = getRankBadgeHtml(res.rank);
     var prPosts = document.getElementById('profile-posts');
-    if (prPosts) prPosts.innerHTML = '<i class="fas fa-pen"></i> 投稿数 ' + res.postCount;
+    if (prPosts) prPosts.innerHTML = '<i class="fas fa-pen"></i> 投稿数 ' + res.postCount + (res.postRankPos ? '<span style="color:#667eea;">（' + res.postRankPos + '位）</span>' : '');
     var prInvites = document.getElementById('profile-invites');
-    if (prInvites) prInvites.innerHTML = '<i class="fas fa-user-plus"></i> 紹介者数 ' + (res.inviteCount || 0);
+    if (prInvites) prInvites.innerHTML = '<i class="fas fa-user-plus"></i> 紹介者数 ' + (res.inviteCount || 0) + (res.inviteRankPos ? '<span style="color:#667eea;">（' + res.inviteRankPos + '位）</span>' : '');
   });
 }
 

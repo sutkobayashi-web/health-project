@@ -290,7 +290,20 @@ router.get('/stats/:uid', (req, res) => {
     else if (postCount >= 30) { rank = 'Gold'; next = 50; }
     else if (postCount >= 10) { rank = 'Silver'; next = 30; }
     else if (postCount >= 5) { rank = 'Bronze'; next = 10; }
-    res.json({ success: true, inviteCount, postCount, rank, nextTarget: next });
+    // 順位算出
+    const postRankPos = db.prepare(`
+      SELECT COUNT(*) + 1 as pos FROM (
+        SELECT user_id, COUNT(*) as cnt FROM posts GROUP BY user_id
+        HAVING cnt > (SELECT COUNT(*) FROM posts WHERE user_id = ?)
+      )
+    `).get(uid).pos;
+    const inviteRankPos = db.prepare(`
+      SELECT COUNT(*) + 1 as pos FROM (
+        SELECT inviter_id, COUNT(*) as cnt FROM users WHERE inviter_id IS NOT NULL GROUP BY inviter_id
+        HAVING cnt > (SELECT COUNT(*) FROM users WHERE inviter_id = ?)
+      )
+    `).get(uid).pos;
+    res.json({ success: true, inviteCount, postCount, rank, nextTarget: next, postRankPos, inviteRankPos });
   } catch (e) {
     res.json({ success: false, error: e.toString() });
   }

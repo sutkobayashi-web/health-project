@@ -1361,6 +1361,18 @@ function abToggleAcc(idx, previewCanvasId) {
 (function() {
   var savedNick = localStorage.getItem('co_heart_user_nick');
   var savedPass = localStorage.getItem('co_heart_user_pass');
+  // ログアウト後は自動ログインしない（ログインボタンで入る）
+  if (localStorage.getItem('co_heart_no_autologin')) {
+    if (savedNick && savedPass) {
+      setTimeout(function() {
+        var nickInput = document.getElementById('login-nickname');
+        var passInput = document.getElementById('login-password');
+        if (nickInput) nickInput.value = savedNick;
+        if (passInput) passInput.value = savedPass;
+      }, 100);
+    }
+    return;
+  }
   if (savedNick && savedPass) {
     function autoLogin() {
       var nickInput = document.getElementById('login-nickname');
@@ -1406,8 +1418,8 @@ function doUserLogout() {
       body: JSON.stringify({ uid: currentUser.uid })
     }).catch(function(){});
   }
-  // 自動ログイン用パスワードを削除（ログイン画面で止まるように）
-  localStorage.removeItem('co_heart_user_pass');
+  // 自動ログインを無効化（次回はログインボタンをタップ必要）
+  localStorage.setItem('co_heart_no_autologin', '1');
   localStorage.removeItem('co_heart_user_data');
   currentUser = null;
   // AI相談チャットをリセット
@@ -1869,6 +1881,8 @@ function skipOnboarding() {
 function onLoginSuccess() {
   document.getElementById('auth-modal').style.display = 'none';
   document.getElementById('main-app').style.display = 'block';
+  // 自動ログイン抑制フラグをクリア（次回通常起動時は自動ログイン復活）
+  localStorage.removeItem('co_heart_no_autologin');
   // 初回オンボーディング
   if (!localStorage.getItem('co_heart_onboarded')) {
     showOnboarding();

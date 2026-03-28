@@ -5607,7 +5607,6 @@ function renderChallengeEntry(c, cid) {
   var subEl = document.getElementById('ch-subtitle-' + cid);
   if (subEl) subEl.innerText = (c.participantCount || 0) + '名が参加予定';
   var html = '<div style="text-align:center; padding:10px;">';
-  html += renderQuoCardBanner();
   html += '<div style="font-size:0.88rem; color:#444; line-height:1.7; margin-bottom:14px;">' + escapeHtml(c.description || '') + '</div>';
   // アンバサダー助言があれば表示
   if (c.ambassador_advice_plan) {
@@ -5659,8 +5658,6 @@ function renderChallengeRecordForm(res, cid) {
   html += '<input type="text" id="kpi-comment-' + cid + '" placeholder="コメント（任意）" style="width:100%; border:1px solid #ddd; border-radius:10px; padding:8px 12px; font-size:0.82rem; margin-bottom:10px;">';
   html += '<button onclick="doRecordKpi(\'' + cid + '\')" style="width:100%; background:linear-gradient(135deg,#1e88e5,#42a5f5); color:white; border:none; border-radius:10px; padding:10px; font-size:0.9rem; font-weight:800; cursor:pointer;"><i class="fas fa-check"></i> 記録する</button>';
   html += '</div>';
-  // 褒賞バナー
-  html += renderQuoCardBanner();
   // ランキングボタン
   html += '<div style="display:flex; gap:8px;">';
   html += '<button onclick="showChallengeRanking(\'' + cid + '\')" style="flex:1; background:white; border:2px solid #667eea; color:#667eea; border-radius:10px; padding:8px; font-size:0.8rem; font-weight:700; cursor:pointer;"><i class="fas fa-trophy"></i> ランキング</button>';

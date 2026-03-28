@@ -322,9 +322,14 @@ function aggregateCheckupData(allData) {
   var total = allData.length;
   if (total === 0) return null;
 
-  // 判定カウント（要受診/要精検/要治療を異常とする）
-  var abnormalKeywords = ['要受診', '要精検', '要治療', 'D', 'E', 'D1', 'D2', 'E1'];
-  function isAbnormal(val) { return abnormalKeywords.some(function(k) { return String(val).indexOf(k) !== -1; }); }
+  // 判定カウント（●=要受診、▲=要注意、★=要経過観察 を異常とする）
+  function isAbnormal(val) {
+    if (!val) return false;
+    var s = String(val).trim();
+    if (s === '') return false;
+    // ●（要受診）または▲（要注意）が含まれていれば異常
+    return s.indexOf('●') !== -1 || s.indexOf('▲') !== -1 || s.indexOf('★') !== -1;
+  }
 
   var counts = { 肥満: 0, 高血圧: 0, 脂質異常: 0, 高血糖: 0, 肝機能: 0, 腎機能: 0, 貧血: 0 };
   var bmiOver25 = 0;
@@ -353,38 +358,6 @@ function aggregateCheckupData(allData) {
     rates: Object.fromEntries(Object.entries(counts).map(function(e) { return [e[0], Math.round(e[1] / total * 100)]; }))
   };
 }
-
-// デバッグ: 判定値サンプル確認
-router.get('/debug-judgments', async (req, res) => {
-  try {
-    const token = await getBoxToken();
-    const items = await boxListFolder(token, CHECKUP_FOLDER_ID);
-    var yearFolders = items.filter(function(i) { return i.type === 'folder' && /\d{4}/.test(i.name); });
-    yearFolders.sort(function(a, b) { return b.name.localeCompare(a.name); });
-    if (yearFolders.length === 0) return res.json({ msg: 'no folders' });
-    var xlsmFiles = await findCheckupFiles(token, yearFolders[0].id, 0);
-    if (xlsmFiles.length === 0) return res.json({ msg: 'no files' });
-    var buffer = await boxDownloadFile(token, xlsmFiles[0].id);
-    var wb = XLSX.read(buffer, { type: 'buffer' });
-    var sheet = wb.Sheets['判定結果'];
-    if (!sheet) return res.json({ msg: 'no sheet' });
-    var data = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-    // ヘッダー行と最初の3データ行の判定列を返す
-    var header = (data[3] || []).slice(0, 25);
-    var samples = [];
-    for (var i = 4; i < Math.min(7, data.length); i++) {
-      var row = data[i];
-      if (!row) continue;
-      samples.push({
-        row: i,
-        cols_0_25: (row || []).slice(0, 25).map(function(v) { return v === undefined ? '' : String(v); })
-      });
-    }
-    res.json({ file: xlsmFiles[0].name, header: header, samples: samples });
-  } catch (e) {
-    res.json({ error: e.message });
-  }
-});
 
 // Admin用: 全社健診分析 + AI 3パターン提案
 router.get('/company-analysis', async (req, res) => {

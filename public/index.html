@@ -1347,6 +1347,14 @@ function openAdminFromUser() {
 // ★ ログアウト
 function doUserLogout() {
   if (!confirm("ログアウトしますか？")) return;
+  // バディーチャット履歴をサーバーから削除
+  if (currentUser && currentUser.uid) {
+    fetch('/api/chat/buddy-history/clear', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
+      body: JSON.stringify({ uid: currentUser.uid })
+    }).catch(function(){});
+  }
   // ニックネーム・パスワードは保持（次回プリセット用）
   localStorage.removeItem('co_heart_user_data');
   currentUser = null;

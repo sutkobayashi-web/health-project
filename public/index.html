@@ -4578,21 +4578,50 @@ function loadBuddyChallengeBar() {
       bar.style.display = 'none';
       return;
     }
-    var html = '<div onclick="switchAppTab(\'menu\');setTimeout(function(){' +
-      'var el=document.getElementById(\'challenge-combined-section\');if(el)el.scrollIntoView({behavior:\'smooth\'});' +
-      'toggleAccordion(\'challenge-combined-body\',\'challenge-combined-chevron\');' +
-      '},300);" style="background:rgba(255,255,255,0.95);border-radius:12px;padding:8px 10px;box-shadow:0 2px 10px rgba(0,0,0,0.12);cursor:pointer;min-width:140px;">';
-    html += '<div style="font-size:0.58rem;font-weight:800;color:#ff6b35;margin-bottom:5px;display:flex;align-items:center;gap:4px;"><i class="fas fa-fire"></i> チャレンジ</div>';
-    data.challenges.forEach(function(c) {
-      var recorded = c.todayRecorded;
-      var statusLabel = c.status === 'recruiting' ? '<span style="color:#1e88e5;">募集中</span>' : (recorded ? '<span style="color:#43a047;">✅済</span>' : '<span style="color:#e65100;">⏳未記録</span>');
-      var title = c.title.replace(/【デモ】/g, '');
-      html += '<div style="display:flex;align-items:center;gap:5px;padding:2px 0;border-top:1px solid #f0f0f0;">';
-      html += '<span style="font-size:0.75rem;">' + (c.icon || '💪') + '</span>';
-      html += '<span style="font-size:0.62rem;font-weight:700;color:#333;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + title + '</span>';
-      html += '<span style="font-size:0.58rem;font-weight:700;">' + statusLabel + '</span>';
+    // 開催中と募集中を分離
+    var active = data.challenges.filter(function(c) { return c.status === 'active'; });
+    var recruiting = data.challenges.filter(function(c) { return c.status === 'recruiting'; });
+
+    var html = '<div style="background:rgba(255,255,255,0.95);border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,0.12);min-width:130px;overflow:hidden;">';
+
+    // 開催中
+    if (active.length) {
+      html += '<div onclick="event.stopPropagation();var b=document.getElementById(\'cb-active\');b.style.display=b.style.display===\'none\'?\'block\':\'none\';" style="padding:6px 10px;cursor:pointer;display:flex;align-items:center;gap:4px;background:linear-gradient(135deg,#ff6b35,#ff9a5c);">';
+      html += '<i class="fas fa-fire" style="font-size:0.6rem;color:white;"></i>';
+      html += '<span style="font-size:0.62rem;font-weight:800;color:white;flex:1;">開催中</span>';
+      html += '<span style="font-size:0.55rem;color:rgba(255,255,255,0.8);">▼</span>';
       html += '</div>';
-    });
+      html += '<div id="cb-active" style="display:none;padding:4px 8px;">';
+      active.forEach(function(c) {
+        var icon = c.todayRecorded ? '✅' : '⏳';
+        var label = c.todayRecorded ? '<span style="color:#43a047;">済</span>' : '<span style="color:#e65100;">未記録</span>';
+        html += '<div onclick="event.stopPropagation();switchAppTab(\'menu\');setTimeout(function(){var el=document.getElementById(\'challenge-combined-section\');if(el)el.scrollIntoView({behavior:\'smooth\'});toggleAccordion(\'challenge-combined-body\',\'challenge-combined-chevron\');},300);" style="display:flex;align-items:center;gap:4px;padding:3px 0;cursor:pointer;">';
+        html += '<span style="font-size:0.7rem;">' + (c.icon || '💪') + '</span>';
+        html += '<span style="font-size:0.6rem;font-weight:700;color:#333;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + c.title.replace(/【デモ】/g,'') + '</span>';
+        html += '<span style="font-size:0.55rem;font-weight:700;">' + label + '</span>';
+        html += '</div>';
+      });
+      html += '</div>';
+    }
+
+    // 募集中
+    if (recruiting.length) {
+      html += '<div onclick="event.stopPropagation();var b=document.getElementById(\'cb-recruit\');b.style.display=b.style.display===\'none\'?\'block\':\'none\';" style="padding:6px 10px;cursor:pointer;display:flex;align-items:center;gap:4px;background:linear-gradient(135deg,#1e88e5,#42a5f5);' + (active.length ? 'border-top:1px solid rgba(255,255,255,0.3);' : '') + '">';
+      html += '<i class="fas fa-bullhorn" style="font-size:0.6rem;color:white;"></i>';
+      html += '<span style="font-size:0.62rem;font-weight:800;color:white;flex:1;">開催予定</span>';
+      html += '<span style="font-size:0.55rem;color:rgba(255,255,255,0.8);">▼</span>';
+      html += '</div>';
+      html += '<div id="cb-recruit" style="display:none;padding:4px 8px;">';
+      recruiting.forEach(function(c) {
+        html += '<div onclick="event.stopPropagation();switchAppTab(\'menu\');setTimeout(function(){var el=document.getElementById(\'challenge-combined-section\');if(el)el.scrollIntoView({behavior:\'smooth\'});toggleAccordion(\'challenge-combined-body\',\'challenge-combined-chevron\');},300);" style="display:flex;align-items:center;gap:4px;padding:3px 0;cursor:pointer;">';
+        html += '<span style="font-size:0.7rem;">' + (c.icon || '💪') + '</span>';
+        html += '<span style="font-size:0.6rem;font-weight:700;color:#333;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + c.title.replace(/【デモ】/g,'') + '</span>';
+        html += '<span style="font-size:0.55rem;font-weight:700;color:#1e88e5;">募集中</span>';
+        html += '</div>';
+      });
+      html += '</div>';
+    }
+
     html += '</div>';
     bar.innerHTML = html;
     bar.style.display = 'block';

@@ -561,6 +561,59 @@
   </div>
 </div>
 
+<!-- ====== オンボーディング ====== -->
+<div id="onboarding-overlay" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:9999;display:none;">
+  <div style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;">
+    <div id="onboarding-slides" style="max-width:360px;width:100%;position:relative;">
+      <!-- Slide 1 -->
+      <div class="ob-slide" data-slide="0">
+        <div style="text-align:center;padding:30px 20px;background:white;border-radius:20px;">
+          <div style="font-size:3rem;margin-bottom:16px;">🤝</div>
+          <div style="font-size:1.2rem;font-weight:900;color:#667eea;margin-bottom:12px;">ようこそ！CoWell Health へ</div>
+          <div style="font-size:0.88rem;color:#555;line-height:1.8;">このアプリは<br><strong style="color:#667eea;">あなたの声で職場の健康を変える</strong><br>仕組みです</div>
+        </div>
+      </div>
+      <!-- Slide 2 -->
+      <div class="ob-slide" data-slide="1" style="display:none;">
+        <div style="text-align:center;padding:30px 20px;background:white;border-radius:20px;">
+          <div style="font-size:3rem;margin-bottom:16px;">🤖💬</div>
+          <div style="font-size:1.1rem;font-weight:900;color:#0ea5e9;margin-bottom:12px;">ヘルスバディーに話そう</div>
+          <div style="font-size:0.85rem;color:#555;line-height:1.8;">AIバディーが毎日あなたの体調を聞いて<br>健康アドバイスをしてくれます<br><br><strong>個人へのアドバイス</strong>はバディーにおまかせ</div>
+        </div>
+      </div>
+      <!-- Slide 3 -->
+      <div class="ob-slide" data-slide="2" style="display:none;">
+        <div style="text-align:center;padding:30px 20px;background:white;border-radius:20px;">
+          <div style="font-size:3rem;margin-bottom:16px;">🛡️🏢</div>
+          <div style="font-size:1.1rem;font-weight:900;color:#d63384;margin-bottom:12px;">推進メンバーに届けよう</div>
+          <div style="font-size:0.85rem;color:#555;line-height:1.8;">AIだけでは解決できない職場の課題は<br>推進メンバーに届けられます<br><br><strong style="color:#d63384;">会社の仕組みを変える</strong>のは推進メンバー</div>
+        </div>
+      </div>
+      <!-- Slide 4 -->
+      <div class="ob-slide" data-slide="3" style="display:none;">
+        <div style="text-align:center;padding:30px 20px;background:white;border-radius:20px;">
+          <div style="font-size:2rem;margin-bottom:12px;">📢 → 🗳️ → 💪</div>
+          <div style="font-size:1.1rem;font-weight:900;color:#ff6b35;margin-bottom:12px;">声がチャレンジになる！</div>
+          <div style="font-size:0.85rem;color:#555;line-height:1.8;">
+            <strong>①</strong> あなたの声を投稿<br>
+            <strong>②</strong> みんなでテーマを投票<br>
+            <strong>③</strong> チャレンジで楽しく実践<br><br>
+            <strong style="color:#ff6b35;">あなたの一言が職場を変える</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- ナビゲーション -->
+    <div style="margin-top:20px;display:flex;align-items:center;gap:16px;">
+      <div id="ob-dots" style="display:flex;gap:8px;"></div>
+    </div>
+    <div style="margin-top:16px;display:flex;gap:12px;">
+      <button onclick="skipOnboarding()" style="padding:10px 20px;background:rgba(255,255,255,0.2);color:white;border:1px solid rgba(255,255,255,0.4);border-radius:20px;font-size:0.82rem;cursor:pointer;">スキップ</button>
+      <button id="ob-next-btn" onclick="nextOnboardingSlide()" style="padding:10px 28px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;border-radius:20px;font-size:0.88rem;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(102,126,234,0.4);">次へ</button>
+    </div>
+  </div>
+</div>
+
 <div id="main-app" style="display:none;">
   <div id="ptr-indicator" style="position:fixed;top:0;left:0;right:0;z-index:9999;display:flex;align-items:center;justify-content:center;height:0;overflow:hidden;background:linear-gradient(135deg,#667eea,#764ba2);pointer-events:none;">
     <div style="color:white;font-size:0.85rem;font-weight:700;display:flex;align-items:center;gap:8px;"><i class="fas fa-sync-alt" id="ptr-icon"></i><span id="ptr-text">引っ張って更新</span></div>
@@ -650,6 +703,45 @@
       <span id="profile-posts"></span>
       <span id="profile-invites"></span>
       <span id="profile-dept"></span>
+    </div>
+
+    <!-- このアプリの仕組み -->
+    <div class="card-section" style="background:linear-gradient(135deg,#f3e5f5,#ede7f6); border:2px solid #9c27b0; box-shadow:0 4px 16px rgba(156,39,176,0.12);">
+      <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="toggleAccordion('howto-body','howto-chevron')">
+        <div style="display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#9c27b0,#ba68c8);flex-shrink:0;"><i class="fas fa-lightbulb" style="font-size:22px;color:#fff;"></i></div>
+        <div style="flex:1;">
+          <div class="section-title" style="margin-bottom:2px; padding-bottom:3px; border-bottom:2px solid rgba(156,39,176,0.2);"><i class="fas fa-lightbulb"></i> このアプリの仕組み</div>
+          <div style="font-size:0.75rem; color:#999;">あなたの声が職場を変える</div>
+        </div>
+      </div>
+      <div id="howto-body" style="display:none; margin-top:12px; padding-top:12px; border-top:1px solid rgba(156,39,176,0.2);">
+        <!-- フロー図 -->
+        <div style="background:white;border-radius:14px;padding:16px;margin-bottom:12px;">
+          <div style="display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;margin-bottom:14px;">
+            <div style="text-align:center;"><div style="font-size:1.5rem;">📢</div><div style="font-size:0.65rem;font-weight:700;color:#555;">声を投稿</div></div>
+            <div style="color:#bbb;">→</div>
+            <div style="text-align:center;"><div style="font-size:1.5rem;">🤖</div><div style="font-size:0.65rem;font-weight:700;color:#555;">AI凝集</div></div>
+            <div style="color:#bbb;">→</div>
+            <div style="text-align:center;"><div style="font-size:1.5rem;">🗳️</div><div style="font-size:0.65rem;font-weight:700;color:#555;">みんなで投票</div></div>
+            <div style="color:#bbb;">→</div>
+            <div style="text-align:center;"><div style="font-size:1.5rem;">💪</div><div style="font-size:0.65rem;font-weight:700;color:#555;">チャレンジ！</div></div>
+          </div>
+          <!-- 役割の違い -->
+          <div style="display:flex;gap:8px;margin-bottom:10px;">
+            <div style="flex:1;background:linear-gradient(135deg,#e3f2fd,#bbdefb);border-radius:10px;padding:10px;text-align:center;">
+              <div style="font-size:1.2rem;">🤖</div>
+              <div style="font-size:0.72rem;font-weight:800;color:#0d47a1;margin:4px 0;">AIバディー</div>
+              <div style="font-size:0.68rem;color:#555;">あなた個人への<br>健康アドバイス</div>
+            </div>
+            <div style="flex:1;background:linear-gradient(135deg,#fce4ec,#f8bbd0);border-radius:10px;padding:10px;text-align:center;">
+              <div style="font-size:1.2rem;">🛡️</div>
+              <div style="font-size:0.72rem;font-weight:800;color:#b0003a;margin:4px 0;">推進メンバー</div>
+              <div style="font-size:0.68rem;color:#555;">職場の仕組みを<br>変えるアクション</div>
+            </div>
+          </div>
+          <div style="text-align:center;font-size:0.75rem;color:#9c27b0;font-weight:700;">バディーに話す → 推進メンバーに届く → みんなで投票 → チャレンジ化</div>
+        </div>
+      </div>
     </div>
 
     <!-- テーマ投票 -->
@@ -1771,9 +1863,55 @@ function toggleFontSize() {
 }
 initFontSize();
 
+// ===== オンボーディング =====
+var _obSlide = 0;
+var _obTotal = 4;
+function showOnboarding() {
+  var overlay = document.getElementById('onboarding-overlay');
+  overlay.style.display = 'block';
+  _obSlide = 0;
+  renderObDots();
+  showObSlide(0);
+}
+function renderObDots() {
+  var html = '';
+  for (var i = 0; i < _obTotal; i++) {
+    html += '<div style="width:8px;height:8px;border-radius:50%;background:' + (i === _obSlide ? 'white' : 'rgba(255,255,255,0.3)') + ';transition:background 0.2s;"></div>';
+  }
+  document.getElementById('ob-dots').innerHTML = html;
+}
+function showObSlide(n) {
+  document.querySelectorAll('.ob-slide').forEach(function(el) { el.style.display = 'none'; });
+  var slide = document.querySelector('.ob-slide[data-slide="' + n + '"]');
+  if (slide) slide.style.display = 'block';
+  var btn = document.getElementById('ob-next-btn');
+  if (n >= _obTotal - 1) {
+    btn.textContent = 'はじめる！';
+  } else {
+    btn.textContent = '次へ';
+  }
+  renderObDots();
+}
+function nextOnboardingSlide() {
+  _obSlide++;
+  if (_obSlide >= _obTotal) {
+    skipOnboarding();
+  } else {
+    showObSlide(_obSlide);
+  }
+}
+function skipOnboarding() {
+  document.getElementById('onboarding-overlay').style.display = 'none';
+  localStorage.setItem('co_heart_onboarded', '1');
+}
+
 function onLoginSuccess() {
   document.getElementById('auth-modal').style.display = 'none';
   document.getElementById('main-app').style.display = 'block';
+  // 初回オンボーディング
+  if (!localStorage.getItem('co_heart_onboarded')) {
+    showOnboarding();
+  }
   updateStatAvatar();
   document.getElementById('stat-nickname').innerText = currentUser.nickname || '--';
   updateProfileCard();
@@ -3834,6 +3972,24 @@ function startBuddyChatFresh(buddyData) {
     }
     msg += '\n\nさて、今日の調子はいかがですか？';
     addBuddyMessage('ai', msg);
+
+    // 初回のみ仕組み説明
+    if (!localStorage.getItem('co_heart_buddy_intro')) {
+      localStorage.setItem('co_heart_buddy_intro', '1');
+      setTimeout(function() {
+        addBuddyMessage('ai', 'はじめに少しだけ、このアプリの仕組みを紹介させてね！');
+        setTimeout(function() {
+          addBuddyMessage('ai', '🤖 私（バディー）は「あなた個人」の健康アドバイスが得意だよ。体調相談、食事、睡眠、なんでも聞いてね！\n\n🛡️ でも「職場の環境を変えたい」時は推進メンバーの出番！チャットの中で「推進メンバーに相談」を選ぶと、あなたの声が届くよ。\n\n📢→🗳️→💪 届いた声はテーマ候補になって、みんなの投票でチャレンジに変わるんだ！\n\nあなたの一言が、職場を変える力になるよ✨');
+          setTimeout(function() {
+            addBuddyInlineQuick('<div style="display:flex;justify-content:center;gap:8px;padding:4px 0;">' +
+              '<div class="buddy-quick-btn" onclick="markBuddyQuickUsed();addBuddyMessage(\'user\',\'わかった！\');setTimeout(function(){checkBuddyTopic();},500);" style="border-color:#667eea;color:#667eea;">👍 わかった！</div>' +
+            '</div>');
+          }, 600);
+        }, 800);
+      }, 1000);
+      return;
+    }
+
     loadBuddyNotices();
     setTimeout(function() { checkBuddyTopic(); }, 800);
   }).catch(function() {
@@ -5236,7 +5392,7 @@ function toggleAccordion(bodyId, labelId) {
     body.style.cssText = body.style.cssText.replace(/display:\s*block/i, 'display:none');
   } else {
     // メインメニューの場合のみ排他制御（サブアコーディオンはスキップ）
-    var mainBodies = ['vote-body','challenge-combined-body','honne-body','food-body','checkup-body','memo-body','elearn-body','qr-body'];
+    var mainBodies = ['howto-body','vote-body','challenge-combined-body','honne-body','food-body','checkup-body','memo-body','elearn-body','qr-body'];
     if (mainBodies.indexOf(bodyId) !== -1) {
       mainBodies.forEach(function(id) {
         if (id !== bodyId) {
@@ -5249,7 +5405,7 @@ function toggleAccordion(bodyId, labelId) {
     }
     body.style.cssText = body.style.cssText.replace(/display:\s*none/i, 'display:block');
     // メインメニューのみ最下部に閉じるボタンを追加（サブは除外）
-    var mainBodiesForClose = ['vote-body','challenge-combined-body','honne-body','food-body','checkup-body','memo-body','elearn-body','qr-body'];
+    var mainBodiesForClose = ['howto-body','vote-body','challenge-combined-body','honne-body','food-body','checkup-body','memo-body','elearn-body','qr-body'];
     if (mainBodiesForClose.indexOf(bodyId) !== -1 && !body.querySelector('.accordion-close-btn')) {
       var btn = document.createElement('div');
       btn.className = 'accordion-close-btn';

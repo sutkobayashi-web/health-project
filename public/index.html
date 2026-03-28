@@ -6078,7 +6078,10 @@ function renderChallengeRecordForm(res, cid) {
     html += '</div>';
   });
   html += '<input type="text" id="kpi-comment-' + cid + '" placeholder="コメント（任意）" style="width:100%; border:1px solid #ddd; border-radius:10px; padding:8px 12px; font-size:0.82rem; margin-bottom:10px;">';
-  html += '<button onclick="doRecordKpi(\'' + cid + '\')" style="width:100%; background:linear-gradient(135deg,#1e88e5,#42a5f5); color:white; border:none; border-radius:10px; padding:10px; font-size:0.9rem; font-weight:800; cursor:pointer;"><i class="fas fa-check"></i> 記録する</button>';
+  html += '<div style="display:flex;gap:8px;">';
+  html += '<button onclick="doRecordKpi(\'' + cid + '\')" style="flex:1; background:linear-gradient(135deg,#1e88e5,#42a5f5); color:white; border:none; border-radius:10px; padding:10px; font-size:0.9rem; font-weight:800; cursor:pointer;"><i class="fas fa-check"></i> 記録する</button>';
+  html += '<button onclick="resetKpiForm(\'' + cid + '\')" style="padding:10px 14px; background:#f5f5f5; border:none; border-radius:10px; font-size:0.82rem; color:#667eea; font-weight:700; cursor:pointer;"><i class="fas fa-undo"></i> やり直す</button>';
+  html += '</div>';
   html += '</div>';
   // ランキングボタン
   html += '<div style="display:flex; gap:8px;">';
@@ -6134,8 +6137,11 @@ function veggieAnswer(cid, ate) {
     '</div>';
     return;
   }
-  // 食べた → Step2表示
-  document.getElementById('veggie-step1-' + cid).innerHTML = '<div style="text-align:center;padding:8px;color:#43a047;font-weight:700;font-size:0.82rem;"><i class="fas fa-check-circle"></i> 食べた！どうやって記録する？</div>';
+  // 食べた → Step2表示 + やり直し
+  document.getElementById('veggie-step1-' + cid).innerHTML = '<div style="text-align:center;padding:8px;">' +
+    '<div style="color:#43a047;font-weight:700;font-size:0.82rem;"><i class="fas fa-check-circle"></i> 食べた！どうやって記録する？</div>' +
+    '<button onclick="veggieReset(\'' + cid + '\')" style="margin-top:6px;background:none;border:1.5px solid #667eea;color:#667eea;border-radius:16px;padding:4px 14px;font-size:0.72rem;font-weight:700;cursor:pointer;"><i class="fas fa-undo"></i> やり直す</button>' +
+  '</div>';
   document.getElementById('veggie-step2-' + cid).style.display = 'block';
 }
 
@@ -6218,6 +6224,19 @@ function veggiePhotoSelected(cid) {
     });
   };
   reader.readAsDataURL(file);
+}
+
+function resetKpiForm(cid) {
+  kpiAnswers = {};
+  // チャレンジ詳細を再読み込みしてフォームをリセット
+  if (document.getElementById('chtab-detail-' + cid)) {
+    // チャレンジタブ内
+    toggleChallengeTabDetail(cid);
+    setTimeout(function() { toggleChallengeTabDetail(cid); }, 100);
+  } else {
+    // メニュー内
+    loadChallengeDetail(cid);
+  }
 }
 
 function doRecordKpi(cid) {

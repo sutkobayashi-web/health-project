@@ -1790,8 +1790,8 @@ function onLoginSuccess() {
   setInterval(loadMyUnread, 60000);
   // タブ状態復元
   try {
-    var savedTab = sessionStorage.getItem('healthCurrentTab');
-    if (savedTab && savedTab !== 'buddy') { setTimeout(function(){ switchAppTab(savedTab); }, 300); }
+    // ログイン後は常にバディーチャットから開始
+    sessionStorage.removeItem('healthCurrentTab');
   } catch(e) {}
 }
 

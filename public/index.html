@@ -5522,15 +5522,14 @@ function loadActiveChallenge() {
       var t = chThemes[idx % chThemes.length];
       var block = document.createElement('div');
       block.id = 'ch-block-' + cid;
-      if (idx > 0) block.style.marginTop = '12px';
+      block.style.cssText = (idx > 0 ? 'margin-top:12px;' : '') + 'border-radius:14px; border:1.5px solid ' + t.border + '; background:' + t.bg + '; overflow:hidden;';
       block.innerHTML =
-        '<div style="display:flex; align-items:center; gap:8px; cursor:pointer; padding:8px 10px; border-radius:12px; background:' + t.bg + '; border:1px solid ' + t.border + ';" onclick="event.stopPropagation();toggleAccordion(\'ch-body-' + cid + '\',\'ch-chevron-' + cid + '\')">' +
+        '<div style="display:flex; align-items:center; gap:8px; cursor:pointer; padding:10px 12px;" onclick="event.stopPropagation();toggleAccordion(\'ch-body-' + cid + '\',\'ch-chevron-' + cid + '\')">' +
           '<div style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,' + t.grad + ');flex-shrink:0;"><i class="' + t.icon + '" style="font-size:14px;color:#fff;"></i></div>' +
           '<div style="flex:1;"><div style="font-weight:700; font-size:0.88rem; color:' + t.color + ';" id="ch-title-' + cid + '"></div>' +
           '<div style="font-size:0.75rem; color:#999;" id="ch-subtitle-' + cid + '"></div></div>' +
-          '' +
         '</div>' +
-        '<div id="ch-body-' + cid + '" style="display:none; margin-top:10px;"></div>';
+        '<div id="ch-body-' + cid + '" style="display:none; padding:0 12px 12px;"></div>';
       container.appendChild(block);
       loadChallengeDetail(cid);
     });

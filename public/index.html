@@ -5845,13 +5845,17 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-// バージョンチェック: サーバーと不一致なら強制リロード
+// バージョンチェック: サーバーと不一致なら強制リロード（1回のみ）
 (function() {
   var localVer = document.documentElement.getAttribute('data-app-version') || '';
   function checkVersion() {
     fetch('/api/version').then(function(r) { return r.json(); }).then(function(data) {
       if (data && data.version && localVer && data.version !== localVer) {
-        window.location.reload(true);
+        // 連続リロード防止: 直近でリロード済みなら何もしない
+        var lastReload = sessionStorage.getItem('lastVersionReload');
+        if (lastReload && (Date.now() - parseInt(lastReload)) < 120000) return;
+        sessionStorage.setItem('lastVersionReload', Date.now().toString());
+        window.location.href = window.location.pathname + '?v=' + data.version;
       }
     }).catch(function() {});
   }

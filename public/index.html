@@ -3806,54 +3806,24 @@ function startBuddyChatFresh(buddyData) {
   var now = new Date();
   var fullDate = now.getFullYear() + '年' + (now.getMonth()+1) + '月' + now.getDate() + '日（' + ['日','月','火','水','木','金','土'][now.getDay()] + '）';
 
-  // 挨拶メッセージ
-  addBuddyMessage('ai', greeting + '、' + nickname + 'さん！\n今日は ' + fullDate + ' です📅');
-
-  // デイリーグリーティング取得 → 会話の流れで追加
+  // デイリーグリーティング取得 → 1つの吹き出しで表示
   fetch('/api/chat/daily-greeting', {
     headers: { 'Authorization': 'Bearer ' + getToken() }
   }).then(function(r) { return r.json(); }).then(function(data) {
+    var msg = greeting + '、' + nickname + 'さん！\n📅 ' + fullDate;
     if (data.success) {
-      var delay = 600;
-      // 今日は何の日
-      if (data.dateInfo || data.dateFact) {
-        setTimeout(function() {
-          var dayMsg = '知ってました？ 今日は';
-          if (data.dateInfo) dayMsg += '「' + data.dateInfo + '」';
-          if (data.dateFact) dayMsg += 'なんです！\n' + data.dateFact;
-          addBuddyMessage('ai', dayMsg);
-        }, delay);
-        delay += 800;
-      }
-      // 天気 + 健康アドバイス
-      if (data.weather || data.healthTip) {
-        setTimeout(function() {
-          var tipMsg = '';
-          if (data.weather) tipMsg += data.weather + '\n';
-          if (data.healthTip) tipMsg += '💡 ' + data.healthTip;
-          addBuddyMessage('ai', tipMsg.trim());
-        }, delay);
-        delay += 800;
-      }
-      // 体調チェックへ
-      setTimeout(function() {
-        addBuddyMessage('ai', 'さて、今日の調子はいかがですか？');
-        loadBuddyNotices();
-        setTimeout(function() { checkBuddyTopic(); }, 800);
-      }, delay);
-    } else {
-      setTimeout(function() {
-        addBuddyMessage('ai', '今日の調子はいかがですか？');
-        loadBuddyNotices();
-        setTimeout(function() { checkBuddyTopic(); }, 800);
-      }, 600);
+      if (data.dateInfo) msg += '\n\n今日は「' + data.dateInfo + '」' + (data.dateFact ? '\n' + data.dateFact : '');
+      if (data.weather) msg += '\n\n' + data.weather;
+      if (data.healthTip) msg += '\n💡 ' + data.healthTip;
     }
+    msg += '\n\nさて、今日の調子はいかがですか？';
+    addBuddyMessage('ai', msg);
+    loadBuddyNotices();
+    setTimeout(function() { checkBuddyTopic(); }, 800);
   }).catch(function() {
-    setTimeout(function() {
-      addBuddyMessage('ai', '今日の調子はいかがですか？');
-      loadBuddyNotices();
-      setTimeout(function() { checkBuddyTopic(); }, 800);
-    }, 600);
+    addBuddyMessage('ai', greeting + '、' + nickname + 'さん！\n📅 ' + fullDate + '\n\n今日の調子はいかがですか？');
+    loadBuddyNotices();
+    setTimeout(function() { checkBuddyTopic(); }, 800);
   });
 }
 

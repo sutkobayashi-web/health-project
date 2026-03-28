@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260328d">
+<html data-app-version="20260328e">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -4632,10 +4632,6 @@ function loadChallengeTabContent() {
       });
     }
 
-    // ガイドへのリンク
-    html += '<div style="margin-top:20px;text-align:center;">';
-    html += '<button onclick="switchAppTab(\'menu\');setTimeout(function(){var iframe=document.getElementById(\'guide-iframe\');if(!iframe.src||iframe.src===\'about:blank\')iframe.src=\'/guide\';document.getElementById(\'app-tab-guide\').style.display=\'block\';},300);" style="background:none;border:1.5px solid #9c27b0;color:#9c27b0;border-radius:20px;padding:8px 18px;font-size:0.75rem;font-weight:700;cursor:pointer;"><i class="fas fa-book"></i> ガイドを見る</button>';
-    html += '</div>';
 
     area.innerHTML = html;
   }).catch(function() {

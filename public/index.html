@@ -4601,19 +4601,29 @@ function loadChallengeTabContent() {
 
     var active = data.challenges.filter(function(c) { return c.status === 'active'; });
     var recruiting = data.challenges.filter(function(c) { return c.status === 'recruiting'; });
+    var chColors = [
+      { bg:'rgba(229,57,53,0.3)', border:'rgba(229,57,53,0.6)', text:'#b71c1c' },
+      { bg:'rgba(30,136,229,0.3)', border:'rgba(30,136,229,0.6)', text:'#0d47a1' },
+      { bg:'rgba(67,160,71,0.3)', border:'rgba(67,160,71,0.6)', text:'#1b5e20' },
+      { bg:'rgba(245,124,0,0.3)', border:'rgba(245,124,0,0.6)', text:'#e65100' },
+      { bg:'rgba(142,36,170,0.3)', border:'rgba(142,36,170,0.6)', text:'#6a1b9a' },
+      { bg:'rgba(0,172,193,0.3)', border:'rgba(0,172,193,0.6)', text:'#006064' }
+    ];
+    var colorIdx = 0;
     var html = '';
 
     if (active.length) {
       html += '<div style="font-size:0.78rem;font-weight:800;color:#ff6b35;margin-bottom:8px;"><i class="fas fa-fire"></i> 開催中のチャレンジ</div>';
-      active.forEach(function(c, idx) {
+      active.forEach(function(c) {
+        var t = chColors[colorIdx % chColors.length]; colorIdx++;
         var icon = c.todayRecorded ? '✅ 記録済み' : '⏳ 今日の記録がまだです';
         var iconColor = c.todayRecorded ? '#43a047' : '#e65100';
         var cid = c.challenge_id;
-        html += '<div style="background:white;border-radius:14px;margin-bottom:10px;box-shadow:0 2px 8px rgba(0,0,0,0.06);overflow:hidden;">';
+        html += '<div style="background:' + t.bg + ';border:1.5px solid ' + t.border + ';border-radius:14px;margin-bottom:10px;overflow:hidden;">';
         html += '<div style="display:flex;align-items:center;gap:10px;padding:14px;cursor:pointer;" onclick="toggleChallengeTabDetail(\'' + cid + '\')">';
         html += '<div style="font-size:1.5rem;">' + (c.icon || '💪') + '</div>';
         html += '<div style="flex:1;">';
-        html += '<div style="font-weight:800;font-size:0.88rem;color:#333;">' + c.title.replace(/【デモ】/g,'') + '</div>';
+        html += '<div style="font-weight:800;font-size:0.88rem;color:' + t.text + ';">' + c.title.replace(/【デモ】/g,'') + '</div>';
         html += '<div style="font-size:0.72rem;font-weight:700;color:' + iconColor + ';margin-top:2px;">' + icon + '</div>';
         html += '</div></div>';
         html += '<div id="chtab-detail-' + cid + '" style="display:none;padding:0 14px 14px;"></div>';
@@ -4624,12 +4634,13 @@ function loadChallengeTabContent() {
     if (recruiting.length) {
       html += '<div style="font-size:0.78rem;font-weight:800;color:#1e88e5;margin-bottom:8px;margin-top:16px;"><i class="fas fa-bullhorn"></i> 参加者募集中</div>';
       recruiting.forEach(function(c) {
+        var t = chColors[colorIdx % chColors.length]; colorIdx++;
         var cid = c.challenge_id;
-        html += '<div style="background:white;border-radius:14px;margin-bottom:10px;box-shadow:0 2px 8px rgba(0,0,0,0.06);overflow:hidden;">';
+        html += '<div style="background:' + t.bg + ';border:1.5px solid ' + t.border + ';border-radius:14px;margin-bottom:10px;overflow:hidden;">';
         html += '<div style="display:flex;align-items:center;gap:10px;padding:14px;cursor:pointer;" onclick="toggleChallengeTabDetail(\'' + cid + '\')">';
         html += '<div style="font-size:1.5rem;">' + (c.icon || '💪') + '</div>';
         html += '<div style="flex:1;">';
-        html += '<div style="font-weight:800;font-size:0.88rem;color:#333;">' + c.title.replace(/【デモ】/g,'') + '</div>';
+        html += '<div style="font-weight:800;font-size:0.88rem;color:' + t.text + ';">' + c.title.replace(/【デモ】/g,'') + '</div>';
         html += '<div style="font-size:0.72rem;font-weight:700;color:#1e88e5;margin-top:2px;">エントリー受付中！</div>';
         html += '</div></div>';
         html += '<div id="chtab-detail-' + cid + '" style="display:none;padding:0 14px 14px;"></div>';

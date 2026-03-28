@@ -98,14 +98,18 @@ router.post('/veggie-score', async (req, res) => {
     const { imageBase64, mimeType } = req.body;
     if (!imageBase64) return res.json({ success: false, msg: '画像が必要です' });
 
-    const prompt = `この食事写真に含まれる野菜を分析してください。JSON形式のみ返してください。
+    const prompt = `この食事写真の野菜と栄養バランスを分析してください。JSON形式のみ返してください。
 
 {
   "hasVeggies": true/false,
   "veggieList": ["野菜名1", "野菜名2", ...],
   "veggieCount": 野菜の種類数(数値),
   "score": 0-3のスコア(0=野菜なし, 1=少量/1種, 2=まあまあ/1-2種, 3=豊富/3種以上),
-  "comment": "野菜摂取に関する一言コメント(20文字以内)"
+  "saltEstimate": 推定塩分量(g数値。例: 2.5),
+  "saltLevel": "low/normal/high"(目標1食2.5g未満: low=1.5g以下, normal=1.5-2.5g, high=2.5g超),
+  "saltSources": ["塩分が多い要因1", "要因2"],
+  "calories": 推定カロリー(kcal数値),
+  "comment": "野菜と塩分に関する一言コメント(25文字以内)"
 }
 
 必ず有効なJSONのみ返してください。`;

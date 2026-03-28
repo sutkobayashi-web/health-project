@@ -6155,10 +6155,21 @@ function veggiePhotoSelected(cid) {
         kpiAnswers[q] = String(data.score);
         var stars = '⭐'.repeat(data.score) || '−';
         var veggies = (data.veggieList || []).join('、');
+        var saltHtml = '';
+        if (data.saltEstimate !== undefined) {
+          var saltColor = data.saltLevel === 'high' ? '#e53935' : data.saltLevel === 'normal' ? '#ff9800' : '#43a047';
+          var saltIcon = data.saltLevel === 'high' ? '⚠️' : data.saltLevel === 'normal' ? '🧂' : '✅';
+          saltHtml = '<div style="margin-top:8px;padding:8px;background:' + (data.saltLevel === 'high' ? '#ffebee' : '#f5f5f5') + ';border-radius:8px;">' +
+            '<div style="font-size:0.78rem;font-weight:700;color:' + saltColor + ';">' + saltIcon + ' 推定塩分: ' + data.saltEstimate + 'g</div>' +
+            (data.saltSources && data.saltSources.length ? '<div style="font-size:0.68rem;color:#777;margin-top:2px;">' + data.saltSources.join('、') + '</div>' : '') +
+          '</div>';
+        }
+        var calHtml = data.calories ? '<div style="font-size:0.7rem;color:#888;margin-top:4px;">推定 ' + data.calories + 'kcal</div>' : '';
         result.innerHTML = '<div style="padding:12px;background:#e8f5e9;border-radius:12px;text-align:center;">' +
           '<div style="font-size:1.2rem;margin-bottom:4px;">' + stars + '</div>' +
           '<div style="font-size:0.9rem;font-weight:800;color:#2e7d32;">野菜スコア: ' + data.score + '点</div>' +
           (veggies ? '<div style="font-size:0.75rem;color:#555;margin-top:4px;">🥬 ' + veggies + '</div>' : '') +
+          calHtml + saltHtml +
           (data.comment ? '<div style="font-size:0.72rem;color:#888;margin-top:4px;">' + data.comment + '</div>' : '') +
         '</div>';
       } else {

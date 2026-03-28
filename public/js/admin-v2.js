@@ -214,6 +214,10 @@ function renderV2Dashboard() {
         html += '<button class="btn btn-sm btn-outline-danger" style="font-size:0.68rem;" onclick="doDeleteTheme(\'' + t.theme_id + '\',\'' + escapeHtml(t.name).replace(/'/g,"\\'") + '\')"><i class="fas fa-trash me-1"></i>削除</button>';
         html += '</div>';
       }
+      // テーマ共感ボタン
+      if (cycle.status === 'candidate' || cycle.status === 'advisor_review') {
+        html += '<div class="mt-2" id="theme-emp-' + t.theme_id + '"></div>';
+      }
       // テーマ議論チャット
       if (cycle.status === 'candidate' || cycle.status === 'advisor_review') {
         html += '<div class="mt-2 p-2" style="background:#f8f9ff;border-radius:8px;border:1px solid #e0e0e0;">';
@@ -228,11 +232,60 @@ function renderV2Dashboard() {
     });
     html += '</div>';
     themesArea.innerHTML = html;
-    // 各テーマの議論を読み込み
+    // 各テーマの共感と議論を読み込み
     themes.forEach(function(t) {
+      loadThemeEmpathy(t.theme_id);
       loadThemeDiscussions(t.theme_id);
     });
   });
+}
+
+var THEME_EMPATHY_TYPES = [
+  { key:'agree', icon:'👍', label:'賛成', color:'#43a047' },
+  { key:'urgent', icon:'🔥', label:'最優先', color:'#e53935' },
+  { key:'effective', icon:'💡', label:'効果的', color:'#ff9800' },
+  { key:'engaging', icon:'👥', label:'巻き込める', color:'#1e88e5' },
+  { key:'discuss', icon:'🤔', label:'要議論', color:'#9c27b0' },
+  { key:'difficult', icon:'⚠️', label:'難しい', color:'#f57c00' },
+  { key:'postpone', icon:'❌', label:'見送り', color:'#999' }
+];
+
+function loadThemeEmpathy(themeId) {
+  var el = document.getElementById('theme-emp-' + themeId);
+  if (!el) return;
+  var memberId = currentAdminProfile ? currentAdminProfile.email : '';
+  fetch('/api/themes/theme-empathy/' + themeId + '?memberId=' + encodeURIComponent(memberId), {
+    headers: { 'Authorization': 'Bearer ' + getAdminToken() }
+  }).then(function(r) { return r.json(); }).then(function(data) {
+    if (!data.success) return;
+    var countsMap = {};
+    (data.counts || []).forEach(function(c) { countsMap[c.empathy_type] = c.count; });
+    var myEmp = data.myEmpathy || [];
+
+    var html = '<div style="display:flex;flex-wrap:wrap;gap:4px;">';
+    THEME_EMPATHY_TYPES.forEach(function(t) {
+      var count = countsMap[t.key] || 0;
+      var active = myEmp.indexOf(t.key) !== -1;
+      html += '<button onclick="toggleThemeEmpathy(\'' + themeId + '\',\'' + t.key + '\')" style="display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:14px;font-size:0.65rem;font-weight:700;cursor:pointer;border:1.5px solid ' + (active ? t.color : '#ddd') + ';background:' + (active ? t.color + '18' : 'white') + ';color:' + (active ? t.color : '#999') + ';">';
+      html += t.icon + ' ' + t.label;
+      if (count > 0) html += '<span style="background:' + (active ? t.color : '#eee') + ';color:' + (active ? 'white' : '#666') + ';border-radius:8px;padding:0 5px;font-size:0.6rem;margin-left:2px;">' + count + '</span>';
+      html += '</button>';
+    });
+    html += '</div>';
+    el.innerHTML = html;
+  }).catch(function() {});
+}
+
+function toggleThemeEmpathy(themeId, empathyType) {
+  var memberId = currentAdminProfile ? currentAdminProfile.email : '';
+  if (!memberId) { alert('ログインが必要です'); return; }
+  fetch('/api/themes/theme-empathy', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getAdminToken() },
+    body: JSON.stringify({ themeId: themeId, memberId: memberId, empathyType: empathyType })
+  }).then(function(r) { return r.json(); }).then(function() {
+    loadThemeEmpathy(themeId);
+  }).catch(function() {});
 }
 
 function loadThemeDiscussions(themeId) {

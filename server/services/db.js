@@ -132,6 +132,18 @@ function getDb() {
     )`);
   }
 
+  // テーマ共感テーブル
+  try {
+    db.exec(`CREATE TABLE IF NOT EXISTS theme_empathy (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      theme_id TEXT NOT NULL,
+      member_id TEXT NOT NULL,
+      empathy_type TEXT NOT NULL,
+      created_at TEXT DEFAULT (datetime('now')),
+      UNIQUE(theme_id, member_id, empathy_type)
+    )`);
+  } catch(e) {}
+
   // テーマ議論テーブル
   try {
     db.exec(`CREATE TABLE IF NOT EXISTS theme_discussions (

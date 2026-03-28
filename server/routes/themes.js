@@ -297,6 +297,38 @@ router.get('/theme-discussions/:themeId', (req, res) => {
   }
 });
 
+// テーマ共感（トグル式）
+router.post('/theme-empathy', (req, res) => {
+  try {
+    const { themeId, memberId, empathyType } = req.body;
+    if (!themeId || !memberId || !empathyType) return res.json({ success: false, msg: 'missing params' });
+    const db = getDb();
+    const existing = db.prepare('SELECT id FROM theme_empathy WHERE theme_id = ? AND member_id = ? AND empathy_type = ?').get(themeId, memberId, empathyType);
+    if (existing) {
+      db.prepare('DELETE FROM theme_empathy WHERE id = ?').run(existing.id);
+      res.json({ success: true, action: 'removed' });
+    } else {
+      db.prepare('INSERT INTO theme_empathy (theme_id, member_id, empathy_type) VALUES (?, ?, ?)').run(themeId, memberId, empathyType);
+      res.json({ success: true, action: 'added' });
+    }
+  } catch (e) {
+    res.json({ success: false, msg: e.message });
+  }
+});
+
+router.get('/theme-empathy/:themeId', (req, res) => {
+  try {
+    const db = getDb();
+    const rows = db.prepare('SELECT empathy_type, COUNT(*) as count FROM theme_empathy WHERE theme_id = ? GROUP BY empathy_type').all(req.params.themeId);
+    const myEmpathy = req.query.memberId
+      ? db.prepare('SELECT empathy_type FROM theme_empathy WHERE theme_id = ? AND member_id = ?').all(req.params.themeId, req.query.memberId).map(r => r.empathy_type)
+      : [];
+    res.json({ success: true, counts: rows, myEmpathy: myEmpathy });
+  } catch (e) {
+    res.json({ success: false, msg: e.message });
+  }
+});
+
 // 管理者: 投票開始
 // ステータス変更（汎用）
 router.post('/change-status', (req, res) => {
@@ -441,6 +473,13 @@ router.post('/generate-challenge', async (req, res) => {
       ? discussions.map(d => `- ${d.member_name}: ${d.message}`).join('\n')
       : '（議論なし）';
 
+    // 推進メンバーのテーマ共感を取得
+    const empathyCounts = db.prepare('SELECT empathy_type, COUNT(*) as count FROM theme_empathy WHERE theme_id = ? GROUP BY empathy_type').all(themeId);
+    const empathyLabels = { agree:'賛成', urgent:'最優先', effective:'効果的', engaging:'巻き込める', discuss:'要議論', difficult:'難しい', postpone:'見送り' };
+    const empathyText = empathyCounts.length > 0
+      ? empathyCounts.map(e => `${empathyLabels[e.empathy_type]||e.empathy_type}:${e.count}人`).join(', ')
+      : '（なし）';
+
     const prompt = `あなたはエビデンスに基づく健康経営プランナーです。社員の声と投票で選ばれたテーマに基づき、参加型アクションプラン（チャレンジ）を設計してください。
 
 ★★★最重要★★★
@@ -458,6 +497,8 @@ ${voices || '（詳細なし）'}
 ${commentsText}
 【推進メンバーの議論（重要: この意見を最大限反映すること）】
 ${discussionText}
+【推進メンバーの共感（テーマへの評価）】
+${empathyText}
 
 【設計要件】
 - 期間: 30日間

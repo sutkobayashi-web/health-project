@@ -4636,16 +4636,21 @@ function loadAvatarChallengeInTab() {
     var config = res.config || {};
     var endDate = config.end_date ? new Date(config.end_date) : null;
     var remaining = endDate ? Math.max(0, Math.ceil((endDate - Date.now()) / 86400000)) : '?';
-    sec.innerHTML = '<div style="margin-top:16px;">' +
-      '<div style="font-size:0.78rem;font-weight:800;color:#e91e63;margin-bottom:8px;"><i class="fas fa-palette"></i> アバターチャレンジ（残り' + remaining + '日）</div>' +
-      '<div style="background:white;border-radius:14px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">' +
-        '<div style="font-size:0.75rem;color:#00897b;font-weight:700;text-align:center;margin-bottom:10px;"><i class="fas fa-users"></i> ' + res.totalVoters + '/' + res.totalUsers + '名が参加中　<i class="fas fa-heart" style="color:#e91e63;"></i> ' + (config.max_votes || 5) + '票まで投票OK</div>' +
+    sec.innerHTML = '<div style="margin-top:16px;background:rgba(233,30,99,0.15);border:1.5px solid rgba(233,30,99,0.4);border-radius:14px;overflow:hidden;">' +
+      '<div onclick="var b=document.getElementById(\'chtab-avatar-body\');b.style.display=b.style.display===\'none\'?\'block\':\'none\';" style="display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;">' +
+        '<div style="font-size:1.3rem;">🎨</div>' +
+        '<div style="flex:1;"><div style="font-weight:800;font-size:0.85rem;color:#b0003a;">アバターチャレンジ</div>' +
+        '<div style="font-size:0.68rem;color:#999;">残り' + remaining + '日 / ' + res.totalVoters + '/' + res.totalUsers + '名が参加中</div></div>' +
+      '</div>' +
+      '<div id="chtab-avatar-body" style="display:none;padding:0 14px 14px;">' +
+        '<div style="font-size:0.75rem;color:#00897b;font-weight:700;text-align:center;margin-bottom:10px;"><i class="fas fa-heart" style="color:#e91e63;"></i> ' + (config.max_votes || 5) + '票まで投票OK</div>' +
         '<div id="chtab-avatar-gallery"></div>' +
         '<div id="chtab-avatar-ranking" style="display:none;"></div>' +
         '<div style="display:flex;gap:6px;margin-top:10px;">' +
           '<button onclick="showAvatarTabInChtab(\'gallery\')" id="chtab-av-btn-gallery" style="flex:1;padding:6px;border:2px solid #26a69a;background:#26a69a;color:white;border-radius:10px;font-weight:700;font-size:0.75rem;cursor:pointer;">ギャラリー</button>' +
           '<button onclick="showAvatarTabInChtab(\'ranking\')" id="chtab-av-btn-ranking" style="flex:1;padding:6px;border:2px solid #26a69a;background:white;color:#26a69a;border-radius:10px;font-weight:700;font-size:0.75rem;cursor:pointer;">ランキング</button>' +
         '</div>' +
+        '<div style="text-align:center;margin-top:12px;padding-top:8px;border-top:1px solid #eee;"><button onclick="document.getElementById(\'chtab-avatar-body\').style.display=\'none\';" style="background:#e53935;color:white;border:none;border-radius:20px;padding:8px 24px;font-size:0.78rem;font-weight:700;cursor:pointer;box-shadow:0 2px 6px rgba(229,57,53,0.3);"><i class="fas fa-times" style="margin-right:4px;"></i>閉じる</button></div>' +
       '</div></div>';
     renderAvatarGalleryInChtab(res);
   });

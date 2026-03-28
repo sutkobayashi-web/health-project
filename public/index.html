@@ -5248,12 +5248,13 @@ function toggleAccordion(bodyId, labelId) {
       });
     }
     body.style.cssText = body.style.cssText.replace(/display:\s*none/i, 'display:block');
-    // 最下部に閉じるボタンがなければ追加
-    if (!body.querySelector('.accordion-close-btn')) {
+    // メインメニューのみ最下部に閉じるボタンを追加（サブは除外）
+    var mainBodiesForClose = ['vote-body','challenge-combined-body','honne-body','food-body','checkup-body','memo-body','elearn-body','qr-body'];
+    if (mainBodiesForClose.indexOf(bodyId) !== -1 && !body.querySelector('.accordion-close-btn')) {
       var btn = document.createElement('div');
       btn.className = 'accordion-close-btn';
       btn.style.cssText = 'text-align:center;margin-top:12px;padding-top:8px;border-top:1px solid #eee;';
-      btn.innerHTML = '<button onclick="toggleAccordion(\'' + bodyId + '\',\'' + labelId + '\')" style="background:#e53935;color:white;border:none;border-radius:20px;padding:8px 24px;font-size:0.78rem;font-weight:700;cursor:pointer;box-shadow:0 2px 6px rgba(229,57,53,0.3);"><i class="fas fa-times" style="margin-right:4px;"></i>閉じる</button>';
+      btn.innerHTML = '<button onclick="event.stopPropagation();toggleAccordion(\'' + bodyId + '\',\'' + labelId + '\')" style="background:#e53935;color:white;border:none;border-radius:20px;padding:8px 24px;font-size:0.78rem;font-weight:700;cursor:pointer;box-shadow:0 2px 6px rgba(229,57,53,0.3);"><i class="fas fa-times" style="margin-right:4px;"></i>閉じる</button>';
       body.appendChild(btn);
     }
   }

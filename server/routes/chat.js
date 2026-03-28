@@ -204,7 +204,8 @@ let _dailyGreetingCache = { date: '', data: null };
 
 router.get('/daily-greeting', async (req, res) => {
   try {
-    const today = new Date().toISOString().slice(0, 10);
+    // 日本時間で日付を取得
+    const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Tokyo' });
 
     // 当日キャッシュがあればそのまま返す
     if (_dailyGreetingCache.date === today && _dailyGreetingCache.data) {

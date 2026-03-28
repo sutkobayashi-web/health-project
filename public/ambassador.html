@@ -104,7 +104,13 @@ function loadAmbDashboard() {
         if (plans.length > 0) {
           themeHtml += '<div class="small fw-bold mt-1" style="color:#f57c00;">AIプラン案:</div>';
           plans.forEach(function(p, pi) {
-            themeHtml += '<div class="small" style="padding-left:8px;">案' + String.fromCharCode(65+pi) + ': ' + escapeHtml(p.title) + (p.description ? ' — ' + escapeHtml(p.description) : '') + '</div>';
+            var colors = ['#e53935','#1e88e5','#43a047'];
+            themeHtml += '<div class="p-2 mb-1" style="background:#f8f8f8;border-radius:8px;border-left:3px solid ' + colors[pi % 3] + ';">';
+            themeHtml += '<div class="small fw-bold" style="color:' + colors[pi % 3] + ';">案' + String.fromCharCode(65+pi) + ': ' + escapeHtml(p.title) + '</div>';
+            if (p.description) themeHtml += '<div class="small text-muted">' + escapeHtml(p.description) + '</div>';
+            if (p.kpi) themeHtml += '<div class="small text-muted">KPI: ' + escapeHtml(p.kpi) + '</div>';
+            themeHtml += '<textarea id="plan-advice-' + t.theme_id + '-' + pi + '" class="form-control form-control-sm mt-1" rows="2" placeholder="このプランへの助言..." style="font-size:0.75rem;"></textarea>';
+            themeHtml += '</div>';
           });
         }
         // メンバー自由提案と議論を読み込む領域
@@ -112,11 +118,11 @@ function loadAmbDashboard() {
         themeHtml += '<div id="amb-discussions-' + t.theme_id + '"></div>';
         themeHtml += '</div>';
       });
-      // 助言入力
+      // 総括助言入力
       themeHtml += '<div class="mt-2 p-3" style="background:#faf5ff;border-radius:10px;">';
-      themeHtml += '<div class="fw-bold small mb-2" style="color:#9c27b0;"><i class="fas fa-pen me-1"></i>テーマ候補への助言</div>';
-      themeHtml += '<textarea id="theme-advice-text" class="form-control form-control-sm mb-2" rows="4" placeholder="テーマの妥当性、プラン案への意見、追加すべき観点など..."></textarea>';
-      themeHtml += '<button class="btn btn-sm fw-bold" style="background:#9c27b0;color:white;" onclick="submitThemeAdvice(' + cycle.cycle_number + ')"><i class="fas fa-paper-plane me-1"></i>助言を送信</button>';
+      themeHtml += '<div class="fw-bold small mb-2" style="color:#9c27b0;"><i class="fas fa-pen me-1"></i>総括助言（全体を通して）</div>';
+      themeHtml += '<textarea id="theme-advice-text" class="form-control form-control-sm mb-2" rows="3" placeholder="全体を通しての所見、優先すべきテーマ、注意点など..."></textarea>';
+      themeHtml += '<button class="btn btn-sm fw-bold" style="background:#9c27b0;color:white;" onclick="submitThemeAdviceAll(' + cycle.cycle_number + ')"><i class="fas fa-paper-plane me-1"></i>全ての助言を送信</button>';
       themeHtml += '</div></div>';
       // テーマHTML挿入後にメンバー提案と議論を読み込む
       var _ambThemes = themes.filter(function(t) { return t.status !== 'excluded'; });
@@ -207,11 +213,28 @@ function loadAmbDiscussions(themeId) {
   });
 }
 
-function submitThemeAdvice(cycleNum) {
-  var text = document.getElementById('theme-advice-text').value.trim();
-  if (!text) { alert('助言内容を入力してください'); return; }
+function submitThemeAdviceAll(cycleNum) {
   var adviserName = ambProfile ? ambProfile.name : '保健師';
-  api('/themes/submit-advisor-advice', { cycleNumber: cycleNum, advisorComment: '【' + adviserName + '】' + text }).then(function(res) {
+  var allAdvice = '';
+
+  // 各プランへの助言を収集
+  document.querySelectorAll('[id^="plan-advice-"]').forEach(function(el) {
+    var val = el.value.trim();
+    if (val) {
+      var parts = el.id.replace('plan-advice-', '').split('-');
+      var pi = parseInt(parts[parts.length - 1]);
+      allAdvice += '【案' + String.fromCharCode(65 + pi) + 'への助言】' + val + '\n';
+    }
+  });
+
+  // 総括助言
+  var summary = document.getElementById('theme-advice-text').value.trim();
+  if (summary) allAdvice += '【総括】' + summary + '\n';
+
+  if (!allAdvice.trim()) { alert('少なくとも1つの助言を入力してください'); return; }
+
+  var fullComment = '【' + adviserName + '】\n' + allAdvice;
+  api('/themes/submit-advisor-advice', { cycleNumber: cycleNum, advisorComment: fullComment }).then(function(res) {
     if (res && res.success) { alert('助言を送信しました。ステータスが役員承認待ちに移行しました。'); loadAmbDashboard(); }
     else alert(res.msg || 'エラー');
   });

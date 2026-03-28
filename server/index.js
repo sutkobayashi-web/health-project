@@ -114,7 +114,16 @@ app.get('/api/health', (req, res) => {
 
 // アプリバージョン（クライアント強制更新用）
 app.get('/api/version', (req, res) => {
-  res.json({ version: '20260327d' });
+  // public/index.htmlのdata-app-versionと一致させること
+  const fs = require('fs');
+  const path = require('path');
+  try {
+    const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8');
+    const match = html.match(/data-app-version="([^"]+)"/);
+    res.json({ version: match ? match[1] : '' });
+  } catch (e) {
+    res.json({ version: '' });
+  }
 });
 
 const { authAdmin } = require('./middleware/auth');

@@ -5251,12 +5251,12 @@ function renderAvatarGallery(data) {
       (voted ? '#e91e63' : (isSelf ? '#ff9800' : '#f0f0f0')) +
       '; box-shadow:0 2px 6px rgba(0,0,0,0.04);">';
     // ユーザー＆バディーアバター（ペア表示）
-    html += '<div style="display:flex; align-items:flex-end; justify-content:center; margin-bottom:6px;">';
-    html += '<div style="width:46px; height:46px; border-radius:50%; overflow:hidden; display:flex; align-items:center; justify-content:center; background:#f8f8f8; border:2px solid #fff; box-shadow:0 1px 4px rgba(0,0,0,0.1); z-index:1;">';
-    html += getAvatarHtml(u.avatar || '😀', 42);
+    html += '<div style="display:flex; align-items:center; justify-content:center; gap:6px; margin-bottom:6px;">';
+    html += '<div style="width:50px; height:50px; border-radius:50%; overflow:hidden; display:flex; align-items:center; justify-content:center; background:#f8f8f8; border:2px solid #e0e0e0; box-shadow:0 2px 6px rgba(0,0,0,0.1);">';
+    html += getAvatarHtml(u.avatar || '😀', 46);
     html += '</div>';
-    html += '<div style="width:34px; height:34px; border-radius:50%; overflow:hidden; display:flex; align-items:center; justify-content:center; background:' + (buddy ? '#f8f8f8' : 'linear-gradient(135deg,#0ea5e9,#0284c7)') + '; border:2px solid #fff; box-shadow:0 1px 4px rgba(0,0,0,0.1); margin-left:-10px; z-index:2;">';
-    html += buddy ? getAvatarHtml(buddy.avatar, 30) : '<i class="fas fa-robot" style="font-size:14px;color:white;"></i>';
+    html += '<div style="width:42px; height:42px; border-radius:50%; overflow:hidden; display:flex; align-items:center; justify-content:center; background:' + (buddy ? '#f8f8f8' : 'linear-gradient(135deg,#0ea5e9,#0284c7)') + '; border:2px solid #e0e0e0; box-shadow:0 2px 6px rgba(0,0,0,0.1);">';
+    html += buddy ? getAvatarHtml(buddy.avatar, 38) : '<i class="fas fa-robot" style="font-size:18px;color:white;"></i>';
     html += '</div>';
     html += '</div>';
     // ニックネーム＆バディー名
@@ -5311,10 +5311,10 @@ function renderAvatarRanking() {
         html += '<div style="display:flex; align-items:center; gap:10px; padding:10px 12px; background:' + bg + '; border-radius:12px; margin-bottom:6px;">';
         html += '<div style="font-size:1.2rem; min-width:28px; text-align:center;">' + medal + '</div>';
         // ペアアバター
-        html += '<div style="display:flex; align-items:flex-end; flex-shrink:0;">';
-        html += '<div style="width:38px; height:38px; border-radius:50%; overflow:hidden; display:flex; align-items:center; justify-content:center; background:#f8f8f8; border:2px solid #fff; z-index:1;">' + getAvatarHtml(u.avatar || '😀', 34) + '</div>';
-        html += '<div style="width:28px; height:28px; border-radius:50%; overflow:hidden; display:flex; align-items:center; justify-content:center; background:' + (buddy ? '#f8f8f8' : 'linear-gradient(135deg,#0ea5e9,#0284c7)') + '; border:2px solid #fff; margin-left:-8px; z-index:2;">';
-        html += buddy ? getAvatarHtml(buddy.avatar, 24) : '<i class="fas fa-robot" style="font-size:11px;color:white;"></i>';
+        html += '<div style="display:flex; align-items:center; gap:4px; flex-shrink:0;">';
+        html += '<div style="width:38px; height:38px; border-radius:50%; overflow:hidden; display:flex; align-items:center; justify-content:center; background:#f8f8f8; border:1.5px solid #e0e0e0;">' + getAvatarHtml(u.avatar || '😀', 34) + '</div>';
+        html += '<div style="width:32px; height:32px; border-radius:50%; overflow:hidden; display:flex; align-items:center; justify-content:center; background:' + (buddy ? '#f8f8f8' : 'linear-gradient(135deg,#0ea5e9,#0284c7)') + '; border:1.5px solid #e0e0e0;">';
+        html += buddy ? getAvatarHtml(buddy.avatar, 28) : '<i class="fas fa-robot" style="font-size:13px;color:white;"></i>';
         html += '</div></div>';
         html += '<div style="flex:1; min-width:0;">';
         html += '<div style="font-weight:700; font-size:0.82rem; color:#333;">' + escapeHtml(u.nickname) + (buddy && buddy.name ? ' <span style="font-size:0.65rem;color:#0ea5e9;">& ' + escapeHtml(buddy.name) + '</span>' : '') + '</div>';

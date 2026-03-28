@@ -16,8 +16,22 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <style>
     body { font-family: 'Noto Sans JP', sans-serif; margin: 0; background: #f0f2f5; }
-    .main-container.admin-font-large { font-size: 120%; }
-    .main-container.admin-font-xlarge { font-size: 145%; }
+    html.admin-font-large { font-size: 120%; }
+    html.admin-font-xlarge { font-size: 145%; }
+    html.admin-font-large .admin-header { font-size: 13px; height: 54px; }
+    html.admin-font-xlarge .admin-header { font-size: 13px; height: 54px; }
+    html.admin-font-large .admin-header .app-name-main { font-size: 14px; }
+    html.admin-font-xlarge .admin-header .app-name-main { font-size: 14px; }
+    html.admin-font-large .admin-header .app-name-sub { font-size: 10px; }
+    html.admin-font-xlarge .admin-header .app-name-sub { font-size: 10px; }
+    html.admin-font-large .admin-header .btn-return { font-size: 12px; }
+    html.admin-font-xlarge .admin-header .btn-return { font-size: 12px; }
+    html.admin-font-large .admin-header .status-name { font-size: 12px; }
+    html.admin-font-xlarge .admin-header .status-name { font-size: 12px; }
+    html.admin-font-large .admin-header .status-role { font-size: 10px; }
+    html.admin-font-xlarge .admin-header .status-role { font-size: 10px; }
+    html.admin-font-large .admin-header #admin-font-btn { font-size: 12px; width: 32px; height: 32px; }
+    html.admin-font-xlarge .admin-header #admin-font-btn { font-size: 12px; width: 32px; height: 32px; }
 
     /* ====== Header ====== */
     .admin-header {
@@ -910,7 +924,7 @@ if(localStorage.getItem('co_heart_admin_token') && localStorage.getItem('co_hear
 // ====== 文字サイズ切替（3段階） ======
 var _adminFontLevel = parseInt(localStorage.getItem('admin_font_level') || '0');
 function applyAdminFontSize() {
-  var el = document.querySelector('.main-container') || document.documentElement;
+  var el = document.documentElement;
   el.classList.remove('admin-font-large', 'admin-font-xlarge');
   if (_adminFontLevel === 1) el.classList.add('admin-font-large');
   else if (_adminFontLevel >= 2) el.classList.add('admin-font-xlarge');

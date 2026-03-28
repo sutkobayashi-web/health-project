@@ -5800,6 +5800,12 @@ function doRecordKpi(cid) {
   if (bodyEl) bodyEl.querySelectorAll('input[id^="kpi-num-"]').forEach(function(el) {
     kpiAnswers[el.getAttribute('data-q')] = el.value;
   });
+  // バリデーション: 1つ以上の回答が必要
+  var hasAnswer = false;
+  Object.keys(kpiAnswers).forEach(function(k) {
+    if (kpiAnswers[k] && kpiAnswers[k] !== '') hasAnswer = true;
+  });
+  if (!hasAnswer) { alert('記録する項目を入力してください'); return; }
   console.log('[KPI] Sending:', cid, kpiAnswers, comment);
   recordKpi(cid, currentUser.uid, kpiAnswers, comment).then(function(res) {
     console.log('[KPI] Response:', JSON.stringify(res));

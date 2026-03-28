@@ -76,9 +76,9 @@ router.get('/gallery', (req, res) => {
       return res.json({ success: true, active: false, users: [] });
     }
 
-    // 全ユーザー + 得票数
+    // 全ユーザー + 得票数 + バディーデータ
     const users = db.prepare(`
-      SELECT u.id, u.nickname, u.avatar, u.department,
+      SELECT u.id, u.nickname, u.avatar, u.department, u.buddy_data,
         (SELECT COUNT(*) FROM avatar_votes av WHERE av.target_user_id = u.id) as vote_count
       FROM users u
       ORDER BY vote_count DESC, u.created_at ASC
@@ -155,7 +155,7 @@ router.get('/ranking', (req, res) => {
     ensureTables();
     const db = getDb();
     const ranking = db.prepare(`
-      SELECT u.id, u.nickname, u.avatar, u.department,
+      SELECT u.id, u.nickname, u.avatar, u.department, u.buddy_data,
         (SELECT COUNT(*) FROM avatar_votes av WHERE av.target_user_id = u.id) as vote_count
       FROM users u
       HAVING vote_count > 0

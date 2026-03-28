@@ -801,4 +801,37 @@ router.get('/dashboard/:challengeId', (req, res) => {
   }
 });
 
+// ユーザーの参加中チャレンジ一覧（ミニステータス用）
+router.get('/my-challenges', (req, res) => {
+  try {
+    const db = getDb();
+    const uid = req.query.uid;
+    if (!uid) return res.json({ success: false, msg: 'uid required' });
+
+    // 参加中 + 募集中/実施中のチャレンジ
+    const challenges = db.prepare(`
+      SELECT c.challenge_id, c.title, c.icon, c.status, c.period_start, c.period_end,
+        (SELECT COUNT(*) FROM kpi_records kr WHERE kr.challenge_id = c.challenge_id AND kr.user_id = ? AND kr.record_date = date('now')) as today_recorded
+      FROM challenges c
+      LEFT JOIN challenge_participants cp ON c.challenge_id = cp.challenge_id AND cp.user_id = ?
+      WHERE c.status IN ('active', 'recruiting')
+      AND (cp.id IS NOT NULL OR c.status = 'recruiting')
+      ORDER BY c.status DESC, c.created_at DESC
+    `).all(uid, uid);
+
+    res.json({
+      success: true,
+      challenges: challenges.map(c => ({
+        challenge_id: c.challenge_id,
+        title: c.title,
+        icon: c.icon,
+        status: c.status,
+        todayRecorded: c.today_recorded > 0
+      }))
+    });
+  } catch (e) {
+    res.json({ success: false, msg: e.message });
+  }
+});
+
 module.exports = router;

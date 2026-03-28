@@ -684,6 +684,8 @@
       <div id="buddy-float-avatar"></div>
       <div id="buddy-messages" style="height:100%;overflow-y:auto;overscroll-behavior:contain;padding:12px;display:flex;flex-direction:column;gap:8px;"></div>
     </div>
+    <!-- チャレンジミニステータス -->
+    <div id="buddy-challenge-bar" style="flex-shrink:0;display:none;background:linear-gradient(135deg,#fff8e1,#ffecb3);border-top:1px solid #f0c000;padding:6px 12px;overflow-x:auto;-webkit-overflow-scrolling:touch;"></div>
     <!-- 入力バー -->
     <div style="flex-shrink:0;background:white;border-top:1px solid #eee;padding:8px 12px;">
       <div style="display:flex;align-items:center;gap:8px;">
@@ -3910,6 +3912,7 @@ function startBuddyChat(buddyData) {
   _buddyHistory = [];
   _buddyMoodChecked = false;
   _buddyTurnCount = 0;
+  loadBuddyChallengeBar();
 
   // ヘッダーにバディー情報を設定
   var headerAvatar = document.getElementById('buddy-header-avatar');
@@ -4562,6 +4565,40 @@ function submitMemberConsult() {
   }).catch(function() {
     addBuddyMessage('ai', '通信エラーが発生しました。');
   });
+}
+
+// ===== チャレンジミニステータスバー =====
+function loadBuddyChallengeBar() {
+  if (!currentUser || !currentUser.uid) return;
+  var bar = document.getElementById('buddy-challenge-bar');
+  if (!bar) return;
+  fetch('/api/themes/my-challenges?uid=' + currentUser.uid, {
+    headers: { 'Authorization': 'Bearer ' + getToken() }
+  }).then(function(r) { return r.json(); }).then(function(data) {
+    if (!data.success || !data.challenges || !data.challenges.length) {
+      bar.style.display = 'none';
+      return;
+    }
+    var html = '<div style="display:flex;gap:8px;align-items:center;">';
+    data.challenges.forEach(function(c) {
+      var recorded = c.todayRecorded;
+      var icon = recorded ? '✅' : '⏳';
+      var statusColors = { active:'#43a047', recruiting:'#1e88e5', draft:'#999' };
+      var borderColor = statusColors[c.status] || '#999';
+      var label = c.status === 'recruiting' ? '募集中' : (recorded ? '記録済' : '未記録');
+      html += '<div onclick="switchAppTab(\'menu\');setTimeout(function(){' +
+        'var el=document.getElementById(\'challenge-combined-section\');if(el)el.scrollIntoView({behavior:\'smooth\'});' +
+        'toggleAccordion(\'challenge-combined-body\',\'challenge-combined-chevron\');' +
+        '},300);" style="display:flex;align-items:center;gap:4px;background:white;border:1.5px solid ' + borderColor + ';border-radius:20px;padding:4px 10px;cursor:pointer;flex-shrink:0;">';
+      html += '<span style="font-size:0.85rem;">' + (c.icon || '💪') + '</span>';
+      html += '<span style="font-size:0.68rem;font-weight:700;color:#333;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + c.title.replace(/【デモ】/g,'') + '</span>';
+      html += '<span style="font-size:0.7rem;">' + icon + '</span>';
+      html += '</div>';
+    });
+    html += '</div>';
+    bar.innerHTML = html;
+    bar.style.display = 'block';
+  }).catch(function() { bar.style.display = 'none'; });
 }
 
 function clearBuddyChat() {
@@ -5777,7 +5814,7 @@ function renderChallengeEntry(c, cid) {
 function doJoinChallenge(cid) {
   if (!currentUser) return;
   joinChallenge(cid, currentUser.uid, currentUser.nickname, currentUser.avatar).then(function(res) {
-    if (res.success) loadChallengeDetail(cid);
+    if (res.success) { loadChallengeDetail(cid); loadBuddyChallengeBar(); }
     else alert(res.msg || 'エラー');
   });
 }

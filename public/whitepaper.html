@@ -152,7 +152,7 @@ body { font-family: 'Noto Sans JP', sans-serif; background: #f8f9fc; margin: 0; 
 
   <div class="principle-card">
     <div class="p-title"><i class="fas fa-brain" style="color:#9c27b0; margin-right:6px;"></i>原則3：AI凝集（AI-Driven Theme Condensation）</div>
-    <div class="p-body">散在する個別の声を、共感パターン・推進メンバーの議論・公的エビデンスを統合してAIが3〜5個の健康テーマに凝集する。人間の判断バイアスを排除しつつ、専門知見を反映。</div>
+    <div class="p-body">散在する個別の声を、共感パターン・推進メンバーの議論・公的エビデンスを統合してAIが3〜5個の健康テーマに凝集する。凝集後は推進メンバーがテーマごとのチャットで議論・精査し、合意形成を図る。人間の判断バイアスを排除しつつ、専門知見と現場感覚を反映。</div>
   </div>
 
   <div class="principle-card">
@@ -183,7 +183,7 @@ body { font-family: 'Noto Sans JP', sans-serif; background: #f8f9fc; margin: 0; 
     <tbody>
       <tr><td><strong>課題の発見</strong></td><td class="col-old">健診データ・法令要件から会社が特定</td><td class="col-new">社員の投稿から自然に浮上</td></tr>
       <tr><td><strong>優先度の決定</strong></td><td class="col-old">産業医・人事部門が判断</td><td class="col-new">全社員の共感投票 + AI7軸評価</td></tr>
-      <tr><td><strong>施策の設計</strong></td><td class="col-old">専門家が策定し通達</td><td class="col-new">AI凝集 → 社員投票 → 専門家監修</td></tr>
+      <tr><td><strong>施策の設計</strong></td><td class="col-old">専門家が策定し通達</td><td class="col-new">AI凝集 → メンバー議論 → 社員投票 → 専門家監修</td></tr>
       <tr><td><strong>参加の動機</strong></td><td class="col-old">義務・業務命令</td><td class="col-new">自発的エントリー + ゲーミフィケーション</td></tr>
       <tr><td><strong>効果の測定</strong></td><td class="col-old">年次健診の数値変化</td><td class="col-new">日次KPI + リアルタイムランキング + バッジ</td></tr>
       <tr><td><strong>フィードバック</strong></td><td class="col-old">年1回の結果通知</td><td class="col-new">即時AIケアコメント + 継続的共感</td></tr>
@@ -211,6 +211,8 @@ body { font-family: 'Noto Sans JP', sans-serif; background: #f8f9fc; margin: 0; 
     <i class="fas fa-arrow-right flow-arrow"></i>
     <span class="flow-step" style="background:#9c27b0;">Phase 3<br>AI凝集（テーマ生成）</span>
     <i class="fas fa-arrow-right flow-arrow"></i>
+    <span class="flow-step" style="background:#e17055;">Phase 3.5<br>テーマディスカッション</span>
+    <i class="fas fa-arrow-right flow-arrow"></i>
     <span class="flow-step" style="background:#ff9800;">Phase 4<br>全社投票（民主的選択）</span>
     <i class="fas fa-arrow-right flow-arrow"></i>
     <span class="flow-step" style="background:#4caf50;">Phase 5<br>チャレンジ（行動変容）</span>
@@ -227,8 +229,11 @@ body { font-family: 'Noto Sans JP', sans-serif; background: #f8f9fc; margin: 0; 
   <h3>Phase 3：AI凝集（テーマ生成）</h3>
   <p>直近3ヶ月の全投稿・共感データ・推進メンバーの議論・AI7軸評価を統合し、AIが3〜5個の健康テーマに凝集する。凝集前に未評価投稿は自動で7軸評価され、評価レポートで根拠を確認できる。</p>
 
+  <h3>Phase 3.5：テーマディスカッション（推進メンバー議論）</h3>
+  <p>AI凝集で生成されたテーマ候補に対し、推進メンバーがテーマごとのチャット形式で議論を行う。候補の妥当性・優先度・実現可能性を精査し、必要に応じてテーマの編集・統合・削除を実施する。この議論プロセスを経ることで、保健師助言・役員承認・全社投票に進む前の合意形成が図られる。ディスカッション内容は次回以降のAI凝集にもフィードバックされる。</p>
+
   <h3>Phase 4：全社投票</h3>
-  <p>凝集されたテーマ候補に対し全社員が投票する。7日間の投票期間後、最多得票テーマが選定される。専門家（アンバサダー）の監修を経て、実行計画が策定される。</p>
+  <p>ディスカッション・保健師助言・役員承認を経たテーマ候補に対し全社員が投票する。7日間の投票期間後、最多得票テーマが選定され、実行計画が策定される。</p>
 
   <h3>Phase 5：チャレンジ（行動変容）</h3>
   <p>AIがEASTフレームワーク準拠のチャレンジ企画書を自動生成。30日間のチャレンジ期間中、参加者は毎日30秒でKPIを記録する。ランキング・バッジ・専門家アドバイスが行動継続を支援する。</p>
@@ -381,7 +386,7 @@ body { font-family: 'Noto Sans JP', sans-serif; background: #f8f9fc; margin: 0; 
     <li><strong>構造化共感</strong> — SNS的な「いいね」を、共感タイプ×深掘り質問で構造化し、定量的分析データに変換する仕組み</li>
     <li><strong>AI凝集</strong> — 個別の声を、共感パターン・専門家議論・エビデンスを統合してAIがテーマに凝集する手法</li>
     <li><strong>7軸評価</strong> — COM-Bモデルを拡張した独自の7軸スコアリングで、ボトムアップの声をトップダウンの意思決定に接続する仕組み</li>
-    <li><strong>声→行動の循環</strong> — 投稿→共感→凝集→投票→チャレンジ→KPIという、年5サイクルの継続的改善ループ</li>
+    <li><strong>声→行動の循環</strong> — 投稿→共感→凝集→メンバー議論→投票→チャレンジ→KPIという、年5サイクルの継続的改善ループ</li>
   </ul>
 
   <h3>想定される研究課題</h3>

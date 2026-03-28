@@ -431,6 +431,13 @@ body {
       </div>
       <div class="flow-arrow"><i class="fas fa-chevron-right"></i></div>
 
+      <div class="flow-step" style="border-top-color:#e17055;">
+        <div class="flow-icon">💬</div>
+        <div class="flow-label">テーマ<br>ディスカッション</div>
+        <div class="flow-who">推進メンバー</div>
+      </div>
+      <div class="flow-arrow"><i class="fas fa-chevron-right"></i></div>
+
       <div class="flow-step" style="border-top-color:#11998e;">
         <div class="flow-icon">🩺</div>
         <div class="flow-label">保健師<br>助言</div>
@@ -1085,6 +1092,44 @@ body {
   </div>
 </div>
 
+<!-- ====== セクション10-2: テーマディスカッション（推進メンバー議論チャット） ====== -->
+<div class="guide-card theme-orange" data-keywords="テーマ ディスカッション 議論 チャット 候補 推進メンバー">
+  <div class="guide-card-header">
+    <div class="guide-card-icon"><i class="fas fa-comments"></i></div>
+    <div class="guide-card-title">セクション10-2: テーマディスカッション</div>
+  </div>
+  <div class="guide-card-body">
+    <p>AIがテーマ候補を凝集した後、推進メンバーがテーマごとにチャット形式で議論できる機能です。候補の精査段階で合意形成を図ります。</p>
+
+    <h4 style="color:#e64a19;"><i class="fas fa-comments me-2"></i>機能概要</h4>
+    <table class="guide-table">
+      <thead><tr><th>項目</th><th>内容</th></tr></thead>
+      <tbody>
+        <tr><td><strong>対象</strong></td><td>AI凝集で生成されたテーマ候補ごとに個別のチャットスレッド</td></tr>
+        <tr><td><strong>参加者</strong></td><td>推進メンバー全員（管理画面からアクセス）</td></tr>
+        <tr><td><strong>タイミング</strong></td><td>AI凝集後 → 保健師助言・役員承認の前</td></tr>
+        <tr><td><strong>目的</strong></td><td>テーマ候補の妥当性・優先度・実現可能性について推進メンバー間で議論し、精査・編集の判断材料とする</td></tr>
+      </tbody>
+    </table>
+
+    <h4 style="color:#e64a19; margin-top:20px;"><i class="fas fa-cogs me-2"></i>使い方</h4>
+    <ol style="font-size:0.85rem; line-height:2;">
+      <li>管理画面でAI凝集を実行し、テーマ候補を生成</li>
+      <li>各テーマ候補カードの<strong>「ディスカッション」</strong>ボタンをクリック</li>
+      <li>チャット画面でメンバー名入りのメッセージを投稿</li>
+      <li>他のメンバーのコメントをリアルタイムで確認しながら議論</li>
+      <li>議論の結論をもとにテーマ候補を編集・統合・削除</li>
+      <li>精査が完了したら保健師助言 → 役員承認へ進行</li>
+    </ol>
+
+    <div class="highlight-box">
+      <strong>v2サイクルでの位置づけ</strong><br>
+      AI凝集 → <strong>テーマディスカッション（推進メンバー議論）</strong> → 保健師助言 → 役員承認 → 全社投票<br>
+      ディスカッションの内容は次回以降のAI凝集にも反映され、テーマの質が継続的に向上します。
+    </div>
+  </div>
+</div>
+
 <!-- ====== セクション11: 承認フロー（内部統制） ====== -->
 <div class="guide-card theme-red" data-keywords="承認 内部統制 フロー 保健師 役員 投票 確定">
   <div class="guide-card-header">
@@ -1092,7 +1137,7 @@ body {
     <div class="guide-card-title">セクション11: 承認フロー（内部統制）</div>
   </div>
   <div class="guide-card-body">
-    <p>テーマが確定するまでに5段階の承認ステップを設けています。</p>
+    <p>テーマが確定するまでに6段階の承認ステップを設けています。</p>
 
     <div class="approval-flow">
       <div class="approval-step">
@@ -1102,21 +1147,26 @@ body {
       <div class="approval-arrow"><i class="fas fa-chevron-right"></i></div>
       <div class="approval-step">
         <div class="approval-num">2</div>
-        <div class="approval-label">保健師<br>助言</div>
+        <div class="approval-label">テーマ<br>ディスカッション</div>
       </div>
       <div class="approval-arrow"><i class="fas fa-chevron-right"></i></div>
       <div class="approval-step">
         <div class="approval-num">3</div>
-        <div class="approval-label">役員<br>承認</div>
+        <div class="approval-label">保健師<br>助言</div>
       </div>
       <div class="approval-arrow"><i class="fas fa-chevron-right"></i></div>
       <div class="approval-step">
         <div class="approval-num">4</div>
-        <div class="approval-label">全社<br>投票</div>
+        <div class="approval-label">役員<br>承認</div>
       </div>
       <div class="approval-arrow"><i class="fas fa-chevron-right"></i></div>
       <div class="approval-step">
         <div class="approval-num">5</div>
+        <div class="approval-label">全社<br>投票</div>
+      </div>
+      <div class="approval-arrow"><i class="fas fa-chevron-right"></i></div>
+      <div class="approval-step">
+        <div class="approval-num">6</div>
         <div class="approval-label">テーマ<br>確定</div>
       </div>
     </div>

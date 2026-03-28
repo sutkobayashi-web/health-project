@@ -416,7 +416,11 @@ ${commentsText}
     {"question": "質問文", "type": "choice", "options": ["選択肢1","選択肢2","選択肢3","選択肢4"], "is_ranking": true, "ranking_type": "cumulative"},
     {"question": "質問文", "type": "choice", "options": ["😫","😐","😊","🤩"], "is_ranking": false},
     {"question": "今日やったこと", "type": "multi_check", "options": ["項目1","項目2","項目3","項目4"], "is_ranking": false}
-  ],
+  ]
+  ※ 食事・野菜系テーマの場合は type:"veggie_check" を使用（写真AI判定で0-3点スコア化）
+  ※ 歩数・運動量テーマの場合は type:"number" を使用（数値入力、is_ranking:trueでランキング化）
+  例: {"question": "今日野菜を食べた？", "type": "veggie_check", "is_ranking": true, "ranking_type": "cumulative"}
+  例: {"question": "今日の歩数は？", "type": "number", "unit": "歩", "is_ranking": true, "ranking_type": "cumulative"},
   "badges": [
     {"type": "first_record", "name": "初記録", "condition": "初めて記録した"},
     {"type": "streak_7", "name": "7日連続", "condition": "7日連続で記録"},

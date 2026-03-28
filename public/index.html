@@ -5652,6 +5652,24 @@ function renderChallengeRecordForm(res, cid) {
         html += '<button class="kpi-check" data-q="q' + i + '" data-val="' + escapeHtml(opt) + '" onclick="toggleKpiCheck(this)" style="border:2px solid #ddd; background:white; border-radius:10px; padding:6px 12px; font-size:0.78rem; cursor:pointer; transition:all 0.15s;">' + escapeHtml(opt) + '</button>';
       });
       html += '</div>';
+    } else if (kpi.type === 'veggie_check') {
+      html += '<div id="veggie-flow-' + cid + '" data-q="q' + i + '">';
+      // Step1: YES/NO
+      html += '<div id="veggie-step1-' + cid + '" style="display:flex; gap:8px;">';
+      html += '<button onclick="veggieAnswer(\'' + cid + '\',true)" style="flex:1;padding:12px;background:linear-gradient(135deg,#43a047,#66bb6a);color:white;border:none;border-radius:12px;font-size:0.9rem;font-weight:800;cursor:pointer;"><i class="fas fa-check-circle"></i> 食べた！</button>';
+      html += '<button onclick="veggieAnswer(\'' + cid + '\',false)" style="flex:1;padding:12px;background:#f5f5f5;color:#999;border:none;border-radius:12px;font-size:0.9rem;font-weight:700;cursor:pointer;"><i class="fas fa-times-circle"></i> 食べてない</button>';
+      html += '</div>';
+      // Step2: 判定方法（初期非表示）
+      html += '<div id="veggie-step2-' + cid + '" style="display:none; margin-top:10px;">';
+      html += '<div style="display:flex; gap:8px;">';
+      html += '<button onclick="veggieFromPosts(\'' + cid + '\')" style="flex:1;padding:10px;background:white;border:2px solid #20c997;color:#20c997;border-radius:12px;font-size:0.82rem;font-weight:700;cursor:pointer;"><i class="fas fa-utensils"></i> 食事投稿から判定</button>';
+      html += '<button onclick="veggieFromPhoto(\'' + cid + '\')" style="flex:1;padding:10px;background:white;border:2px solid #1e88e5;color:#1e88e5;border-radius:12px;font-size:0.82rem;font-weight:700;cursor:pointer;"><i class="fas fa-camera"></i> ここで写真を撮る</button>';
+      html += '</div>';
+      html += '<input type="file" id="veggie-photo-' + cid + '" accept="image/*" capture="environment" style="display:none;" onchange="veggiePhotoSelected(\'' + cid + '\')">';
+      html += '</div>';
+      // Step3: 結果表示（初期非表示）
+      html += '<div id="veggie-result-' + cid + '" style="display:none; margin-top:10px;"></div>';
+      html += '</div>';
     }
     html += '</div>';
   });
@@ -5684,6 +5702,91 @@ function toggleKpiCheck(el) {
   var idx = arr.indexOf(val);
   if (idx >= 0) { arr.splice(idx, 1); el.style.borderColor = '#ddd'; el.style.background = 'white'; el.style.color = '#333'; }
   else { arr.push(val); el.style.borderColor = '#1e88e5'; el.style.background = '#e3f2fd'; el.style.color = '#1e88e5'; el.style.fontWeight = '700'; }
+}
+
+// ===== 野菜チェックフロー =====
+function veggieAnswer(cid, ate) {
+  var flow = document.getElementById('veggie-flow-' + cid);
+  var q = flow ? flow.getAttribute('data-q') : 'q0';
+  if (!ate) {
+    // 食べてない → スコア0
+    kpiAnswers[q] = '0';
+    document.getElementById('veggie-step1-' + cid).innerHTML = '<div style="text-align:center;padding:8px;color:#999;font-size:0.82rem;"><i class="fas fa-times-circle"></i> 今日は食べてない → 0点</div>';
+    return;
+  }
+  // 食べた → Step2表示
+  document.getElementById('veggie-step1-' + cid).innerHTML = '<div style="text-align:center;padding:8px;color:#43a047;font-weight:700;font-size:0.82rem;"><i class="fas fa-check-circle"></i> 食べた！どうやって記録する？</div>';
+  document.getElementById('veggie-step2-' + cid).style.display = 'block';
+}
+
+function veggieFromPosts(cid) {
+  var result = document.getElementById('veggie-result-' + cid);
+  result.style.display = 'block';
+  result.innerHTML = '<div style="text-align:center;padding:10px;"><i class="fas fa-spinner fa-spin"></i> 食事投稿を確認中...</div>';
+  fetch('/api/chat/veggie-from-posts/' + currentUser.uid, {
+    headers: { 'Authorization': 'Bearer ' + getToken() }
+  }).then(function(r) { return r.json(); }).then(function(data) {
+    var flow = document.getElementById('veggie-flow-' + cid);
+    var q = flow ? flow.getAttribute('data-q') : 'q0';
+    if (!data.found) {
+      result.innerHTML = '<div style="padding:10px;background:#fff3e0;border-radius:10px;text-align:center;font-size:0.82rem;color:#e65100;"><i class="fas fa-exclamation-circle"></i> 今日の食事投稿がありません。<br>写真を撮って記録しましょう！</div>';
+      return;
+    }
+    kpiAnswers[q] = String(data.score);
+    var stars = '⭐'.repeat(data.score) || '−';
+    result.innerHTML = '<div style="padding:12px;background:#e8f5e9;border-radius:12px;text-align:center;">' +
+      '<div style="font-size:1.2rem;margin-bottom:4px;">' + stars + '</div>' +
+      '<div style="font-size:0.9rem;font-weight:800;color:#2e7d32;">野菜スコア: ' + data.score + '点</div>' +
+      (data.veggieInfo ? '<div style="font-size:0.75rem;color:#555;margin-top:4px;">' + data.veggieInfo + '</div>' : '') +
+    '</div>';
+    document.getElementById('veggie-step2-' + cid).style.display = 'none';
+  }).catch(function() {
+    result.innerHTML = '<div style="padding:10px;color:#e53935;font-size:0.82rem;">取得に失敗しました</div>';
+  });
+}
+
+function veggieFromPhoto(cid) {
+  document.getElementById('veggie-photo-' + cid).click();
+}
+
+function veggiePhotoSelected(cid) {
+  var input = document.getElementById('veggie-photo-' + cid);
+  if (!input.files || !input.files[0]) return;
+  var file = input.files[0];
+  var result = document.getElementById('veggie-result-' + cid);
+  result.style.display = 'block';
+  result.innerHTML = '<div style="text-align:center;padding:10px;"><i class="fas fa-spinner fa-spin"></i> AIが野菜を判定中...</div>';
+
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var base64 = e.target.result.split(',')[1];
+    var mimeType = file.type || 'image/jpeg';
+    fetch('/api/chat/veggie-score', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
+      body: JSON.stringify({ imageBase64: base64, mimeType: mimeType })
+    }).then(function(r) { return r.json(); }).then(function(data) {
+      var flow = document.getElementById('veggie-flow-' + cid);
+      var q = flow ? flow.getAttribute('data-q') : 'q0';
+      if (data.success) {
+        kpiAnswers[q] = String(data.score);
+        var stars = '⭐'.repeat(data.score) || '−';
+        var veggies = (data.veggieList || []).join('、');
+        result.innerHTML = '<div style="padding:12px;background:#e8f5e9;border-radius:12px;text-align:center;">' +
+          '<div style="font-size:1.2rem;margin-bottom:4px;">' + stars + '</div>' +
+          '<div style="font-size:0.9rem;font-weight:800;color:#2e7d32;">野菜スコア: ' + data.score + '点</div>' +
+          (veggies ? '<div style="font-size:0.75rem;color:#555;margin-top:4px;">🥬 ' + veggies + '</div>' : '') +
+          (data.comment ? '<div style="font-size:0.72rem;color:#888;margin-top:4px;">' + data.comment + '</div>' : '') +
+        '</div>';
+      } else {
+        result.innerHTML = '<div style="padding:10px;color:#e53935;font-size:0.82rem;">判定に失敗しました</div>';
+      }
+      document.getElementById('veggie-step2-' + cid).style.display = 'none';
+    }).catch(function() {
+      result.innerHTML = '<div style="padding:10px;color:#e53935;font-size:0.82rem;">通信エラーが発生しました</div>';
+    });
+  };
+  reader.readAsDataURL(file);
 }
 
 function doRecordKpi(cid) {

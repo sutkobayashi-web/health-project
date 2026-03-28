@@ -1,5 +1,5 @@
 const express = require('express');
-const { chatWithNurse, getNurseGreeting, chatWithNurseImage } = require('../services/ai');
+const { chatWithNurse, getNurseGreeting, chatWithNurseImage, callGeminiVision } = require('../services/ai');
 const { getDb } = require('../services/db');
 
 const router = express.Router();
@@ -87,6 +87,67 @@ router.get('/buddy-history/:uid', (req, res) => {
       "SELECT role, content, created_at FROM buddy_messages WHERE user_id = ? AND date(created_at) = date('now') ORDER BY id ASC"
     ).all(req.params.uid);
     res.json({ success: true, messages: rows });
+  } catch (e) {
+    res.json({ success: false, msg: e.message });
+  }
+});
+
+// 野菜スコアリング（写真→AI判定）
+router.post('/veggie-score', async (req, res) => {
+  try {
+    const { imageBase64, mimeType } = req.body;
+    if (!imageBase64) return res.json({ success: false, msg: '画像が必要です' });
+
+    const prompt = `この食事写真に含まれる野菜を分析してください。JSON形式のみ返してください。
+
+{
+  "hasVeggies": true/false,
+  "veggieList": ["野菜名1", "野菜名2", ...],
+  "veggieCount": 野菜の種類数(数値),
+  "score": 0-3のスコア(0=野菜なし, 1=少量/1種, 2=まあまあ/1-2種, 3=豊富/3種以上),
+  "comment": "野菜摂取に関する一言コメント(20文字以内)"
+}
+
+必ず有効なJSONのみ返してください。`;
+
+    const result = await callGeminiVision(prompt, imageBase64, mimeType || 'image/jpeg');
+    if (!result) return res.json({ success: false, msg: 'AI判定に失敗しました' });
+
+    try {
+      const jsonStr = result.replace(/```json?\s*/g, '').replace(/```/g, '').trim();
+      const parsed = JSON.parse(jsonStr);
+      res.json({ success: true, ...parsed });
+    } catch (e) {
+      res.json({ success: true, hasVeggies: false, veggieList: [], veggieCount: 0, score: 0, comment: '判定できませんでした' });
+    }
+  } catch (e) {
+    res.json({ success: false, msg: e.message });
+  }
+});
+
+// 当日の食事投稿から野菜スコアを取得
+router.get('/veggie-from-posts/:uid', (req, res) => {
+  try {
+    const db = getDb();
+    const posts = db.prepare(
+      "SELECT content, analysis FROM posts WHERE user_id = ? AND (category = '🍱 食事・栄養' OR image_url IS NOT NULL) AND date(created_at) = date('now') ORDER BY created_at DESC"
+    ).all(req.params.uid);
+
+    if (!posts.length) return res.json({ success: true, found: false, msg: '今日の食事投稿がありません' });
+
+    // 最新の食事投稿のAI分析から野菜情報を抽出
+    var bestScore = 0;
+    var veggieInfo = '';
+    posts.forEach(function(p) {
+      var analysis = p.analysis || p.content || '';
+      // 簡易判定: 野菜関連キーワードの数でスコア推定
+      var veggieWords = ['野菜', 'サラダ', 'トマト', 'キャベツ', 'レタス', 'ほうれん草', 'ブロッコリー', 'にんじん', '大根', 'きゅうり', 'ピーマン', 'なす', '玉ねぎ', 'もやし', '小松菜', 'かぼちゃ', 'アスパラ', 'セロリ', 'パプリカ', 'ごぼう', '白菜', 'おくら', '枝豆'];
+      var found = veggieWords.filter(function(w) { return analysis.indexOf(w) !== -1; });
+      var score = found.length >= 3 ? 3 : found.length >= 1 ? 2 : 0;
+      if (score > bestScore) { bestScore = score; veggieInfo = found.join('、'); }
+    });
+
+    res.json({ success: true, found: true, score: bestScore, veggieInfo: veggieInfo, postCount: posts.length });
   } catch (e) {
     res.json({ success: false, msg: e.message });
   }

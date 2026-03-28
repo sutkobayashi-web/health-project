@@ -84,15 +84,49 @@ function ambLogout() {
 }
 
 function loadAmbDashboard() {
-  getChallenges().then(function(res) {
-    var area = document.getElementById('amb-main');
-    if (!res || !res.success || !res.challenges.length) {
-      area.innerHTML = '<div class="card-box text-center py-5 text-muted"><div style="font-size:2rem; margin-bottom:10px;">📋</div>現在進行中のチャレンジはありません</div>';
-      return;
+  var area = document.getElementById('amb-main');
+  area.innerHTML = '<div class="text-center py-3 text-muted"><i class="fas fa-spinner fa-spin"></i> 読み込み中...</div>';
+
+  // テーマ候補（助言待ち）を取得
+  getCurrentCycle('').then(function(cycleRes) {
+    var themeHtml = '';
+    if (cycleRes && cycleRes.success && cycleRes.cycle && (cycleRes.cycle.status === 'advisor_review' || cycleRes.cycle.status === 'candidate')) {
+      var cycle = cycleRes.cycle;
+      var themes = cycleRes.themes || [];
+      themeHtml += '<div class="card-box" style="border-left:4px solid #ff6b35; background:linear-gradient(135deg,#fff8e1,#fff);">';
+      themeHtml += '<div class="fw-bold mb-2" style="color:#ff6b35;"><i class="fas fa-fire me-1"></i>テーマ候補が届いています（' + cycle.title + '）</div>';
+      themeHtml += '<div class="small text-muted mb-3">推進メンバーが凝集したテーマです。専門的な見地から助言をお願いします。</div>';
+      themes.forEach(function(t) {
+        var plans = []; try { plans = JSON.parse(t.action_plans || '[]'); } catch(e) {}
+        themeHtml += '<div class="p-2 mb-2" style="background:white;border-radius:10px;border:1px solid #eee;">';
+        themeHtml += '<div class="fw-bold">' + (t.icon || '💡') + ' ' + escapeHtml(t.name) + ' <span class="small text-muted">(' + t.post_count + '件の声)</span></div>';
+        themeHtml += '<div class="small text-muted mb-1">' + escapeHtml(t.description || '') + '</div>';
+        if (plans.length > 0) {
+          themeHtml += '<div class="small fw-bold mt-1" style="color:#f57c00;">プラン案:</div>';
+          plans.forEach(function(p, pi) {
+            themeHtml += '<div class="small" style="padding-left:8px;">案' + String.fromCharCode(65+pi) + ': ' + escapeHtml(p.title) + (p.description ? ' — ' + escapeHtml(p.description) : '') + '</div>';
+          });
+        }
+        themeHtml += '</div>';
+      });
+      // 助言入力
+      themeHtml += '<div class="mt-2 p-3" style="background:#faf5ff;border-radius:10px;">';
+      themeHtml += '<div class="fw-bold small mb-2" style="color:#9c27b0;"><i class="fas fa-pen me-1"></i>テーマ候補への助言</div>';
+      themeHtml += '<textarea id="theme-advice-text" class="form-control form-control-sm mb-2" rows="4" placeholder="テーマの妥当性、プラン案への意見、追加すべき観点など..."></textarea>';
+      themeHtml += '<button class="btn btn-sm fw-bold" style="background:#9c27b0;color:white;" onclick="submitThemeAdvice(' + cycle.cycle_number + ')"><i class="fas fa-paper-plane me-1"></i>助言を送信</button>';
+      themeHtml += '</div></div>';
     }
 
-    var html = '';
-    res.challenges.filter(function(c) { return c.status === 'active' || c.status === 'recruiting' || c.status === 'completed'; }).forEach(function(c) {
+    // チャレンジ一覧
+    return getChallenges().then(function(res) {
+      var html = themeHtml;
+      if ((!res || !res.success || !res.challenges.length) && !themeHtml) {
+        area.innerHTML = '<div class="card-box text-center py-5 text-muted"><div style="font-size:2rem; margin-bottom:10px;">📋</div>現在表示する項目はありません</div>';
+        return;
+      }
+
+      if (res && res.success && res.challenges.length) {
+        res.challenges.filter(function(c) { return c.status === 'active' || c.status === 'recruiting' || c.status === 'completed'; }).forEach(function(c) {
       html += '<div class="card-box" style="border-left:4px solid #9c27b0;">';
       html += '<div class="d-flex justify-content-between align-items-start mb-2">';
       html += '<div><div class="fw-bold">' + (c.icon || '💪') + ' ' + escapeHtml(c.title) + '</div>';
@@ -126,8 +160,22 @@ function loadAmbDashboard() {
 
       html += '</div>';
     });
+      }
 
-    area.innerHTML = html;
+      area.innerHTML = html;
+    });
+  }).catch(function() {
+    area.innerHTML = '<div class="card-box text-center py-5 text-muted">読み込みに失敗しました</div>';
+  });
+}
+
+function submitThemeAdvice(cycleNum) {
+  var text = document.getElementById('theme-advice-text').value.trim();
+  if (!text) { alert('助言内容を入力してください'); return; }
+  var adviserName = ambProfile ? ambProfile.name : '保健師';
+  api('/themes/submit-advisor-advice', { cycleNumber: cycleNum, advisorComment: '【' + adviserName + '】' + text }).then(function(res) {
+    if (res && res.success) { alert('助言を送信しました。ステータスが役員承認待ちに移行しました。'); loadAmbDashboard(); }
+    else alert(res.msg || 'エラー');
   });
 }
 

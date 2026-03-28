@@ -6463,6 +6463,9 @@ var triggered = false;
 
   document.addEventListener('touchstart', function(e) {
     if (isAtTop() && !triggered && currentUser) {
+      // ヘッダー（上部56px）上でのスワイプのみ有効
+      var touchY = e.touches[0].clientY;
+      if (touchY > 56) return;
       startY = e.touches[0].pageY;
       pulling = true;
     }

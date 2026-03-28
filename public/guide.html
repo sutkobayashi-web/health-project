@@ -584,11 +584,11 @@ body {
     <table class="guide-table">
       <thead><tr><th>タブ</th><th>アイコン</th><th>内容</th></tr></thead>
       <tbody>
-        <tr><td><strong>バディー</strong></td><td>🤖</td><td>ヘルスバディーとの会話（ホーム画面）</td></tr>
-        <tr><td><strong>メニュー</strong></td><td>📋</td><td>投稿・食事チェック・チャレンジなど全機能</td></tr>
+        <tr><td><strong>バディー</strong></td><td>🤖</td><td>ヘルスバディーとの会話（ホーム画面）。右上にチャレンジ状況ボード</td></tr>
+        <tr><td><strong>メニュー</strong></td><td>📋</td><td>投稿・食事チェック・アプリの仕組み・ガイドなど</td></tr>
+        <tr><td><strong>チャレンジ</strong></td><td>🔥</td><td>開催中・募集中のチャレンジ一覧。KPI記録もここで完結</td></tr>
         <tr><td><strong>お知らせ</strong></td><td>🔔</td><td>事務局・推進メンバーからの通知</td></tr>
-        <tr><td><strong>マイページ</strong></td><td>👤</td><td>プロフィール・バディー変更・ログアウト</td></tr>
-        <tr><td><strong>ガイド</strong></td><td>📖</td><td>このガイドページ</td></tr>
+        <tr><td><strong>マイページ</strong></td><td>👤</td><td>プロフィール・バディー変更・投稿履歴・バディーメモ</td></tr>
       </tbody>
     </table>
 
@@ -1177,6 +1177,32 @@ body {
       <i class="fas fa-lightbulb" style="color:#4caf50;"></i>
       途中参加・途中離脱もOK。無理なく続けられる設計です。
     </div>
+
+    <h4 style="color:#00897b; margin-top:20px;"><i class="fas fa-clipboard-check me-2"></i>KPI記録タイプ</h4>
+    <table class="guide-table">
+      <thead><tr><th>タイプ</th><th>例</th><th>記録方法</th></tr></thead>
+      <tbody>
+        <tr><td><strong>数値入力</strong></td><td>歩数チャレンジ</td><td>歩数計の数値を入力</td></tr>
+        <tr><td><strong>野菜チェック</strong></td><td>野菜チャレンジ</td><td>「食べた/食べてない」→ 食事投稿から判定 or その場で写真撮影 → AI判定で0-3点スコア化＋推定塩分表示</td></tr>
+        <tr><td><strong>選択式</strong></td><td>睡眠チャレンジ</td><td>就寝/起床時刻＋睡眠の質を選択肢から選ぶ</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:0.85rem; color:#555;">野菜チェックでは写真を公開したくない方もプライベートに撮影可能です（タイムラインには載りません）。</p>
+
+    <h4 style="color:#00897b; margin-top:20px;"><i class="fas fa-comment-dots me-2"></i>チャレンジ反応収集</h4>
+    <p>バディーとの会話でチャレンジが紹介された時、反応ボタンが表示されます。</p>
+    <table class="guide-table">
+      <thead><tr><th>反応</th><th>活用</th></tr></thead>
+      <tbody>
+        <tr><td>🙋 やってみたい</td><td>テーマの優先度を上げる材料</td></tr>
+        <tr><td>💡 興味がある</td><td>関心度の測定</td></tr>
+        <tr><td>😅 ちょっと面倒</td><td>アクションプランの簡素化を検討</td></tr>
+        <tr><td>✅ もう参加中</td><td>参加率の把握</td></tr>
+      </tbody>
+    </table>
+
+    <h4 style="color:#00897b; margin-top:20px;"><i class="fas fa-mobile-alt me-2"></i>チャレンジタブ</h4>
+    <p>ボトムナビの「🔥チャレンジ」タブから、開催中・募集中のチャレンジを一覧で確認できます。各チャレンジをタップするとKPI記録フォームが展開されます。バディーチャット画面の右上にもミニステータスボードが表示されます。</p>
   </div>
 </div>
 
@@ -1246,10 +1272,10 @@ body {
       <thead><tr><th>項目</th><th>内容</th></tr></thead>
       <tbody>
         <tr><td><strong>今週の食事傾向</strong></td><td>全体の傾向を2〜3文で要約</td></tr>
-        <tr><td><strong>過剰な栄養素</strong></td><td>推定で過剰摂取の栄養素と具体的理由（例：塩分→味噌汁+漬物が毎食）</td></tr>
-        <tr><td><strong>不足している栄養素</strong></td><td>推定で不足している栄養素と具体的理由（例：食物繊維→野菜が少ない）</td></tr>
+        <tr><td><strong>五大栄養素バランス</strong></td><td>たんぱく質・脂質・炭水化物・ビタミン・ミネラルの過不足評価</td></tr>
+        <tr><td><strong>🧂 塩分分析</strong></td><td>推定塩分摂取傾向、塩分が多い原因の特定（味噌汁・漬物・加工食品・惣菜等）、目標: 1日7.5g未満</td></tr>
         <tr><td><strong>良かった点</strong></td><td>具体的に1〜2つ褒めて継続を促す</td></tr>
-        <tr><td><strong>来週の心がけ</strong></td><td>スモールステップで実践しやすいアドバイスを2〜3つ</td></tr>
+        <tr><td><strong>来週の心がけ</strong></td><td>減塩のコツを含む、具体的で実践しやすいアドバイスを2〜3つ</td></tr>
         <tr><td><strong>出典</strong></td><td>根拠となる厚労省ガイドライン等を明記</td></tr>
       </tbody>
     </table>
@@ -1302,6 +1328,26 @@ body {
       ・閲覧ごとにアクセスログ（user_id, IP, user_agent, 日時）をDBに記録<br>
       ・レスポンスから氏名を削除（万が一の通信傍受対策）<br>
       ・健診データはDBに一切保存しない（Box API都度取得方式）
+    </div>
+
+    <h4 style="color:#d32f2f; margin-top:20px;"><i class="fas fa-chart-pie me-2"></i>全社健診データ分析（管理者向け）</h4>
+    <p>全社員の健診データを<strong>匿名で集計</strong>し、AIが3パターンのアクションプランを提案する機能です。個人は特定されません。</p>
+
+    <table class="guide-table">
+      <thead><tr><th>項目</th><th>内容</th></tr></thead>
+      <tbody>
+        <tr><td><strong>集計項目</strong></td><td>BMI、肥満・高血圧・脂質異常・高血糖・肝機能・腎機能・貧血の異常率</td></tr>
+        <tr><td><strong>AI 3パターン提案</strong></td><td>各プランに優先度・対象リスク・エビデンス根拠・EAST設計・KPI指標・推奨期間を提示</td></tr>
+        <tr><td><strong>保健師への申し送り</strong></td><td>AIが分析に基づく注意事項を保健師・産業医向けに記載</td></tr>
+        <tr><td><strong>テーマ凝集への連携</strong></td><td>集計結果をキャッシュし、テーマ凝集AIが自動参照。異常率が高い項目のテーマseverityを上げる</td></tr>
+      </tbody>
+    </table>
+
+    <div class="warn-box">
+      <strong><i class="fas fa-user-md" style="color:#43a047;"></i> AIと保健師の役割分担</strong><br>
+      ・<strong>AI</strong>: データ集計・分析・提案の「下書き」を高速で作る<br>
+      ・<strong>保健師（アンバサダー）</strong>: 現場を知る専門家として「承認・修正・補足」する<br>
+      ・AIが専門家を代替するのではなく、専門家の判断を支援する設計
     </div>
   </div>
 </div>
@@ -1391,7 +1437,7 @@ body {
       <tbody>
         <tr><td><strong>AIヘルスアドバイザー（チャット）</strong></td><td>Groq</td><td>エビデンスに基づく健康相談チャット。コーチング重視、ティーチングより質問で気づきを促す</td></tr>
         <tr><td><strong>初回あいさつ生成</strong></td><td>Groq</td><td>新規チャット開始時の自己紹介と健康に関するオープンな質問</td></tr>
-        <tr><td><strong>画像分析（食事・健診）</strong></td><td>Gemini Vision + Groq</td><td>食事写真の栄養分析（推定カロリー/PFC/良い点/不足/ちょい足し提案）。健診結果の数値解説</td></tr>
+        <tr><td><strong>画像分析（食事・健診）</strong></td><td>Gemini Vision + Groq</td><td>食事写真の五大栄養素分析（たんぱく質/脂質/炭水化物/ビタミン/ミネラル）＋推定塩分量(g)＋推定カロリー＋改善提案。健診結果の数値解説</td></tr>
         <tr><td><strong>投稿ケアコメント生成</strong></td><td>Groq</td><td>健康相談投稿に対するAIからの温かいケアコメント + 7軸自動評価スコア</td></tr>
         <tr><td><strong>健康ナレッジBot</strong></td><td>Groq</td><td>健康経営の専門知識を平易な言葉で解説。ナッジ/EAST/CAN等のフレームワークも教育</td></tr>
       </tbody>

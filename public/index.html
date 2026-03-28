@@ -5227,6 +5227,16 @@ function toggleAccordion(bodyId, labelId) {
   if (isOpen) {
     body.style.cssText = body.style.cssText.replace(/display:\s*block/i, 'display:none');
   } else {
+    // 他の開いているメニューを閉じる
+    var mainBodies = ['vote-body','challenge-combined-body','honne-body','food-body','checkup-body','memo-body','elearn-body','qr-body'];
+    mainBodies.forEach(function(id) {
+      if (id !== bodyId) {
+        var other = document.getElementById(id);
+        if (other && other.style.display === 'block') {
+          other.style.cssText = other.style.cssText.replace(/display:\s*block/i, 'display:none');
+        }
+      }
+    });
     body.style.cssText = body.style.cssText.replace(/display:\s*none/i, 'display:block');
     // 最下部に閉じるボタンがなければ追加
     if (!body.querySelector('.accordion-close-btn')) {

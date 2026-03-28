@@ -3730,34 +3730,29 @@ function initBuddy() {
   var mainContent = document.querySelector('.main-content');
   if (mainContent) mainContent.style.display = 'none';
 
-  // バディーデータ読み込み（localStorage優先→サーバー→デフォルト）
-  var buddyData = null;
-  try { buddyData = JSON.parse(localStorage.getItem('co_heart_buddy')); } catch(e) {}
+  // バディーデータ読み込み（サーバー優先→localStorage→デフォルト）
+  var localBuddy = null;
+  try { localBuddy = JSON.parse(localStorage.getItem('co_heart_buddy')); } catch(e) {}
 
-  if (!buddyData) {
-    // サーバーから取得を試みる
-    fetch('/api/auth/get-buddy/' + currentUser.uid, {
-      headers: { 'Authorization': 'Bearer ' + getToken() }
-    }).then(function(r) { return r.json(); }).then(function(data) {
-      if (data && data.buddyData) {
-        // サーバーにあった → localStorageに同期してチャット開始
-        localStorage.setItem('co_heart_buddy', JSON.stringify(data.buddyData));
-        startBuddyChat(data.buddyData);
-      } else {
-        // サーバーにもない → デフォルトバディーで開始
-        localStorage.setItem('co_heart_buddy', JSON.stringify(DEFAULT_BUDDY));
-        startBuddyChat(DEFAULT_BUDDY);
-      }
-    }).catch(function() {
-      // 通信エラー → デフォルトバディーで開始
+  fetch('/api/auth/get-buddy/' + currentUser.uid, {
+    headers: { 'Authorization': 'Bearer ' + getToken() }
+  }).then(function(r) { return r.json(); }).then(function(data) {
+    if (data && data.buddyData) {
+      // サーバーにあった → localStorageに同期してチャット開始
+      localStorage.setItem('co_heart_buddy', JSON.stringify(data.buddyData));
+      startBuddyChat(data.buddyData);
+    } else if (localBuddy) {
+      // サーバーにない、localStorageにある → localStorageを使用
+      startBuddyChat(localBuddy);
+    } else {
+      // どちらにもない → デフォルトバディーで開始
       localStorage.setItem('co_heart_buddy', JSON.stringify(DEFAULT_BUDDY));
       startBuddyChat(DEFAULT_BUDDY);
-    });
-    return;
-  }
-
-  // バディー作成済み → チャット開始
-  startBuddyChat(buddyData);
+    }
+  }).catch(function() {
+    // 通信エラー → localStorageかデフォルトで開始
+    startBuddyChat(localBuddy || DEFAULT_BUDDY);
+  });
 }
 
 function startBuddyChat(buddyData) {

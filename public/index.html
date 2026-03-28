@@ -5844,7 +5844,8 @@ if ('serviceWorker' in navigator) {
     // 新しいSWが制御を取った → 自動リロード（1回だけ）
     if (!_swRefreshing) { _swRefreshing = true; window.location.reload(); }
   });
-  navigator.serviceWorker.register('/sw.js').then(function(reg) {
+  var appVer = document.documentElement.getAttribute('data-app-version') || '';
+  navigator.serviceWorker.register('/sw.js?v=' + appVer).then(function(reg) {
     setInterval(function() { reg.update(); }, 60000);
     document.addEventListener('visibilitychange', function() {
       if (document.visibilityState === 'visible') {

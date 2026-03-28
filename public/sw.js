@@ -1,6 +1,7 @@
 // Service Worker - Network First (常に最新を取得、オフライン時のみキャッシュ使用)
-// CACHE_NAME を変更するとSWが自動更新される
-const CACHE_NAME = 'cowell-health-20260328b';
+// CACHE_NAMEはクエリパラメータからバージョンを取得
+const swUrl = new URL(self.registration.scope);
+const CACHE_NAME = 'cowell-health-' + (new URL(self.location).searchParams.get('v') || 'default');
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();

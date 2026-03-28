@@ -5528,6 +5528,7 @@ function loadActiveChallenge() {
           '<div style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,' + t.grad + ');flex-shrink:0;"><i class="' + t.icon + '" style="font-size:14px;color:#fff;"></i></div>' +
           '<div style="flex:1;"><div style="font-weight:700; font-size:0.88rem; color:' + t.color + ';" id="ch-title-' + cid + '"></div>' +
           '<div style="font-size:0.75rem; color:#999;" id="ch-subtitle-' + cid + '"></div></div>' +
+          '<div id="ch-quo-' + cid + '" style="flex-shrink:0;"></div>' +
         '</div>' +
         '<div id="ch-body-' + cid + '" style="display:none; padding:0 12px 12px;"></div>';
       container.appendChild(block);
@@ -5549,6 +5550,17 @@ function loadChallengeDetail(cid) {
     if (titleEl) titleEl.innerHTML = (c.icon || '💪') + ' ' + escapeHtml(c.title);
     var daysLeft = c.period_end ? Math.max(0, Math.ceil((new Date(c.period_end) - Date.now()) / 86400000)) : '?';
     if (subEl) subEl.innerText = '参加' + res.participants.length + '名 / 残り' + daysLeft + '日';
+    // QUOカードミニバッジ（暫定: タイトルで金額分岐）
+    var quoEl = document.getElementById('ch-quo-' + cid);
+    if (quoEl) {
+      var quoAmount = '¥500';
+      var title = (c.title || '').toLowerCase();
+      if (title.indexOf('ウォーキング') !== -1 || title.indexOf('歩') !== -1) quoAmount = '¥1,000';
+      quoEl.innerHTML = '<div style="width:52px;height:34px;background:linear-gradient(135deg,#ffd700,#ffec80,#ffd700);border-radius:5px;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.15);">' +
+        '<div style="font-weight:900;font-size:0.4rem;color:#1a237e;letter-spacing:0.5px;">QUO CARD</div>' +
+        '<div style="font-weight:900;font-size:0.7rem;color:#1a237e;">' + quoAmount + '</div>' +
+      '</div>';
+    }
     if (!res.myParticipation) {
       renderChallengeEntry(c, cid);
     } else if (res.todayRecord) {

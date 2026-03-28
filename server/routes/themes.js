@@ -694,8 +694,8 @@ router.get('/challenge/:id', (req, res) => {
     const myParticipation = uid ? db.prepare("SELECT * FROM challenge_participants WHERE challenge_id = ? AND user_id = ?").get(c.challenge_id, uid) : null;
     const totalUsers = db.prepare("SELECT COUNT(*) as cnt FROM users").get().cnt;
 
-    // 今日の記録チェック
-    const today = new Date().toISOString().split('T')[0];
+    // 今日の記録チェック（JST）
+    const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Tokyo' });
     const todayRecord = uid ? db.prepare("SELECT * FROM kpi_records WHERE challenge_id = ? AND user_id = ? AND record_date = ?").get(c.challenge_id, uid, today) : null;
 
     // バッジ
@@ -739,7 +739,7 @@ router.post('/record', (req, res) => {
   try {
     const { challengeId, userId, answers, comment } = req.body;
     const db = getDb();
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Tokyo' });
     db.prepare(`INSERT INTO kpi_records (challenge_id, user_id, record_date, answers, comment)
       VALUES (?, ?, ?, ?, ?) ON CONFLICT(challenge_id, user_id, record_date) DO UPDATE SET answers=excluded.answers, comment=excluded.comment`)
       .run(challengeId, userId, today, JSON.stringify(answers), comment || '');
@@ -849,12 +849,12 @@ router.get('/ranking/:challengeId', (req, res) => {
       }
       if (s.dates.length === 1) s.maxStreak = 1;
       // 現在の連続記録
-      const today = new Date().toISOString().split('T')[0];
-      const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+      const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Tokyo' });
+      const yesterday = new Date(Date.now() - 86400000).toLocaleDateString('sv-SE', { timeZone: 'Asia/Tokyo' });
       if (s.dates.includes(today) || s.dates.includes(yesterday)) {
         let cs = 0;
         for (let i = s.dates.length - 1; i >= 0; i--) {
-          const expected = new Date(Date.now() - (s.dates.length - 1 - i) * 86400000).toISOString().split('T')[0];
+          const expected = new Date(Date.now() - (s.dates.length - 1 - i) * 86400000).toLocaleDateString('sv-SE', { timeZone: 'Asia/Tokyo' });
           if (s.dates[i] <= today) { cs++; } else break;
         }
         s.streak = cs;
@@ -918,9 +918,9 @@ router.post('/start-challenge', (req, res) => {
   try {
     const { challengeId } = req.body;
     const db = getDb();
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Tokyo' });
     const c = db.prepare("SELECT duration_days FROM challenges WHERE challenge_id = ?").get(challengeId);
-    const endDate = new Date(Date.now() + (c.duration_days || 30) * 86400000).toISOString().split('T')[0];
+    const endDate = new Date(Date.now() + (c.duration_days || 30) * 86400000).toLocaleDateString('sv-SE', { timeZone: 'Asia/Tokyo' });
     db.prepare("UPDATE challenges SET status = 'active', period_start = ?, period_end = ? WHERE challenge_id = ?").run(today, endDate, challengeId);
     res.json({ success: true });
   } catch (e) {
@@ -990,7 +990,7 @@ router.get('/dashboard/:challengeId', (req, res) => {
     const participationRate = totalUsers > 0 ? Math.round(participants / totalUsers * 100) : 0;
 
     // 今週の記録者数
-    const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString().split('T')[0];
+    const weekAgo = new Date(Date.now() - 7 * 86400000).toLocaleDateString('sv-SE', { timeZone: 'Asia/Tokyo' });
     const weeklyActive = db.prepare("SELECT COUNT(DISTINCT user_id) as cnt FROM kpi_records WHERE challenge_id = ? AND record_date >= ?").get(cid, weekAgo).cnt;
     const continuationRate = participants > 0 ? Math.round(weeklyActive / participants * 100) : 0;
 
@@ -1024,7 +1024,7 @@ router.get('/my-challenges', (req, res) => {
     // 参加中 + 募集中/実施中のチャレンジ
     const challenges = db.prepare(`
       SELECT c.challenge_id, c.title, c.icon, c.status, c.period_start, c.period_end,
-        (SELECT COUNT(*) FROM kpi_records kr WHERE kr.challenge_id = c.challenge_id AND kr.user_id = ? AND kr.record_date = date('now')) as today_recorded
+        (SELECT COUNT(*) FROM kpi_records kr WHERE kr.challenge_id = c.challenge_id AND kr.user_id = ? AND kr.record_date = date('now', '+9 hours')) as today_recorded
       FROM challenges c
       LEFT JOIN challenge_participants cp ON c.challenge_id = cp.challenge_id AND cp.user_id = ?
       WHERE c.status IN ('active', 'recruiting')

@@ -84,7 +84,7 @@ router.get('/buddy-history/:uid', (req, res) => {
   try {
     const db = getDb();
     const rows = db.prepare(
-      "SELECT role, content, created_at FROM buddy_messages WHERE user_id = ? AND date(created_at) = date('now') ORDER BY id ASC"
+      "SELECT role, content, created_at FROM buddy_messages WHERE user_id = ? AND date(created_at, '+9 hours') = date('now', '+9 hours') ORDER BY id ASC"
     ).all(req.params.uid);
     res.json({ success: true, messages: rows });
   } catch (e) {
@@ -134,7 +134,7 @@ router.get('/veggie-from-posts/:uid', (req, res) => {
   try {
     const db = getDb();
     const posts = db.prepare(
-      "SELECT content, analysis FROM posts WHERE user_id = ? AND (category = '🍱 食事・栄養' OR image_url IS NOT NULL) AND date(created_at) = date('now') ORDER BY created_at DESC"
+      "SELECT content, analysis FROM posts WHERE user_id = ? AND (category = '🍱 食事・栄養' OR image_url IS NOT NULL) AND date(created_at, '+9 hours') = date('now', '+9 hours') ORDER BY created_at DESC"
     ).all(req.params.uid);
 
     if (!posts.length) return res.json({ success: true, found: false, msg: '今日の食事投稿がありません' });

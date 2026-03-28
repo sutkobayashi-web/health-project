@@ -214,10 +214,6 @@ function renderV2Dashboard() {
         html += '<button class="btn btn-sm btn-outline-danger" style="font-size:0.68rem;" onclick="doDeleteTheme(\'' + t.theme_id + '\',\'' + escapeHtml(t.name).replace(/'/g,"\\'") + '\')"><i class="fas fa-trash me-1"></i>削除</button>';
         html += '</div>';
       }
-      // テーマ共感ボタン
-      if (cycle.status === 'candidate' || cycle.status === 'advisor_review') {
-        html += '<div class="mt-2" id="theme-emp-' + t.theme_id + '"></div>';
-      }
       // プラン案セクション
       if (cycle.status === 'candidate' || cycle.status === 'advisor_review') {
         var plans = []; try { plans = JSON.parse(t.action_plans || '[]'); } catch(e) {}
@@ -259,9 +255,8 @@ function renderV2Dashboard() {
     });
     html += '</div>';
     themesArea.innerHTML = html;
-    // 各テーマの共感・プラン共感・自由提案・議論を読み込み
+    // 各テーマのプラン共感・自由提案・議論を読み込み
     themes.forEach(function(t) {
-      loadThemeEmpathy(t.theme_id);
       var plans = []; try { plans = JSON.parse(t.action_plans || '[]'); } catch(e) {}
       plans.forEach(function(p, pi) { loadPlanEmpathy(t.theme_id, pi); });
       loadCustomPlans(t.theme_id);

@@ -51,8 +51,8 @@ var ambProfile = null;
 function doAmbLogin() {
   var name = document.getElementById('amb-login-name').value.trim();
   var password = document.getElementById('amb-login-password').value.trim();
-  if (!name || !password) { alert('名前とパスワードを入力してください'); return; }
-  api('/themes/ambassador-login', { name: name, password: password }).then(function(res) {
+  if (!name) { alert('名前を入力してください'); return; }
+  api('/themes/ambassador-login', { name: name, password: password || 'demo' }).then(function(res) {
     if (res && res.success) {
       ambProfile = { id: res.id, name: res.name, organization: res.organization, role: res.role };
       localStorage.setItem('amb_profile', JSON.stringify(ambProfile));

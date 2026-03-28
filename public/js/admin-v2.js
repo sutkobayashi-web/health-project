@@ -180,7 +180,8 @@ function renderV2Dashboard() {
       var deptDist = {}; try { deptDist = JSON.parse(t.dept_distribution || '{}'); } catch(e) {}
       var deptText = Object.keys(deptDist).map(function(k) { return k + ':' + deptDist[k] + '件'; }).join(' / ');
 
-      html += '<div class="col-md-6"><div class="plan-card' + (selected ? ' border-success border-2' : '') + '">';
+      var isExcludedCard = t.status === 'excluded';
+      html += '<div class="col-md-6"><div class="plan-card' + (selected ? ' border-success border-2' : '') + '" style="' + (isExcludedCard ? 'opacity:0.4;' : '') + '">';
       // ヘッダー
       html += '<div class="d-flex justify-content-between align-items-start mb-2">';
       html += '<div class="d-flex align-items-center gap-2"><span style="font-size:1.5rem;">' + (t.icon || '💡') + '</span><div><div class="fw-bold">' + escapeHtml(t.name) + '</div><div class="small text-muted">' + t.post_count + '件の声' + (deptText ? '（' + deptText + '）' : '') + '</div></div></div>';
@@ -207,9 +208,11 @@ function renderV2Dashboard() {
       }
       // 選出バッジ
       if (selected) html += '<div class="mb-2"><span class="badge bg-success"><i class="fas fa-check me-1"></i>選出テーマ</span></div>';
-      // 操作ボタン
+      // 採用/不採用トグル＋操作ボタン
       if (cycle.status === 'candidate' || cycle.status === 'voting') {
-        html += '<div class="d-flex gap-2 mt-2">';
+        var isExcluded = t.status === 'excluded';
+        html += '<div class="d-flex gap-2 mt-2 align-items-center">';
+        html += '<button class="btn btn-sm fw-bold" style="font-size:0.72rem;background:' + (isExcluded ? '#f5f5f5' : 'linear-gradient(135deg,#43a047,#66bb6a)') + ';color:' + (isExcluded ? '#999' : 'white') + ';border:none;" onclick="toggleThemeExclude(\'' + t.theme_id + '\',' + !isExcluded + ')"><i class="fas fa-' + (isExcluded ? 'times-circle' : 'check-circle') + ' me-1"></i>' + (isExcluded ? '不採用' : '採用') + '</button>';
         html += '<button class="btn btn-sm btn-outline-primary" style="font-size:0.68rem;" onclick="doEditTheme(\'' + t.theme_id + '\',\'' + escapeHtml(t.name).replace(/'/g,"\\'") + '\',\'' + escapeHtml(t.description || '').replace(/'/g,"\\'").replace(/\n/g,' ') + '\',\'' + (t.icon||'💡') + '\')"><i class="fas fa-edit me-1"></i>編集</button>';
         html += '<button class="btn btn-sm btn-outline-danger" style="font-size:0.68rem;" onclick="doDeleteTheme(\'' + t.theme_id + '\',\'' + escapeHtml(t.name).replace(/'/g,"\\'") + '\')"><i class="fas fa-trash me-1"></i>削除</button>';
         html += '</div>';
@@ -311,6 +314,15 @@ function toggleThemeEmpathy(themeId, empathyType) {
   }).then(function(r) { return r.json(); }).then(function() {
     loadThemeEmpathy(themeId);
   }).catch(function() {});
+}
+
+// テーマ採用/不採用トグル
+function toggleThemeExclude(themeId, exclude) {
+  var newStatus = exclude ? 'excluded' : 'candidate';
+  api('/themes/update-theme-status', { themeId: themeId, status: newStatus }, getAdminToken()).then(function(res) {
+    if (res && res.success) renderV2Dashboard();
+    else alert(res.msg || 'エラー');
+  });
 }
 
 // プラン案共感

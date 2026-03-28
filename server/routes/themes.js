@@ -404,6 +404,19 @@ router.post('/custom-plan-empathy', (req, res) => {
   } catch (e) { res.json({ success: false, msg: e.message }); }
 });
 
+// テーマ個別ステータス変更（採用/不採用）
+router.post('/update-theme-status', (req, res) => {
+  try {
+    const { themeId, status } = req.body;
+    if (!themeId || !status) return res.json({ success: false, msg: 'missing params' });
+    const db = getDb();
+    db.prepare('UPDATE themes SET status = ? WHERE theme_id = ?').run(status, themeId);
+    res.json({ success: true });
+  } catch (e) {
+    res.json({ success: false, msg: e.message });
+  }
+});
+
 // 管理者: 投票開始
 // ステータス変更（汎用）
 router.post('/change-status', (req, res) => {

@@ -6109,13 +6109,29 @@ function toggleKpiCheck(el) {
 }
 
 // ===== 野菜チェックフロー =====
+function veggieReset(cid) {
+  var flow = document.getElementById('veggie-flow-' + cid);
+  var q = flow ? flow.getAttribute('data-q') : 'q0';
+  delete kpiAnswers[q];
+  document.getElementById('veggie-step1-' + cid).innerHTML =
+    '<div style="display:flex;gap:8px;">' +
+    '<button onclick="veggieAnswer(\'' + cid + '\',true)" style="flex:1;padding:12px;background:linear-gradient(135deg,#43a047,#66bb6a);color:white;border:none;border-radius:12px;font-size:0.9rem;font-weight:800;cursor:pointer;"><i class="fas fa-check-circle"></i> 食べた！</button>' +
+    '<button onclick="veggieAnswer(\'' + cid + '\',false)" style="flex:1;padding:12px;background:#f5f5f5;color:#999;border:none;border-radius:12px;font-size:0.9rem;font-weight:700;cursor:pointer;"><i class="fas fa-times-circle"></i> 食べてない</button>' +
+    '</div>';
+  document.getElementById('veggie-step2-' + cid).style.display = 'none';
+  document.getElementById('veggie-result-' + cid).style.display = 'none';
+}
+
 function veggieAnswer(cid, ate) {
   var flow = document.getElementById('veggie-flow-' + cid);
   var q = flow ? flow.getAttribute('data-q') : 'q0';
   if (!ate) {
-    // 食べてない → スコア0
+    // 食べてない → スコア0（やり直し可能）
     kpiAnswers[q] = '0';
-    document.getElementById('veggie-step1-' + cid).innerHTML = '<div style="text-align:center;padding:8px;color:#999;font-size:0.82rem;"><i class="fas fa-times-circle"></i> 今日は食べてない → 0点</div>';
+    document.getElementById('veggie-step1-' + cid).innerHTML = '<div style="text-align:center;padding:8px;">' +
+      '<div style="color:#999;font-size:0.82rem;"><i class="fas fa-times-circle"></i> 今日は食べてない → 0点</div>' +
+      '<button onclick="veggieReset(\'' + cid + '\')" style="margin-top:6px;background:none;border:1.5px solid #667eea;color:#667eea;border-radius:16px;padding:4px 14px;font-size:0.72rem;font-weight:700;cursor:pointer;"><i class="fas fa-undo"></i> やり直す</button>' +
+    '</div>';
     return;
   }
   // 食べた → Step2表示

@@ -218,6 +218,33 @@ function renderV2Dashboard() {
       if (cycle.status === 'candidate' || cycle.status === 'advisor_review') {
         html += '<div class="mt-2" id="theme-emp-' + t.theme_id + '"></div>';
       }
+      // プラン案セクション
+      if (cycle.status === 'candidate' || cycle.status === 'advisor_review') {
+        var plans = []; try { plans = JSON.parse(t.action_plans || '[]'); } catch(e) {}
+        if (plans.length > 0) {
+          html += '<div class="mt-2 p-2" style="background:#fff8e1;border-radius:8px;border:1px solid #f0c000;">';
+          html += '<div style="font-size:0.68rem;font-weight:700;color:#f57c00;margin-bottom:6px;"><i class="fas fa-clipboard-list me-1"></i>AIプラン案（共感で評価してください）</div>';
+          plans.forEach(function(p, pi) {
+            var colors = ['#e53935','#1e88e5','#43a047'];
+            html += '<div style="padding:6px 8px;margin-bottom:6px;background:white;border-radius:8px;border-left:3px solid ' + colors[pi % 3] + ';">';
+            html += '<div style="font-size:0.75rem;font-weight:700;color:' + colors[pi % 3] + ';">案' + String.fromCharCode(65 + pi) + ': ' + escapeHtml(p.title) + '</div>';
+            html += '<div style="font-size:0.7rem;color:#555;">' + escapeHtml(p.description || '') + '</div>';
+            if (p.kpi) html += '<div style="font-size:0.65rem;color:#888;">KPI: ' + escapeHtml(p.kpi) + ' / ' + escapeHtml(p.duration || '') + '</div>';
+            html += '<div id="plan-emp-' + t.theme_id + '-' + pi + '" style="margin-top:4px;"></div>';
+            html += '</div>';
+          });
+          // 自由提案入力
+          html += '<div style="margin-top:6px;padding-top:6px;border-top:1px solid #eee;">';
+          html += '<div style="font-size:0.65rem;color:#999;margin-bottom:4px;">案D以降: メンバーからの自由提案</div>';
+          html += '<div id="custom-plans-' + t.theme_id + '"></div>';
+          html += '<div class="d-flex gap-1 mt-1">';
+          html += '<input type="text" id="custom-plan-title-' + t.theme_id + '" class="form-control form-control-sm" placeholder="プラン名" style="font-size:0.72rem;flex:2;">';
+          html += '<input type="text" id="custom-plan-desc-' + t.theme_id + '" class="form-control form-control-sm" placeholder="概要（任意）" style="font-size:0.72rem;flex:3;">';
+          html += '<button class="btn btn-sm btn-warning" style="font-size:0.65rem;white-space:nowrap;" onclick="postCustomPlan(\'' + t.theme_id + '\')"><i class="fas fa-plus"></i></button>';
+          html += '</div></div>';
+          html += '</div>';
+        }
+      }
       // テーマ議論チャット
       if (cycle.status === 'candidate' || cycle.status === 'advisor_review') {
         html += '<div class="mt-2 p-2" style="background:#f8f9ff;border-radius:8px;border:1px solid #e0e0e0;">';
@@ -232,9 +259,12 @@ function renderV2Dashboard() {
     });
     html += '</div>';
     themesArea.innerHTML = html;
-    // 各テーマの共感と議論を読み込み
+    // 各テーマの共感・プラン共感・自由提案・議論を読み込み
     themes.forEach(function(t) {
       loadThemeEmpathy(t.theme_id);
+      var plans = []; try { plans = JSON.parse(t.action_plans || '[]'); } catch(e) {}
+      plans.forEach(function(p, pi) { loadPlanEmpathy(t.theme_id, pi); });
+      loadCustomPlans(t.theme_id);
       loadThemeDiscussions(t.theme_id);
     });
   });
@@ -286,6 +316,98 @@ function toggleThemeEmpathy(themeId, empathyType) {
   }).then(function(r) { return r.json(); }).then(function() {
     loadThemeEmpathy(themeId);
   }).catch(function() {});
+}
+
+// プラン案共感
+function loadPlanEmpathy(themeId, planIndex) {
+  var el = document.getElementById('plan-emp-' + themeId + '-' + planIndex);
+  if (!el) return;
+  var memberId = currentAdminProfile ? currentAdminProfile.email : '';
+  fetch('/api/themes/plan-empathy/' + themeId + '?memberId=' + encodeURIComponent(memberId), {
+    headers: { 'Authorization': 'Bearer ' + getAdminToken() }
+  }).then(function(r) { return r.json(); }).then(function(data) {
+    if (!data.success) return;
+    var countsMap = {};
+    (data.counts || []).filter(function(c) { return c.plan_index === planIndex; }).forEach(function(c) { countsMap[c.empathy_type] = c.count; });
+    var myEmp = (data.myEmpathy || []).filter(function(e) { return e.plan_index === planIndex; }).map(function(e) { return e.empathy_type; });
+    var html = '<div style="display:flex;flex-wrap:wrap;gap:3px;">';
+    THEME_EMPATHY_TYPES.forEach(function(t) {
+      var count = countsMap[t.key] || 0;
+      var active = myEmp.indexOf(t.key) !== -1;
+      html += '<button onclick="togglePlanEmpathy(\'' + themeId + '\',' + planIndex + ',\'' + t.key + '\')" style="display:inline-flex;align-items:center;gap:2px;padding:2px 6px;border-radius:12px;font-size:0.6rem;font-weight:700;cursor:pointer;border:1px solid ' + (active ? t.color : '#ddd') + ';background:' + (active ? t.color + '18' : 'white') + ';color:' + (active ? t.color : '#bbb') + ';">';
+      html += t.icon;
+      if (count > 0) html += '<span style="font-size:0.55rem;">' + count + '</span>';
+      html += '</button>';
+    });
+    html += '</div>';
+    el.innerHTML = html;
+  });
+}
+
+function togglePlanEmpathy(themeId, planIndex, empathyType) {
+  var memberId = currentAdminProfile ? currentAdminProfile.email : '';
+  fetch('/api/themes/plan-empathy', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getAdminToken() },
+    body: JSON.stringify({ themeId: themeId, planIndex: planIndex, memberId: memberId, empathyType: empathyType })
+  }).then(function() { loadPlanEmpathy(themeId, planIndex); });
+}
+
+// メンバー自由提案
+function loadCustomPlans(themeId) {
+  var el = document.getElementById('custom-plans-' + themeId);
+  if (!el) return;
+  var memberId = currentAdminProfile ? currentAdminProfile.email : '';
+  fetch('/api/themes/custom-plans/' + themeId + '?memberId=' + encodeURIComponent(memberId), {
+    headers: { 'Authorization': 'Bearer ' + getAdminToken() }
+  }).then(function(r) { return r.json(); }).then(function(data) {
+    if (!data.success || !data.plans.length) { el.innerHTML = ''; return; }
+    var html = '';
+    data.plans.forEach(function(p, idx) {
+      var letter = String.fromCharCode(68 + idx); // D, E, F...
+      html += '<div style="padding:5px 8px;margin-bottom:4px;background:white;border-radius:6px;border-left:3px solid #9c27b0;">';
+      html += '<div style="font-size:0.7rem;font-weight:700;color:#9c27b0;">案' + letter + ': ' + escapeHtml(p.title) + ' <span style="font-size:0.6rem;color:#bbb;">(' + escapeHtml(p.member_name) + ')</span></div>';
+      if (p.description) html += '<div style="font-size:0.65rem;color:#555;">' + escapeHtml(p.description) + '</div>';
+      // 共感ボタン
+      var countsMap = {};
+      (p.empathy || []).forEach(function(e) { countsMap[e.empathy_type] = e.count; });
+      var myEmp = p.myEmpathy || [];
+      html += '<div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:3px;">';
+      THEME_EMPATHY_TYPES.forEach(function(t) {
+        var count = countsMap[t.key] || 0;
+        var active = myEmp.indexOf(t.key) !== -1;
+        html += '<button onclick="toggleCustomPlanEmpathy(' + p.id + ',\'' + themeId + '\',\'' + t.key + '\')" style="display:inline-flex;align-items:center;gap:2px;padding:2px 6px;border-radius:12px;font-size:0.6rem;font-weight:700;cursor:pointer;border:1px solid ' + (active ? t.color : '#ddd') + ';background:' + (active ? t.color + '18' : 'white') + ';color:' + (active ? t.color : '#bbb') + ';">';
+        html += t.icon;
+        if (count > 0) html += '<span style="font-size:0.55rem;">' + count + '</span>';
+        html += '</button>';
+      });
+      html += '</div></div>';
+    });
+    el.innerHTML = html;
+  });
+}
+
+function postCustomPlan(themeId) {
+  var titleInput = document.getElementById('custom-plan-title-' + themeId);
+  var descInput = document.getElementById('custom-plan-desc-' + themeId);
+  if (!titleInput || !titleInput.value.trim()) { alert('プラン名を入力してください'); return; }
+  var memberName = currentAdminProfile ? currentAdminProfile.name : '不明';
+  fetch('/api/themes/custom-plan', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getAdminToken() },
+    body: JSON.stringify({ themeId: themeId, memberName: memberName, title: titleInput.value.trim(), description: (descInput ? descInput.value.trim() : '') })
+  }).then(function(r) { return r.json(); }).then(function(data) {
+    if (data.success) { titleInput.value = ''; if (descInput) descInput.value = ''; loadCustomPlans(themeId); }
+  });
+}
+
+function toggleCustomPlanEmpathy(customPlanId, themeId, empathyType) {
+  var memberId = currentAdminProfile ? currentAdminProfile.email : '';
+  fetch('/api/themes/custom-plan-empathy', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getAdminToken() },
+    body: JSON.stringify({ customPlanId: customPlanId, memberId: memberId, empathyType: empathyType })
+  }).then(function() { loadCustomPlans(themeId); });
 }
 
 function loadThemeDiscussions(themeId) {

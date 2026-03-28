@@ -192,9 +192,15 @@ ${reactionContext}
     "keywords": ["キーワード1", "キーワード2", "キーワード3"],
     "post_indices": [1, 3, 7],
     "severity": 3.5,
-    "representative_voices": ["代表的な声1を30文字以内で", "代表的な声2を30文字以内で", "代表的な声3を30文字以内で"]
+    "representative_voices": ["代表的な声1を30文字以内で", "代表的な声2を30文字以内で", "代表的な声3を30文字以内で"],
+    "action_plans": [
+      {"title": "プランA名（具体的に）", "description": "具体的な施策内容（2文）", "kpi": "測定指標", "duration": "推奨期間"},
+      {"title": "プランB名", "description": "施策内容（2文）", "kpi": "測定指標", "duration": "推奨期間"},
+      {"title": "プランC名", "description": "施策内容（2文）", "kpi": "測定指標", "duration": "推奨期間"}
+    ]
   }
-]`;
+]
+※各テーマに必ず3つの具体的アクションプラン案(action_plans)を含めること。エビデンスに基づき、EASTフレームワークで設計すること。`;
 
     // Groq → Geminiフォールバック付きAPI呼び出し
     const aiResult = await callAIWithFallback('JSON出力専門AI。指定JSON形式のみ出力。', prompt);
@@ -223,9 +229,9 @@ ${reactionContext}
         if (p && p.department) deptDist[p.department] = (deptDist[p.department] || 0) + 1;
       });
 
-      db.prepare(`INSERT INTO themes (theme_id, cycle_number, name, description, icon, post_ids, post_count, dept_distribution, severity_avg, keywords, representative_voices, status)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'candidate')`)
-        .run(tid, cycleNum, t.name, t.description, t.icon || '💡', JSON.stringify(postIds), postIds.length, JSON.stringify(deptDist), t.severity || 3, JSON.stringify(t.keywords || []), JSON.stringify(t.representative_voices || []));
+      db.prepare(`INSERT INTO themes (theme_id, cycle_number, name, description, icon, post_ids, post_count, dept_distribution, severity_avg, keywords, representative_voices, action_plans, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'candidate')`)
+        .run(tid, cycleNum, t.name, t.description, t.icon || '💡', JSON.stringify(postIds), postIds.length, JSON.stringify(deptDist), t.severity || 3, JSON.stringify(t.keywords || []), JSON.stringify(t.representative_voices || []), JSON.stringify(t.action_plans || []));
       themes.push({ theme_id: tid, ...t });
     }
 
@@ -327,6 +333,75 @@ router.get('/theme-empathy/:themeId', (req, res) => {
   } catch (e) {
     res.json({ success: false, msg: e.message });
   }
+});
+
+// プラン案共感（トグル）
+router.post('/plan-empathy', (req, res) => {
+  try {
+    const { themeId, planIndex, memberId, empathyType } = req.body;
+    const db = getDb();
+    const existing = db.prepare('SELECT id FROM plan_empathy WHERE theme_id = ? AND plan_index = ? AND member_id = ? AND empathy_type = ?').get(themeId, planIndex, memberId, empathyType);
+    if (existing) {
+      db.prepare('DELETE FROM plan_empathy WHERE id = ?').run(existing.id);
+      res.json({ success: true, action: 'removed' });
+    } else {
+      db.prepare('INSERT INTO plan_empathy (theme_id, plan_index, member_id, empathy_type) VALUES (?, ?, ?, ?)').run(themeId, planIndex, memberId, empathyType);
+      res.json({ success: true, action: 'added' });
+    }
+  } catch (e) { res.json({ success: false, msg: e.message }); }
+});
+
+router.get('/plan-empathy/:themeId', (req, res) => {
+  try {
+    const db = getDb();
+    const rows = db.prepare('SELECT plan_index, empathy_type, COUNT(*) as count FROM plan_empathy WHERE theme_id = ? GROUP BY plan_index, empathy_type').all(req.params.themeId);
+    const myEmp = req.query.memberId
+      ? db.prepare('SELECT plan_index, empathy_type FROM plan_empathy WHERE theme_id = ? AND member_id = ?').all(req.params.themeId, req.query.memberId)
+      : [];
+    res.json({ success: true, counts: rows, myEmpathy: myEmp });
+  } catch (e) { res.json({ success: false, msg: e.message }); }
+});
+
+// メンバー自由提案
+router.post('/custom-plan', (req, res) => {
+  try {
+    const { themeId, memberName, title, description } = req.body;
+    if (!themeId || !title) return res.json({ success: false, msg: 'missing params' });
+    const db = getDb();
+    const result = db.prepare('INSERT INTO theme_custom_plans (theme_id, member_name, title, description) VALUES (?, ?, ?, ?)').run(themeId, memberName || '不明', title, description || '');
+    res.json({ success: true, id: result.lastInsertRowid });
+  } catch (e) { res.json({ success: false, msg: e.message }); }
+});
+
+router.get('/custom-plans/:themeId', (req, res) => {
+  try {
+    const db = getDb();
+    const plans = db.prepare('SELECT * FROM theme_custom_plans WHERE theme_id = ? ORDER BY created_at ASC').all(req.params.themeId);
+    // 各自由提案の共感も取得
+    plans.forEach(p => {
+      p.empathy = db.prepare('SELECT empathy_type, COUNT(*) as count FROM custom_plan_empathy WHERE custom_plan_id = ? GROUP BY empathy_type').all(p.id);
+      if (req.query.memberId) {
+        p.myEmpathy = db.prepare('SELECT empathy_type FROM custom_plan_empathy WHERE custom_plan_id = ? AND member_id = ?').all(p.id, req.query.memberId).map(r => r.empathy_type);
+      }
+    });
+    res.json({ success: true, plans: plans });
+  } catch (e) { res.json({ success: false, msg: e.message }); }
+});
+
+// 自由提案共感（トグル）
+router.post('/custom-plan-empathy', (req, res) => {
+  try {
+    const { customPlanId, memberId, empathyType } = req.body;
+    const db = getDb();
+    const existing = db.prepare('SELECT id FROM custom_plan_empathy WHERE custom_plan_id = ? AND member_id = ? AND empathy_type = ?').get(customPlanId, memberId, empathyType);
+    if (existing) {
+      db.prepare('DELETE FROM custom_plan_empathy WHERE id = ?').run(existing.id);
+      res.json({ success: true, action: 'removed' });
+    } else {
+      db.prepare('INSERT INTO custom_plan_empathy (custom_plan_id, member_id, empathy_type) VALUES (?, ?, ?)').run(customPlanId, memberId, empathyType);
+      res.json({ success: true, action: 'added' });
+    }
+  } catch (e) { res.json({ success: false, msg: e.message }); }
 });
 
 // 管理者: 投票開始
@@ -499,6 +574,24 @@ ${commentsText}
 ${discussionText}
 【推進メンバーの共感（テーマへの評価）】
 ${empathyText}
+【AIプラン案への推進メンバー評価】
+${(function() {
+  var plans = []; try { plans = JSON.parse(theme.action_plans || '[]'); } catch(e) {}
+  var empLabels = { agree:'賛成', urgent:'最優先', effective:'効果的', engaging:'巻き込める', discuss:'要議論', difficult:'難しい', postpone:'見送り' };
+  var result = '';
+  plans.forEach(function(p, i) {
+    var pe = db.prepare('SELECT empathy_type, COUNT(*) as count FROM plan_empathy WHERE theme_id = ? AND plan_index = ? GROUP BY empathy_type').all(themeId, i);
+    result += '案' + String.fromCharCode(65+i) + '「' + p.title + '」: ' + (pe.length ? pe.map(function(e) { return (empLabels[e.empathy_type]||e.empathy_type)+':'+e.count+'人'; }).join(', ') : '評価なし') + '\n';
+  });
+  var customs = db.prepare('SELECT tcp.title, tcp.description, tcp.member_name FROM theme_custom_plans tcp WHERE tcp.theme_id = ?').all(themeId);
+  customs.forEach(function(c, i) {
+    var ce = db.prepare('SELECT empathy_type, COUNT(*) as count FROM custom_plan_empathy WHERE custom_plan_id = ? GROUP BY empathy_type').all(c.id);
+    result += '案' + String.fromCharCode(68+i) + '(メンバー提案)「' + c.title + '」by ' + c.member_name + ': ' + (ce.length ? ce.map(function(e) { return (empLabels[e.empathy_type]||e.empathy_type)+':'+e.count+'人'; }).join(', ') : '評価なし') + '\n';
+    if (c.description) result += '  概要: ' + c.description + '\n';
+  });
+  return result || '（なし）';
+})()}
+→ 共感が最も多いプラン案をベースにチャレンジを設計すること。メンバー提案も積極的に取り入れること。
 
 【設計要件】
 - 期間: 30日間

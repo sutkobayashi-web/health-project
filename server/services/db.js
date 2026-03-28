@@ -132,6 +132,46 @@ function getDb() {
     )`);
   }
 
+  // themes テーブルに action_plans カラム追加
+  try { db.exec("ALTER TABLE themes ADD COLUMN action_plans TEXT DEFAULT '[]'"); } catch(e) {}
+
+  // プラン案共感テーブル
+  try {
+    db.exec(`CREATE TABLE IF NOT EXISTS plan_empathy (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      theme_id TEXT NOT NULL,
+      plan_index INTEGER NOT NULL,
+      member_id TEXT NOT NULL,
+      empathy_type TEXT NOT NULL,
+      created_at TEXT DEFAULT (datetime('now')),
+      UNIQUE(theme_id, plan_index, member_id, empathy_type)
+    )`);
+  } catch(e) {}
+
+  // メンバー自由提案テーブル
+  try {
+    db.exec(`CREATE TABLE IF NOT EXISTS theme_custom_plans (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      theme_id TEXT NOT NULL,
+      member_name TEXT NOT NULL,
+      title TEXT NOT NULL,
+      description TEXT,
+      created_at TEXT DEFAULT (datetime('now'))
+    )`);
+  } catch(e) {}
+
+  // 自由提案共感テーブル
+  try {
+    db.exec(`CREATE TABLE IF NOT EXISTS custom_plan_empathy (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      custom_plan_id INTEGER NOT NULL,
+      member_id TEXT NOT NULL,
+      empathy_type TEXT NOT NULL,
+      created_at TEXT DEFAULT (datetime('now')),
+      UNIQUE(custom_plan_id, member_id, empathy_type)
+    )`);
+  } catch(e) {}
+
   // テーマ共感テーブル
   try {
     db.exec(`CREATE TABLE IF NOT EXISTS theme_empathy (

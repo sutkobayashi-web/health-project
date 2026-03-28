@@ -334,9 +334,9 @@ function loadPlanEmpathy(themeId, planIndex) {
     THEME_EMPATHY_TYPES.forEach(function(t) {
       var count = countsMap[t.key] || 0;
       var active = myEmp.indexOf(t.key) !== -1;
-      html += '<button onclick="togglePlanEmpathy(\'' + themeId + '\',' + planIndex + ',\'' + t.key + '\')" style="display:inline-flex;align-items:center;gap:2px;padding:5px 10px;border-radius:14px;font-size:0.72rem;font-weight:700;cursor:pointer;border:1.5px solid ' + (active ? t.color : '#ddd') + ';background:' + (active ? t.color + '18' : 'white') + ';color:' + (active ? t.color : '#bbb') + ';">';
-      html += t.icon;
-      if (count > 0) html += '<span style="font-size:0.55rem;">' + count + '</span>';
+      html += '<button onclick="togglePlanEmpathy(\'' + themeId + '\',' + planIndex + ',\'' + t.key + '\')" style="display:inline-flex;align-items:center;gap:3px;padding:5px 10px;border-radius:14px;font-size:0.72rem;font-weight:700;cursor:pointer;border:1.5px solid ' + (active ? t.color : '#ddd') + ';background:' + (active ? t.color + '18' : 'white') + ';color:' + (active ? t.color : '#bbb') + ';">';
+      html += t.icon + ' ' + t.label;
+      if (count > 0) html += '<span style="background:' + (active ? t.color : '#eee') + ';color:' + (active ? 'white' : '#666') + ';border-radius:8px;padding:1px 6px;font-size:0.65rem;margin-left:2px;">' + count + '</span>';
       html += '</button>';
     });
     html += '</div>';
@@ -376,9 +376,9 @@ function loadCustomPlans(themeId) {
       THEME_EMPATHY_TYPES.forEach(function(t) {
         var count = countsMap[t.key] || 0;
         var active = myEmp.indexOf(t.key) !== -1;
-        html += '<button onclick="toggleCustomPlanEmpathy(' + p.id + ',\'' + themeId + '\',\'' + t.key + '\')" style="display:inline-flex;align-items:center;gap:2px;padding:5px 10px;border-radius:14px;font-size:0.72rem;font-weight:700;cursor:pointer;border:1.5px solid ' + (active ? t.color : '#ddd') + ';background:' + (active ? t.color + '18' : 'white') + ';color:' + (active ? t.color : '#bbb') + ';">';
-        html += t.icon;
-        if (count > 0) html += '<span style="font-size:0.55rem;">' + count + '</span>';
+        html += '<button onclick="toggleCustomPlanEmpathy(' + p.id + ',\'' + themeId + '\',\'' + t.key + '\')" style="display:inline-flex;align-items:center;gap:3px;padding:5px 10px;border-radius:14px;font-size:0.72rem;font-weight:700;cursor:pointer;border:1.5px solid ' + (active ? t.color : '#ddd') + ';background:' + (active ? t.color + '18' : 'white') + ';color:' + (active ? t.color : '#bbb') + ';">';
+        html += t.icon + ' ' + t.label;
+        if (count > 0) html += '<span style="background:' + (active ? t.color : '#eee') + ';color:' + (active ? 'white' : '#666') + ';border-radius:8px;padding:1px 6px;font-size:0.65rem;margin-left:2px;">' + count + '</span>';
         html += '</button>';
       });
       html += '</div></div>';

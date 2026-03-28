@@ -1350,6 +1350,7 @@ function doUserLogout() {
   var buddyMsgs = document.getElementById('buddy-messages'); if (buddyMsgs) buddyMsgs.innerHTML = '';
   _buddyHistory = []; _buddyMoodChecked = false; _buddyTurnCount = 0;
   window._buddyScrollSetup = false;
+  try { sessionStorage.setItem('buddy_fresh_start', '1'); } catch(e) {}
   var buddyScreen = document.getElementById('buddy-chat-screen'); if (buddyScreen) buddyScreen.style.display = 'none';
   var buddySetup = document.getElementById('buddy-setup-screen'); if (buddySetup) buddySetup.style.display = 'none';
   var mainContent = document.querySelector('.main-content'); if (mainContent) mainContent.style.display = 'none';
@@ -3759,6 +3760,11 @@ function startBuddyChat(buddyData) {
 
   var msgs = document.getElementById('buddy-messages');
   msgs.innerHTML = '';
+
+  // ログアウト後の再ログインは新規スタート
+  var freshStart = false;
+  try { freshStart = sessionStorage.getItem('buddy_fresh_start') === '1'; sessionStorage.removeItem('buddy_fresh_start'); } catch(e) {}
+  if (freshStart) { startBuddyChatFresh(buddyData); return; }
 
   // 当日の履歴をサーバーから取得
   if (currentUser && currentUser.uid) {

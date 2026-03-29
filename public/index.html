@@ -3967,9 +3967,13 @@ function startBuddyChatFresh(buddyData) {
       setTimeout(function() {
         addBuddyMessage('ai', 'はじめに少しだけ、このアプリの仕組みを紹介させてね！\n\n🤖 私（バディー）は「あなた個人」の健康アドバイスが得意だよ。体調相談、食事、睡眠、なんでも聞いてね！\n\n🛡️ でも「職場の環境を変えたい」時は推進メンバーの出番！チャットの中で「推進メンバーに相談」を選ぶと、あなたの声が届くよ。\n\n📢→🗳️→💪 届いた声はテーマ候補になって、みんなの投票でチャレンジに変わるんだ！\n\nあなたの一言が、職場を変える力になるよ✨');
         setTimeout(function() {
-          addBuddyMessage('ai', 'さて、今日の調子はいかがですか？');
-          loadBuddyNotices();
-          setTimeout(function() { checkBuddyTopic(); }, 800);
+          addBuddyMessage('ai', 'ところで、私の見た目や名前、性格はカスタマイズできるよ！🎨\n\n自分だけのバディーにしてみない？');
+          showBuddySetupPrompt();
+          setTimeout(function() {
+            addBuddyMessage('ai', 'さて、今日の調子はいかがですか？');
+            loadBuddyNotices();
+            setTimeout(function() { checkBuddyTopic(); }, 800);
+          }, 1500);
         }, 1000);
       }, 1200);
       return;
@@ -3977,6 +3981,18 @@ function startBuddyChatFresh(buddyData) {
 
     msg += '\n\nさて、今日の調子はいかがですか？';
     addBuddyMessage('ai', msg);
+    // デフォルトバディーのまま＆まだ促していない場合 → カスタマイズを軽く案内
+    if (!localStorage.getItem('co_heart_buddy_setup_prompted')) {
+      var localBuddy = null;
+      try { localBuddy = JSON.parse(localStorage.getItem('co_heart_buddy')); } catch(e) {}
+      if (!localBuddy || localBuddy.name === DEFAULT_BUDDY.name) {
+        localStorage.setItem('co_heart_buddy_setup_prompted', '1');
+        setTimeout(function() {
+          addBuddyMessage('ai', '💡 そういえば、私のことまだカスタマイズしてないよね？\n名前・見た目・性格を変えて、自分だけのバディーにできるよ！');
+          showBuddySetupPrompt();
+        }, 2000);
+      }
+    }
     loadBuddyNotices();
     setTimeout(function() { checkBuddyTopic(); }, 800);
   }).catch(function() {
@@ -4195,6 +4211,26 @@ function formatBuddyText(text) {
   }
 
   return mainText.replace(/\n/g, '<br>') + actionHtml + sourceHtml;
+}
+
+function showBuddySetupPrompt() {
+  var msgs = document.getElementById('buddy-messages');
+  var div = document.createElement('div');
+  div.className = 'buddy-msg ai';
+  div.style.maxWidth = '85%';
+  var buddyData = null;
+  try { buddyData = JSON.parse(localStorage.getItem('co_heart_buddy')); } catch(e) {}
+  var aiAvatar = buddyData ? getAvatarHtml(buddyData.avatar, 38) : '<i class="fas fa-robot"></i>';
+  div.innerHTML = '<div class="buddy-avatar">' + aiAvatar + '</div>' +
+    '<div style="flex:1;min-width:0;">' +
+      '<button onclick="openBuddySetup()" style="display:flex;align-items:center;gap:10px;width:100%;padding:14px 16px;background:linear-gradient(135deg,#0ea5e9,#0284c7);color:white;border:none;border-radius:16px;font-size:0.88rem;font-weight:700;cursor:pointer;box-shadow:0 3px 12px rgba(14,165,233,0.3);transition:transform 0.15s;font-family:inherit;" onmousedown="this.style.transform=\'scale(0.97)\'" onmouseup="this.style.transform=\'scale(1)\'">' +
+        '<i class="fas fa-palette" style="font-size:1.2rem;"></i>' +
+        '<span>バディーをカスタマイズする</span>' +
+        '<i class="fas fa-chevron-right" style="margin-left:auto;opacity:0.7;"></i>' +
+      '</button>' +
+    '</div>';
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
 }
 
 function addBuddyMessage(role, text) {

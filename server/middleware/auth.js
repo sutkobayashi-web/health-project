@@ -1,6 +1,17 @@
 const jwt = require('jsonwebtoken');
 
-const JWT_SECRET = () => process.env.JWT_SECRET || 'health-project-secret';
+const crypto = require('crypto');
+
+// JWT_SECRET: 環境変数必須。未設定時はランダム生成（再起動で全トークン無効化）
+let _jwtFallback = null;
+const JWT_SECRET = () => {
+  if (process.env.JWT_SECRET) return process.env.JWT_SECRET;
+  if (!_jwtFallback) {
+    console.warn('[SECURITY WARNING] JWT_SECRET が未設定です。ランダムキーを使用します。.envにJWT_SECRETを設定してください。');
+    _jwtFallback = crypto.randomBytes(64).toString('hex');
+  }
+  return _jwtFallback;
+};
 
 function generateToken(payload) {
   return jwt.sign(payload, JWT_SECRET(), { expiresIn: '7d' });

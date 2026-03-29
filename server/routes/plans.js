@@ -1,8 +1,12 @@
 const express = require('express');
 const { getDb } = require('../services/db');
 const { callGroqApi } = require('../services/ai');
+const { authAdmin } = require('../middleware/auth');
 
 const router = express.Router();
+
+// ========== 全企画書APIに管理者認証を適用 ==========
+router.use(authAdmin);
 
 // 投稿者へ結果通知を送る（フィードバックループ）
 function notifyOriginalPoster(db, planId, message) {

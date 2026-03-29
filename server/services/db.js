@@ -14,6 +14,8 @@ function getDb() {
     // スキーマ初期化
     const schema = fs.readFileSync(path.join(__dirname, '..', 'db', 'schema.sql'), 'utf8');
     db.exec(schema);
+    // マイグレーション: buddy_type カラム追加
+    try { db.exec("ALTER TABLE users ADD COLUMN buddy_type TEXT DEFAULT 'gentle'"); } catch (e) { /* already exists */ }
   }
   return db;
 }

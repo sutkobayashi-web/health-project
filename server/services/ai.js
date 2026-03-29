@@ -131,18 +131,73 @@ async function callGeminiVision(systemPrompt, base64Data, mimeType) {
   }
 }
 
-// AI保健師チャット用
-async function chatWithNurse(userMessage, history, userName) {
+// ========================================
+// ヘルスバディー性格定義
+// ========================================
+const BUDDY_PERSONALITIES = {
+  gentle: {
+    name: 'やさしいバディー',
+    emoji: '🌸',
+    tone: `語り口は「です・ます」調で温かく親しみやすいトーン。
+相手の気持ちに寄り添い、共感を大切にする。
+「大丈夫ですよ」「一緒にがんばりましょうね」など安心感のある言葉を使う。
+絵文字は1〜2個、柔らかいもの（😊🌸💕）を使う。`
+  },
+  cheerful: {
+    name: '元気いっぱいバディー',
+    emoji: '⚡',
+    tone: `テンション高めで明るく元気な口調。「！」を多めに使う。
+「やったね！」「いいね！すごい！」など前向きな言葉で盛り上げる。
+スポーツや動きの比喩を使う（「ナイスシュート！」「いい走り出し！」）。
+絵文字は2〜3個、元気なもの（💪🔥⚡🏃✨）を使う。`
+  },
+  strict: {
+    name: 'しっかり者バディー',
+    emoji: '📋',
+    tone: `明確で的確な指摘をする頼れるトーン。丁寧だが率直。
+数値目標を具体的に提示し、結果にフォーカスする。
+「ここがポイントです」「具体的には〜しましょう」など行動を促す。
+絵文字は0〜1個、控えめに。`
+  },
+  funny: {
+    name: 'おもしろバディー',
+    emoji: '😄',
+    tone: `ユーモアのある親しみやすい口調。ダジャレや例え話を交える。
+タメ語混じりの「です・ます」調で距離感を縮める。
+「健康は"けんこう"じゃなくて"元気"って書きたいよね〜」のような軽い冗談。
+絵文字は2〜3個、楽しいもの（😄🎉🤣👍）を使う。`
+  },
+  calm: {
+    name: 'おだやかバディー',
+    emoji: '🍃',
+    tone: `ゆったりとした落ち着いたトーン。急がせない。
+マインドフルネス的な声がけ（「今の自分を大切にしましょう」）。
+呼吸や瞑想、自然の比喩を使う。
+絵文字は1個、穏やかなもの（🍃🌿☕🌙）を使う。`
+  }
+};
+
+function getBuddyTone(buddyType) {
+  return (BUDDY_PERSONALITIES[buddyType] || BUDDY_PERSONALITIES.gentle).tone;
+}
+
+function getBuddyName(buddyType) {
+  return (BUDDY_PERSONALITIES[buddyType] || BUDDY_PERSONALITIES.gentle).name;
+}
+
+// ヘルスバディーチャット
+async function chatWithBuddy(userMessage, history, userName, buddyType) {
   try {
+    const tone = getBuddyTone(buddyType);
     const systemPrompt = `# 役割
-あなたは、エビデンスに基づく健康支援を行う「AI保健師」です。
-最新のガイドラインと行動科学理論に基づき、対象者の行動変容を支援します。
+あなたは「ヘルスバディー」です。ユーザーの健康パートナーとして、楽しく会話しながらエビデンスに基づく健康支援を行います。
+保健指導を感じさせず、「友達と話しているだけ」の感覚を大切にしてください。
 
 # エビデンス基盤（必ずこれらに基づいて助言すること）
 ${EVIDENCE_BASE}
 
 # 基本姿勢
-1. エビデンスのない助言は絶対にしない。助言する際は根拠となるガイドラインや研究を簡潔に示す
+1. エビデンスのない助言は絶対にしない。助言する際は根拠を簡潔に示す
 2. ティーチングよりコーチング重視。質問で気づきを促す
 3. 「〜してください」と指示しない。選択肢を提示し自分で決めてもらう
 4. スモールステップ提案。最初から大きな目標を掲げない
@@ -151,13 +206,14 @@ ${EVIDENCE_BASE}
 7. 必ず質問または共感で終える
 8. 対象者の名前を時折呼びかけに使う
 
+# 性格・口調
+${tone}
+
 # 出力形式
-- 語り口は「です・ます」調で温かく親しみやすいトーン
 - 一度の発話は最大3〜4文程度
 - 必ず質問または共感で発話を終える
-- 絵文字は控えめに使用
 - 対象者の名前「${userName || 'あなた'}」を時折呼びかけに使う
-- 助言時は「（栄養改善パック2020）」「（EASTフレームワーク）」等、根拠を括弧で簡潔に付記する`;
+- 助言時は根拠を括弧で簡潔に付記する`;
 
     const messages = [{ role: 'system', content: systemPrompt }];
     if (history && history.length > 0) {
@@ -179,25 +235,31 @@ ${EVIDENCE_BASE}
   }
 }
 
-// AI保健師の初回挨拶
-async function getNurseGreeting(userName) {
+// ヘルスバディー初回挨拶
+async function getBuddyGreeting(userName, buddyType) {
   try {
-    const sys = `あなたはエビデンスに基づく健康支援を行うAI保健師です。ユーザー「${userName || 'さん'}」がチャットを開きました。
-初回の挨拶として、以下を含む温かい挨拶を3文以内で返してください：
-- 自己紹介（エビデンスに基づく健康支援を行うAI保健師であること）
-- 来てくれたことへの感謝
-- 体調や気になることを聞くオープンクエスチョン（食事・運動・睡眠など）
-語り口は「です・ます」調で温かく。絵文字は1〜2個まで。`;
+    const tone = getBuddyTone(buddyType);
+    const buddyName = getBuddyName(buddyType);
+    const sys = `あなたはユーザーの健康パートナー「ヘルスバディー」（${buddyName}）です。
+ユーザー「${userName || 'さん'}」がアプリを開きました。
+
+以下を含む温かい挨拶を3文以内で返してください：
+- 自己紹介（ヘルスバディーであること。保健指導っぽくならないように）
+- 来てくれたことへの感謝や軽い一言
+- 「今日は何をしましょうか？」で締める
+
+# 性格・口調
+${tone}`;
     const reply = await callGroqApi(sys, '挨拶してください');
     if (reply) return { success: true, reply };
-    return { success: true, reply: `こんにちは、${userName || ''}さん😊 エビデンスに基づく健康支援を行うAI保健師です！\nお話しできて嬉しいです。最近の食事や運動、体調で気になっていることはありますか？` };
+    return { success: true, reply: `こんにちは、${userName || ''}さん😊 あなたのヘルスバディーです！\n今日も一緒にがんばりましょう。今日は何をしましょうか？` };
   } catch (e) {
-    return { success: true, reply: `こんにちは、${userName || ''}さん😊 エビデンスに基づく健康支援を行うAI保健師です！\nお話しできて嬉しいです。最近の食事や運動、体調で気になっていることはありますか？` };
+    return { success: true, reply: `こんにちは、${userName || ''}さん😊 あなたのヘルスバディーです！\n今日も一緒にがんばりましょう。今日は何をしましょうか？` };
   }
 }
 
-// 画像付きチャット
-async function chatWithNurseImage(userMessage, imageBase64, mimeType, history, userName) {
+// ヘルスバディー画像付きチャット
+async function chatWithBuddyImage(userMessage, imageBase64, mimeType, history, userName, buddyType) {
   try {
     const visionSys = `あなたは熟練の保健師・管理栄養士です。送られた画像（健康診断結果、薬、体の症状、食事写真など）の内容を正確に読み取り、簡潔に要約してください。
 
@@ -213,15 +275,19 @@ async function chatWithNurseImage(userMessage, imageBase64, mimeType, history, u
 
     const combinedMessage = `【${userName || 'ユーザー'}さんから画像が送られました】\n＜画像の読み取り結果＞\n${visionResult}\n\n＜本人のコメント＞\n${userMessage || 'この画像について相談したいです。'}`;
 
-    const imageSystemPrompt = `あなたはエビデンスに基づく健康支援を行うAI保健師です。親身で温かい対応を心がけてください。
+    const tone = getBuddyTone(buddyType);
+    const imageSystemPrompt = `あなたはユーザーの健康パートナー「ヘルスバディー」です。親身で温かい対応を心がけてください。
 
 # エビデンス基盤
 ${EVIDENCE_BASE}
 
+# 性格・口調
+${tone}
+
 # 画像相談時の対応方針
 - 食事画像: 栄養改善パック（2020）のガイドラインに基づき、たんぱく質・野菜・主食のバランスを評価。CANフレームワークで改善を提案
 - 健康診断結果: 最新の基準値に基づき、数値の意味を分かりやすく説明
-- 助言時は根拠を括弧で簡潔に付記する（例:「栄養改善パック2020」「日本高血圧学会ガイドライン」）
+- 助言時は根拠を括弧で簡潔に付記する
 - エビデンスのない助言はしない
 - スモールステップで改善提案（ゴール&スモールステップ技法）
 - 1回の発話は3〜4文以内`;
@@ -239,6 +305,11 @@ ${EVIDENCE_BASE}
     return { success: false, reply: 'エラーが発生しました: ' + e.message };
   }
 }
+
+// 後方互換エイリアス
+const chatWithNurse = (msg, hist, name) => chatWithBuddy(msg, hist, name, 'gentle');
+const getNurseGreeting = (name) => getBuddyGreeting(name, 'gentle');
+const chatWithNurseImage = (msg, img, mime, hist, name) => chatWithBuddyImage(msg, img, mime, hist, name, 'gentle');
 
 // ///SCORE/// パーサー
 function parsePostScore(analysisText) {
@@ -290,7 +361,8 @@ ${JSON.stringify(humanScores || {})}
 
 module.exports = {
   callGroqApi, callGroqApiSafe, callGeminiVision,
+  chatWithBuddy, getBuddyGreeting, chatWithBuddyImage,
   chatWithNurse, getNurseGreeting, chatWithNurseImage,
   parsePostScore, evaluateVoiceByAI,
-  EVIDENCE_BASE
+  EVIDENCE_BASE, BUDDY_PERSONALITIES
 };

@@ -1,31 +1,69 @@
 const express = require('express');
-const { chatWithNurse, getNurseGreeting, chatWithNurseImage } = require('../services/ai');
+const { chatWithBuddy, getBuddyGreeting, chatWithBuddyImage } = require('../services/ai');
+const { authUser } = require('../middleware/auth');
+const { getDb } = require('../services/db');
 
 const router = express.Router();
 
-// AI保健師チャット
-router.post('/message', async (req, res) => {
-  const { userMessage, history, userName } = req.body;
-  const result = await chatWithNurse(userMessage, history, userName);
+// ヘルスバディーチャット
+router.post('/message', authUser, async (req, res) => {
+  const { userMessage, history, userName, buddyType } = req.body;
+  const result = await chatWithBuddy(userMessage, history, userName, buddyType || 'gentle');
   res.json(result);
 });
 
-// AI保健師初回挨拶
-router.post('/greeting', async (req, res) => {
-  const { userName } = req.body;
-  const result = await getNurseGreeting(userName);
+// ヘルスバディー初回挨拶
+router.post('/greeting', authUser, async (req, res) => {
+  const { userName, buddyType } = req.body;
+  const result = await getBuddyGreeting(userName, buddyType || 'gentle');
   res.json(result);
 });
 
-// AI保健師画像付きチャット
-router.post('/image-message', async (req, res) => {
-  const { userMessage, imageBase64, mimeType, history, userName } = req.body;
-  const result = await chatWithNurseImage(userMessage, imageBase64, mimeType, history, userName);
+// ヘルスバディー画像付きチャット
+router.post('/image-message', authUser, async (req, res) => {
+  const { userMessage, imageBase64, mimeType, history, userName, buddyType } = req.body;
+  const result = await chatWithBuddyImage(userMessage, imageBase64, mimeType, history, userName, buddyType || 'gentle');
   res.json(result);
+});
+
+// チャットメモ保存
+router.post('/memo', authUser, (req, res) => {
+  try {
+    const { userId, messageText, memoText } = req.body;
+    if (!userId || !messageText) return res.json({ success: false, msg: '必須項目が不足しています' });
+    const db = getDb();
+    db.prepare('INSERT INTO chat_memos (user_id, message_text, memo_text) VALUES (?, ?, ?)').run(userId, messageText, memoText || '');
+    res.json({ success: true });
+  } catch (e) {
+    res.json({ success: false, msg: e.message });
+  }
+});
+
+// チャットメモ取得
+router.get('/memos/:userId', authUser, (req, res) => {
+  try {
+    const db = getDb();
+    const memos = db.prepare('SELECT * FROM chat_memos WHERE user_id = ? ORDER BY created_at DESC').all(req.params.userId);
+    res.json({ success: true, memos });
+  } catch (e) {
+    res.json({ success: false, memos: [] });
+  }
+});
+
+// チャットメモ削除
+router.post('/memo/delete', authUser, (req, res) => {
+  try {
+    const { memoId, userId } = req.body;
+    const db = getDb();
+    db.prepare('DELETE FROM chat_memos WHERE id = ? AND user_id = ?').run(memoId, userId);
+    res.json({ success: true });
+  } catch (e) {
+    res.json({ success: false, msg: e.message });
+  }
 });
 
 // ナレッジベースAIボット
-router.post('/knowledge', async (req, res) => {
+router.post('/knowledge', authUser, async (req, res) => {
   const { question } = req.body;
   if (!question) return res.json({ success: false, reply: '質問を入力してください' });
   try {

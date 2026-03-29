@@ -1,10 +1,11 @@
 const express = require('express');
 const { getDb } = require('../services/db');
+const { authUser, authAdmin } = require('../middleware/auth');
 
 const router = express.Router();
 
 // ユーザー向け全通知取得（個別＋全体、新しい順）
-router.get('/all/:uid', (req, res) => {
+router.get('/all/:uid', authUser, (req, res) => {
   try {
     const db = getDb();
     const uid = req.params.uid;
@@ -23,8 +24,8 @@ router.get('/all/:uid', (req, res) => {
   } catch (e) { res.json([]); }
 });
 
-// お知らせ保存
-router.post('/save', (req, res) => {
+// お知らせ保存（管理者のみ）
+router.post('/save', authAdmin, (req, res) => {
   try {
     const { content, isBroadcast, targetUid } = req.body;
     const db = getDb();
@@ -36,7 +37,7 @@ router.post('/save', (req, res) => {
 });
 
 // 未読個別通知取得
-router.get('/unread/:uid', (req, res) => {
+router.get('/unread/:uid', authUser, (req, res) => {
   try {
     const db = getDb();
     const notice = db.prepare("SELECT * FROM notices WHERE target_id = ? AND status != 'read' ORDER BY created_at DESC LIMIT 1").get(req.params.uid);
@@ -51,7 +52,7 @@ router.get('/unread/:uid', (req, res) => {
 });
 
 // 最新通知取得
-router.get('/latest/:uid', (req, res) => {
+router.get('/latest/:uid', authUser, (req, res) => {
   try {
     const db = getDb();
     const uid = req.params.uid;
@@ -67,7 +68,7 @@ router.get('/latest/:uid', (req, res) => {
 });
 
 // 既読マーク
-router.post('/mark-read', (req, res) => {
+router.post('/mark-read', authUser, (req, res) => {
   try {
     const { noticeId, replyText } = req.body;
     const db = getDb();
@@ -77,7 +78,7 @@ router.post('/mark-read', (req, res) => {
 });
 
 // 管理者既読マーク
-router.post('/admin-read', (req, res) => {
+router.post('/admin-read', authAdmin, (req, res) => {
   try {
     const db = getDb();
     db.prepare('UPDATE notices SET admin_read = 1 WHERE notice_id = ?').run(req.body.noticeId);
@@ -86,7 +87,7 @@ router.post('/admin-read', (req, res) => {
 });
 
 // 管理者用個別通知一覧
-router.get('/admin-list', (req, res) => {
+router.get('/admin-list', authAdmin, (req, res) => {
   try {
     const db = getDb();
     const notices = db.prepare("SELECT * FROM notices WHERE target_id != 'ALL' ORDER BY created_at DESC").all();

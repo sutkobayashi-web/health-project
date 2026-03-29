@@ -30,8 +30,8 @@ async function api(path, data, token) {
 }
 
 // ===== Auth =====
-function registerUser(n, p, a, i, r, d, b) {
-  return api('/auth/register', { nickname: n, password: p, avatar: a, inviterId: i, realName: r, department: d, birthDate: b });
+function registerUser(n, p, a, i, r, d, b, bt) {
+  return api('/auth/register', { nickname: n, password: p, avatar: a, inviterId: i, realName: r, department: d, birthDate: b, buddyType: bt });
 }
 function loginUser(n, p) {
   return api('/auth/login', { nickname: n, password: p });
@@ -240,13 +240,29 @@ function getPersonalNoticesAdmin() {
   return api('/notices/admin-list', undefined, getAdminToken());
 }
 
-// ===== Chat =====
-function chatWithNurse(userMessage, history, userName) {
-  return api('/chat/message', { userMessage, history, userName });
+// ===== Chat (ヘルスバディー) =====
+function chatWithBuddy(userMessage, history, userName, buddyType) {
+  return api('/chat/message', { userMessage, history, userName, buddyType });
 }
-function getNurseGreeting(userName) {
-  return api('/chat/greeting', { userName });
+function getBuddyGreeting(userName, buddyType) {
+  return api('/chat/greeting', { userName, buddyType });
 }
-function chatWithNurseImage(userMessage, imageBase64, mimeType, history, userName) {
-  return api('/chat/image-message', { userMessage, imageBase64, mimeType, history, userName });
+function chatWithBuddyImage(userMessage, imageBase64, mimeType, history, userName, buddyType) {
+  return api('/chat/image-message', { userMessage, imageBase64, mimeType, history, userName, buddyType });
 }
+function saveChatMemo(userId, messageText, memoText) {
+  return api('/chat/memo', { userId, messageText, memoText });
+}
+function getChatMemos(userId) {
+  return api('/chat/memos/' + userId, undefined, getToken());
+}
+function deleteChatMemo(memoId, userId) {
+  return api('/chat/memo/delete', { memoId, userId });
+}
+function updateBuddyType(uid, buddyType) {
+  return api('/auth/update-buddy', { uid, buddyType });
+}
+// 後方互換
+function chatWithNurse(m, h, n) { return chatWithBuddy(m, h, n, 'gentle'); }
+function getNurseGreeting(n) { return getBuddyGreeting(n, 'gentle'); }
+function chatWithNurseImage(m, i, t, h, n) { return chatWithBuddyImage(m, i, t, h, n, 'gentle'); }

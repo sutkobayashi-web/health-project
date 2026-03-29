@@ -4,13 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>健康プロジェクト</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html { background: #f0f0f5; overflow-x: hidden; }
-  body { font-family: 'Noto Sans JP', sans-serif; background: linear-gradient(160deg, #f5f0ff 0%, #eef6ff 40%, #f0faf5 100%); margin: 0; padding: 0; min-height: 100vh; padding-bottom: 100px; overscroll-behavior-y: none; }
+  body { font-family: 'Noto Sans JP', sans-serif; background: #f8f5f0; margin: 0; padding: 0; min-height: 100vh; padding-bottom: 0; overscroll-behavior-y: none; }
   body.sheet-open { overflow: hidden !important; position: fixed !important; width: 100% !important; touch-action: none; }
 
   /* ====== ヘッダー ====== */
@@ -158,11 +159,10 @@
     <div id="auth-step-menu">
       <div class="auth-hero">
         <div style="display:flex; justify-content:center; gap:10px; margin-bottom:10px;">
-          <img src="https://drive.google.com/thumbnail?id=16yng5mofQMoyvSbdHT4WfaVNQH6n29pp&sz=w200" alt="AI保健師" style="height:120px; filter:drop-shadow(2px 4px 8px rgba(0,0,0,0.15)); animation: authCharFloat 3s ease-in-out infinite;">
-          <img src="https://drive.google.com/thumbnail?id=1e025vJfgmEcqy9eDDN19QGuZkYLowDeZ&sz=w200" alt="AI栄養士" style="height:120px; filter:drop-shadow(2px 4px 8px rgba(0,0,0,0.15)); animation: authCharFloat 3s ease-in-out 0.5s infinite;">
+          <div style="font-size:4rem; animation: authCharFloat 3s ease-in-out infinite;">🌸</div>
         </div>
         <div style="font-size:1.6rem; font-weight:900; color:#2c3e50; margin-bottom:4px;">健康プロジェクト</div>
-        <div class="auth-hero-catch">みんなの声で職場を元気に。<br><strong>AI保健師</strong>と<strong>AI栄養士</strong>があなたの健康をサポートします</div>
+        <div class="auth-hero-catch">みんなの声で職場を元気に。<br><strong>ヘルスバディー</strong>があなたの健康をサポートします</div>
       </div>
       <div class="auth-guide-text">はじめに選択してください</div>
       <button class="auth-menu-btn btn-new-user" onclick="showStep('register')"><i class="fas fa-user-plus"></i><div><span class="auth-menu-title">はじめての方</span><span class="auth-menu-desc">新規登録して参加する</span></div></button>
@@ -199,6 +199,10 @@
       </div>
       <div class="form-group"><label><i class="fas fa-smile" style="color:#d63384; margin-right:4px;"></i> アバターを選ぼう！</label>
         <div class="avatar-grid" id="avatar-grid"></div>
+      </div>
+      <div class="form-group"><label><i class="fas fa-robot" style="color:#ec407a; margin-right:4px;"></i> ヘルスバディーを選ぼう！</label>
+        <div style="font-size:0.78rem;color:#999;margin-bottom:8px;">あなたの健康パートナーの性格を選んでください</div>
+        <div class="buddy-select-grid" id="reg-buddy-grid"></div>
       </div>
       <button class="auth-submit-btn" id="reg-submit-btn" onclick="doRegister()" disabled style="opacity:0.5; cursor:not-allowed;">利用規約に同意してください</button>
       <div class="back-btn" onclick="showStep('menu')">← 戻る</div>
@@ -296,78 +300,146 @@
 </div>
 
 <div id="main-app" style="display:none;">
-  <div class="app-header">
-    <div class="logo"><i class="fas fa-heart-pulse"></i><span class="logo-text">健康<br>プロジェクト</span></div>
-    <div class="header-stats">
-      <span class="stat-chip" id="stat-user-info"><span id="stat-avatar">😀</span> <span id="stat-nickname">--</span></span>
-      <span class="stat-chip" id="stat-rank"><i class="fas fa-medal"></i> --</span>
-      <span class="stat-chip" id="stat-posts"><i class="fas fa-pen"></i> 0</span>
-      <span class="stat-chip" id="stat-invites"><i class="fas fa-user-plus"></i> 0</span>
-      <span class="stat-chip" style="cursor:pointer; color:white; background:rgba(255,255,255,0.15);" onclick="doUserLogout()"><i class="fas fa-sign-out-alt"></i></span>
+  <!-- ====== チャットタブ（メインビュー） ====== -->
+  <div id="tab-chat" class="tab-panel active">
+    <div class="buddy-chat-header">
+      <div class="buddy-chat-header-left">
+        <div class="buddy-chat-avatar" id="buddy-header-avatar">🌸</div>
+        <div>
+          <div class="buddy-chat-name" id="buddy-header-name">ヘルスバディー</div>
+          <div class="buddy-chat-status">いつでも話しかけてね</div>
+        </div>
+      </div>
+      <span class="stat-chip" id="stat-rank" style="background:rgba(255,255,255,0.2);font-size:0.65rem;"><i class="fas fa-medal"></i> --</span>
+    </div>
+    <div class="buddy-chat-messages" id="buddy-messages"></div>
+    <div class="buddy-quick-replies" id="buddy-quick" style="display:none;"></div>
+    <div class="buddy-preview-strip" id="buddy-preview-strip">
+      <img class="buddy-preview-thumb" id="buddy-preview-thumb" src="">
+      <span class="buddy-preview-hint">📷 この写真について相談できます</span>
+      <button class="buddy-preview-remove" onclick="buddyRemovePhoto()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="buddy-chat-input-area">
+      <button class="buddy-photo-btn" onclick="document.getElementById('buddy-photo-input').click()"><i class="fas fa-camera"></i></button>
+      <input type="file" id="buddy-photo-input" accept="image/*" capture="environment" style="display:none;" onchange="buddyHandlePhoto(this)">
+      <textarea id="buddy-chat-input" rows="1" placeholder="気軽に話しかけてください..."
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();buddySend();}"
+        oninput="this.style.height='42px';this.style.height=Math.min(this.scrollHeight,100)+'px';"></textarea>
+      <button class="buddy-send-btn" id="buddy-send-btn" onclick="buddySend()"><i class="fas fa-paper-plane"></i></button>
     </div>
   </div>
 
-  <div class="main-content">
+  <!-- ====== タイムラインタブ ====== -->
+  <div id="tab-timeline" class="tab-panel">
+    <div class="app-header">
+      <div class="logo"><i class="fas fa-heart-pulse"></i><span class="logo-text">健康<br>プロジェクト</span></div>
+      <div class="header-stats">
+        <span class="stat-chip" id="stat-user-info"><span id="stat-avatar">😀</span> <span id="stat-nickname">--</span></span>
+        <span class="stat-chip" id="stat-posts"><i class="fas fa-pen"></i> 0</span>
+        <span class="stat-chip" id="stat-invites"><i class="fas fa-user-plus"></i> 0</span>
+      </div>
+    </div>
+    <div class="main-content" style="padding-bottom:80px;">
+      <!-- 相談セクション -->
+      <div class="card-section honne-area">
+        <div class="section-title"><i class="far fa-comment-dots"></i> 健康のお悩み・提案</div>
+        <div class="honne-area section-sub">ヘルスバディーが親身にお答えします</div>
+        <textarea id="honne-input" placeholder="最近の体調や気になること、職場環境への提案など、なんでもどうぞ（匿名で届きます）"></textarea>
+        <button class="btn-submit" onclick="submitPost()"><i class="fas fa-paper-plane" style="margin-right:6px;"></i> 健康推進メンバーへ相談する</button>
+      </div>
 
-    <!-- 相談セクション -->
-    <div class="card-section honne-area">
-      <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
-        <img src="https://drive.google.com/thumbnail?id=16yng5mofQMoyvSbdHT4WfaVNQH6n29pp&sz=w120" alt="AI保健師" style="height:56px; filter:drop-shadow(1px 2px 4px rgba(0,0,0,0.1));">
-        <div>
-          <div class="section-title" style="margin-bottom:2px;"><i class="far fa-comment-dots"></i> 健康のお悩み・提案</div>
-          <div class="honne-area section-sub">AI保健師が親身にお答えします</div>
+      <!-- 食事セクション -->
+      <div class="card-section food-section">
+        <div class="section-title"><i class="fas fa-utensils"></i> 食事チェック</div>
+        <div class="food-section section-sub">AI栄養士がバランスを分析します</div>
+        <div class="food-upload-area" onclick="document.getElementById('file-input').click()">
+          <i class="fas fa-camera"></i>
+          <div style="margin-top:8px; font-size:0.88rem; color:#666; font-weight:600;">タップして食事写真を撮影・選択</div>
+        </div>
+        <input type="file" id="file-input" accept="image/*" capture="environment" style="display:none;" onchange="handleFileSelect(this)">
+        <div id="food-preview-area">
+          <img id="food-preview-img" src="">
+          <textarea id="food-comment" class="form-control mt-2" rows="2" placeholder="ひとこと（任意）"></textarea>
+        </div>
+        <div class="form-check mt-2" style="text-align:left;">
+          <input class="form-check-input" type="checkbox" id="food-confirm" checked onchange="toggleFoodSubmit()">
+          <label class="form-check-label small" for="food-confirm">AI栄養士に診断してもらう</label>
+        </div>
+        <button class="btn-food-submit" id="btn-food-submit" onclick="submitFoodPost()"><i class="fas fa-salad"></i> 食事診断を受ける</button>
+      </div>
+
+      <!-- タイムライン -->
+      <div id="timeline-wrapper" style="display:block;">
+        <div style="font-weight:800; font-size:0.95rem; color:#2c3e50; margin-bottom:10px;"><i class="fas fa-stream" style="color:#6c5ce7;margin-right:6px;"></i>みんなの投稿</div>
+        <div id="timeline-content"></div>
+        <div class="paging-area">
+          <button class="btn-more" onclick="loadMore()"><i class="fas fa-chevron-down"></i> もっと見る</button>
         </div>
       </div>
-      <textarea id="honne-input" placeholder="最近の体調や気になること、職場環境への提案など、なんでもどうぞ（匿名で届きます）"></textarea>
-      <button class="btn-submit" onclick="submitPost()"><i class="fas fa-paper-plane" style="margin-right:6px;"></i> 健康推進メンバーへ相談する</button>
     </div>
+  </div>
 
-    <!-- 食事セクション -->
-    <div class="card-section food-section">
-      <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
-        <img src="https://drive.google.com/thumbnail?id=1e025vJfgmEcqy9eDDN19QGuZkYLowDeZ&sz=w120" alt="AI栄養士" style="height:56px; filter:drop-shadow(1px 2px 4px rgba(0,0,0,0.1));">
-        <div>
-          <div class="section-title" style="margin-bottom:2px;"><i class="fas fa-utensils"></i> 食事チェック</div>
-          <div class="food-section section-sub">AI栄養士がバランスを分析します</div>
+  <!-- ====== マイページタブ ====== -->
+  <div id="tab-mypage" class="tab-panel">
+    <div class="app-header" style="background:linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);">
+      <div class="logo"><i class="fas fa-user-circle"></i><span class="logo-text">マイ<br>ページ</span></div>
+    </div>
+    <div class="main-content" style="padding-bottom:80px;">
+      <!-- プロフィール -->
+      <div class="card-section" style="text-align:center;">
+        <div id="mypage-avatar" style="font-size:3rem;margin-bottom:8px;">😀</div>
+        <div id="mypage-nickname" style="font-weight:800;font-size:1.1rem;color:#2c3e50;"></div>
+        <div id="mypage-rank" style="font-size:0.8rem;color:#888;margin-top:4px;"></div>
+        <div style="display:flex;justify-content:center;gap:20px;margin-top:14px;">
+          <div style="text-align:center;"><div id="mypage-posts" style="font-weight:800;font-size:1.2rem;color:#d63384;">0</div><div style="font-size:0.7rem;color:#999;">投稿</div></div>
+          <div style="text-align:center;"><div id="mypage-invites" style="font-weight:800;font-size:1.2rem;color:#6c5ce7;">0</div><div style="font-size:0.7rem;color:#999;">招待</div></div>
         </div>
       </div>
-      <div class="food-upload-area" onclick="document.getElementById('file-input').click()">
-        <i class="fas fa-camera"></i>
-        <div style="margin-top:8px; font-size:0.88rem; color:#666; font-weight:600;">タップして食事写真を撮影・選択</div>
-      </div>
-      <input type="file" id="file-input" accept="image/*" capture="environment" style="display:none;" onchange="handleFileSelect(this)">
-      <div id="food-preview-area">
-        <img id="food-preview-img" src="">
-        <textarea id="food-comment" class="form-control mt-2" rows="2" placeholder="ひとこと（任意）"></textarea>
-      </div>
-      <div class="form-check mt-2" style="text-align:left;">
-        <input class="form-check-input" type="checkbox" id="food-confirm" checked onchange="toggleFoodSubmit()">
-        <label class="form-check-label small" for="food-confirm">AI栄養士に診断してもらう</label>
-      </div>
-      <button class="btn-food-submit" id="btn-food-submit" onclick="submitFoodPost()"><i class="fas fa-salad"></i> 食事診断を受ける</button>
-    </div>
 
-    <!-- タイムライン -->
-    <div class="timeline-toggle">
-      <button class="btn-timeline" id="btn-toggle-tl" onclick="toggleTimeline()"><i class="fas fa-stream"></i> みんなの投稿を見る</button>
-    </div>
-    <div class="timeline-container" id="timeline-wrapper">
-      <div id="timeline-content"></div>
-      <div class="paging-area">
-        <button class="btn-more" onclick="loadMore()"><i class="fas fa-chevron-down"></i> もっと見る</button>
-        <button class="btn-close-timeline" onclick="toggleTimeline()">閉じる</button>
+      <!-- バディー変更 -->
+      <div class="card-section">
+        <div class="section-title"><i class="fas fa-robot" style="color:#ec407a;"></i> ヘルスバディーを変更</div>
+        <div id="mypage-buddy-grid" class="buddy-select-grid"></div>
       </div>
-    </div>
 
-    <!-- QR招待 -->
-    <div class="card-section" style="text-align:center; border-top:4px solid #6c5ce7; background:linear-gradient(135deg, #faf8ff 0%, #f3f0ff 100%);">
-      <div class="section-title" style="justify-content:center;"><i class="fas fa-qrcode" style="color:#6c5ce7;"></i> 仲間を招待しよう！</div>
-      <div style="font-size:0.8rem; color:#999; margin-bottom:12px;">QRコードを同僚に見せて<br>みんなで健康になりましょう</div>
-      <div id="qr-area"></div>
-      <div style="margin-top:10px; font-size:0.75rem; color:#bbb;"><i class="fas fa-users" style="margin-right:4px;"></i> 招待するとランクがアップ！</div>
-    </div>
+      <!-- お知らせ -->
+      <div class="card-section" id="mypage-inbox-section">
+        <div class="section-title" style="cursor:pointer;" onclick="openInbox()"><i class="fas fa-bell" style="color:#6c5ce7;"></i> お知らせ <span id="mypage-inbox-badge" style="background:#ff1744;color:white;font-size:0.65rem;padding:2px 8px;border-radius:10px;margin-left:6px;display:none;"></span></div>
+      </div>
 
-    <div class="app-footer" style="color:#bbb;">健康プロジェクト v2.0 &copy; 2026 <span style="color:#d63384;">❤</span></div>
+      <!-- QR招待 -->
+      <div class="card-section" style="text-align:center; border-top:4px solid #6c5ce7; background:linear-gradient(135deg, #faf8ff 0%, #f3f0ff 100%);">
+        <div class="section-title" style="justify-content:center;"><i class="fas fa-qrcode" style="color:#6c5ce7;"></i> 仲間を招待しよう！</div>
+        <div style="font-size:0.8rem; color:#999; margin-bottom:12px;">QRコードを同僚に見せて<br>みんなで健康になりましょう</div>
+        <div id="qr-area"></div>
+        <div style="margin-top:10px; font-size:0.75rem; color:#bbb;"><i class="fas fa-users" style="margin-right:4px;"></i> 招待するとランクがアップ！</div>
+      </div>
+
+      <!-- メモ一覧 -->
+      <div class="card-section">
+        <div class="section-title"><i class="fas fa-bookmark" style="color:#f39c12;"></i> 保存したメモ</div>
+        <div id="mypage-memos"><div style="font-size:0.85rem;color:#bbb;text-align:center;padding:12px;">メモはまだありません</div></div>
+      </div>
+
+      <!-- ログアウト -->
+      <div style="text-align:center;margin:20px 0;">
+        <button onclick="doUserLogout()" style="background:#f0f0f5;border:none;border-radius:14px;padding:14px 40px;font-weight:700;font-size:0.9rem;color:#999;cursor:pointer;"><i class="fas fa-sign-out-alt" style="margin-right:6px;"></i>ログアウト</button>
+      </div>
+      <div class="app-footer" style="color:#bbb;">健康プロジェクト v2.1 &copy; 2026 <span style="color:#d63384;">❤</span></div>
+    </div>
+  </div>
+
+  <!-- ====== 下部タブバー ====== -->
+  <div id="bottom-tabs">
+    <button class="bottom-tab active" data-tab="chat" onclick="switchTab('chat')">
+      <i class="fas fa-comments"></i><span>チャット</span>
+    </button>
+    <button class="bottom-tab" data-tab="timeline" onclick="switchTab('timeline')">
+      <i class="fas fa-stream"></i><span>タイムライン</span>
+    </button>
+    <button class="bottom-tab" data-tab="mypage" onclick="switchTab('mypage')">
+      <i class="fas fa-user"></i><span>マイページ</span>
+    </button>
   </div>
 </div>
 
@@ -410,7 +482,7 @@ var avatarList = [
       loginUser(savedNick, savedPass).then(function(res) {
         if (res && res.success) {
           setToken(res.token);
-          currentUser = { uid: res.uid, nickname: res.nickname, avatar: res.avatar, department: res.department, birthDate: res.birthDate };
+          currentUser = { uid: res.uid, nickname: res.nickname, avatar: res.avatar, department: res.department, birthDate: res.birthDate, buddyType: res.buddyType || 'gentle' };
           localStorage.setItem('co_heart_user_data', JSON.stringify(currentUser));
           onLoginSuccess();
         } else {
@@ -445,7 +517,7 @@ function showStep(step) {
   document.getElementById('auth-step-reset').style.display = step === 'reset' ? 'block' : 'none';
   document.getElementById('auth-step-admin-reset').style.display = step === 'admin-reset' ? 'block' : 'none';
   document.getElementById('auth-step-admin-register').style.display = step === 'admin-register' ? 'block' : 'none';
-  if (step === 'register') initAvatarGrid();
+  if (step === 'register') { initAvatarGrid(); initRegBuddyGrid(); }
   if (step === 'login') {
     var savedNick = localStorage.getItem('co_heart_user_nick');
     var savedPass = localStorage.getItem('co_heart_user_pass');
@@ -463,6 +535,7 @@ function showStep(step) {
 }
 
 var selectedAvatar = '😀';
+var selectedBuddyType = 'gentle';
 function initAvatarGrid() {
   var grid = document.getElementById('avatar-grid');
   grid.innerHTML = avatarList.map(function(a) {
@@ -473,6 +546,32 @@ function initAvatarGrid() {
 function selectAvatar(el, av) {
   document.querySelectorAll('.avatar-option').forEach(function(e) { e.classList.remove('selected'); });
   el.classList.add('selected'); selectedAvatar = av;
+}
+
+function initRegBuddyGrid() {
+  var types = {
+    gentle:   { name: 'やさしい', emoji: '🌸', desc: '温かく寄り添う' },
+    cheerful: { name: '元気いっぱい', emoji: '⚡', desc: 'テンション高め！' },
+    strict:   { name: 'しっかり者', emoji: '📋', desc: '的確なアドバイス' },
+    funny:    { name: 'おもしろ', emoji: '😄', desc: 'ユーモアで楽しく' },
+    calm:     { name: 'おだやか', emoji: '🍃', desc: 'ゆったり癒し系' }
+  };
+  var grid = document.getElementById('reg-buddy-grid');
+  if (!grid) return;
+  grid.innerHTML = Object.keys(types).map(function(key) {
+    var b = types[key];
+    return '<div class="buddy-select-card' + (key === selectedBuddyType ? ' selected' : '') + '" onclick="selectBuddyType(this, \'' + key + '\')">' +
+      '<div class="bs-emoji">' + b.emoji + '</div>' +
+      '<div class="bs-name">' + b.name + '</div>' +
+      '<div class="bs-desc">' + b.desc + '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function selectBuddyType(el, type) {
+  document.querySelectorAll('#reg-buddy-grid .buddy-select-card').forEach(function(c) { c.classList.remove('selected'); });
+  el.classList.add('selected');
+  selectedBuddyType = type;
 }
 
 function toggleRegisterBtn() {
@@ -494,11 +593,11 @@ function doRegister() {
   if (!p || p.length < 4) return alert("パスワードは4文字以上");
   if (!d) return alert("部署を選択してください");
   showLoading("登録中...");
-  registerUser(n, p, selectedAvatar, inviterId, r, d, b).then(function(res) {
+  registerUser(n, p, selectedAvatar, inviterId, r, d, b, selectedBuddyType || 'gentle').then(function(res) {
     hideLoading();
     if (res.success) {
       setToken(res.token);
-      currentUser = { uid: res.uid, nickname: res.nickname, avatar: res.avatar, department: d, birthDate: b };
+      currentUser = { uid: res.uid, nickname: res.nickname, avatar: res.avatar, department: d, birthDate: b, buddyType: res.buddyType || 'gentle' };
       localStorage.setItem('co_heart_user_nick', n);
       localStorage.setItem('co_heart_user_pass', p);
       localStorage.setItem('co_heart_user_data', JSON.stringify(currentUser));
@@ -520,7 +619,7 @@ function doLogin() {
     console.log('LOGIN response:', JSON.stringify(res));
     if (res && res.success) {
       setToken(res.token);
-      currentUser = { uid: res.uid, nickname: res.nickname, avatar: res.avatar, department: res.department, birthDate: res.birthDate };
+      currentUser = { uid: res.uid, nickname: res.nickname, avatar: res.avatar, department: res.department, birthDate: res.birthDate, buddyType: res.buddyType || 'gentle' };
       if (remember) {
         localStorage.setItem('co_heart_user_nick', n);
         localStorage.setItem('co_heart_user_pass', p);
@@ -638,8 +737,10 @@ function doAdminLogin() {
 function onLoginSuccess() {
   document.getElementById('auth-modal').style.display = 'none';
   document.getElementById('main-app').style.display = 'block';
-  document.getElementById('stat-avatar').innerText = currentUser.avatar || '😀';
-  document.getElementById('stat-nickname').innerText = currentUser.nickname || '--';
+  var statAvatar = document.getElementById('stat-avatar');
+  var statNick = document.getElementById('stat-nickname');
+  if (statAvatar) statAvatar.innerText = currentUser.avatar || '😀';
+  if (statNick) statNick.innerText = currentUser.nickname || '--';
   updateHeaderStats();
   generateQR();
 }
@@ -648,9 +749,9 @@ function onLoginSuccess() {
 function updateHeaderStats() {
   getLatestUserStats(currentUser.uid).then(function(res) {
     if (!res || !res.success) return;
-    document.getElementById('stat-rank').innerHTML = '<i class="fas fa-medal"></i> ' + res.rank;
-    document.getElementById('stat-posts').innerHTML = '<i class="fas fa-pen"></i> ' + res.postCount;
-    document.getElementById('stat-invites').innerHTML = '<i class="fas fa-user-plus"></i> ' + (res.inviteCount || 0);
+    var r = document.getElementById('stat-rank'); if (r) r.innerHTML = '<i class="fas fa-medal"></i> ' + res.rank;
+    var p = document.getElementById('stat-posts'); if (p) p.innerHTML = '<i class="fas fa-pen"></i> ' + res.postCount;
+    var inv = document.getElementById('stat-invites'); if (inv) inv.innerHTML = '<i class="fas fa-user-plus"></i> ' + (res.inviteCount || 0);
   });
 }
 
@@ -663,11 +764,8 @@ function generateQR() {
 
 // ====== タイムライン ======
 function toggleTimeline() {
-  isTimelineOpen = !isTimelineOpen;
-  var wrapper = document.getElementById('timeline-wrapper');
-  var btn = document.getElementById('btn-toggle-tl');
-  if (isTimelineOpen) { wrapper.classList.add('active'); btn.classList.add('active'); btn.innerHTML = '<i class="fas fa-times"></i> 閉じる'; loadTimeline(0, true); }
-  else { wrapper.classList.remove('active'); btn.classList.remove('active'); btn.innerHTML = '<i class="fas fa-stream"></i> みんなの投稿を見る'; }
+  isTimelineOpen = true;
+  loadTimeline(0, true);
 }
 
 function loadTimeline(page, isReset) {
@@ -801,7 +899,7 @@ document.addEventListener('click', function(e) {
 function submitPost() {
   var txt = document.getElementById('honne-input').value;
   if (!txt) return alert("内容を入力してください");
-  showLoading("AI保健師が分析中...");
+  showLoading("ヘルスバディーが分析中...");
   processForm({ uid: currentUser.uid, nickname: currentUser.nickname, avatar: currentUser.avatar, honne: encodeURIComponent(txt), department: currentUser.department, birthDate: currentUser.birthDate }).then(function(res) {
     hideLoading();
     if (res && res.success) {
@@ -825,7 +923,7 @@ function showAIResponse(text) {
   box.innerHTML =
     '<div style="text-align:center; margin-bottom:16px;">' +
       '<div style="font-size:2.5rem; margin-bottom:8px;">🩺</div>' +
-      '<div style="font-weight:800; font-size:1.1rem; color:#d63384;">AI保健師からのコメント</div>' +
+      '<div style="font-weight:800; font-size:1.1rem; color:#d63384;">ヘルスバディーからのコメント</div>' +
       '<div style="font-size:0.75rem; color:#aaa; margin-top:4px;">投稿は健康推進メンバーに届きました</div>' +
     '</div>' +
     '<div style="background:linear-gradient(135deg,#fff5f7,#f0f4ff);padding:16px;border-radius:14px;font-size:0.9rem;line-height:1.8;color:#333;white-space:pre-wrap;border-left:4px solid #d63384;">' + escInbox(text) + '</div>' +
@@ -884,7 +982,7 @@ function submitFoodPost() {
       var msg = '';
       if (res.analysis) {
         if (res.analysis.nutrition) msg += '【AI栄養士】\n' + res.analysis.nutrition + '\n\n';
-        if (res.analysis.nurse) msg += '【AI保健師】\n' + res.analysis.nurse;
+        if (res.analysis.nurse) msg += '【ヘルスバディー】\n' + res.analysis.nurse;
       }
       showFoodResponse(msg || '食事の投稿を受け付けました。');
       if (!isTimelineOpen) toggleTimeline(); else loadTimeline(0, true);
@@ -904,7 +1002,7 @@ function showFoodResponse(text) {
     '<div style="text-align:center; margin-bottom:16px;">' +
       '<div style="font-size:2.5rem; margin-bottom:8px;">🥗</div>' +
       '<div style="font-weight:800; font-size:1.1rem; color:#20c997;">食事分析レポート</div>' +
-      '<div style="font-size:0.75rem; color:#aaa; margin-top:4px;">AI栄養士 × AI保健師</div>' +
+      '<div style="font-size:0.75rem; color:#aaa; margin-top:4px;">AI栄養士 × ヘルスバディー</div>' +
     '</div>' +
     '<div style="background:linear-gradient(135deg,#f0faf4,#edf4ff);padding:16px;border-radius:14px;font-size:0.9rem;line-height:1.8;color:#333;white-space:pre-wrap;border-left:4px solid #20c997;">' + escInbox(text) + '</div>' +
     '<button onclick="this.closest(\'div[style*=fixed]\').remove()" style="width:100%;margin-top:16px;padding:14px;background:linear-gradient(135deg,#20c997,#38d9a9);color:white;border:none;border-radius:14px;font-weight:700;font-size:0.95rem;cursor:pointer;box-shadow:0 4px 14px rgba(32,201,151,0.3);">閉じる</button>';
@@ -923,197 +1021,139 @@ function hideLoading() { document.getElementById('loading-overlay').style.displa
 
 </script>
 
-<!-- ====== AI保健師チャットボット ====== -->
+<!-- ====== ヘルスバディー + タブナビ CSS ====== -->
 <style>
-/* --- FABボタン --- */
-#nurse-fab {
-  position: fixed;
-  bottom: 20px;
-  right: 14px;
-  background: linear-gradient(135deg, #ec407a 0%, #f48fb1 100%);
-  border: none;
-  border-radius: 28px;
-  padding: 8px 16px 8px 8px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  box-shadow: 0 4px 20px rgba(236, 64, 122, 0.45);
-  z-index: 2500;
-  cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
-  animation: nFabPulse 3s ease-in-out infinite;
-  min-width: 170px;
-}
-#nurse-fab:active { transform: scale(0.95); }
-#nurse-fab .fab-img {
-  width: 42px; height: 42px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid white;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-  flex-shrink: 0;
-}
-#nurse-fab .fab-label {
-  color: white;
-  font-weight: 700;
-  font-size: 0.8rem;
-  line-height: 1.25;
-  white-space: nowrap;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.1);
-}
-#nurse-fab .fab-badge {
-  position: absolute; top: -2px; left: -2px;
-  width: 18px; height: 18px;
-  background: #ff1744; border-radius: 50%;
-  border: 2px solid white;
-  animation: nPulse 1.5s infinite;
-}
-@keyframes nFabPulse {
-  0%, 100% { box-shadow: 0 4px 20px rgba(236, 64, 122, 0.4); }
-  50% { box-shadow: 0 4px 30px rgba(236, 64, 122, 0.6); }
-}
-@keyframes nPulse { 0% { transform: scale(1); } 50% { transform: scale(1.15); } 100% { transform: scale(1); } }
+/* --- タブパネル --- */
+.tab-panel { display: none; }
+.tab-panel.active { display: flex; flex-direction: column; height: 100vh; height: 100dvh; }
+#tab-timeline.active, #tab-mypage.active { display: block; height: auto; min-height: 100vh; min-height: 100dvh; }
 
-/* --- オーバーレイ --- */
-#nurse-chat-overlay {
-  position: fixed; top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: rgba(0,0,0,0.5);
-  z-index: 4000;
-  display: none;
-  backdrop-filter: blur(2px);
+/* --- 下部タブバー --- */
+#bottom-tabs {
+  position: fixed; bottom: 0; left: 0; width: 100%;
+  background: white; border-top: 1px solid #eee;
+  display: none; z-index: 200;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
-#nurse-chat-overlay.active { display: block; }
-
-/* --- チャットシート --- */
-#nurse-chat-sheet {
-  position: fixed;
-  bottom: 0; left: 0;
-  width: 100%; height: 85vh; height: 85dvh;
-  background: #f8f5f0;
-  border-radius: 20px 20px 0 0;
-  z-index: 4001;
-  transform: translateY(100%);
-  visibility: hidden;
-  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), visibility 0s 0.35s;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  box-shadow: 0 -8px 40px rgba(0,0,0,0.2);
+#main-app[style*="block"] ~ #bottom-tabs,
+.bottom-tabs-visible { display: flex !important; }
+.bottom-tab {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 8px 0 6px; gap: 2px;
+  background: none; border: none; color: #999;
+  font-size: 0.65rem; font-weight: 600;
+  cursor: pointer; transition: color 0.2s;
+  font-family: 'Noto Sans JP', sans-serif;
 }
-#nurse-chat-sheet.active { transform: translateY(0); visibility: visible; transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), visibility 0s 0s; }
+.bottom-tab i { font-size: 1.15rem; }
+.bottom-tab.active { color: #ec407a; }
+.bottom-tab:active { opacity: 0.7; }
 
-/* --- ヘッダー --- */
-.nurse-chat-header {
+/* --- バディーチャットヘッダー --- */
+.buddy-chat-header {
   background: linear-gradient(135deg, #ec407a 0%, #f48fb1 100%);
   color: white; padding: 14px 18px;
   display: flex; align-items: center; justify-content: space-between;
   flex-shrink: 0;
 }
-.nurse-chat-header-left { display: flex; align-items: center; gap: 10px; }
-.nurse-chat-avatar {
+.buddy-chat-header-left { display: flex; align-items: center; gap: 10px; }
+.buddy-chat-avatar {
   width: 40px; height: 40px; background: white; border-radius: 50%;
   display: flex; justify-content: center; align-items: center;
   font-size: 1.4rem; box-shadow: 0 2px 6px rgba(0,0,0,0.15);
   overflow: hidden;
 }
-.nurse-chat-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.nurse-chat-name { font-weight: 700; font-size: 0.95rem; line-height: 1.2; }
-.nurse-chat-status { font-size: 0.7rem; opacity: 0.85; }
-.nurse-chat-close {
-  background: rgba(255,255,255,0.2); border: none; color: white;
-  width: 36px; height: 36px; border-radius: 50%;
-  font-size: 1.1rem; cursor: pointer;
-  display: flex; justify-content: center; align-items: center;
-}
-.nurse-chat-close:active { background: rgba(255,255,255,0.4); }
+.buddy-chat-name { font-weight: 700; font-size: 0.95rem; line-height: 1.2; }
+.buddy-chat-status { font-size: 0.7rem; opacity: 0.85; }
 
 /* --- メッセージエリア --- */
-.nurse-chat-messages {
+.buddy-chat-messages {
   flex: 1; overflow-y: auto;
   padding: 15px 12px;
   display: flex; flex-direction: column; gap: 12px;
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
+  background: #f8f5f0;
 }
-.nurse-chat-messages::after { content: ''; display: block; height: 4px; }
+.buddy-chat-messages::after { content: ''; display: block; height: 4px; }
 
 /* --- バブル --- */
-.nurse-msg { display: flex; gap: 8px; max-width: 85%; animation: nMsgIn 0.3s ease-out; }
-.nurse-msg.ai { align-self: flex-start; }
-.nurse-msg.user { align-self: flex-end; flex-direction: row-reverse; }
+.buddy-msg { display: flex; gap: 8px; max-width: 85%; animation: nMsgIn 0.3s ease-out; }
+.buddy-msg.ai { align-self: flex-start; }
+.buddy-msg.user { align-self: flex-end; flex-direction: row-reverse; }
 @keyframes nMsgIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-.nurse-msg-avatar {
+.buddy-msg-avatar {
   width: 32px; height: 32px; border-radius: 50%; background: white;
   display: flex; justify-content: center; align-items: center;
   font-size: 1rem; flex-shrink: 0;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #eee;
   overflow: hidden;
 }
-.nurse-msg-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.nurse-msg.user .nurse-msg-avatar { background: #fce4ec; border-color: #f8bbd0; }
-.nurse-msg-bubble {
+.buddy-msg.user .buddy-msg-avatar { background: #fce4ec; border-color: #f8bbd0; }
+.buddy-msg-bubble {
   padding: 10px 14px; border-radius: 16px;
   font-size: 0.9rem; line-height: 1.6;
   white-space: pre-wrap; word-break: break-word;
   box-shadow: 0 1px 3px rgba(0,0,0,0.06);
 }
-.nurse-msg.ai .nurse-msg-bubble {
+.buddy-msg.ai .buddy-msg-bubble {
   background: white; color: #333;
   border-bottom-left-radius: 4px; border: 1px solid #f0e0d6;
 }
-.nurse-msg.user .nurse-msg-bubble {
+.buddy-msg.user .buddy-msg-bubble {
   background: linear-gradient(135deg, #ec407a, #f48fb1);
   color: white; border-bottom-right-radius: 4px;
 }
+/* メモボタン */
+.buddy-memo-btn {
+  background: none; border: none; color: #ccc; font-size: 0.75rem;
+  cursor: pointer; padding: 2px 4px; margin-top: 2px; transition: color 0.2s;
+}
+.buddy-memo-btn:hover, .buddy-memo-btn.saved { color: #f39c12; }
+.buddy-msg-actions { display: flex; gap: 4px; margin-top: 2px; }
 
 /* --- タイピング --- */
-.nurse-typing { display: flex; gap: 8px; align-self: flex-start; max-width: 85%; animation: nMsgIn 0.3s ease-out; }
-.nurse-typing-bubble {
+.buddy-typing { display: flex; gap: 8px; align-self: flex-start; max-width: 85%; animation: nMsgIn 0.3s ease-out; }
+.buddy-typing-bubble {
   background: white; border: 1px solid #f0e0d6;
   padding: 12px 18px; border-radius: 16px; border-bottom-left-radius: 4px;
   display: flex; gap: 5px; align-items: center;
 }
-.nurse-typing-dot {
+.buddy-typing-dot {
   width: 8px; height: 8px; background: #ccc; border-radius: 50%;
   animation: nTypeBounce 1.4s infinite ease-in-out;
 }
-.nurse-typing-dot:nth-child(2) { animation-delay: 0.2s; }
-.nurse-typing-dot:nth-child(3) { animation-delay: 0.4s; }
+.buddy-typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.buddy-typing-dot:nth-child(3) { animation-delay: 0.4s; }
 @keyframes nTypeBounce {
   0%, 60%, 100% { transform: translateY(0); background: #ccc; }
   30% { transform: translateY(-6px); background: #ec407a; }
 }
+@keyframes nPulse { 0% { transform: scale(1); } 50% { transform: scale(1.15); } 100% { transform: scale(1); } }
 
 /* --- 入力エリア --- */
-.nurse-chat-input-area {
-  padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0px)) 12px; background: white;
+.buddy-chat-input-area {
+  padding: 10px 12px calc(60px + env(safe-area-inset-bottom, 0px)) 12px; background: white;
   border-top: 1px solid #eee;
   display: flex; gap: 8px; align-items: flex-end;
   flex-shrink: 0;
   box-shadow: 0 -2px 8px rgba(0,0,0,0.03);
 }
-#nurse-chat-input {
+#buddy-chat-input {
   flex: 1;
   border: 1px solid #e0d6cc !important;
   border-radius: 22px !important;
   padding: 10px 16px !important;
   font-size: 0.9rem !important;
-  resize: none;
-  max-height: 100px;
-  min-height: 42px;
-  line-height: 1.4;
-  outline: none;
+  resize: none; max-height: 100px; min-height: 42px;
+  line-height: 1.4; outline: none;
   background: #faf8f5 !important;
   font-family: 'Noto Sans JP', sans-serif;
-  margin-bottom: 0 !important;
-  width: auto !important;
+  margin-bottom: 0 !important; width: auto !important;
 }
-#nurse-chat-input:focus {
-  border-color: #ec407a !important;
-  background: white !important;
-}
-.nurse-send-btn {
+#buddy-chat-input:focus { border-color: #ec407a !important; background: white !important; }
+.buddy-send-btn {
   width: 44px; height: 44px; border-radius: 50%;
   background: linear-gradient(135deg, #ec407a, #f48fb1);
   color: white; border: none; font-size: 1.1rem;
@@ -1123,108 +1163,119 @@ function hideLoading() { document.getElementById('loading-overlay').style.displa
   box-shadow: 0 2px 8px rgba(236, 64, 122, 0.3);
   transition: transform 0.1s, opacity 0.2s;
 }
-.nurse-send-btn:active { transform: scale(0.9); }
-.nurse-send-btn:disabled { opacity: 0.4; pointer-events: none; }
+.buddy-send-btn:active { transform: scale(0.9); }
+.buddy-send-btn:disabled { opacity: 0.4; pointer-events: none; }
 
 /* --- クイックリプライ --- */
-.nurse-quick-replies {
-  padding: 8px 12px 4px;
+.buddy-quick-replies {
+  padding: 8px 12px 4px; background: #f8f5f0;
   display: flex; gap: 8px; flex-wrap: wrap; flex-shrink: 0;
 }
-
-/* --- 写真ボタン --- */
-.nurse-photo-btn {
-  width: 44px; height: 44px; border-radius: 50%;
-  background: white; border: 2px solid #e0d6cc;
-  color: #888; font-size: 1.1rem;
-  cursor: pointer; display: flex;
-  justify-content: center; align-items: center;
-  flex-shrink: 0;
-  transition: all 0.15s;
-}
-.nurse-photo-btn:active { transform: scale(0.9); border-color: #ec407a; color: #ec407a; }
-
-/* --- 写真プレビュー --- */
-.nurse-preview-strip {
-  padding: 8px 12px 0; flex-shrink: 0;
-  display: none;
-}
-.nurse-preview-strip.active { display: flex; align-items: center; gap: 8px; }
-.nurse-preview-thumb {
-  width: 64px; height: 64px; border-radius: 10px;
-  object-fit: cover; border: 2px solid #f0e0d6;
-}
-.nurse-preview-remove {
-  width: 28px; height: 28px; border-radius: 50%;
-  background: #ff6b6b; color: white; border: none;
-  font-size: 0.75rem; cursor: pointer;
-  display: flex; justify-content: center; align-items: center;
-}
-.nurse-preview-hint {
-  font-size: 0.75rem; color: #999; flex: 1;
-}
-
-/* --- チャット内画像 --- */
-.nurse-msg-image {
-  max-width: 200px; border-radius: 12px;
-  margin-bottom: 6px; border: 1px solid rgba(0,0,0,0.08);
-  display: block;
-}
-.nurse-quick-btn {
+.buddy-quick-btn {
   background: white; border: 1.5px solid #ec407a;
   color: #ec407a; border-radius: 20px;
   padding: 6px 14px; font-size: 0.8rem; font-weight: 600;
   cursor: pointer; transition: all 0.2s; white-space: nowrap;
   font-family: 'Noto Sans JP', sans-serif;
 }
-.nurse-quick-btn:active { background: #ec407a; color: white; }
+.buddy-quick-btn:active { background: #ec407a; color: white; }
+
+/* --- インラインメニューカード --- */
+.buddy-menu-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+  margin-top: 10px;
+}
+.buddy-menu-card {
+  background: linear-gradient(135deg, #fff 0%, #fef9fb 100%);
+  border: 1.5px solid #f0e0ea; border-radius: 14px;
+  padding: 14px 10px; text-align: center;
+  cursor: pointer; transition: all 0.15s;
+  font-family: 'Noto Sans JP', sans-serif;
+}
+.buddy-menu-card:active { transform: scale(0.96); border-color: #ec407a; }
+.buddy-menu-card .menu-icon { font-size: 1.5rem; margin-bottom: 4px; }
+.buddy-menu-card .menu-label { font-size: 0.78rem; font-weight: 700; color: #555; }
+
+/* --- 写真関連 --- */
+.buddy-photo-btn {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: white; border: 2px solid #e0d6cc;
+  color: #888; font-size: 1.1rem;
+  cursor: pointer; display: flex;
+  justify-content: center; align-items: center;
+  flex-shrink: 0; transition: all 0.15s;
+}
+.buddy-photo-btn:active { transform: scale(0.9); border-color: #ec407a; color: #ec407a; }
+.buddy-preview-strip { padding: 8px 12px 0; flex-shrink: 0; display: none; background: #f8f5f0; }
+.buddy-preview-strip.active { display: flex; align-items: center; gap: 8px; }
+.buddy-preview-thumb { width: 64px; height: 64px; border-radius: 10px; object-fit: cover; border: 2px solid #f0e0d6; }
+.buddy-preview-remove { width: 28px; height: 28px; border-radius: 50%; background: #ff6b6b; color: white; border: none; font-size: 0.75rem; cursor: pointer; display: flex; justify-content: center; align-items: center; }
+.buddy-preview-hint { font-size: 0.75rem; color: #999; flex: 1; }
+.buddy-msg-image { max-width: 200px; border-radius: 12px; margin-bottom: 6px; border: 1px solid rgba(0,0,0,0.08); display: block; }
+
+/* --- バディー選択グリッド --- */
+.buddy-select-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px;
+}
+.buddy-select-card {
+  border: 2px solid #eee; border-radius: 14px; padding: 14px 10px;
+  text-align: center; cursor: pointer; transition: all 0.2s;
+  background: white;
+}
+.buddy-select-card:active { transform: scale(0.97); }
+.buddy-select-card.selected { border-color: #ec407a; background: #fef0f5; box-shadow: 0 2px 12px rgba(236,64,122,0.15); }
+.buddy-select-card .bs-emoji { font-size: 1.8rem; margin-bottom: 4px; }
+.buddy-select-card .bs-name { font-size: 0.82rem; font-weight: 700; color: #333; }
+.buddy-select-card .bs-desc { font-size: 0.68rem; color: #999; margin-top: 2px; }
 </style>
 
-<button id="nurse-fab" style="display:none;" onclick="openNurseChat()"><img class="fab-img" src="https://drive.google.com/thumbnail?id=1xsXmk2unOYMDMxkhY5EemCtEwEXiVGZq&sz=w120&t=2" alt="AI保健師"><span class="fab-label">AI保健師に<br>相談する</span><div class="fab-badge" id="nurse-fab-badge" style="display:none;"></div></button>
-
-<div id="nurse-chat-overlay" onclick="closeNurseChat()" ontouchmove="event.preventDefault()"></div>
-
-<div id="nurse-chat-sheet">
-  <div class="nurse-chat-header">
-    <div class="nurse-chat-header-left">
-      <div class="nurse-chat-avatar"><img src="https://drive.google.com/thumbnail?id=1xsXmk2unOYMDMxkhY5EemCtEwEXiVGZq&sz=w80&t=2" alt="AI保健師"></div>
-      <div>
-        <div class="nurse-chat-name">AI保健師</div>
-        <div class="nurse-chat-status">いつでも相談できます</div>
-      </div>
-    </div>
-    <button class="nurse-chat-close" onclick="closeNurseChat()"><i class="fas fa-chevron-down"></i></button>
-  </div>
-  <div class="nurse-chat-messages" id="nurse-messages"></div>
-  <div class="nurse-quick-replies" id="nurse-quick" style="display:none;">
-    <button class="nurse-quick-btn" onclick="nurseSendQuick('最近ちょっと疲れ気味で...')">😮‍💨 疲れ気味</button>
-    <button class="nurse-quick-btn" onclick="nurseSendQuick('食事のことで相談したい')">🍽️ 食事の相談</button>
-    <button class="nurse-quick-btn" onclick="nurseSendQuick('健康診断の結果が気になる')">📋 健診の結果</button>
-    <button class="nurse-quick-btn" onclick="nurseSendQuick('よく眠れないんです')">😴 睡眠の悩み</button>
-  </div>
-  <div class="nurse-preview-strip" id="nurse-preview-strip">
-    <img class="nurse-preview-thumb" id="nurse-preview-thumb" src="">
-    <span class="nurse-preview-hint">📷 この写真について相談できます</span>
-    <button class="nurse-preview-remove" onclick="nurseRemovePhoto()"><i class="fas fa-times"></i></button>
-  </div>
-  <div class="nurse-chat-input-area">
-    <button class="nurse-photo-btn" onclick="document.getElementById('nurse-photo-input').click()"><i class="fas fa-camera"></i></button>
-    <input type="file" id="nurse-photo-input" accept="image/*" capture="environment" style="display:none;" onchange="nurseHandlePhoto(this)">
-    <textarea id="nurse-chat-input" rows="1" placeholder="気軽に話しかけてください..."
-      onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();nurseSend();}"
-      oninput="this.style.height='42px';this.style.height=Math.min(this.scrollHeight,100)+'px';"></textarea>
-    <button class="nurse-send-btn" id="nurse-send-btn" onclick="nurseSend()"><i class="fas fa-paper-plane"></i></button>
-  </div>
-</div>
-
 <script>
-// ====== AI保健師チャットボット JS ======
-var nurseHistory = [];
-var nurseReady = true;
-var nurseInited = false;
-var nursePhotoData = null;
-var nursePhotoMime = null;
-var nursePhotoPreview = null;
+// ====== ヘルスバディー チャット JS ======
+var buddyHistory = [];
+var buddyReady = true;
+var buddyInited = false;
+var buddyPhotoData = null;
+var buddyPhotoMime = null;
+var buddyPhotoPreview = null;
+
+// バディー性格データ
+var BUDDY_TYPES = {
+  gentle:   { name: 'やさしい', emoji: '🌸', desc: '温かく寄り添う' },
+  cheerful: { name: '元気いっぱい', emoji: '⚡', desc: 'テンション高め！' },
+  strict:   { name: 'しっかり者', emoji: '📋', desc: '的確なアドバイス' },
+  funny:    { name: 'おもしろ', emoji: '😄', desc: 'ユーモアで楽しく' },
+  calm:     { name: 'おだやか', emoji: '🍃', desc: 'ゆったり癒し系' }
+};
+
+function getCurrentBuddyType() {
+  return (currentUser && currentUser.buddyType) || 'gentle';
+}
+function getBuddyEmoji() {
+  return (BUDDY_TYPES[getCurrentBuddyType()] || BUDDY_TYPES.gentle).emoji;
+}
+function getBuddyDisplayName() {
+  return (BUDDY_TYPES[getCurrentBuddyType()] || BUDDY_TYPES.gentle).name + 'バディー';
+}
+
+// ====== タブ切り替え ======
+function switchTab(tab) {
+  ['chat', 'timeline', 'mypage'].forEach(function(t) {
+    var panel = document.getElementById('tab-' + t);
+    var btn = document.querySelector('.bottom-tab[data-tab="' + t + '"]');
+    if (t === tab) { panel.classList.add('active'); btn.classList.add('active'); }
+    else { panel.classList.remove('active'); btn.classList.remove('active'); }
+  });
+  if (tab === 'chat') {
+    if (!buddyInited && currentUser) { buddyInited = true; loadBuddyGreeting(); }
+    else { buddyScrollBottom(); }
+  }
+  if (tab === 'timeline') {
+    loadTimeline(0, true);
+  }
+  if (tab === 'mypage') {
+    updateMyPage();
+  }
+}
 
 // ====== スクロールロック ======
 var _scrollY = 0;
@@ -1239,7 +1290,7 @@ function unlockScroll() {
   window.scrollTo(0, _scrollY);
 }
 
-// ====== 効果音（Web Audio API）======
+// ====== 効果音 ======
 var _audioCtx = null;
 function _getAudioCtx() {
   if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -1248,8 +1299,7 @@ function _getAudioCtx() {
 function playSendSound() {
   try {
     var ctx = _getAudioCtx();
-    var o = ctx.createOscillator();
-    var g = ctx.createGain();
+    var o = ctx.createOscillator(); var g = ctx.createGain();
     o.connect(g); g.connect(ctx.destination);
     o.type = 'sine'; o.frequency.setValueAtTime(880, ctx.currentTime);
     o.frequency.exponentialRampToValueAtTime(1200, ctx.currentTime + 0.08);
@@ -1261,156 +1311,187 @@ function playSendSound() {
 function playReceiveSound() {
   try {
     var ctx = _getAudioCtx();
-    // 2音の「ピコン」
     [660, 880].forEach(function(freq, i) {
-      var o = ctx.createOscillator();
-      var g = ctx.createGain();
+      var o = ctx.createOscillator(); var g = ctx.createGain();
       o.connect(g); g.connect(ctx.destination);
-      o.type = 'sine';
-      var t = ctx.currentTime + i * 0.12;
-      o.frequency.setValueAtTime(freq, t);
-      g.gain.setValueAtTime(0.12, t);
+      o.type = 'sine'; var t = ctx.currentTime + i * 0.12;
+      o.frequency.setValueAtTime(freq, t); g.gain.setValueAtTime(0.12, t);
       g.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
       o.start(t); o.stop(t + 0.18);
     });
   } catch(e) {}
 }
 
-function initNurseChat() {
+// ====== バディーUI初期化 ======
+function initBuddyChat() {
   if (!currentUser) return;
-  var fab = document.getElementById('nurse-fab');
-  if (!fab) return;
-  fab.style.display = 'flex';
-  // バッジは表示しない（常に新着が出る問題を解消）
+  var emoji = getBuddyEmoji();
+  var name = getBuddyDisplayName();
+  document.getElementById('buddy-header-avatar').textContent = emoji;
+  document.getElementById('buddy-header-name').textContent = name;
+  document.getElementById('bottom-tabs').style.display = 'flex';
+  if (!buddyInited) { buddyInited = true; loadBuddyGreeting(); }
 }
 
-function openNurseChat() {
-  lockScroll();
-  document.getElementById('nurse-chat-overlay').classList.add('active');
-  document.getElementById('nurse-chat-sheet').classList.add('active');
-  document.getElementById('nurse-fab').style.display = 'none';
-  var ib = document.getElementById('inbox-fab'); if (ib) ib.style.display = 'none';
-  var badge = document.getElementById('nurse-fab-badge');
-  if (badge) badge.style.display = 'none';
-  if (!nurseInited) { nurseInited = true; loadNurseGreeting(); }
-  else { nurseScrollBottom(); }
-}
-
-function closeNurseChat() {
-  document.getElementById('nurse-chat-overlay').classList.remove('active');
-  document.getElementById('nurse-chat-sheet').classList.remove('active');
-  document.getElementById('nurse-fab').style.display = 'flex';
-  var ib = document.getElementById('inbox-fab'); if (ib) ib.style.display = 'flex';
-  unlockScroll();
-}
-
-function loadNurseGreeting() {
-  var area = document.getElementById('nurse-messages');
+function loadBuddyGreeting() {
+  var area = document.getElementById('buddy-messages');
   area.innerHTML = '';
-  showNurseTyping();
+  showBuddyTyping();
   var name = currentUser ? currentUser.nickname : '';
-  getNurseGreeting(name).then(function(res) {
-    hideNurseTyping();
+  var bt = getCurrentBuddyType();
+  getBuddyGreeting(name, bt).then(function(res) {
+    hideBuddyTyping();
     var txt = (res && res.success && res.reply) ? res.reply
-      : 'こんにちは' + (name ? '、' + name + 'さん' : '') + '😊 AI保健師です！\nお話しできて嬉しいです。最近、体調やお気持ちで気になっていることはありますか？';
+      : 'こんにちは' + (name ? '、' + name + 'さん' : '') + '😊 あなたのヘルスバディーです！\n今日は何をしましょうか？';
     playReceiveSound();
-    addNurseMsg('ai', txt);
-    nurseHistory.push({ role: 'assistant', content: txt });
-    document.getElementById('nurse-quick').style.display = 'flex';
-    nurseScrollBottom();
+    addBuddyMsg('ai', txt);
+    buddyHistory.push({ role: 'assistant', content: txt });
+    // インラインメニュー表示
+    showBuddyMenu();
+    buddyScrollBottom();
   }).catch(function() {
-    hideNurseTyping();
-    var txt = 'こんにちは😊 AI保健師です！\n最近の体調はいかがですか？気になることがあれば何でもお聞かせくださいね。';
-    addNurseMsg('ai', txt);
-    nurseHistory.push({ role: 'assistant', content: txt });
-    document.getElementById('nurse-quick').style.display = 'flex';
-    nurseScrollBottom();
+    hideBuddyTyping();
+    var txt = 'こんにちは😊 あなたのヘルスバディーです！\n今日は何をしましょうか？';
+    addBuddyMsg('ai', txt);
+    buddyHistory.push({ role: 'assistant', content: txt });
+    showBuddyMenu();
+    buddyScrollBottom();
   });
 }
 
-function nurseSend() {
-  if (!nurseReady) return;
-  var input = document.getElementById('nurse-chat-input');
+function showBuddyMenu() {
+  var area = document.getElementById('buddy-messages');
+  var div = document.createElement('div');
+  div.className = 'buddy-msg ai';
+  div.style.maxWidth = '92%';
+  div.innerHTML = '<div class="buddy-msg-avatar">' + getBuddyEmoji() + '</div>' +
+    '<div class="buddy-menu-grid">' +
+      '<div class="buddy-menu-card" onclick="buddyMenuAction(\'food\')"><div class="menu-icon">🍽️</div><div class="menu-label">食事チェック</div></div>' +
+      '<div class="buddy-menu-card" onclick="buddyMenuAction(\'checkup\')"><div class="menu-icon">📋</div><div class="menu-label">健診の相談</div></div>' +
+      '<div class="buddy-menu-card" onclick="buddyMenuAction(\'challenge\')"><div class="menu-icon">🏆</div><div class="menu-label">チャレンジ</div></div>' +
+      '<div class="buddy-menu-card" onclick="buddyMenuAction(\'consult\')"><div class="menu-icon">💬</div><div class="menu-label">なんでも相談</div></div>' +
+    '</div>';
+  area.appendChild(div);
+}
+
+function buddyMenuAction(action) {
+  var msgs = {
+    food: '食事の写真を撮って分析してほしい',
+    checkup: '健康診断の結果について相談したい',
+    challenge: '今のチャレンジについて教えて',
+    consult: ''
+  };
+  if (action === 'food') {
+    document.getElementById('buddy-photo-input').click();
+    return;
+  }
+  if (action === 'consult') {
+    document.getElementById('buddy-chat-input').focus();
+    var quickEl = document.getElementById('buddy-quick');
+    quickEl.innerHTML =
+      '<button class="buddy-quick-btn" onclick="buddySendQuick(\'最近ちょっと疲れ気味で...\')">😮‍💨 疲れ気味</button>' +
+      '<button class="buddy-quick-btn" onclick="buddySendQuick(\'よく眠れないんです\')">😴 睡眠の悩み</button>' +
+      '<button class="buddy-quick-btn" onclick="buddySendQuick(\'運動のコツを教えて\')">🏃 運動の相談</button>' +
+      '<button class="buddy-quick-btn" onclick="buddySendQuick(\'ストレスが溜まっている\')">😰 ストレス</button>';
+    quickEl.style.display = 'flex';
+    return;
+  }
+  var txt = msgs[action];
+  if (txt) {
+    document.getElementById('buddy-chat-input').value = txt;
+    buddySend();
+  }
+}
+
+function buddySend() {
+  if (!buddyReady) return;
+  var input = document.getElementById('buddy-chat-input');
   var txt = input.value.trim();
-  var hasPhoto = !!nursePhotoData;
+  var hasPhoto = !!buddyPhotoData;
   if (!txt && !hasPhoto) return;
   input.value = ''; input.style.height = '42px';
-  document.getElementById('nurse-quick').style.display = 'none';
-
-  // 送信音
+  document.getElementById('buddy-quick').style.display = 'none';
   playSendSound();
 
-  // メッセージ表示（画像付き）
-  addNurseMsg('user', txt || '📷 写真で相談', hasPhoto ? nursePhotoPreview : null);
-  nurseHistory.push({ role: 'user', content: txt || '写真を送りました。内容を見て相談に乗ってください。' });
-  nurseScrollBottom();
+  addBuddyMsg('user', txt || '📷 写真で相談', hasPhoto ? buddyPhotoPreview : null);
+  buddyHistory.push({ role: 'user', content: txt || '写真を送りました。内容を見て相談に乗ってください。' });
+  buddyScrollBottom();
 
-  nurseReady = false;
-  document.getElementById('nurse-send-btn').disabled = true;
-  showNurseTyping();
-  if (currentUser) localStorage.setItem('nurse_done_' + currentUser.uid, '1');
+  buddyReady = false;
+  document.getElementById('buddy-send-btn').disabled = true;
+  showBuddyTyping();
 
-  var sendHistory = nurseHistory.slice(0, -1);
+  var sendHistory = buddyHistory.slice(0, -1);
   if (sendHistory.length > 20) sendHistory = sendHistory.slice(-20);
   var name = currentUser ? currentUser.nickname : '';
+  var bt = getCurrentBuddyType();
 
-  // 写真あり → chatWithNurseImage / なし → chatWithNurse
   if (hasPhoto) {
-    var photoData = nursePhotoData;
-    var photoMime = nursePhotoMime;
-    nurseRemovePhoto();
-    chatWithNurseImage(txt || '', photoData, photoMime, sendHistory, name).then(function(res) {
-      hideNurseTyping(); nurseReady = true;
-      document.getElementById('nurse-send-btn').disabled = false;
-      var reply = (res && res.success && res.reply) ? res.reply : 'すみません、画像の分析がうまくいきませんでした。もう一度お試しください😊';
+    var photoData = buddyPhotoData;
+    var photoMime = buddyPhotoMime;
+    buddyRemovePhoto();
+    chatWithBuddyImage(txt || '', photoData, photoMime, sendHistory, name, bt).then(function(res) {
+      hideBuddyTyping(); buddyReady = true;
+      document.getElementById('buddy-send-btn').disabled = false;
+      var reply = (res && res.success && res.reply) ? res.reply : 'すみません、画像の分析がうまくいきませんでした😊';
       playReceiveSound();
-      addNurseMsg('ai', reply);
-      nurseHistory.push({ role: 'assistant', content: reply });
-      nurseScrollBottom();
+      addBuddyMsg('ai', reply);
+      buddyHistory.push({ role: 'assistant', content: reply });
+      buddyScrollBottom();
     }).catch(function() {
-      hideNurseTyping(); nurseReady = true;
-      document.getElementById('nurse-send-btn').disabled = false;
-      playReceiveSound();
-      addNurseMsg('ai', '通信がうまくいかなかったようです。もう一度お試しください。');
-      nurseScrollBottom();
+      hideBuddyTyping(); buddyReady = true;
+      document.getElementById('buddy-send-btn').disabled = false;
+      addBuddyMsg('ai', '通信がうまくいかなかったようです。もう一度お試しください。');
+      buddyScrollBottom();
     });
   } else {
-    chatWithNurse(txt, sendHistory, name).then(function(res) {
-      hideNurseTyping(); nurseReady = true;
-      document.getElementById('nurse-send-btn').disabled = false;
-      var reply = (res && res.success && res.reply) ? res.reply : 'すみません、うまく聞き取れませんでした。もう一度お聞かせいただけますか？😊';
+    chatWithBuddy(txt, sendHistory, name, bt).then(function(res) {
+      hideBuddyTyping(); buddyReady = true;
+      document.getElementById('buddy-send-btn').disabled = false;
+      var reply = (res && res.success && res.reply) ? res.reply : 'すみません、うまく聞き取れませんでした😊';
       playReceiveSound();
-      addNurseMsg('ai', reply);
-      nurseHistory.push({ role: 'assistant', content: reply });
-      nurseScrollBottom();
+      addBuddyMsg('ai', reply);
+      buddyHistory.push({ role: 'assistant', content: reply });
+      buddyScrollBottom();
     }).catch(function() {
-      hideNurseTyping(); nurseReady = true;
-      document.getElementById('nurse-send-btn').disabled = false;
-      playReceiveSound();
-      addNurseMsg('ai', '通信がうまくいかなかったようです。もう一度お試しください。');
-      nurseScrollBottom();
+      hideBuddyTyping(); buddyReady = true;
+      document.getElementById('buddy-send-btn').disabled = false;
+      addBuddyMsg('ai', '通信がうまくいかなかったようです。もう一度お試しください。');
+      buddyScrollBottom();
     });
   }
 }
 
-function nurseSendQuick(txt) {
-  document.getElementById('nurse-chat-input').value = txt;
-  nurseSend();
+function buddySendQuick(txt) {
+  document.getElementById('buddy-chat-input').value = txt;
+  buddySend();
 }
 
-function addNurseMsg(type, text, imageDataUrl) {
-  var area = document.getElementById('nurse-messages');
+function addBuddyMsg(type, text, imageDataUrl) {
+  var area = document.getElementById('buddy-messages');
   var div = document.createElement('div');
-  div.className = 'nurse-msg ' + type;
-  var av = type === 'ai' ? '<img src="https://drive.google.com/thumbnail?id=1xsXmk2unOYMDMxkhY5EemCtEwEXiVGZq&sz=w64&t=2" alt="AI">' : (currentUser ? currentUser.avatar : '😀');
+  div.className = 'buddy-msg ' + type;
+  var av = type === 'ai' ? getBuddyEmoji() : (currentUser ? currentUser.avatar : '😀');
   var safe = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  var imgHtml = imageDataUrl ? '<img class="nurse-msg-image" src="' + imageDataUrl + '">' : '';
-  div.innerHTML = '<div class="nurse-msg-avatar">' + av + '</div><div class="nurse-msg-bubble">' + imgHtml + safe + '</div>';
+  var imgHtml = imageDataUrl ? '<img class="buddy-msg-image" src="' + imageDataUrl + '">' : '';
+  var memoBtn = type === 'ai' ? '<div class="buddy-msg-actions"><button class="buddy-memo-btn" onclick="saveBuddyMemo(this)" data-text="' + safe + '" title="メモに保存"><i class="far fa-bookmark"></i></button></div>' : '';
+  div.innerHTML = '<div class="buddy-msg-avatar">' + av + '</div><div><div class="buddy-msg-bubble">' + imgHtml + safe + '</div>' + memoBtn + '</div>';
   area.appendChild(div);
 }
 
-// ====== 写真相談機能 ======
-function nurseHandlePhoto(input) {
+function saveBuddyMemo(btn) {
+  var text = btn.getAttribute('data-text');
+  if (!currentUser) return;
+  btn.classList.toggle('saved');
+  var isSaved = btn.classList.contains('saved');
+  btn.innerHTML = isSaved ? '<i class="fas fa-bookmark"></i>' : '<i class="far fa-bookmark"></i>';
+  if (isSaved) {
+    saveChatMemo(currentUser.uid, text, '').then(function() {});
+  }
+}
+
+// ====== 写真機能 ======
+function buddyHandlePhoto(input) {
   if (!input.files || !input.files[0]) return;
   var file = input.files[0];
   var reader = new FileReader();
@@ -1420,19 +1501,16 @@ function nurseHandlePhoto(input) {
       var canvas = document.createElement('canvas');
       var MAX = 800;
       var w = img.width, h = img.height;
-      if (w > h) { if (w > MAX) { h *= MAX / w; w = MAX; } }
-      else { if (h > MAX) { w *= MAX / h; h = MAX; } }
+      if (w > h) { if (w > MAX) { h *= MAX / w; w = MAX; } } else { if (h > MAX) { w *= MAX / h; h = MAX; } }
       canvas.width = w; canvas.height = h;
       canvas.getContext('2d').drawImage(img, 0, 0, w, h);
       var dataUrl = canvas.toDataURL('image/jpeg', 0.75);
-      nursePhotoData = dataUrl.split(',')[1];
-      nursePhotoMime = 'image/jpeg';
-      nursePhotoPreview = dataUrl;
-      // プレビュー表示
-      document.getElementById('nurse-preview-thumb').src = dataUrl;
-      document.getElementById('nurse-preview-strip').classList.add('active');
-      // プレースホルダ変更
-      document.getElementById('nurse-chat-input').placeholder = '写真について質問を入力（空欄でもOK）';
+      buddyPhotoData = dataUrl.split(',')[1];
+      buddyPhotoMime = 'image/jpeg';
+      buddyPhotoPreview = dataUrl;
+      document.getElementById('buddy-preview-thumb').src = dataUrl;
+      document.getElementById('buddy-preview-strip').classList.add('active');
+      document.getElementById('buddy-chat-input').placeholder = '写真について質問を入力（空欄でもOK）';
     };
     img.src = e.target.result;
   };
@@ -1440,50 +1518,117 @@ function nurseHandlePhoto(input) {
   input.value = '';
 }
 
-function nurseRemovePhoto() {
-  nursePhotoData = null;
-  nursePhotoMime = null;
-  nursePhotoPreview = null;
-  document.getElementById('nurse-preview-strip').classList.remove('active');
-  document.getElementById('nurse-chat-input').placeholder = '気軽に話しかけてください...';
-  var fi = document.getElementById('nurse-photo-input');
+function buddyRemovePhoto() {
+  buddyPhotoData = null; buddyPhotoMime = null; buddyPhotoPreview = null;
+  document.getElementById('buddy-preview-strip').classList.remove('active');
+  document.getElementById('buddy-chat-input').placeholder = '気軽に話しかけてください...';
+  var fi = document.getElementById('buddy-photo-input');
   if (fi) fi.value = '';
 }
 
-function showNurseTyping() {
-  var el = document.getElementById('nurse-typing-ind');
+function showBuddyTyping() {
+  var el = document.getElementById('buddy-typing-ind');
   if (el) el.remove();
-  var area = document.getElementById('nurse-messages');
+  var area = document.getElementById('buddy-messages');
   var div = document.createElement('div');
-  div.id = 'nurse-typing-ind'; div.className = 'nurse-typing';
-  div.innerHTML = '<div class="nurse-msg-avatar"><img src="https://drive.google.com/thumbnail?id=1xsXmk2unOYMDMxkhY5EemCtEwEXiVGZq&sz=w64&t=2" alt="AI"></div><div class="nurse-typing-bubble"><div class="nurse-typing-dot"></div><div class="nurse-typing-dot"></div><div class="nurse-typing-dot"></div></div>';
+  div.id = 'buddy-typing-ind'; div.className = 'buddy-typing';
+  div.innerHTML = '<div class="buddy-msg-avatar">' + getBuddyEmoji() + '</div><div class="buddy-typing-bubble"><div class="buddy-typing-dot"></div><div class="buddy-typing-dot"></div><div class="buddy-typing-dot"></div></div>';
   area.appendChild(div);
-  nurseScrollBottom();
+  buddyScrollBottom();
 }
 
-function hideNurseTyping() {
-  var el = document.getElementById('nurse-typing-ind');
+function hideBuddyTyping() {
+  var el = document.getElementById('buddy-typing-ind');
   if (el) el.remove();
 }
 
-function nurseScrollBottom() {
+function buddyScrollBottom() {
   setTimeout(function() {
-    var a = document.getElementById('nurse-messages');
+    var a = document.getElementById('buddy-messages');
     if (a) a.scrollTop = a.scrollHeight;
   }, 50);
 }
 
-// ★★★ 安全なフック: 既存の onLoginSuccess を拡張 ★★★
+// ====== マイページ更新 ======
+function updateMyPage() {
+  if (!currentUser) return;
+  document.getElementById('mypage-avatar').textContent = currentUser.avatar || '😀';
+  document.getElementById('mypage-nickname').textContent = currentUser.nickname || '';
+  // バディー選択グリッド
+  var grid = document.getElementById('mypage-buddy-grid');
+  var currentBt = getCurrentBuddyType();
+  var html = '';
+  Object.keys(BUDDY_TYPES).forEach(function(key) {
+    var b = BUDDY_TYPES[key];
+    html += '<div class="buddy-select-card' + (key === currentBt ? ' selected' : '') + '" onclick="changeBuddyType(\'' + key + '\')">' +
+      '<div class="bs-emoji">' + b.emoji + '</div>' +
+      '<div class="bs-name">' + b.name + '</div>' +
+      '<div class="bs-desc">' + b.desc + '</div>' +
+    '</div>';
+  });
+  grid.innerHTML = html;
+  // 統計
+  getLatestUserStats(currentUser.uid).then(function(res) {
+    if (!res || !res.success) return;
+    document.getElementById('mypage-rank').textContent = res.rank;
+    document.getElementById('mypage-posts').textContent = res.postCount;
+    document.getElementById('mypage-invites').textContent = res.inviteCount || 0;
+    document.getElementById('stat-rank').innerHTML = '<i class="fas fa-medal"></i> ' + res.rank;
+  });
+  // メモ読み込み
+  loadMyMemos();
+  // お知らせバッジ
+  checkInboxBadge();
+}
+
+function loadMyMemos() {
+  getChatMemos(currentUser.uid).then(function(res) {
+    var el = document.getElementById('mypage-memos');
+    if (!res || !res.success || !res.memos || res.memos.length === 0) {
+      el.innerHTML = '<div style="font-size:0.85rem;color:#bbb;text-align:center;padding:12px;">メモはまだありません</div>';
+      return;
+    }
+    el.innerHTML = res.memos.map(function(m) {
+      return '<div style="background:#fffdf5;border:1px solid #f0e8d0;border-radius:10px;padding:10px 12px;margin-bottom:8px;font-size:0.85rem;line-height:1.6;color:#555;position:relative;">' +
+        '<div style="white-space:pre-wrap;">' + escInbox(m.message_text).substring(0, 200) + '</div>' +
+        '<div style="font-size:0.68rem;color:#ccc;margin-top:4px;">' + (m.created_at || '') + '</div>' +
+        '<button onclick="deleteMemo(' + m.id + ')" style="position:absolute;top:6px;right:8px;background:none;border:none;color:#ddd;font-size:0.7rem;cursor:pointer;"><i class="fas fa-times"></i></button>' +
+      '</div>';
+    }).join('');
+  });
+}
+
+function deleteMemo(memoId) {
+  deleteChatMemo(memoId, currentUser.uid).then(function() { loadMyMemos(); });
+}
+
+function changeBuddyType(type) {
+  if (!currentUser) return;
+  currentUser.buddyType = type;
+  localStorage.setItem('co_heart_user_data', JSON.stringify(currentUser));
+  updateBuddyType(currentUser.uid, type).then(function() {
+    // ヘッダー更新
+    document.getElementById('buddy-header-avatar').textContent = getBuddyEmoji();
+    document.getElementById('buddy-header-name').textContent = getBuddyDisplayName();
+    // グリッド更新
+    document.querySelectorAll('.buddy-select-card').forEach(function(c) { c.classList.remove('selected'); });
+    event.target.closest('.buddy-select-card').classList.add('selected');
+    // チャットリセット
+    buddyInited = false; buddyHistory = [];
+  });
+}
+
+// ★★★ onLoginSuccess 拡張 ★★★
 (function() {
   var _orig = onLoginSuccess;
   onLoginSuccess = function() {
     _orig.apply(this, arguments);
-    try { initNurseChat(); } catch(e) { console.log('nurse init error', e); }
+    try { initBuddyChat(); } catch(e) { console.log('buddy init error', e); }
     try { initInbox(); } catch(e) { console.log('inbox init error', e); }
   };
 })();
 </script>
-<!-- ====== /AI保健師チャットボット ====== -->
+<!-- ====== /ヘルスバディー ====== -->
 
 <!-- ====== お知らせ Inbox ====== -->
 <style>
@@ -1714,14 +1859,14 @@ function openInbox() {
   document.getElementById('inbox-overlay').classList.add('active');
   document.getElementById('inbox-sheet').classList.add('active');
   document.getElementById('inbox-fab').style.display = 'none';
-  var nf = document.getElementById('nurse-fab'); if (nf) nf.style.display = 'none';
+  // nurse-fab removed (buddy is main view now)
 }
 
 function closeInbox() {
   document.getElementById('inbox-overlay').classList.remove('active');
   document.getElementById('inbox-sheet').classList.remove('active');
   document.getElementById('inbox-fab').style.display = 'flex';
-  var nf = document.getElementById('nurse-fab'); if (nf) nf.style.display = 'flex';
+  // nurse-fab removed (buddy is main view now)
   unlockScroll();
 }
 

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2E7D32"/>
+      <stop offset="100%" style="stop-color:#1B5E20"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="96" fill="url(#bg)"/>
+  <!-- Heart -->
+  <path d="M256 380 C180 320 120 270 120 215 C120 175 150 145 190 145 C215 145 238 160 256 185 C274 160 297 145 322 145 C362 145 392 175 392 215 C392 270 332 320 256 380Z" fill="#E8F5E9" opacity="0.9"/>
+  <!-- Leaf inside heart -->
+  <path d="M256 210 C256 210 230 250 230 280 C230 300 242 310 256 310 C270 310 282 300 282 280 C282 250 256 210 256 210Z" fill="#43A047"/>
+  <!-- Leaf vein -->
+  <line x1="256" y1="220" x2="256" y2="305" stroke="#2E7D32" stroke-width="3"/>
+  <!-- Pulse line -->
+  <polyline points="140,340 200,340 220,310 240,370 260,325 280,340 372,340" fill="none" stroke="white" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/>
+</svg>

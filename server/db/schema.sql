@@ -121,3 +121,13 @@ CREATE TABLE IF NOT EXISTS notices (
   admin_read INTEGER DEFAULT 0,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+
+-- チャットメモ テーブル
+CREATE TABLE IF NOT EXISTS chat_memos (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id TEXT NOT NULL,
+  message_text TEXT NOT NULL,
+  memo_text TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);

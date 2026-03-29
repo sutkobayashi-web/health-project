@@ -4,8 +4,13 @@ const fs = require('fs');
 const path = require('path');
 const { getDb } = require('../services/db');
 const { callGroqApi, callGeminiVision, parsePostScore, EVIDENCE_BASE } = require('../services/ai');
+const { authUser } = require('../middleware/auth');
 
 const router = express.Router();
+
+// 許可するMIMEタイプ
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
 
 // 投稿一覧取得
 router.get('/public', (req, res) => {
@@ -55,7 +60,7 @@ router.get('/public', (req, res) => {
 });
 
 // テキスト投稿
-router.post('/submit', async (req, res) => {
+router.post('/submit', authUser, async (req, res) => {
   try {
     const { uid, nickname, avatar, honne, department, birthDate } = req.body;
     const db = getDb();
@@ -107,18 +112,30 @@ is_targetは健康経営施策として検討すべき投稿ならtrue、食事�
 });
 
 // 食事投稿
-router.post('/food', async (req, res) => {
+router.post('/food', authUser, async (req, res) => {
   try {
     const { uid, nickname, avatar, imageBase64, mimeType, userComment, department, birthDate, isPublic } = req.body;
     const db = getDb();
     const dName = decodeURIComponent(nickname);
     const comment = userComment || 'なし';
 
+    // 画像バリデーション
+    if (imageBase64) {
+      if (mimeType && !ALLOWED_IMAGE_TYPES.includes(mimeType)) {
+        return res.json({ success: false, msg: '許可されていない画像形式です（JPEG/PNG/GIF/WebPのみ）' });
+      }
+      const imageSize = Buffer.byteLength(imageBase64, 'base64');
+      if (imageSize > MAX_IMAGE_SIZE) {
+        return res.json({ success: false, msg: '画像サイズが大きすぎます（10MB以下にしてください）' });
+      }
+    }
+
     // 画像保存
     let imageUrl = '';
     try {
       const uploadDir = process.env.UPLOAD_DIR || './uploads';
-      const fileName = `food_${Date.now()}.jpg`;
+      const ext = mimeType === 'image/png' ? 'png' : mimeType === 'image/gif' ? 'gif' : mimeType === 'image/webp' ? 'webp' : 'jpg';
+      const fileName = `food_${Date.now()}.${ext}`;
       const filePath = path.join(uploadDir, fileName);
       fs.writeFileSync(filePath, Buffer.from(imageBase64, 'base64'));
       imageUrl = `/uploads/${fileName}`;
@@ -158,7 +175,7 @@ router.post('/food', async (req, res) => {
 });
 
 // いいねトグル
-router.post('/like', (req, res) => {
+router.post('/like', authUser, (req, res) => {
   try {
     const { postRow, viewerUid } = req.body;
     const db = getDb();
@@ -182,7 +199,7 @@ router.post('/like', (req, res) => {
 });
 
 // 投稿削除
-router.post('/delete', (req, res) => {
+router.post('/delete', authUser, (req, res) => {
   try {
     const { postID, userUid } = req.body;
     const db = getDb();
@@ -195,7 +212,7 @@ router.post('/delete', (req, res) => {
 });
 
 // 投稿修正
-router.post('/edit', (req, res) => {
+router.post('/edit', authUser, (req, res) => {
   try {
     const { postID, userUid, newContent } = req.body;
     if (!newContent || !newContent.trim()) return res.json({ success: false, msg: '内容を入力してください' });

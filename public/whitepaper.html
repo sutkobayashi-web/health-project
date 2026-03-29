@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>CoWell Health Project 2.0 - システム設計思想書</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; }
+body { font-family: 'Noto Sans JP', sans-serif; background: #f8f9fc; margin: 0; color: #333; line-height: 1.8; }
+
+.wp-header {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  padding: 60px 20px; text-align: center; color: white;
+}
+.wp-header h1 { font-weight: 900; font-size: 1.8rem; margin-bottom: 8px; letter-spacing: 1px; }
+.wp-header .subtitle { font-size: 1rem; color: rgba(255,255,255,0.7); font-weight: 500; }
+.wp-header .meta { font-size: 0.8rem; color: rgba(255,255,255,0.5); margin-top: 16px; }
+
+.wp-nav {
+  position: sticky; top: 0; z-index: 100;
+  background: white; border-bottom: 1px solid #e0e0e0;
+  padding: 8px 16px; display: flex; gap: 6px; overflow-x: auto;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+.wp-nav a {
+  font-size: 0.72rem; font-weight: 700; color: #667eea; text-decoration: none;
+  padding: 4px 12px; border-radius: 16px; white-space: nowrap;
+  border: 1px solid #e0e4ff; transition: all 0.2s;
+}
+.wp-nav a:hover { background: #667eea; color: white; }
+
+.container { max-width: 800px; margin: 0 auto; padding: 30px 20px 80px; }
+
+.section { margin-bottom: 40px; }
+.section-num { font-size: 0.7rem; font-weight: 700; color: #667eea; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4px; }
+.section h2 { font-weight: 900; font-size: 1.3rem; color: #1a1a2e; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 3px solid #667eea; }
+.section h3 { font-weight: 800; font-size: 1rem; color: #2c3e50; margin: 20px 0 10px; }
+.section p { font-size: 0.9rem; margin-bottom: 12px; }
+
+.comparison-table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.82rem; }
+.comparison-table th { background: #1a1a2e; color: white; padding: 10px 14px; text-align: left; font-weight: 700; }
+.comparison-table td { padding: 10px 14px; border-bottom: 1px solid #eee; vertical-align: top; }
+.comparison-table tr:nth-child(even) { background: #f8f9ff; }
+.comparison-table .col-old { color: #999; }
+.comparison-table .col-new { color: #667eea; font-weight: 600; }
+
+.principle-card {
+  background: white; border-radius: 14px; padding: 18px; margin-bottom: 12px;
+  border-left: 4px solid #667eea; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.principle-card .p-title { font-weight: 800; font-size: 0.9rem; color: #1a1a2e; margin-bottom: 6px; }
+.principle-card .p-body { font-size: 0.82rem; color: #555; }
+
+.flow-diagram {
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  padding: 16px; background: #f0f4ff; border-radius: 12px; margin: 16px 0;
+}
+.flow-step {
+  padding: 8px 16px; border-radius: 20px; font-size: 0.75rem; font-weight: 700;
+  color: white; text-align: center;
+}
+.flow-arrow { color: #ccc; font-size: 0.8rem; }
+
+.evidence-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 8px; margin: 12px 0;
+}
+.evidence-item {
+  background: white; border-radius: 10px; padding: 10px 14px; font-size: 0.75rem;
+  border: 1px solid #eee; display: flex; align-items: center; gap: 8px;
+}
+.evidence-item .ev-num { background: #667eea; color: white; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 0.6rem; font-weight: 800; flex-shrink: 0; }
+
+.highlight-box {
+  background: linear-gradient(135deg, #fff8e1 0%, #fff3e0 100%);
+  border-left: 4px solid #ff9800; border-radius: 0 12px 12px 0;
+  padding: 14px 18px; margin: 16px 0; font-size: 0.85rem;
+}
+
+.quote-box {
+  background: #f5f0ff; border-left: 4px solid #764ba2; border-radius: 0 12px 12px 0;
+  padding: 14px 18px; margin: 16px 0; font-size: 0.85rem; font-style: italic; color: #555;
+}
+
+.axis-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 0.8rem; }
+.axis-table th { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 8px 12px; text-align: left; }
+.axis-table td { padding: 8px 12px; border-bottom: 1px solid #eee; }
+
+.footer-note { text-align: center; color: #ccc; font-size: 0.7rem; padding: 30px 0; border-top: 1px solid #eee; margin-top: 40px; }
+</style>
+</head>
+<body>
+
+<div class="wp-header">
+  <div style="font-size:2.5rem; margin-bottom:12px;">🏥</div>
+  <h1>CoWell Health Project 2.0</h1>
+  <div class="subtitle">共感駆動型ボトムアップ健康経営システム ― 設計思想書</div>
+  <div class="meta">Design Philosophy Whitepaper &nbsp;|&nbsp; Version 1.0 &nbsp;|&nbsp; 2026年3月</div>
+</div>
+
+<nav class="wp-nav">
+  <a href="#sec1">背景と課題</a>
+  <a href="#sec2">設計思想</a>
+  <a href="#sec3">パラダイム比較</a>
+  <a href="#sec4">システム全体像</a>
+  <a href="#sec5">共感メカニズム</a>
+  <a href="#sec6">AI凝集と7軸評価</a>
+  <a href="#sec7">行動変容理論</a>
+  <a href="#sec8">エビデンス基盤</a>
+  <a href="#sec9">学術的位置づけ</a>
+</nav>
+
+<div class="container">
+
+<!-- ====== 1. 背景と課題 ====== -->
+<div class="section" id="sec1">
+  <div class="section-num">Section 01</div>
+  <h2>背景と課題</h2>
+  <p>従来の産業保健は「健康診断結果に基づく事後措置」と「法令遵守のための安全衛生管理」を中心に設計されてきた。これらはトップダウン型のアプローチであり、組織が課題を定義し、専門家が施策を設計し、社員に実行を指示する構造である。</p>
+
+  <p>しかしこのアプローチには以下の限界がある：</p>
+  <ul style="font-size:0.85rem;">
+    <li><strong>健診データだけでは見えない課題</strong> — 睡眠の質、食生活の偏り、職場の人間関係ストレスなど、数値化されにくい健康課題が把握できない</li>
+    <li><strong>施策への参加動機の欠如</strong> — 会社が決めた施策に対し「やらされ感」が生じ、行動変容に至らない</li>
+    <li><strong>現場の声との乖離</strong> — 専門家が設計した施策が、社員の実際のニーズや関心と一致しないことが多い</li>
+    <li><strong>集団画一的アプローチの限界</strong> — 全員に同じ施策を適用するため、個人差や部署差への対応が困難</li>
+  </ul>
+
+  <div class="quote-box">
+    「健康経営の最大の障壁は、社員が"自分ごと"として捉えられないことである。」
+  </div>
+</div>
+
+<!-- ====== 2. 設計思想 ====== -->
+<div class="section" id="sec2">
+  <div class="section-num">Section 02</div>
+  <h2>設計思想：共感駆動型ボトムアップモデル</h2>
+  <p>本システムは「<strong>社員の声を起点として、共感によって課題の優先度が自然に決まり、自分たちが選んだテーマに自発的に取り組む</strong>」という設計思想に基づいている。</p>
+
+  <div class="principle-card">
+    <div class="p-title"><i class="fas fa-bullhorn" style="color:#667eea; margin-right:6px;"></i>原則1：声の民主化（Voice Democratization）</div>
+    <div class="p-body">全社員が匿名で健康に関する悩み・提案・食事記録を投稿できる。投稿は「相談」ではなく「声」として位置づけられ、組織の健康課題を可視化するデータソースとなる。</div>
+  </div>
+
+  <div class="principle-card">
+    <div class="p-title"><i class="fas fa-heart" style="color:#e91e63; margin-right:6px;"></i>原則2：共感による集合知（Empathy-Driven Collective Intelligence）</div>
+    <div class="p-body">投稿に対する「共感」は単なる「いいね」ではなく、11種類の共感タイプと3問の深掘り質問で構成される。この構造化された共感データが、AIの課題優先度判定の入力となる。</div>
+  </div>
+
+  <div class="principle-card">
+    <div class="p-title"><i class="fas fa-brain" style="color:#9c27b0; margin-right:6px;"></i>原則3：AI凝集（AI-Driven Theme Condensation）</div>
+    <div class="p-body">散在する個別の声を、共感パターン・推進メンバーの議論・公的エビデンスを統合してAIが3〜5個の健康テーマに凝集する。凝集後は推進メンバーがテーマごとのチャットで議論・精査し、合意形成を図る。人間の判断バイアスを排除しつつ、専門知見と現場感覚を反映。</div>
+  </div>
+
+  <div class="principle-card">
+    <div class="p-title"><i class="fas fa-vote-yea" style="color:#667eea; margin-right:6px;"></i>原則4：全社参加型意思決定（Participatory Decision Making）</div>
+    <div class="p-body">凝集されたテーマ候補に対し全社員が投票する。「自分たちが選んだテーマ」であることが、チャレンジ参加への内発的動機につながる。</div>
+  </div>
+
+  <div class="principle-card">
+    <div class="p-title"><i class="fas fa-fire" style="color:#ff6b35; margin-right:6px;"></i>原則5：ナッジ型行動変容（Nudge-Based Behavior Change）</div>
+    <div class="p-body">チャレンジは強制参加ではなくオプトイン方式。毎日30秒のKPI記録、ランキング、バッジ獲得など、EASTフレームワークに準拠した低摩擦な行動設計で継続を促す。</div>
+  </div>
+
+  <div class="principle-card">
+    <div class="p-title"><i class="fas fa-user-md" style="color:#20c997; margin-right:6px;"></i>原則6：専門家の監修統合（Expert-in-the-Loop）</div>
+    <div class="p-body">ボトムアップで浮上した課題に対し、保健師・産業医等の専門家（アンバサダー）が科学的妥当性を監修する。トップダウンの「指示」ではなく、ボトムアップの「裏付け」として機能。</div>
+  </div>
+</div>
+
+<!-- ====== 3. パラダイム比較 ====== -->
+<div class="section" id="sec3">
+  <div class="section-num">Section 03</div>
+  <h2>パラダイム比較：トップダウン型 vs ボトムアップ型</h2>
+
+  <table class="comparison-table">
+    <thead>
+      <tr><th style="width:20%;">観点</th><th style="width:40%;" class="col-old">従来型（トップダウン）</th><th style="width:40%;" class="col-new">本システム（ボトムアップ）</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>課題の発見</strong></td><td class="col-old">健診データ・法令要件から会社が特定</td><td class="col-new">社員の投稿から自然に浮上</td></tr>
+      <tr><td><strong>優先度の決定</strong></td><td class="col-old">産業医・人事部門が判断</td><td class="col-new">全社員の共感投票 + AI7軸評価</td></tr>
+      <tr><td><strong>施策の設計</strong></td><td class="col-old">専門家が策定し通達</td><td class="col-new">AI凝集 → メンバー議論 → 社員投票 → 専門家監修</td></tr>
+      <tr><td><strong>参加の動機</strong></td><td class="col-old">義務・業務命令</td><td class="col-new">自発的エントリー + ゲーミフィケーション</td></tr>
+      <tr><td><strong>効果の測定</strong></td><td class="col-old">年次健診の数値変化</td><td class="col-new">日次KPI + リアルタイムランキング + バッジ</td></tr>
+      <tr><td><strong>フィードバック</strong></td><td class="col-old">年1回の結果通知</td><td class="col-new">即時AIケアコメント + 継続的共感</td></tr>
+      <tr><td><strong>データの流れ</strong></td><td class="col-old">組織 → 個人（指示）</td><td class="col-new">個人 → 集合知 → 組織行動（共鳴）</td></tr>
+      <tr><td><strong>専門家の役割</strong></td><td class="col-old">施策の設計者・指示者</td><td class="col-new">ボトムアップ課題の科学的裏付け者</td></tr>
+      <tr><td><strong>心理的安全性</strong></td><td class="col-old">「指摘される」恐れ</td><td class="col-new">匿名投稿 + 共感（批判なし）</td></tr>
+      <tr><td><strong>サイクル</strong></td><td class="col-old">年1回（健診ベース）</td><td class="col-new">年5サイクル（約2ヶ月/サイクル）</td></tr>
+    </tbody>
+  </table>
+
+  <div class="highlight-box">
+    <strong>重要な補足：</strong> 本システムはトップダウン型を「否定」するものではない。法定健診・ストレスチェック等の法令対応は別途必要である。本システムは「法令対応の枠組みでは拾えない健康課題」を社員の声から拾い上げ、組織的対応に結びつける<strong>補完的アプローチ</strong>である。
+  </div>
+</div>
+
+<!-- ====== 4. システム全体像 ====== -->
+<div class="section" id="sec4">
+  <div class="section-num">Section 04</div>
+  <h2>システム全体像：5フェーズ循環モデル</h2>
+
+  <div class="flow-diagram">
+    <span class="flow-step" style="background:#667eea;">Phase 1<br>投稿（声）</span>
+    <i class="fas fa-arrow-right flow-arrow"></i>
+    <span class="flow-step" style="background:#e91e63;">Phase 2<br>共感（構造化フィードバック）</span>
+    <i class="fas fa-arrow-right flow-arrow"></i>
+    <span class="flow-step" style="background:#9c27b0;">Phase 3<br>AI凝集（テーマ生成）</span>
+    <i class="fas fa-arrow-right flow-arrow"></i>
+    <span class="flow-step" style="background:#e17055;">Phase 3.5<br>テーマディスカッション</span>
+    <i class="fas fa-arrow-right flow-arrow"></i>
+    <span class="flow-step" style="background:#ff9800;">Phase 4<br>全社投票（民主的選択）</span>
+    <i class="fas fa-arrow-right flow-arrow"></i>
+    <span class="flow-step" style="background:#4caf50;">Phase 5<br>チャレンジ（行動変容）</span>
+    <i class="fas fa-arrow-right flow-arrow"></i>
+    <span style="font-size:0.7rem; color:#999;">→ 次サイクルへ</span>
+  </div>
+
+  <h3>Phase 1：投稿（社員の声）</h3>
+  <p>社員はテキストまたは食事写真を投稿する。テキスト投稿にはAIヘルスアドバイザーが即座にエビデンスベースのケアコメントを返す。食事写真にはGemini Vision APIが栄養分析を行い、AI食事アドバイザーがバランス改善を提案する。</p>
+
+  <h3>Phase 2：共感（構造化フィードバック）</h3>
+  <p>他の社員は投稿に対して11種類の共感タイプから選択し、各タイプに紐づく3問の深掘り質問に回答する。この構造化データが、単なる「いいね」を超えた課題の質的・量的分析を可能にする。</p>
+
+  <h3>Phase 3：AI凝集（テーマ生成）</h3>
+  <p>直近3ヶ月の全投稿・共感データ・推進メンバーの議論・AI7軸評価を統合し、AIが3〜5個の健康テーマに凝集する。凝集前に未評価投稿は自動で7軸評価され、評価レポートで根拠を確認できる。</p>
+
+  <h3>Phase 3.5：テーマディスカッション（推進メンバー議論）</h3>
+  <p>AI凝集で生成されたテーマ候補に対し、推進メンバーがテーマごとのチャット形式で議論を行う。候補の妥当性・優先度・実現可能性を精査し、必要に応じてテーマの編集・統合・削除を実施する。この議論プロセスを経ることで、保健師助言・役員承認・全社投票に進む前の合意形成が図られる。ディスカッション内容は次回以降のAI凝集にもフィードバックされる。</p>
+
+  <h3>Phase 4：全社投票</h3>
+  <p>ディスカッション・保健師助言・役員承認を経たテーマ候補に対し全社員が投票する。7日間の投票期間後、最多得票テーマが選定され、実行計画が策定される。</p>
+
+  <h3>Phase 5：チャレンジ（行動変容）</h3>
+  <p>AIがEASTフレームワーク準拠のチャレンジ企画書を自動生成。30日間のチャレンジ期間中、参加者は毎日30秒でKPIを記録する。ランキング・バッジ・専門家アドバイスが行動継続を支援する。</p>
+</div>
+
+<!-- ====== 5. 共感メカニズム ====== -->
+<div class="section" id="sec5">
+  <div class="section-num">Section 05</div>
+  <h2>共感メカニズムの設計</h2>
+
+  <p>本システムの共感は「構造化共感（Structured Empathy）」と呼ぶべき独自の設計である。従来のSNS的な「いいね」との違いは以下の通り。</p>
+
+  <h3>11種類の共感タイプ</h3>
+  <p>相談系投稿に対して7種類、食事系投稿に対して6種類の共感タイプが用意されている。各タイプは単なる感情表現ではなく、<strong>組織的対応の方向性を示唆するシグナル</strong>として設計されている。</p>
+
+  <table class="axis-table">
+    <thead><tr><th>共感タイプ</th><th>シグナルの意味</th><th>AI評価への影響</th></tr></thead>
+    <tbody>
+      <tr><td>🙋 わかる、自分も</td><td>課題の普遍性</td><td>freq（頻度）↑</td></tr>
+      <tr><td>😰 これヤバくない？</td><td>リスクの深刻性</td><td>risk, urgency, safety ↑</td></tr>
+      <tr><td>💡 会社が動けば変わる</td><td>組織介入の有効性</td><td>value, needs ↑</td></tr>
+      <tr><td>💪 応援してる！</td><td>社会的支援の存在</td><td>（動機づけ要因）</td></tr>
+      <tr><td>🤝 一緒に取り組みたい</td><td>協働意欲</td><td>value, needs ↑</td></tr>
+      <tr><td>🏥 専門家に相談すべき</td><td>専門介入の必要性</td><td>risk, urgency, legal ↑</td></tr>
+      <tr><td>👀 気になっていた</td><td>潜在的関心</td><td>freq ↑</td></tr>
+    </tbody>
+  </table>
+
+  <h3>3問の深掘り質問</h3>
+  <p>各共感タイプには、課題の深刻度・時間軸・対策可能性を掘り下げる3問の質問が設計されている。これにより、共感の「量」だけでなく「質」を分析データとして活用できる。</p>
+
+  <div class="highlight-box">
+    <strong>設計上の意図：</strong> 共感タイプの選択と3問の回答という2段階のプロセスにより、回答者は投稿内容を「自分ごと」として考える時間を持つ。これ自体が健康意識の向上に寄与する教育的効果を持つ。
+  </div>
+</div>
+
+<!-- ====== 6. AI凝集と7軸評価 ====== -->
+<div class="section" id="sec6">
+  <div class="section-num">Section 06</div>
+  <h2>AI凝集と7軸評価</h2>
+
+  <h3>7軸評価（COM-Bモデル準拠）</h3>
+  <p>各投稿は以下の7軸で1〜5点のスコアリングを受ける。評価は投稿内容・共感データ・推進メンバーの議論・公的ガイドラインを統合的に分析して算出される。</p>
+
+  <table class="axis-table">
+    <thead><tr><th>軸</th><th>評価内容</th><th>主な入力ソース</th></tr></thead>
+    <tbody>
+      <tr><td><strong>法令 (legal)</strong></td><td>労働安全衛生法等の法的義務への該当度</td><td>投稿内容 + ガイドライン照合</td></tr>
+      <tr><td><strong>リスク (risk)</strong></td><td>放置した場合の健康リスクの深刻度</td><td>「ヤバい」「専門家」系共感</td></tr>
+      <tr><td><strong>頻度 (freq)</strong></td><td>組織内での課題の普遍性</td><td>共感総数（量的指標）</td></tr>
+      <tr><td><strong>緊急 (urgency)</strong></td><td>即座の対応が必要な度合い</td><td>メンバー議論での緊急性指摘</td></tr>
+      <tr><td><strong>安全 (safety)</strong></td><td>身体的・精神的安全への影響度</td><td>「ヤバい」系共感の回答内容</td></tr>
+      <tr><td><strong>価値 (value)</strong></td><td>施策を実施した場合の投資対効果</td><td>「会社が動けば」系共感</td></tr>
+      <tr><td><strong>ニーズ (needs)</strong></td><td>自己決定理論に基づく行動変容への寄与度</td><td>「一緒に取り組みたい」系共感</td></tr>
+    </tbody>
+  </table>
+
+  <h3>凝集前自動評価</h3>
+  <p>AIテーマ凝集の実行時、未評価の投稿は自動的に一括7軸評価される。管理者は評価レポートモーダルで全投稿のスコア・根拠・参照ガイドラインを確認した上で凝集に進むことができる。</p>
+
+  <h3>凝集アルゴリズム</h3>
+  <p>凝集AIは以下のデータを統合してテーマを生成する：</p>
+  <ul style="font-size:0.85rem;">
+    <li>直近3ヶ月の全投稿内容（最大100件）</li>
+    <li>投稿ごとの共感データ（タイプ別件数 + 回答内容）</li>
+    <li>推進メンバーのコメント・チャット議論</li>
+    <li>AI7軸評価スコア（合計スコアが高い投稿を含むテーマのseverityを高く）</li>
+    <li>部署分布（特定部署に偏っていないかの確認）</li>
+  </ul>
+</div>
+
+<!-- ====== 7. 行動変容理論 ====== -->
+<div class="section" id="sec7">
+  <div class="section-num">Section 07</div>
+  <h2>行動変容理論的基盤</h2>
+
+  <p>本システムは複数の行動変容理論を統合的に適用している。</p>
+
+  <h3>EASTフレームワーク（英国BIT）</h3>
+  <table class="axis-table">
+    <thead><tr><th>要素</th><th>システムでの実装</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Easy（簡単）</strong></td><td>毎日30秒のKPI記録。タップ選択式で入力負荷を最小化</td></tr>
+      <tr><td><strong>Attractive（魅力的）</strong></td><td>バッジ獲得・ランキング・アバターカスタマイズ</td></tr>
+      <tr><td><strong>Social（社会的）</strong></td><td>共感システム・チームランキング・「一緒に取り組みたい」共感タイプ</td></tr>
+      <tr><td><strong>Timely（適時）</strong></td><td>投稿直後のAIケアコメント・チャレンジ中の専門家アドバイス（Day 14）</td></tr>
+    </tbody>
+  </table>
+
+  <h3>COM-Bモデル（Michie, 2011）</h3>
+  <table class="axis-table">
+    <thead><tr><th>要素</th><th>システムでの実装</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Capability（能力）</strong></td><td>AIヘルスアドバイザーによるエビデンスベースの健康知識提供</td></tr>
+      <tr><td><strong>Opportunity（機会）</strong></td><td>チャレンジへの参加機会、食事チェック機能、健康メモ</td></tr>
+      <tr><td><strong>Motivation（動機）</strong></td><td>自分たちで選んだテーマ、共感による「自分ごと化」、ランキング</td></tr>
+    </tbody>
+  </table>
+
+  <h3>自己決定理論（Deci & Ryan）</h3>
+  <table class="axis-table">
+    <thead><tr><th>基本的心理欲求</th><th>システムでの充足</th></tr></thead>
+    <tbody>
+      <tr><td><strong>自律性</strong></td><td>投票による自己選択、任意参加のチャレンジ</td></tr>
+      <tr><td><strong>有能感</strong></td><td>バッジ獲得、KPI推移の可視化、ランキング上昇</td></tr>
+      <tr><td><strong>関係性</strong></td><td>共感システム、チームチャレンジ、アバター投票</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ====== 8. エビデンス基盤 ====== -->
+<div class="section" id="sec8">
+  <div class="section-num">Section 08</div>
+  <h2>エビデンス基盤：18領域の公的ガイドライン</h2>
+
+  <p>AIのケアコメント・7軸評価・チャレンジ設計は、以下の18領域の公的ガイドラインをシステムに内蔵したエビデンスベースに基づいて生成される。</p>
+
+  <div class="evidence-grid">
+    <div class="evidence-item"><span class="ev-num">1</span>腰痛・筋骨格系（厚労省 2013）</div>
+    <div class="evidence-item"><span class="ev-num">2</span>睡眠・疲労（厚労省 2023）</div>
+    <div class="evidence-item"><span class="ev-num">3</span>栄養・肥満（食事基準 2025）</div>
+    <div class="evidence-item"><span class="ev-num">4</span>血糖コントロール（糖尿病学会 2024）</div>
+    <div class="evidence-item"><span class="ev-num">5</span>高血圧（高血圧学会 2025）</div>
+    <div class="evidence-item"><span class="ev-num">6</span>メンタルヘルス（厚労省 2024）</div>
+    <div class="evidence-item"><span class="ev-num">7</span>禁煙（改正健増法）</div>
+    <div class="evidence-item"><span class="ev-num">8</span>飲酒管理（厚労省 2024）</div>
+    <div class="evidence-item"><span class="ev-num">9</span>身体活動（厚労省 2023）</div>
+    <div class="evidence-item"><span class="ev-num">10</span>熱中症予防（STOP!熱中症）</div>
+    <div class="evidence-item"><span class="ev-num">11</span>過重労働防止（過労死防止対策）</div>
+    <div class="evidence-item"><span class="ev-num">12</span>口腔衛生（厚労省 歯科）</div>
+    <div class="evidence-item"><span class="ev-num">13</span>化学物質安全（R6.4 新規制）</div>
+    <div class="evidence-item"><span class="ev-num">14</span>女性の健康（厚労省 女性健康）</div>
+    <div class="evidence-item"><span class="ev-num">15</span>がん予防（第4期基本計画）</div>
+    <div class="evidence-item"><span class="ev-num">16</span>感染症予防（職場感染対策）</div>
+    <div class="evidence-item"><span class="ev-num">17</span>特定保健指導（R6年度版）</div>
+    <div class="evidence-item"><span class="ev-num">18</span>運転者の健康管理（国交省）</div>
+  </div>
+</div>
+
+<!-- ====== 9. 学術的位置づけ ====== -->
+<div class="section" id="sec9">
+  <div class="section-num">Section 09</div>
+  <h2>学術的位置づけ</h2>
+
+  <h3>従来型産業保健との関係</h3>
+  <p>本システムは従来のトップダウン型産業保健を<strong>代替するものではなく、補完する</strong>位置づけである。法定健診・ストレスチェック・安全衛生委員会等の制度的枠組みは引き続き必要である。本システムが対象とするのは、これらの制度では捕捉できない「日常的な健康課題の声」と「自発的な行動変容の促進」である。</p>
+
+  <h3>本システムの学術的新規性</h3>
+  <ul style="font-size:0.85rem;">
+    <li><strong>構造化共感</strong> — SNS的な「いいね」を、共感タイプ×深掘り質問で構造化し、定量的分析データに変換する仕組み</li>
+    <li><strong>AI凝集</strong> — 個別の声を、共感パターン・専門家議論・エビデンスを統合してAIがテーマに凝集する手法</li>
+    <li><strong>7軸評価</strong> — COM-Bモデルを拡張した独自の7軸スコアリングで、ボトムアップの声をトップダウンの意思決定に接続する仕組み</li>
+    <li><strong>声→行動の循環</strong> — 投稿→共感→凝集→メンバー議論→投票→チャレンジ→KPIという、年5サイクルの継続的改善ループ</li>
+  </ul>
+
+  <h3>想定される研究課題</h3>
+  <ul style="font-size:0.85rem;">
+    <li>構造化共感データは、健診データでは捕捉できない健康課題をどの程度補完できるか</li>
+    <li>ボトムアップで選定されたテーマへのチャレンジ参加率は、トップダウン施策と比較してどの程度高いか</li>
+    <li>AI7軸評価のスコアは、産業医の専門判断とどの程度一致するか</li>
+    <li>共感駆動型の優先度決定は、組織の健康課題の実態をどの程度正確に反映するか</li>
+    <li>年5サイクルの継続運用が、組織全体の健康指標に与える中長期的影響</li>
+  </ul>
+
+  <div class="quote-box">
+    本システムは「管理する健康経営」から「共鳴する健康経営」へのパラダイムシフトを技術的に実装する試みである。トップダウンとボトムアップは対立概念ではなく、両輪として機能することで、より包括的な産業保健が実現すると考える。
+  </div>
+</div>
+
+</div>
+
+<div class="footer-note">
+  CoWell Health Project 2.0 Design Philosophy Whitepaper v1.0<br>
+  &copy; 2026 スタンダード運輸グループ
+</div>
+
+</body>
+</html>

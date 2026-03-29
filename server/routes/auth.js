@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const { v4: uuidv4 } = require('uuid');
 const { getDb } = require('../services/db');
-const { generateToken } = require('../middleware/auth');
+const { generateToken, authUser } = require('../middleware/auth');
 const rateLimit = require('express-rate-limit');
 
 const router = express.Router();
@@ -15,25 +15,40 @@ function hashPasswordSHA256(raw) {
 }
 
 // bcryptハッシュ生成
-function hashPassword(raw) {
-  return bcrypt.hashSync(raw, 10);
+function hashPasswordBcrypt(raw) {
+  return bcrypt.hashSync(raw.toString(), 10);
 }
 
-// パスワード検証（bcrypt優先、SHA256フォールバックで自動マイグレーション）
-function verifyPassword(raw, storedHash, db, table, idColumn, idValue) {
-  // bcryptハッシュの場合
-  if (storedHash && storedHash.startsWith('$2')) {
-    return bcrypt.compareSync(raw, storedHash);
+// 後方互換エイリアス
+function hashPassword(raw) {
+  return hashPasswordBcrypt(raw);
+}
+
+// パスワード検証（bcrypt / SHA256 / 平文に対応、一致したらbcryptに自動移行）
+function verifyAndMigratePassword(db, table, idColumn, id, inputPassword, storedHash) {
+  if (!storedHash || storedHash.length === 0) return true; // ハッシュ未設定はスキップ
+
+  // bcryptハッシュの場合（$2a$ or $2b$ で始まる）
+  if (storedHash.startsWith('$2')) {
+    return bcrypt.compareSync(inputPassword, storedHash);
   }
-  // SHA256ハッシュの場合（レガシー）→ 一致したらbcryptに自動更新
-  const sha256 = hashPasswordSHA256(raw);
-  if (storedHash === sha256) {
-    const newHash = hashPassword(raw);
-    try {
-      db.prepare(`UPDATE ${table} SET password_hash = ? WHERE ${idColumn} = ?`).run(newHash, idValue);
-    } catch (e) { /* マイグレーション失敗は無視、次回ログイン時に再試行 */ }
+
+  // SHA256ハッシュの場合
+  const sha = hashPasswordSHA256(inputPassword);
+  if (storedHash === sha) {
+    // 自動移行: bcryptに書き換え
+    const newHash = hashPasswordBcrypt(inputPassword);
+    db.prepare(`UPDATE ${table} SET password_hash = ? WHERE ${idColumn} = ?`).run(newHash, id);
     return true;
   }
+
+  // 平文の場合（レガシー互換）
+  if (storedHash === inputPassword) {
+    const newHash = hashPasswordBcrypt(inputPassword);
+    db.prepare(`UPDATE ${table} SET password_hash = ? WHERE ${idColumn} = ?`).run(newHash, id);
+    return true;
+  }
+
   return false;
 }
 
@@ -55,6 +70,7 @@ const resetLimiter = rateLimit({
   legacyHeaders: false
 });
 
+
 // ユーザー登録
 router.post('/register', loginLimiter, (req, res) => {
   try {
@@ -69,11 +85,12 @@ router.post('/register', loginLimiter, (req, res) => {
     if (existing) return res.json({ success: false, msg: '使用済みニックネーム' });
 
     const uid = uuidv4();
-    const passwordHash = hashPassword(password.trim());
-    db.prepare(`INSERT INTO users (id, nickname, password_hash, avatar, inviter_id, real_name, department, birth_date, buddy_type)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(uid, nickname.trim(), passwordHash, avatar || '😀', inviterId || '', realName || '', department || '', birthDate || '', buddyType || 'gentle');
+    const sid = crypto.randomUUID ? crypto.randomUUID() : uuidv4();
+    const passwordHash = hashPasswordBcrypt(password.trim());
+    db.prepare(`INSERT INTO users (id, nickname, password_hash, avatar, inviter_id, real_name, department, birth_date, session_token, buddy_type)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(uid, nickname.trim(), passwordHash, avatar || '😀', inviterId || '', realName || '', department || '', birthDate || '', sid, buddyType || 'gentle');
 
-    const token = generateToken({ uid, nickname: nickname.trim(), type: 'user' });
+    const token = generateToken({ uid, nickname: nickname.trim(), type: 'user', sid: sid });
     res.json({ success: true, uid, nickname: nickname.trim(), avatar: avatar || '😀', inviteCount: 0, department, birthDate, buddyType: buddyType || 'gentle', token });
   } catch (e) {
     res.json({ success: false, msg: e.message });
@@ -89,13 +106,16 @@ router.post('/login', loginLimiter, (req, res) => {
     const user = db.prepare('SELECT * FROM users WHERE nickname = ?').get(nickname.trim());
     if (!user) return res.json({ success: false, msg: '認証失敗' });
 
-    if (!verifyPassword(password.trim(), user.password_hash, db, 'users', 'id', user.id)) {
+    if (!verifyAndMigratePassword(db, 'users', 'id', user.id, password.trim(), user.password_hash)) {
       return res.json({ success: false, msg: '認証失敗' });
     }
 
     const inviteCount = db.prepare('SELECT COUNT(*) as cnt FROM users WHERE inviter_id = ?').get(user.id).cnt;
-    const token = generateToken({ uid: user.id, nickname: user.nickname, type: 'user' });
-    res.json({ success: true, uid: user.id, nickname: user.nickname, avatar: user.avatar, inviteCount, department: user.department || '', birthDate: user.birth_date || '', buddyType: user.buddy_type || 'gentle', token });
+    // セッションID発行（同時ログイン防止）
+    const sid = crypto.randomUUID ? crypto.randomUUID() : require('uuid').v4();
+    db.prepare('UPDATE users SET session_token = ? WHERE id = ?').run(sid, user.id);
+    const token = generateToken({ uid: user.id, nickname: user.nickname, type: 'user', sid: sid });
+    res.json({ success: true, uid: user.id, nickname: user.nickname, avatar: user.avatar, inviteCount, department: user.department || '', birthDate: user.birth_date || '', realName: user.real_name || '', buddyType: user.buddy_type || 'gentle', token });
   } catch (e) {
     res.json({ success: false, msg: e.message });
   }
@@ -111,7 +131,7 @@ router.post('/admin-register', loginLimiter, (req, res) => {
     const db = getDb();
     const existing = db.prepare('SELECT id FROM core_members WHERE email = ?').get(email.trim().toLowerCase());
     if (existing) return res.json({ success: false, msg: '既に登録されているメールアドレスです' });
-    const passwordHash = hashPassword(password.trim());
+    const passwordHash = hashPasswordBcrypt(password.trim());
     const role = isUniversity ? 'observer' : 'member';
     db.prepare(`INSERT INTO core_members (name, dept, email, password_hash, avatar, role, is_exec, is_university, university_org, status)
       VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?, 'pending')`).run(name.trim(), dept || '', email.trim().toLowerCase(), passwordHash, '🛡️', role, isUniversity ? 1 : 0, universityOrg || '');
@@ -142,11 +162,8 @@ router.post('/admin-login', loginLimiter, (req, res) => {
     const member = db.prepare('SELECT * FROM core_members WHERE email = ?').get(email.trim().toLowerCase());
     if (!member) return res.json({ success: false, msg: '認証失敗' });
 
-    // パスワード検証（bcrypt + SHA256レガシー自動マイグレーション）
-    if (!member.password_hash || member.password_hash.length === 0) {
-      return res.json({ success: false, msg: '認証失敗' });
-    }
-    if (!verifyPassword(password.trim(), member.password_hash, db, 'core_members', 'id', member.id)) {
+    // パスワード検証（bcrypt/SHA256/平文に対応、自動移行）
+    if (!verifyAndMigratePassword(db, 'core_members', 'id', member.id, password.trim(), member.password_hash)) {
       return res.json({ success: false, msg: '認証失敗' });
     }
 
@@ -182,7 +199,7 @@ router.post('/admin-reset-password', resetLimiter, (req, res) => {
     const db = getDb();
     const member = db.prepare('SELECT * FROM core_members WHERE email = ? AND name = ?').get(email.trim().toLowerCase(), name.trim());
     if (!member) return res.json({ success: false, msg: '入力情報が一致するアカウントが見つかりません' });
-    const newHash = hashPassword(newPassword.trim());
+    const newHash = hashPasswordBcrypt(newPassword.trim());
     db.prepare('UPDATE core_members SET password_hash = ? WHERE id = ?').run(newHash, member.id);
     res.json({ success: true, msg: 'パスワードを再設定しました。新しいパスワードでログインしてください。' });
   } catch (e) {
@@ -201,11 +218,97 @@ router.post('/reset-password', resetLimiter, (req, res) => {
     const db = getDb();
     const user = db.prepare('SELECT * FROM users WHERE nickname = ? AND department = ? AND birth_date = ?').get(nickname.trim(), department, birthDate);
     if (!user) return res.json({ success: false, msg: '入力情報が一致するアカウントが見つかりません' });
-    const newHash = hashPassword(newPassword.trim());
+    const newHash = hashPasswordBcrypt(newPassword.trim());
     db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(newHash, user.id);
     res.json({ success: true, msg: 'パスワードを再設定しました。新しいパスワードでログインしてください。' });
   } catch (e) {
     res.json({ success: false, msg: 'エラー: ' + e.message });
+  }
+});
+
+// アバター変更（認証必須）
+router.post('/update-avatar', authUser, (req, res) => {
+  try {
+    const { uid, avatar } = req.body;
+    if (!uid || !avatar) return res.json({ success: false, msg: 'uid と avatar を指定してください' });
+    const db = getDb();
+    db.prepare('UPDATE users SET avatar = ? WHERE id = ?').run(avatar, uid);
+    res.json({ success: true });
+  } catch (e) {
+    res.json({ success: false, msg: e.message });
+  }
+});
+
+// バディーデータ保存
+router.post('/save-buddy', authUser, (req, res) => {
+  try {
+    const { uid, buddyData } = req.body;
+    if (!uid || !buddyData) return res.json({ success: false, msg: 'uid と buddyData を指定してください' });
+    const db = getDb();
+    db.prepare('UPDATE users SET buddy_data = ? WHERE id = ?').run(JSON.stringify(buddyData), uid);
+    res.json({ success: true });
+  } catch (e) { res.json({ success: false, msg: e.message }); }
+});
+
+// バディーデータ取得
+router.get('/get-buddy/:uid', authUser, (req, res) => {
+  try {
+    const db = getDb();
+    const row = db.prepare('SELECT buddy_data FROM users WHERE id = ?').get(req.params.uid);
+    if (row && row.buddy_data) {
+      res.json({ success: true, buddyData: JSON.parse(row.buddy_data) });
+    } else {
+      res.json({ success: true, buddyData: null });
+    }
+  } catch (e) { res.json({ success: false, buddyData: null }); }
+});
+
+// 実名更新（認証必須）
+router.post('/update-realname', authUser, (req, res) => {
+  try {
+    const { uid, realName } = req.body;
+    if (!uid) return res.json({ success: false, msg: 'uidは必須です' });
+    const db = getDb();
+    db.prepare('UPDATE users SET real_name = ? WHERE id = ?').run(realName || '', uid);
+    res.json({ success: true });
+  } catch (e) {
+    res.json({ success: false, msg: e.message });
+  }
+});
+
+// プロフィール更新（ニックネーム・部署、認証必須）
+router.post('/update-profile', authUser, (req, res) => {
+  try {
+    const { uid, nickname, department } = req.body;
+    if (!uid || !nickname) return res.json({ success: false, msg: 'uidとニックネームは必須です' });
+    const db = getDb();
+    // ニックネーム重複チェック（自分以外）
+    const existing = db.prepare('SELECT id FROM users WHERE nickname = ? AND id != ?').get(nickname, uid);
+    if (existing) return res.json({ success: false, msg: 'そのニックネームは既に使われています' });
+    db.prepare('UPDATE users SET nickname = ?, department = ? WHERE id = ?').run(nickname, department || '', uid);
+    res.json({ success: true });
+  } catch (e) {
+    res.json({ success: false, msg: e.message });
+  }
+});
+
+// パスワード変更
+router.post('/change-password', (req, res) => {
+  try {
+    const { uid, birthDate, newPassword } = req.body;
+    if (!uid || !birthDate) return res.json({ success: false, msg: '生年月日を入力してください' });
+    if (!newPassword || newPassword.length < 4) return res.json({ success: false, msg: 'パスワードは4文字以上で設定してください' });
+    const db = getDb();
+    const user = db.prepare('SELECT birth_date FROM users WHERE id = ?').get(uid);
+    if (!user) return res.json({ success: false, msg: 'ユーザーが見つかりません' });
+    if (!user.birth_date || user.birth_date !== birthDate) {
+      return res.json({ success: false, msg: '生年月日が一致しません' });
+    }
+    const newHash = bcrypt.hashSync(newPassword, 10);
+    db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(newHash, uid);
+    res.json({ success: true });
+  } catch (e) {
+    res.json({ success: false, msg: e.message });
   }
 });
 
@@ -222,7 +325,42 @@ router.get('/stats/:uid', (req, res) => {
     else if (postCount >= 30) { rank = 'Gold'; next = 50; }
     else if (postCount >= 10) { rank = 'Silver'; next = 30; }
     else if (postCount >= 5) { rank = 'Bronze'; next = 10; }
-    res.json({ success: true, inviteCount, postCount, rank, nextTarget: next });
+    // 順位算出
+    const postRankPos = db.prepare(`
+      SELECT COUNT(*) + 1 as pos FROM (
+        SELECT user_id, COUNT(*) as cnt FROM posts GROUP BY user_id
+        HAVING cnt > (SELECT COUNT(*) FROM posts WHERE user_id = ?)
+      )
+    `).get(uid).pos;
+    const inviteRankPos = db.prepare(`
+      SELECT COUNT(*) + 1 as pos FROM (
+        SELECT inviter_id, COUNT(*) as cnt FROM users WHERE inviter_id IS NOT NULL GROUP BY inviter_id
+        HAVING cnt > (SELECT COUNT(*) FROM users WHERE inviter_id = ?)
+      )
+    `).get(uid).pos;
+    res.json({ success: true, inviteCount, postCount, rank, nextTarget: next, postRankPos, inviteRankPos });
+  } catch (e) {
+    res.json({ success: false, error: e.toString() });
+  }
+});
+
+// ランキング（投稿数・紹介者数 TOP5）
+router.get('/ranking', (req, res) => {
+  try {
+    const db = getDb();
+    // 投稿数TOP5
+    const postRanking = db.prepare(`
+      SELECT u.id, u.nickname, u.avatar, COUNT(p.id) as count
+      FROM users u LEFT JOIN posts p ON u.id = p.user_id
+      GROUP BY u.id ORDER BY count DESC LIMIT 5
+    `).all();
+    // 紹介者数TOP5
+    const inviteRanking = db.prepare(`
+      SELECT u.id, u.nickname, u.avatar, COUNT(u2.id) as count
+      FROM users u LEFT JOIN users u2 ON u.id = u2.inviter_id
+      GROUP BY u.id ORDER BY count DESC LIMIT 5
+    `).all();
+    res.json({ success: true, postRanking, inviteRanking });
   } catch (e) {
     res.json({ success: false, error: e.toString() });
   }

@@ -1,32 +1,35 @@
 const jwt = require('jsonwebtoken');
 
-const crypto = require('crypto');
-
-// JWT_SECRET: 環境変数必須。未設定時はランダム生成（再起動で全トークン無効化）
-let _jwtFallback = null;
 const JWT_SECRET = () => {
-  if (process.env.JWT_SECRET) return process.env.JWT_SECRET;
-  if (!_jwtFallback) {
-    console.warn('[SECURITY WARNING] JWT_SECRET が未設定です。ランダムキーを使用します。.envにJWT_SECRETを設定してください。');
-    _jwtFallback = crypto.randomBytes(64).toString('hex');
-  }
-  return _jwtFallback;
+  if (!process.env.JWT_SECRET) throw new Error('JWT_SECRET environment variable is required');
+  return process.env.JWT_SECRET;
 };
 
 function generateToken(payload) {
-  return jwt.sign(payload, JWT_SECRET(), { expiresIn: '7d' });
+  return jwt.sign(payload, JWT_SECRET(), { expiresIn: '24h' });
 }
 
 function verifyToken(token) {
   return jwt.verify(token, JWT_SECRET());
 }
 
-// ユーザー認証ミドルウェア
+// ユーザー認証ミドルウェア（セッション検証付き）
 function authUser(req, res, next) {
   const token = req.headers.authorization?.replace('Bearer ', '');
   if (!token) return res.status(401).json({ success: false, msg: '認証が必要です' });
   try {
-    req.user = verifyToken(token);
+    const payload = verifyToken(token);
+    req.user = payload;
+    // セッショントークン検証（同時ログイン防止）
+    if (payload.sid && payload.uid) {
+      try {
+        const { getDb } = require('../services/db');
+        const user = getDb().prepare('SELECT session_token FROM users WHERE id = ?').get(payload.uid);
+        if (user && user.session_token && user.session_token !== payload.sid) {
+          return res.status(401).json({ success: false, msg: '別の端末でログインされました。再ログインしてください。', code: 'SESSION_EXPIRED' });
+        }
+      } catch (dbErr) { /* DB未初期化時はスキップ */ }
+    }
     next();
   } catch (e) {
     res.status(401).json({ success: false, msg: 'トークンが無効です' });

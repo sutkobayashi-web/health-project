@@ -2,8 +2,11 @@
 <html>
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>健康プロジェクト 管理画面</title>
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <script>(function(){var v='20260323a';if(localStorage.getItem('admin_version')!==v){localStorage.setItem('admin_version',v);if(!window.location.search.includes('_r=')){window.location.replace(window.location.pathname+'?_r='+Date.now());}}}());</script>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
@@ -13,6 +16,8 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <style>
     body { font-family: 'Noto Sans JP', sans-serif; margin: 0; background: #f0f2f5; }
+    html.admin-font-large .main-container { zoom: 1.15; }
+    html.admin-font-xlarge .main-container { zoom: 1.35; }
 
     /* ====== Header ====== */
     .admin-header {
@@ -126,13 +131,15 @@
     .prio-tab { padding:10px 16px; border:none; background:transparent; font-size:0.8rem; font-weight:700; color:#888; cursor:pointer; border-bottom:3px solid transparent; transition:all 0.2s; flex:1; text-align:center; }
     .prio-tab:hover { color:#667eea; background:#f0f0ff; }
     .prio-tab.active { color:#667eea; border-bottom-color:#667eea; }
-    .prio-panel { display:none; }
-    .prio-panel.active { display:block; }
+    .prio-panel { display:none !important; }
+    .prio-panel.active { display:block !important; }
+    #prio-panel-discuss.active { display:flex !important; flex-direction:column; min-height:0; }
     /* ====== LINE風チャット ====== */
     .deep-dive-container {
-      flex: 1; overflow-y: auto; padding: 16px 12px;
+      overflow-y: scroll; -webkit-overflow-scrolling: touch; padding: 16px 12px;
       background: linear-gradient(180deg, #7494C0 0%, #6B8BB5 30%, #889BB5 100%);
       background-attachment: fixed;
+      max-height: calc(100vh - 260px);
     }
     .input-area-sticky {
       padding: 10px 12px; background: #f6f6f6; border-top: 1px solid #ddd;
@@ -268,16 +275,18 @@
       <h5 class="fw-bold" style="color:#2c3e50; margin:0;">管理者認証</h5>
       <p class="small text-muted mt-1 mb-0">Admin Portal Login</p>
     </div>
-    <div class="mb-3"><label class="small fw-bold text-muted">メールアドレス</label><input type="email" id="admin-login-email" class="form-control" style="border-radius:10px; padding:10px 14px;"></div>
-    <div class="mb-3"><label class="small fw-bold text-muted">パスワード</label><input type="password" id="admin-login-pass" class="form-control" style="border-radius:10px; padding:10px 14px;"></div>
-    <div class="mb-3"><label style="font-weight:normal; display:flex; align-items:center; cursor:pointer; font-size:0.85rem;"><input type="checkbox" id="admin-login-remember" style="width:auto; margin-right:8px; transform:scale(1.2);"> ログイン情報を保存する</label></div>
-    <button class="btn w-100 fw-bold py-2" style="background:linear-gradient(135deg,#667eea,#764ba2); color:#fff; border:none; border-radius:10px; font-size:0.95rem;" onclick="doAdminAuth()">ログイン</button>
+    <form id="admin-login-form" autocomplete="on">
+    <div class="mb-3"><label class="small fw-bold text-muted">メールアドレス</label><input type="email" id="admin-login-email" class="form-control" style="border-radius:10px; padding:10px 14px;" autocomplete="username"></div>
+    <div class="mb-3"><label class="small fw-bold text-muted">パスワード</label><input type="password" id="admin-login-pass" class="form-control" style="border-radius:10px; padding:10px 14px;" autocomplete="current-password"></div>
+    <div class="mb-3"><label style="font-weight:normal; display:flex; align-items:center; cursor:pointer; font-size:0.85rem;"><input type="checkbox" id="admin-login-remember" checked style="width:auto; margin-right:8px; transform:scale(1.2);"> ログイン情報を保存する</label></div>
+    <button type="button" class="btn w-100 fw-bold py-2" style="background:linear-gradient(135deg,#667eea,#764ba2); color:#fff; border:none; border-radius:10px; font-size:0.95rem;" onclick="doAdminAuth()">ログイン</button>
+    </form>
     <div class="text-center mt-3"><a href="/" class="small" style="color:rgba(255,255,255,0.7); text-decoration:none;">ユーザー画面に戻る</a></div>
   </div>
 </div>
 <script>
 // saved auth check - hide overlay immediately to prevent flicker
-if(localStorage.getItem('co_heart_admin_email') && localStorage.getItem('co_heart_admin_pass')) {
+if(localStorage.getItem('co_heart_admin_token') && localStorage.getItem('co_heart_admin_profile')) {
   document.getElementById('admin-auth-overlay').style.display = 'none';
 }
 </script>
@@ -291,6 +300,7 @@ if(localStorage.getItem('co_heart_admin_email') && localStorage.getItem('co_hear
     </div>
   </div>
   <div class="header-right">
+    <button id="admin-font-btn" onclick="toggleAdminFontSize()" style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.4);color:white;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:0.8rem;font-weight:700;" title="文字サイズ切替"><i class="fas fa-font"></i></button>
     <div id="admin-status-box" class="user-status-box" style="display:none;"></div>
     <button class="btn-return" onclick="logoutAdmin()"><i class="fas fa-sign-out-alt"></i><span>ログアウト</span></button>
   </div>
@@ -298,49 +308,159 @@ if(localStorage.getItem('co_heart_admin_email') && localStorage.getItem('co_hear
 
 <div class="main-container">
   <div class="sidebar">
-    <div class="nav-item active" onclick="switchTab('evaluation')" id="nav-eval">
-      <i class="fas fa-check-double nav-icon"></i><div class="nav-label">Inbox<br>評価</div>
+    <!-- 投稿一覧（最上部） -->
+    <div class="nav-item position-relative" onclick="switchTab('evaluation')" id="nav-eval">
+      <i class="fas fa-inbox nav-icon"></i><div class="nav-label" style="font-size:0.55rem; line-height:1.2;">投稿<br>一覧</div>
+      <span id="chat-notify-nav-badge" class="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-danger border border-light" style="display:none; font-size:0.55rem;">0</span>
     </div>
-    <div class="nav-item" onclick="switchTab('current')" id="nav-curr">
-      <i class="fas fa-star nav-icon text-warning"></i><div class="nav-label" style="font-size:0.6rem; line-height:1.2;">重点<br>検討</div>
+    <!-- 区切り -->
+    <div style="border-top:1px solid rgba(255,255,255,0.1); margin:4px 0;"></div>
+    <!-- v2: 凝集型スキーム -->
+    <div class="nav-item active" onclick="switchTab('v2dash')" id="nav-v2dash">
+      <i class="fas fa-chart-pie nav-icon" style="color:#667eea;"></i><div class="nav-label" style="font-size:0.55rem; line-height:1.2;">ダッシュ<br>ボード</div>
     </div>
-    <div class="nav-item" onclick="switchTab('candidates')" id="nav-cand">
-      <i class="fas fa-file-alt nav-icon"></i><div class="nav-label">企画書</div>
+    <div class="nav-item" onclick="switchTab('v2challenge')" id="nav-v2challenge">
+      <i class="fas fa-fire nav-icon" style="color:#ff6b35;"></i><div class="nav-label" style="font-size:0.55rem; line-height:1.2;">チャレンジ<br>管理</div>
     </div>
-    <div class="nav-item" onclick="switchTab('aimeeting')" id="nav-aimeeting">
-      <i class="fas fa-users-cog nav-icon text-primary"></i><div class="nav-label" style="font-size:0.6rem; line-height:1.1;">AI企画<br>会議</div>
+    <div class="nav-item" onclick="switchTab('avatarchallenge')" id="nav-avatarchallenge">
+      <i class="fas fa-palette nav-icon" style="color:#ff9800;"></i><div class="nav-label" style="font-size:0.55rem; line-height:1.2;">アバター<br>投票</div>
     </div>
-    <div class="nav-item" onclick="switchTab('exec')" id="nav-exec">
-      <i class="fas fa-gavel nav-icon text-danger"></i><div class="nav-label" style="font-size:0.6rem; line-height:1.2;">役員<br>決裁</div>
+    <div class="nav-item" onclick="switchTab('v2kpi')" id="nav-v2kpi">
+      <i class="fas fa-chart-line nav-icon" style="color:#20c997;"></i><div class="nav-label" style="font-size:0.55rem; line-height:1.2;">KPI<br>成果</div>
     </div>
-    <div class="nav-item" onclick="switchTab('bmi22')" id="nav-bmi22">
-      <i class="fas fa-leaf nav-icon text-success"></i><div class="nav-label" style="font-size:0.55rem; line-height:1.2;">全社<br>展開</div>
+    <div class="nav-item" onclick="switchTab('v2ambassador')" id="nav-v2ambassador">
+      <i class="fas fa-user-md nav-icon" style="color:#9c27b0;"></i><div class="nav-label" style="font-size:0.55rem; line-height:1.2;">専門家<br>連携</div>
     </div>
+    <!-- 区切り -->
+    <div style="border-top:1px solid rgba(255,255,255,0.1); margin:4px 0;"></div>
     <div class="nav-item position-relative" onclick="switchTab('personal')" id="nav-personal">
-      <i class="fas fa-envelope-open-text nav-icon"></i><div class="nav-label">個別メール</div>
+      <i class="fas fa-envelope-open-text nav-icon"></i><div class="nav-label" style="font-size:0.55rem;">メール</div>
       <span id="personal-badge" class="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-danger border border-light" style="display:none; font-size:0.6rem;">!</span>
     </div>
-    <div class="nav-item" onclick="window.location.href='/knowledge'" id="nav-knowledge" style="border-top:1px solid rgba(255,255,255,0.1); margin-top:4px; padding-top:10px;">
-      <i class="fas fa-book-open nav-icon" style="color:#f39c12;"></i><div class="nav-label" style="font-size:0.55rem; line-height:1.2;">学習<br>資料</div>
+    <div class="nav-item" onclick="switchTab('buddytopic')" id="nav-buddytopic">
+      <i class="fas fa-comments nav-icon" style="color:#ff7043;"></i><div class="nav-label" style="font-size:0.55rem; line-height:1.2;">話題<br>共感</div>
     </div>
     <div class="nav-item" onclick="switchTab('food')" id="nav-food">
-      <i class="fas fa-utensils nav-icon" style="color:#20c997;"></i><div class="nav-label" style="font-size:0.55rem; line-height:1.2;">食事<br>分析</div>
+      <i class="fas fa-utensils nav-icon" style="color:#20c997;"></i><div class="nav-label" style="font-size:0.55rem;">食事</div>
     </div>
-    <div class="nav-item" onclick="switchTab('resolved')" id="nav-res">
-      <i class="fas fa-archive nav-icon"></i><div class="nav-label">解決済み</div>
+    <div class="nav-item" onclick="window.location.href='/knowledge'" id="nav-knowledge">
+      <i class="fas fa-book-open nav-icon" style="color:#f39c12;"></i><div class="nav-label" style="font-size:0.55rem;">学習</div>
     </div>
-    <!-- メンバーメニュー -->
-    <div class="nav-item" onclick="openMembersPopup()" id="nav-members" style="border-top:1px solid rgba(255,255,255,0.1); margin-top:auto; padding-top:10px; position:relative;">
-      <i class="fas fa-users nav-icon" style="color:#4caf50;"></i>
-      <div class="nav-label" style="font-size:0.55rem; line-height:1.2;">推進<br>メンバー</div>
+    <div class="nav-item" onclick="window.location.href='/guide'" id="nav-guide">
+      <i class="fas fa-map-signs nav-icon" style="color:#667eea;"></i><div class="nav-label" style="font-size:0.55rem;">ガイド</div>
+    </div>
+    <div class="nav-item" onclick="switchTab('ai-usage')" id="nav-ai-usage">
+      <i class="fas fa-chart-bar nav-icon" style="color:#e91e63;"></i><div class="nav-label" style="font-size:0.55rem; line-height:1.2;">AI<br>使用量</div>
+    </div>
+    <!-- 管理系 -->
+    <div class="nav-item" onclick="switchTab('members')" id="nav-members" style="border-top:1px solid rgba(255,255,255,0.1); margin-top:auto; padding-top:10px; position:relative;">
+      <i class="fas fa-users-cog nav-icon" style="color:#4caf50;"></i>
+      <div class="nav-label" style="font-size:0.55rem; line-height:1.2;">メンバー<br>管理</div>
       <span id="online-count-badge" style="position:absolute; top:4px; right:8px; background:#4caf50; color:white; font-size:0.5rem; font-weight:800; width:16px; height:16px; border-radius:50%; display:none; justify-content:center; align-items:center; border:2px solid #1a1e2e;"></span>
+    </div>
+    <div class="nav-item" onclick="switchTab('backup')" id="nav-backup">
+      <i class="fas fa-database nav-icon" style="color:#f59e0b;"></i>
+      <div class="nav-label" style="font-size:0.55rem; line-height:1.2;">バック<br>アップ</div>
+    </div>
+    <div class="nav-item" onclick="window.location.href='/whitepaper'" id="nav-whitepaper">
+      <i class="fas fa-file-alt nav-icon" style="color:#78909c;"></i>
+      <div class="nav-label" style="font-size:0.55rem; line-height:1.2;">ホワイト<br>ペーパー</div>
     </div>
   </div>
 
   <div class="content-area">
 
-    <!-- Tab: Inbox 評価 -->
-    <div id="tab-evaluation" class="tab-view active">
+    <!-- ====== v2: ダッシュボード ====== -->
+    <div id="tab-v2dash" class="tab-view active">
+      <div class="section-header">
+        <div class="section-icon" style="background:linear-gradient(135deg,#667eea,#764ba2);"><i class="fas fa-chart-pie"></i></div>
+        <div><div class="section-title">ダッシュボード</div><div class="section-subtitle">テーマ凝集 → 投票 → チャレンジのサイクル管理</div></div>
+      </div>
+      <!-- サイクル状態 -->
+      <div id="v2-cycle-status" class="mb-4"></div>
+      <!-- アクションボタン -->
+      <div id="v2-cycle-actions" class="d-flex gap-2 mb-4"></div>
+      <!-- テーマ一覧 -->
+      <div id="v2-themes-area"></div>
+    </div>
+
+    <!-- ====== v2: チャレンジ管理 ====== -->
+    <div id="tab-v2challenge" class="tab-view">
+      <div class="section-header">
+        <div class="section-icon" style="background:linear-gradient(135deg,#ff6b35,#ff9a5c);"><i class="fas fa-fire"></i></div>
+        <div><div class="section-title">チャレンジ管理</div><div class="section-subtitle">アクションプランの作成・実行管理</div></div>
+      </div>
+      <!-- 健診データ分析 -->
+      <div style="margin-bottom:16px;">
+        <button onclick="runCheckupAnalysis()" class="btn btn-outline-danger btn-sm fw-bold" id="btn-checkup-analysis"><i class="fas fa-heartbeat me-1"></i>健診データから全社分析＋3パターン提案</button>
+        <div id="checkup-analysis-result" style="margin-top:12px;"></div>
+      </div>
+      <div id="v2-challenges-list"></div>
+    </div>
+
+    <!-- ====== アバターチャレンジ管理 ====== -->
+    <div id="tab-avatarchallenge" class="tab-view">
+      <div class="section-header">
+        <div class="section-icon" style="background:linear-gradient(135deg,#ff9800,#f57c00);"><i class="fas fa-palette"></i></div>
+        <div><div class="section-title">アバターチャレンジ</div><div class="section-subtitle">オンボーディング用アバター投票企画</div></div>
+      </div>
+      <div class="card mb-3">
+        <div class="card-body">
+          <h6 class="fw-bold mb-3"><i class="fas fa-cog me-2"></i>開催設定</h6>
+          <div class="mb-2">
+            <label class="form-label fw-bold" style="font-size:0.85rem;">ステータス</label>
+            <select id="avc-status" class="form-select form-select-sm">
+              <option value="inactive">未開催</option>
+              <option value="active">開催中</option>
+              <option value="ended">終了</option>
+            </select>
+          </div>
+          <div class="row mb-2">
+            <div class="col-6">
+              <label class="form-label fw-bold" style="font-size:0.85rem;">開始日</label>
+              <input type="date" id="avc-start" class="form-control form-control-sm">
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-bold" style="font-size:0.85rem;">終了日</label>
+              <input type="date" id="avc-end" class="form-control form-control-sm">
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold" style="font-size:0.85rem;">1人あたりの投票数上限</label>
+            <input type="number" id="avc-maxvotes" class="form-control form-control-sm" value="5" min="1" max="20">
+          </div>
+          <button onclick="saveAvatarChallengeConfig()" class="btn btn-warning w-100 fw-bold"><i class="fas fa-save me-1"></i>設定を保存</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-body">
+          <h6 class="fw-bold mb-3"><i class="fas fa-trophy me-2"></i>現在のランキング</h6>
+          <div id="avc-admin-ranking"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== v2: KPI・成果 ====== -->
+    <div id="tab-v2kpi" class="tab-view">
+      <div class="section-header">
+        <div class="section-icon" style="background:linear-gradient(135deg,#20c997,#38d9a9);"><i class="fas fa-chart-line"></i></div>
+        <div><div class="section-title">KPI・成果</div><div class="section-subtitle">参加状況・継続率・効果測定</div></div>
+      </div>
+      <div id="v2-kpi-selector" class="mb-3"></div>
+      <div id="v2-kpi-dashboard"></div>
+    </div>
+
+    <!-- ====== v2: 専門家連携 ====== -->
+    <div id="tab-v2ambassador" class="tab-view">
+      <div class="section-header">
+        <div class="section-icon" style="background:linear-gradient(135deg,#9c27b0,#ce93d8);"><i class="fas fa-user-md"></i></div>
+        <div><div class="section-title">専門家連携（アンバサダー）</div><div class="section-subtitle">保健センター専門職との連携管理</div></div>
+      </div>
+      <div id="v2-ambassador-area"></div>
+    </div>
+
+    <!-- Tab: Inbox 評価（旧: 投稿一覧として残す） -->
+    <div id="tab-evaluation" class="tab-view">
       <div class="section-header">
         <div class="section-icon" style="background:linear-gradient(135deg,#667eea,#764ba2);"><i class="fas fa-check-double"></i></div>
         <div><div class="section-title">Inbox 評価</div><div class="section-subtitle">投稿の確認と優先度評価</div></div>
@@ -357,7 +477,7 @@ if(localStorage.getItem('co_heart_admin_email') && localStorage.getItem('co_hear
       </div>
       <div style="height:400px; position:relative;"><canvas id="currentChart"></canvas></div>
       <div class="mt-3 d-flex gap-2">
-        <button class="btn btn-outline-primary btn-sm fw-bold" onclick="openThemePlanFromMatrix()"><i class="fas fa-lightbulb me-1"></i> テーマから企画書を作成</button>
+        <button class="btn btn-outline-primary btn-sm fw-bold" onclick="openThemePlanModal()"><i class="fas fa-lightbulb me-1"></i> テーマから企画書を作成</button>
       </div>
     </div>
 
@@ -436,13 +556,39 @@ if(localStorage.getItem('co_heart_admin_email') && localStorage.getItem('co_hear
       <div id="personal-list-area"></div>
     </div>
 
-    <!-- Tab: 食事分析 -->
+    <!-- Tab: 話題共感 -->
+    <div id="tab-buddytopic" class="tab-view">
+      <div class="section-header"><i class="fas fa-comments text-warning"></i> 話題共感 — バディー経由の声集め</div>
+      <!-- 新規作成 -->
+      <div style="background:white; border-radius:12px; padding:16px; margin-bottom:16px; box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+        <div style="font-weight:700; font-size:0.85rem; color:#ff7043; margin-bottom:10px;"><i class="fas fa-plus-circle me-1"></i>新しい話題を作成</div>
+        <input id="bt-title" type="text" placeholder="話題（例：階段を使う習慣、どう思いますか？）" style="width:100%; border:1.5px solid #e0e0e0; border-radius:8px; padding:10px; font-size:0.85rem; margin-bottom:8px; box-sizing:border-box;">
+        <div style="font-size:0.75rem; color:#999; margin-bottom:6px;">選択肢（最大6つ）</div>
+        <div id="bt-choices" style="display:flex; flex-direction:column; gap:4px; margin-bottom:8px;">
+          <input class="bt-choice-input" type="text" value="共感する😊" style="border:1px solid #ddd; border-radius:6px; padding:6px 10px; font-size:0.82rem;">
+          <input class="bt-choice-input" type="text" value="やってみたい💪" style="border:1px solid #ddd; border-radius:6px; padding:6px 10px; font-size:0.82rem;">
+          <input class="bt-choice-input" type="text" value="難しいかも😅" style="border:1px solid #ddd; border-radius:6px; padding:6px 10px; font-size:0.82rem;">
+          <input class="bt-choice-input" type="text" value="もっと知りたい🤔" style="border:1px solid #ddd; border-radius:6px; padding:6px 10px; font-size:0.82rem;">
+        </div>
+        <button onclick="addBtChoiceInput()" style="font-size:0.72rem; color:#667eea; background:none; border:1px dashed #667eea; border-radius:6px; padding:4px 12px; cursor:pointer; margin-bottom:10px;"><i class="fas fa-plus me-1"></i>選択肢追加</button>
+        <div style="display:flex; gap:8px;">
+          <button onclick="createBuddyTopic()" style="flex:1; padding:10px; background:linear-gradient(135deg,#ff7043,#e64a19); color:white; border:none; border-radius:10px; font-weight:700; cursor:pointer;"><i class="fas fa-paper-plane me-1"></i>話題を配信</button>
+        </div>
+      </div>
+      <!-- 話題一覧 -->
+      <div id="bt-list-area" style="font-size:0.82rem;"></div>
+    </div>
+
+    <!-- Tab: 週間食事レポート -->
     <div id="tab-food" class="tab-view">
       <div class="section-header">
         <div class="section-icon" style="background:linear-gradient(135deg,#20c997,#38d9a9);"><i class="fas fa-utensils"></i></div>
-        <div><div class="section-title">食事傾向分析</div><div class="section-subtitle">ユーザーの食事記録をAI栄養士が分析しレポートを送信</div></div>
+        <div><div class="section-title">週間食事レポート</div><div class="section-subtitle">毎週月曜7:00に自動配信。ユーザーごとの栄養分析・アドバイス履歴</div></div>
       </div>
-      <div id="food-users-area" class="row g-3"></div>
+      <div style="margin-bottom:12px; text-align:right;">
+        <button class="btn btn-sm btn-outline-success fw-bold" onclick="runFoodWeeklyManual()" id="food-weekly-run-btn"><i class="fas fa-play me-1"></i>今すぐ実行</button>
+      </div>
+      <div id="food-weekly-area"></div>
     </div>
 
     <!-- Tab: 解決済み -->
@@ -452,6 +598,52 @@ if(localStorage.getItem('co_heart_admin_email') && localStorage.getItem('co_hear
         <div><div class="section-title">解決済み</div><div class="section-subtitle">対応完了した投稿</div></div>
       </div>
       <div id="resolved-list-area"></div>
+    </div>
+
+    <!-- Tab: AI使用量 -->
+    <div id="tab-ai-usage" class="tab-view">
+      <div class="section-header">
+        <div class="section-icon" style="background:linear-gradient(135deg,#e91e63,#f06292);"><i class="fas fa-chart-bar"></i></div>
+        <div><div class="section-title">AI使用量モニター</div><div class="section-subtitle">Groq / Gemini API の利用状況</div></div>
+      </div>
+      <div id="ai-usage-body"><div class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm"></div> 読み込み中...</div></div>
+    </div>
+
+    <!-- Tab: メンバー管理 -->
+    <div id="tab-members" class="tab-view">
+      <div class="section-header">
+        <div class="section-icon" style="background:linear-gradient(135deg,#4caf50,#2e7d32);"><i class="fas fa-users-cog"></i></div>
+        <div><div class="section-title">メンバー管理</div><div class="section-subtitle">コアメンバーと一般ユーザーの管理</div></div>
+      </div>
+
+      <!-- コアメンバー -->
+      <div class="card mb-4 shadow-sm">
+        <div class="card-header d-flex justify-content-between align-items-center" style="background:linear-gradient(135deg,#667eea,#764ba2); color:white;">
+          <div class="fw-bold"><i class="fas fa-shield-alt me-2"></i>コアメンバー（推進メンバー）</div>
+          <button class="btn btn-sm btn-light fw-bold" onclick="openAddCoreMemberModal()"><i class="fas fa-plus me-1"></i>追加</button>
+        </div>
+        <div class="card-body p-0" id="core-members-list"></div>
+      </div>
+
+      <!-- 一般ユーザー -->
+      <div class="card shadow-sm">
+        <div class="card-header d-flex justify-content-between align-items-center" style="background:linear-gradient(135deg,#20c997,#0ca678); color:white;">
+          <div class="fw-bold"><i class="fas fa-user me-2"></i>一般ユーザー</div>
+          <button class="btn btn-sm btn-light fw-bold" onclick="openAddUserModal()"><i class="fas fa-plus me-1"></i>追加</button>
+        </div>
+        <div class="card-body p-0" id="general-users-list"></div>
+      </div>
+    </div>
+
+    <!-- Tab: バックアップ -->
+    <div id="tab-backup" class="tab-view">
+      <div class="section-header">
+        <div class="section-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706);"><i class="fas fa-database"></i></div>
+        <div><div class="section-title">バックアップ管理</div><div class="section-subtitle">3アプリのバックアップ状態とBox連携</div></div>
+      </div>
+      <div id="backup-tab-body">
+        <div class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm"></div> 読み込み中...</div>
+      </div>
     </div>
 
   </div>
@@ -464,6 +656,13 @@ if(localStorage.getItem('co_heart_admin_email') && localStorage.getItem('co_hear
     <div class="mb-3">
       <label class="small fw-bold text-muted mb-2">通知内容</label>
       <textarea id="broadcast-body" class="form-control" rows="5" placeholder="入力してください"></textarea>
+    </div>
+    <div class="mb-3">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.85rem;color:#0284c7;font-weight:700;">
+        <input type="checkbox" id="broadcast-via-buddy" style="width:18px;height:18px;accent-color:#0ea5e9;">
+        <i class="fas fa-robot"></i> ヘルスバディー経由で届ける
+      </label>
+      <div style="font-size:0.7rem;color:#999;margin-top:4px;margin-left:26px;">チェックすると、ユーザーのバディーチャット画面に情報が表示されます</div>
     </div>
     <div class="d-flex gap-2 mt-4">
       <button class="btn btn-warning flex-grow-1 fw-bold" onclick="sendBroadcastNotice()">配信</button>
@@ -518,8 +717,10 @@ if(localStorage.getItem('co_heart_admin_email') && localStorage.getItem('co_hear
         <span class="badge bg-primary fs-6" id="prop-category">企画書</span>
         <div class="text-dark fw-bold fs-4">企画書の最終確認</div>
       </div>
-      <div class="d-flex gap-2">
-        <button class="btn btn-outline-info btn-sm fw-bold" onclick="submitToExecFromProposal()"><i class="fas fa-gavel me-1"></i> 役員上申</button>
+      <div class="d-flex gap-2" id="proposal-modal-actions">
+        <button class="btn btn-outline-warning btn-sm fw-bold d-none" id="btn-ai-refine" onclick="aiRefineWithComments()"><i class="fas fa-magic me-1"></i> コメント反映AIリファイン</button>
+        <button class="btn btn-outline-success btn-sm fw-bold d-none" id="btn-resubmit-vote" onclick="resubmitForVote()"><i class="fas fa-redo me-1"></i> 再投票に回す</button>
+        <button class="btn btn-outline-info btn-sm fw-bold" id="btn-exec-from-modal" onclick="submitToExecFromProposal()"><i class="fas fa-gavel me-1"></i> 役員上申</button>
         <button class="btn btn-outline-danger btn-sm fw-bold" onclick="generatePdf(currentProposalId)"><i class="fas fa-file-pdf me-1"></i> PDF出力</button>
         <button class="btn btn-secondary btn-sm" onclick="closeProposalModal()"><i class="fas fa-times me-1"></i> 閉じる</button>
       </div>
@@ -557,19 +758,19 @@ if(localStorage.getItem('co_heart_admin_email') && localStorage.getItem('co_hear
         <div style="font-weight:800; font-size:0.95rem;" id="prio-title">案件</div>
         <div style="font-size:0.7rem; opacity:0.8;" id="prio-subtitle"></div>
       </div>
-      <button type="button" class="btn btn-light btn-sm" onclick="document.getElementById('priority-modal').style.display='none'"><i class="fas fa-times me-1"></i>閉じる</button>
+      <button type="button" class="btn btn-light btn-sm" onclick="document.getElementById('priority-modal').style.display='none'; if(typeof refreshActiveTab==='function') refreshActiveTab();"><i class="fas fa-times me-1"></i>閉じる</button>
     </div>
 
     <!-- Tab buttons -->
     <div style="display:flex; border-bottom:2px solid #eee; background:#f8f9fa; flex-shrink:0;" id="prio-tabs">
       <button class="prio-tab active" onclick="switchPrioTab('content')"><i class="fas fa-file-alt me-1"></i>内容</button>
-      <button class="prio-tab" onclick="switchPrioTab('eval')"><i class="fas fa-chart-bar me-1"></i>7軸評価</button>
+      <!-- 7軸評価タブ削除: 推進メンバーは使用しないため -->
       <button class="prio-tab" onclick="switchPrioTab('discuss')"><i class="fas fa-comments me-1"></i>議論</button>
       <!-- 昇格タブ削除: 過半数賛同で自動昇格のため不要 -->
     </div>
 
     <!-- Tab content area -->
-    <div style="flex:1; overflow-y:auto;" id="prio-tab-area">
+    <div style="flex:1; overflow-y:auto; min-height:0;" id="prio-tab-area">
       <!-- Content tab -->
       <div id="prio-panel-content" class="prio-panel active" style="padding:20px;">
         <div class="d-flex align-items-center mb-3">
@@ -587,29 +788,15 @@ if(localStorage.getItem('co_heart_admin_email') && localStorage.getItem('co_hear
         <div id="similar-posts-area" style="background:#f0f7ff; padding:10px; border-radius:10px; min-height:40px;"><span style="color:#aaa;">検索中...</span></div>
       </div>
 
-      <!-- Evaluation tab -->
-      <div id="prio-panel-eval" class="prio-panel" style="padding:20px;">
-        <div style="font-size:0.85rem; font-weight:700; color:#e74c3c; margin-bottom:12px;"><i class="fas fa-chart-bar me-1"></i>7軸評価</div>
-        <div style="font-size:0.8rem; color:#888; margin-bottom:16px;">各軸を1〜5点で評価してください。メンバーの平均スコアが21点/35点を超えると重点検討に自動格上げされます。</div>
-        <!-- 7 sliders -->
-        <div id="prio-eval-sliders" style="max-width:500px;">
-          <!-- Will contain slider rows for each axis -->
-        </div>
-        <textarea id="prio-eval-comment" placeholder="評価コメント（任意）" rows="2" class="form-control mt-3" style="font-size:0.88rem;"></textarea>
-        <button class="btn btn-danger fw-bold w-100 mt-3" onclick="submitPrioEval()"><i class="fas fa-check me-1"></i>評価を送信</button>
-
-        <hr class="my-4">
-        <div style="font-size:0.85rem; font-weight:700; color:#20c997; margin-bottom:8px;"><i class="fas fa-users me-1"></i>メンバーの評価一覧</div>
-        <div id="prio-eval-list" style="min-height:40px;"></div>
-      </div>
+      <!-- 7軸評価パネル削除: 推進メンバーは使用しないため -->
 
       <!-- Discussion tab -->
-      <div id="prio-panel-discuss" class="prio-panel" style="display:flex; flex-direction:column; height:100%;">
+      <div id="prio-panel-discuss" class="prio-panel" style="display:flex; flex-direction:column; height:100%; min-height:0;">
         <div style="text-align:center; padding:20px;" id="btn-open-chat">
           <div style="color:#999; font-size:0.85rem; margin-bottom:12px;">推進メンバーで議論を始めましょう</div>
           <button class="btn btn-primary rounded-pill px-4 shadow-sm" onclick="openChatAndStartAI()"><i class="fas fa-robot me-2"></i>AIメンバーを招集して議論開始</button>
         </div>
-        <div id="chat-wrapper" style="display:none; flex-direction:column; flex:1; overflow:hidden;">
+        <div id="chat-wrapper" style="display:none; flex-direction:column; flex:1; overflow:hidden; min-height:0;">
           <div style="padding:8px 14px; background:linear-gradient(135deg,#667eea,#764ba2); display:flex; justify-content:space-between; align-items:center; flex-shrink:0;">
             <div style="font-weight:800; color:white; font-size:0.85rem;"><i class="fas fa-comments me-2"></i>深耕・戦略会議室</div>
             <div style="font-size:0.65rem; color:rgba(255,255,255,0.7);">AI社員 + 推進チーム</div>
@@ -630,7 +817,7 @@ if(localStorage.getItem('co_heart_admin_email') && localStorage.getItem('co_hear
       <div id="prio-vote-progress" style="text-align:center; margin-bottom:6px; font-size:0.78rem;"></div>
       <div style="display:flex; gap:6px; align-items:center;">
         <button type="button" class="btn btn-primary btn-sm fw-bold" style="font-size:0.78rem; flex:2; padding:8px;" onclick="handlePriorityAction('like')"><i class="fas fa-hand-paper me-1"></i>賛同 <span id="prio-vote-count" class="badge bg-light text-primary ms-1">0</span></button>
-        <button type="button" class="btn btn-outline-secondary btn-sm" style="font-size:0.72rem; flex:1;" onclick="handlePriorityAction('demote')"><i class="fas fa-undo me-1"></i>戻す</button>
+        <button type="button" class="btn btn-outline-secondary btn-sm" style="font-size:0.72rem; flex:1;" onclick="document.getElementById('priority-modal').style.display='none'; if(typeof refreshActiveTab==='function') refreshActiveTab();"><i class="fas fa-times me-1"></i>閉じる</button>
       </div>
     </div>
 
@@ -648,7 +835,7 @@ if(localStorage.getItem('co_heart_admin_email') && localStorage.getItem('co_hear
         <span class="badge bg-danger fs-6"><i class="fas fa-gavel me-1"></i></span>
         <div class="fw-bold text-dark" id="exec-detail-title">役員決裁</div>
       </div>
-      <button type="button" class="btn-close" onclick="document.getElementById('exec-detail-modal').style.display='none'"></button>
+      <button type="button" class="btn-close" onclick="document.getElementById('exec-detail-modal').style.display='none'; if(typeof refreshActiveTab==='function') refreshActiveTab();"></button>
     </div>
     <div style="flex:1; overflow-y:auto; padding:20px;" id="exec-detail-body"></div>
     <div id="exec-decision-area" style="padding:15px; border-top:1px solid #ddd; background:#f8f9fa;"></div>
@@ -665,7 +852,7 @@ if(localStorage.getItem('co_heart_admin_email') && localStorage.getItem('co_hear
     <div class="mb-3"><label class="small fw-bold text-muted">KPI目標</label><input type="text" id="exec-kpi-target" class="form-control" placeholder="例: 参加率80%, BMI平均23以下"></div>
     <div class="d-flex gap-2 mt-4">
       <button class="btn btn-success flex-grow-1 fw-bold" onclick="submitExecutionPlan()"><i class="fas fa-play me-1"></i> 実行開始</button>
-      <button class="btn btn-secondary" style="width:100px;" onclick="document.getElementById('execution-plan-modal').style.display='none'">キャンセル</button>
+      <button class="btn btn-secondary" style="width:100px;" onclick="document.getElementById('execution-plan-modal').style.display='none'; if(typeof refreshActiveTab==='function') refreshActiveTab();">キャンセル</button>
     </div>
   </div>
 </div>
@@ -681,7 +868,7 @@ if(localStorage.getItem('co_heart_admin_email') && localStorage.getItem('co_hear
       <div style="display:flex; gap:20px; flex-wrap:wrap;">
         <div style="flex:1; min-width:280px;">
           <div class="mb-3"><label class="small fw-bold text-muted">1. 課題テーマ</label><input type="text" id="theme-title-input" class="form-control" placeholder="例：睡眠不足の改善"></div>
-          <div class="mb-3"><label class="small fw-bold text-muted">2. 背景・分析 <button class="btn btn-sm btn-outline-danger py-0" onclick="startThemeBrainstorm()" style="font-size:0.7rem;">AIアイデア</button></label><textarea id="theme-bg-input" class="form-control" rows="3" placeholder="背景や現状の課題"></textarea><div id="theme-brainstorm-result" class="d-none p-2 bg-light border small mt-2" style="border-radius:8px; max-height:200px; overflow-y:auto;"></div></div>
+          <div class="mb-3"><label class="small fw-bold text-muted">2. 背景・分析 <button class="btn btn-sm btn-outline-danger py-0" onclick="startThemeBrainstorm()" style="font-size:0.7rem;">AIアイデア</button></label><textarea id="theme-bg-input" class="form-control" rows="3" placeholder="背景や現状の課題"></textarea><div id="theme-brainstorm-result" class="d-none p-2 bg-light border small mt-2" style="border-radius:8px; max-height:400px; overflow-y:auto;"></div></div>
           <div class="mb-3"><label class="small fw-bold text-muted">3. 企画名</label><input type="text" id="theme-plan-title" class="form-control fw-bold" placeholder="企画のタイトル"></div>
           <div class="mb-3"><label class="small fw-bold text-muted">4. スコア設定</label>
             <div class="row align-items-center">
@@ -707,14 +894,80 @@ if(localStorage.getItem('co_heart_admin_email') && localStorage.getItem('co_hear
   </div>
 </div>
 
-<script src="/js/api.js?v=20260315f"></script>
-<script src="/js/admin-core.js?v=20260315f"></script>
-<script src="/js/admin-inbox.js?v=20260315f"></script>
-<script src="/js/admin-matrix.js?v=20260315f"></script>
-<script src="/js/admin-proposal.js?v=20260315f"></script>
-<script src="/js/admin-meeting.js?v=20260315f"></script>
-<script src="/js/admin-mail.js?v=20260315f"></script>
-<script src="/js/admin-food.js?v=20260315f"></script>
+<script src="/js/api.js?v=20260324a"></script>
+<script src="/js/avatar-render.js?v=20260324a"></script>
+<script src="/js/admin-core.js?v=20260324a"></script>
+<script src="/js/admin-inbox.js?v=20260324a"></script>
+<script src="/js/admin-matrix.js?v=20260324a"></script>
+<script src="/js/admin-proposal.js?v=20260324a"></script>
+<script src="/js/admin-meeting.js?v=20260324a"></script>
+<script src="/js/admin-mail.js?v=20260324a"></script>
+<script src="/js/admin-chat-notify.js?v=20260324a"></script>
+<script src="/js/admin-buddytopic.js?v=20260327a"></script>
+<script src="/js/admin-food.js?v=20260324a"></script>
+<script src="/js/admin-v2.js?v=20260320a"></script>
+<script>
+// ====== 文字サイズ切替（3段階） ======
+var _adminFontLevel = parseInt(localStorage.getItem('admin_font_level') || '0');
+function applyAdminFontSize() {
+  var el = document.documentElement;
+  el.classList.remove('admin-font-large', 'admin-font-xlarge');
+  if (_adminFontLevel === 1) el.classList.add('admin-font-large');
+  else if (_adminFontLevel >= 2) el.classList.add('admin-font-xlarge');
+  var btn = document.getElementById('admin-font-btn');
+  if (btn) btn.title = '文字サイズ: ' + (['標準','大','特大'][_adminFontLevel] || '標準');
+}
+function toggleAdminFontSize() {
+  _adminFontLevel = (_adminFontLevel + 1) % 3;
+  localStorage.setItem('admin_font_level', _adminFontLevel.toString());
+  applyAdminFontSize();
+}
+applyAdminFontSize();
+
+// ====== アバターチャレンジ管理 ======
+function loadAvatarChallengeAdmin() {
+  getAvatarChallengeConfig().then(function(res) {
+    if (!res || !res.success || !res.config) return;
+    var c = res.config;
+    document.getElementById('avc-status').value = c.status || 'inactive';
+    document.getElementById('avc-start').value = (c.start_date || '').slice(0, 10);
+    document.getElementById('avc-end').value = (c.end_date || '').slice(0, 10);
+    document.getElementById('avc-maxvotes').value = c.max_votes || 5;
+  });
+  loadAvatarChallengeRankingAdmin();
+}
+function saveAvatarChallengeConfig() {
+  var status = document.getElementById('avc-status').value;
+  var start = document.getElementById('avc-start').value || null;
+  var end = document.getElementById('avc-end').value || null;
+  var maxVotes = parseInt(document.getElementById('avc-maxvotes').value) || 5;
+  updateAvatarChallengeConfig(status, start, end, maxVotes).then(function(res) {
+    if (res && res.success) alert('保存しました');
+    else alert('保存失敗: ' + (res.msg || ''));
+  });
+}
+function loadAvatarChallengeRankingAdmin() {
+  getAvatarRanking().then(function(res) {
+    if (!res || !res.success) return;
+    var ranking = res.ranking || [];
+    var html = '';
+    if (ranking.length === 0) {
+      html = '<p class="text-muted text-center">まだ投票がありません</p>';
+    } else {
+      html = '<table class="table table-sm"><thead><tr><th>#</th><th>アバター</th><th>ニックネーム</th><th>部署</th><th>得票</th></tr></thead><tbody>';
+      ranking.forEach(function(u, i) {
+        html += '<tr><td>' + (i + 1) + '</td>';
+        html += '<td><span style="display:inline-flex;width:32px;height:32px;align-items:center;justify-content:center;border-radius:50%;overflow:hidden;background:#f8f8f8;">' + getAvatarHtml(u.avatar || '😀', 32) + '</span></td>';
+        html += '<td>' + (u.nickname || '') + '</td>';
+        html += '<td>' + (u.department || '') + '</td>';
+        html += '<td class="fw-bold text-danger">' + u.vote_count + '</td></tr>';
+      });
+      html += '</tbody></table>';
+    }
+    document.getElementById('avc-admin-ranking').innerHTML = html;
+  });
+}
+</script>
 
 </body>
 </html>

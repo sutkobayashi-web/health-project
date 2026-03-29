@@ -119,8 +119,10 @@ function openMailDetail(nid) {
       '<div class="p-3 border border-success rounded bg-white" style="white-space:pre-wrap; font-size:0.9rem;">' + escapeHtml(n.reply) + '</div>' +
       (n.readAt ? '<div class="text-end small text-muted mt-1">閲覧: ' + escapeHtml(n.readAt) + '</div>' : '') +
     '</div>';
+  } else if (n.status === 'read' || n.readAt) {
+    html += '<div class="p-3 text-center text-success bg-light rounded"><i class="fas fa-check-circle me-2"></i>既読済み' + (n.readAt ? '（' + escapeHtml(n.readAt) + '）' : '') + '</div>';
   } else {
-    html += '<div class="p-3 text-center text-muted bg-light rounded"><i class="fas fa-hourglass-half me-2"></i>返信待ち</div>';
+    html += '<div class="p-3 text-center text-muted bg-light rounded"><i class="fas fa-hourglass-half me-2"></i>未読</div>';
   }
 
   html += '<div class="text-end mt-3"><button class="btn btn-secondary btn-sm" onclick="closeMailDetail()">閉じる</button></div>' +

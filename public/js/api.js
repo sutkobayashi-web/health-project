@@ -20,6 +20,17 @@ async function api(path, data, token) {
     const res = await fetch(API_BASE + path, opts);
     if (!res.ok) {
       console.error('API error:', path, res.status, res.statusText);
+      if (res.status === 401) {
+        try {
+          var errData = await res.json();
+          if (errData.code === 'SESSION_EXPIRED') {
+            alert('別の端末でログインされたため、セッションが無効になりました。再ログインしてください。');
+            localStorage.removeItem('co_heart_token');
+            location.reload();
+            return { success: false, msg: errData.msg };
+          }
+        } catch (e) {}
+      }
       return { success: false, msg: 'HTTP ' + res.status };
     }
     return res.json();
@@ -60,16 +71,22 @@ function runBackup() {
 function updateBoxToken(token) {
   return api('/admin/box-token', { token }, getAdminToken());
 }
+function getBackupStatus() {
+  return api('/admin/backup-status', undefined, getAdminToken());
+}
 function resetAdminPassword(email, name, newPassword) {
   return api('/auth/admin-reset-password', { email, name, newPassword });
+}
+function updateUserAvatar(uid, avatar) {
+  return api('/auth/update-avatar', { uid, avatar }, getToken());
 }
 function getLatestUserStats(uid) {
   return api('/auth/stats/' + uid);
 }
 
 // ===== Posts =====
-function getPublicPosts(page, viewerUid) {
-  return api('/posts/public?page=' + page + '&uid=' + (viewerUid || ''));
+function getPublicPosts(page, viewerUid, cat) {
+  return api('/posts/public?page=' + page + '&uid=' + (viewerUid || '') + (cat ? '&cat=' + cat : ''));
 }
 function processForm(data) {
   return api('/posts/submit', data);
@@ -85,6 +102,26 @@ function deletePost(postID, userUid) {
 }
 function editPost(postID, userUid, newContent) {
   return api('/posts/edit', { postID, userUid, newContent });
+}
+
+function getFoodWeeklyReports() {
+  return api('/admin/food-weekly-reports', undefined, getAdminToken());
+}
+function getFoodReportChats(reportId) {
+  return api('/admin/food-report-chats/' + reportId, undefined, getAdminToken());
+}
+function postFoodReportChat(reportId, memberName, message) {
+  return api('/admin/food-report-chat', { reportId, memberName, message }, getAdminToken());
+}
+function runFoodWeeklyNow() {
+  return api('/admin/food-weekly-run', {}, getAdminToken());
+}
+
+function getMyUnread(uid) {
+  return api('/posts/my-unread/' + uid);
+}
+function markPostRead(uid, postId) {
+  return api('/posts/mark-read', { uid, postId });
 }
 
 // ===== Admin =====
@@ -159,6 +196,18 @@ function remandActionPlan(planId) {
 function revertPlanToCandidate(planId) {
   return api('/plans/revert-to-candidate', { planId }, getAdminToken());
 }
+function submitToMemberReview(planId) {
+  return api('/plans/submit-to-review', { planId }, getAdminToken());
+}
+function endorsePlan(planId, memberEmail, memberName, vote, comment) {
+  return api('/plans/endorse', { planId, memberEmail, memberName, vote, comment }, getAdminToken());
+}
+function getPlanEndorsements(planId) {
+  return api('/plans/endorsements/' + planId, undefined, getAdminToken());
+}
+function resetPlanEndorsements(planId) {
+  return api('/plans/reset-endorsements', { planId }, getAdminToken());
+}
 function submitToExec(planId) {
   return api('/plans/submit-to-exec', { planId }, getAdminToken());
 }
@@ -203,6 +252,32 @@ function deleteInboxComment(id) {
 }
 function getInboxComments(postId) {
   return api('/admin/inbox-comments/' + postId, undefined, getAdminToken());
+}
+
+// ===== メンバー管理 =====
+function getAllCoreMembers() {
+  return api('/admin/members-all', undefined, getAdminToken());
+}
+function getAllGeneralUsers() {
+  return api('/admin/users-all', undefined, getAdminToken());
+}
+function addCoreMember(data) {
+  return api('/admin/member-add', data, getAdminToken());
+}
+function updateCoreMember(data) {
+  return api('/admin/member-update', data, getAdminToken());
+}
+function deleteCoreMember(id) {
+  return api('/admin/member-delete', { id }, getAdminToken());
+}
+function addGeneralUser(data) {
+  return api('/admin/user-add', data, getAdminToken());
+}
+function updateGeneralUser(data) {
+  return api('/admin/user-update', data, getAdminToken());
+}
+function deleteGeneralUser(id) {
+  return api('/admin/user-delete', { id }, getAdminToken());
 }
 function deleteEvaluation(id) {
   return api('/admin/evaluation/delete', { id }, getAdminToken());
@@ -250,14 +325,14 @@ function getBuddyGreeting(userName, buddyType) {
 function chatWithBuddyImage(userMessage, imageBase64, mimeType, history, userName, buddyType) {
   return api('/chat/image-message', { userMessage, imageBase64, mimeType, history, userName, buddyType });
 }
-function saveChatMemo(userId, messageText, memoText) {
-  return api('/chat/memo', { userId, messageText, memoText });
+function saveChatMemo(uid, memoText, sourceMessage) {
+  return api('/chat/save-memo', { uid, memoText, sourceMessage });
 }
-function getChatMemos(userId) {
-  return api('/chat/memos/' + userId, undefined, getToken());
+function getChatMemos(uid) {
+  return api('/chat/memos/' + uid, undefined);
 }
-function deleteChatMemo(memoId, userId) {
-  return api('/chat/memo/delete', { memoId, userId });
+function deleteChatMemo(memoId) {
+  return api('/chat/delete-memo', { memoId });
 }
 function updateBuddyType(uid, buddyType) {
   return api('/auth/update-buddy', { uid, buddyType });
@@ -266,3 +341,133 @@ function updateBuddyType(uid, buddyType) {
 function chatWithNurse(m, h, n) { return chatWithBuddy(m, h, n, 'gentle'); }
 function getNurseGreeting(n) { return getBuddyGreeting(n, 'gentle'); }
 function chatWithNurseImage(m, i, t, h, n) { return chatWithBuddyImage(m, i, t, h, n, 'gentle'); }
+
+// ===== Empathy (共感+3問) =====
+function submitEmpathy(postId, uid, userName, empathyType, answer1, answer2, answer3, freeComment, isMember) {
+  return api('/posts/empathy', { postId, uid, userName, empathyType, answer1, answer2, answer3, freeComment, isMember });
+}
+function getEmpathySummary(postId) {
+  return api('/posts/empathy/' + postId);
+}
+function getEmpathyDetail(postId) {
+  return api('/posts/empathy-detail/' + postId, undefined, getAdminToken());
+}
+function getEmpathyCheck(uid) {
+  return api('/posts/empathy-check/' + uid);
+}
+function convertEmpathyToScore(postId) {
+  return api('/posts/empathy-to-score', { postId }, getAdminToken());
+}
+
+// ===== Themes & Challenges (v2) =====
+function getCurrentCycle(uid) {
+  return api('/themes/current-cycle?uid=' + (uid || ''));
+}
+function voteTheme(themeId, userId, comment) {
+  return api('/themes/vote', { themeId, userId, comment });
+}
+function getVoteComments(themeId) {
+  return api('/themes/vote-comments/' + themeId);
+}
+function getChallenges() {
+  return api('/themes/challenges');
+}
+function getChallengeDetail(challengeId, uid) {
+  return api('/themes/challenge/' + challengeId + '?uid=' + (uid || ''));
+}
+function joinChallenge(challengeId, userId, nickname, avatar) {
+  return api('/themes/join', { challengeId, userId, nickname, avatar });
+}
+function recordKpi(challengeId, userId, answers, comment) {
+  return api('/themes/record', { challengeId, userId, answers, comment });
+}
+function getChallengeRanking(challengeId) {
+  return api('/themes/ranking/' + challengeId);
+}
+function getMyProgress(challengeId, userId) {
+  return api('/themes/my-progress/' + challengeId + '/' + userId);
+}
+// 管理者用
+function generateThemes() {
+  return api('/themes/generate-themes', {}, getAdminToken());
+}
+function updateTheme(themeId, name, description, icon) {
+  return api('/themes/update-theme', { themeId, name, description, icon }, getAdminToken());
+}
+function startVoting(cycleNumber, durationDays) {
+  return api('/themes/start-voting', { cycleNumber, durationDays }, getAdminToken());
+}
+function finalizeVoting(cycleNumber) {
+  return api('/themes/finalize-voting', { cycleNumber }, getAdminToken());
+}
+function generateChallenge(themeId) {
+  return api('/themes/generate-challenge', { themeId }, getAdminToken());
+}
+function startRecruiting(challengeId) {
+  return api('/themes/start-recruiting', { challengeId }, getAdminToken());
+}
+function startChallenge(challengeId) {
+  return api('/themes/start-challenge', { challengeId }, getAdminToken());
+}
+function updateChallenge(challengeId, title, description, icon, kpiDefinitions, durationDays) {
+  return api('/themes/update-challenge', { challengeId, title, description, icon, kpiDefinitions, durationDays }, getAdminToken());
+}
+function getChallengeDashboard(challengeId) {
+  return api('/themes/dashboard/' + challengeId, undefined, getAdminToken());
+}
+function postAmbassadorAdvice(ambassadorId, challengeId, adviceType, content) {
+  return api('/themes/ambassador-advice', { ambassadorId, challengeId, adviceType, content }, getAdminToken());
+}
+
+// ===== My Posts =====
+function getMyPosts(uid) {
+  return api('/posts/my-posts/' + uid);
+}
+function getPostMemberChats(postId, uid) {
+  return api('/posts/member-chats/' + postId + '/' + uid);
+}
+
+// ===== Chat Notification =====
+function getChatUnread(email) {
+  return api('/admin/chat-unread/' + encodeURIComponent(email), undefined, getAdminToken());
+}
+function markChatRead(email, postId) {
+  return api('/admin/chat-mark-read', { email, postId }, getAdminToken());
+}
+
+// ===== Member Comments & Chat =====
+function postMemberComment(postId, memberName, comment) {
+  return api('/admin/member-comment', { postId, memberName, comment }, getAdminToken());
+}
+function getMemberComments(postId) {
+  return api('/admin/member-comments/' + postId, undefined, getAdminToken());
+}
+function postMemberChat(postId, memberName, message) {
+  return api('/admin/member-chat', { postId, memberName, message }, getAdminToken());
+}
+function getMemberChats(postId) {
+  return api('/admin/member-chats/' + postId, undefined, getAdminToken());
+}
+function runAutoEvaluate(postId) {
+  return api('/admin/auto-evaluate', { postId }, getAdminToken());
+}
+function getAutoEvaluation(postId) {
+  return api('/admin/auto-evaluation/' + postId, undefined, getAdminToken());
+}
+
+// ===== Avatar Challenge (Onboarding) =====
+function getAvatarChallengeConfig() {
+  return api('/avatar-challenge/config');
+}
+function updateAvatarChallengeConfig(status, start_date, end_date, max_votes) {
+  return api('/avatar-challenge/config', { status, start_date, end_date, max_votes }, getAdminToken());
+}
+function getAvatarGallery(uid) {
+  return api('/avatar-challenge/gallery?uid=' + (uid || ''));
+}
+function voteAvatar(voterId, targetUserId) {
+  return api('/avatar-challenge/vote', { voterId, targetUserId });
+}
+function getAvatarRanking() {
+  return api('/avatar-challenge/ranking');
+}

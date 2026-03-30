@@ -3828,6 +3828,7 @@ function saveBuddySetup() {
   var avatar = abBuildString();
   var buddy = { avatar: avatar, name: name, personality: _selectedPersonality };
   localStorage.setItem('co_heart_buddy', JSON.stringify(buddy));
+  localStorage.setItem('co_heart_buddy_customized', '1');
   // サーバーにも保存（端末間同期）
   if (currentUser && currentUser.uid) {
     fetch('/api/auth/save-buddy', {
@@ -3981,17 +3982,13 @@ function startBuddyChatFresh(buddyData) {
 
     msg += '\n\nさて、今日の調子はいかがですか？';
     addBuddyMessage('ai', msg);
-    // デフォルトバディーのまま＆まだ促していない場合 → カスタマイズを軽く案内
-    if (!localStorage.getItem('co_heart_buddy_setup_prompted')) {
-      var localBuddy = null;
-      try { localBuddy = JSON.parse(localStorage.getItem('co_heart_buddy')); } catch(e) {}
-      if (!localBuddy || localBuddy.name === DEFAULT_BUDDY.name) {
-        localStorage.setItem('co_heart_buddy_setup_prompted', '1');
-        setTimeout(function() {
-          addBuddyMessage('ai', '💡 そういえば、私のことまだカスタマイズしてないよね？\n名前・見た目・性格を変えて、自分だけのバディーにできるよ！');
-          showBuddySetupPrompt();
-        }, 2000);
-      }
+    // まだカスタマイズしていない場合 → カスタマイズを案内（1度だけ）
+    if (!localStorage.getItem('co_heart_buddy_customized') && !localStorage.getItem('co_heart_buddy_setup_prompted')) {
+      localStorage.setItem('co_heart_buddy_setup_prompted', '1');
+      setTimeout(function() {
+        addBuddyMessage('ai', '💡 そういえば、私のことまだカスタマイズしてないよね？\n名前・見た目・性格を変えて、自分だけのバディーにできるよ！');
+        showBuddySetupPrompt();
+      }, 2000);
     }
     loadBuddyNotices();
     setTimeout(function() { checkBuddyTopic(); }, 800);

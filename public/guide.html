@@ -348,7 +348,7 @@ body {
 <!-- ====== Intro Banner ====== -->
 <div class="intro-banner">
   <h2><i class="fas fa-book-open"></i> このガイドについて</h2>
-  <p>CoWell Health Project 2.0v2の全体像をまとめたガイドページです。<br>
+  <p>CoWell Health Project 2.0 の全体像をまとめたガイドページです。<br>
   プロジェクトの目的、フロー、役割分担、各機能の仕組みを分かりやすく解説します。</p>
 </div>
 
@@ -364,7 +364,7 @@ body {
   </div>
   <div class="guide-card-body">
     <p>これまでの健康施策は、会社が決めて社員に伝える<strong>トップダウン型</strong>でした。<br>
-    CoWell Health Project 2.0v2では、<strong>社員の声から始まり、みんなで考え・選び・取り組む</strong>「ボトムアップ型」に転換します。</p>
+    CoWell Health Project 2.0 では、<strong>社員の声から始まり、みんなで考え・選び・取り組む</strong>「ボトムアップ型」に転換します。</p>
 
     <div class="highlight-box">
       <strong>3つのキーワード</strong><br>
@@ -602,9 +602,9 @@ body {
     <table class="guide-table">
       <thead><tr><th>タブ</th><th>アイコン</th><th>内容</th></tr></thead>
       <tbody>
-        <tr><td><strong>バディー</strong></td><td>🤖</td><td>ヘルスバディーとの会話（ホーム画面）。右上にチャレンジ状況ボード</td></tr>
-        <tr><td><strong>メニュー</strong></td><td>📋</td><td>投稿・食事チェック・アプリの仕組み・ガイドなど</td></tr>
-        <tr><td><strong>チャレンジ</strong></td><td>🔥</td><td>開催中・募集中のチャレンジ一覧。KPI記録もここで完結</td></tr>
+        <tr><td><strong>バディー</strong></td><td>🤖</td><td>ヘルスバディーとの会話（ホーム画面）。インラインアクションバーから全機能にアクセス</td></tr>
+        <tr><td><strong>メニュー</strong></td><td>📋</td><td>投稿・食事チェック・みんなの投稿を見る・アプリの仕組み・ガイドなど</td></tr>
+        <tr><td><strong>チャレンジ</strong></td><td>🔥</td><td>開催中・募集中のチャレンジ一覧。KPI記録・アバターチャレンジもここ</td></tr>
         <tr><td><strong>お知らせ</strong></td><td>🔔</td><td>事務局・推進メンバーからの通知</td></tr>
         <tr><td><strong>マイページ</strong></td><td>👤</td><td>プロフィール・バディー変更・投稿履歴・バディーメモ</td></tr>
       </tbody>
@@ -623,8 +623,31 @@ body {
         <tr><td><strong>ログイン状態保持</strong></td><td>ニックネーム・パスワードを保存し、次回はプリセット表示</td></tr>
         <tr><td><strong>タブ状態復元</strong></td><td>ブラウザリロード後も開いていたタブに戻る</td></tr>
         <tr><td><strong>健康eラーニング</strong></td><td>厚労省公認の無料教材へのリンクをメニュー内に配置</td></tr>
+        <tr><td><strong>PWA自動更新</strong></td><td>サーバー再起動時にバージョンを自動更新。PWAユーザーは60秒以内に最新版に自動切替</td></tr>
+        <tr><td><strong>管理画面スマホ対応</strong></td><td>サイドバーが画面下部の横スクロールナビに変換。投稿確認・返信・お知らせ送信がスマホで操作可能</td></tr>
       </tbody>
     </table>
+
+    <h4 style="color:#667eea; margin-top:20px;"><i class="fas fa-bolt me-2"></i>インラインアクションバー（チャット画面）</h4>
+    <p>チャット画面の入力欄の上部に、主要機能への直接アクセスボタンが常時表示されます。全てタブ切替なしでチャットの会話フローで完結します。</p>
+
+    <table class="guide-table">
+      <thead><tr><th>ボタン</th><th>内容</th></tr></thead>
+      <tbody>
+        <tr><td><strong>🗨 みんなに相談・提案</strong></td><td>バディーが誘導→カテゴリ選択→入力→匿名で投稿。AIがコメント</td></tr>
+        <tr><td><strong>🍽 食事診断・投稿</strong></td><td>バディーが誘導→写真撮影→プレビュー→AI栄養士が分析</td></tr>
+        <tr><td><strong>🛡 推進メンバーに相談・提案</strong></td><td>バディーが誘導→入力→推進メンバーに直接送信（非公開）</td></tr>
+        <tr><td><strong>🔥 チャレンジに挑戦する</strong></td><td>バディーがチャレンジ一覧を紹介→選択→詳細画面へ遷移</td></tr>
+        <tr><td><strong>📋 みんなの投稿を見る</strong></td><td>メニュータブの統合投稿一覧へ遷移（すべて/相談/食事フィルター）</td></tr>
+        <tr><td><strong>❓ 使い方</strong></td><td>8カテゴリのヘルプをチャット内で即回答（AI不使用・定型応答）</td></tr>
+      </tbody>
+    </table>
+
+    <div class="tip-box">
+      <i class="fas fa-info-circle" style="color:#4caf50;"></i>
+      全てのフローに「✕ やめる」ボタンがあり、いつでもチャットに戻れます。<br>
+      「使い方」「ヘルプ」等のキーワードをチャットに入力しても自動でヘルプが起動します。
+    </div>
   </div>
 </div>
 
@@ -636,8 +659,8 @@ body {
   </div>
   <div class="guide-card-body">
     <h4 style="color:#0284c7;"><i class="fas fa-robot me-2"></i>ヘルスバディーとは</h4>
-    <p>アプリを開くと最初に表示されるAI健康相棒です。毎日あなたに話しかけ、体調を確認し、健康に関する悩みを自然な会話の中で引き出します。</p>
-    <p><strong>初回会話時</strong>には、バディーが自己紹介チャットを行い、あなたの名前や性格設定に合わせた挨拶で関係をスタートします。</p>
+    <p>アプリを開くと最初に表示されるAI健康相棒です。チャットがメインビューとなっており、毎日あなたに話しかけ、体調を確認し、健康に関する悩みを自然な会話の中で引き出します。</p>
+    <p><strong>初回会話時</strong>には、バディーがアプリの仕組みを紹介し、カスタマイズを促します。バディーの名前・見た目・性格を設定して、自分だけの健康パートナーを作れます。</p>
 
     <div class="guide-step">
       <div class="step-number" style="background:linear-gradient(135deg,#0ea5e9,#0284c7);">1</div>
@@ -699,11 +722,11 @@ body {
     <table class="guide-table">
       <thead><tr><th>性格</th><th>特徴</th><th>口調の例</th></tr></thead>
       <tbody>
-        <tr><td>😊 優しい</td><td>穏やかに寄り添う</td><td>「〜だね」「〜してみない？」</td></tr>
-        <tr><td>💪 元気</td><td>前向きに励ます</td><td>「いいね！」「一緒にやろう！」</td></tr>
-        <tr><td>🧠 知的</td><td>根拠を丁寧に説明</td><td>「実はね」「こんな方法もあるよ」</td></tr>
-        <tr><td>🌙 穏やか</td><td>じっくり話を聞く</td><td>「そうなんだ」「無理しないでね」</td></tr>
-        <tr><td>🏥 頼もしい</td><td>データで的確にアドバイス</td><td>「データでは」「エビデンスによると」</td></tr>
+        <tr><td>🌸 やさしい</td><td>温かく寄り添う</td><td>「大丈夫ですよ」「一緒にがんばりましょうね」</td></tr>
+        <tr><td>⚡ 元気いっぱい</td><td>テンション高めで励ます</td><td>「やったね！」「いいね！すごい！」</td></tr>
+        <tr><td>📋 しっかり者</td><td>明確で的確なアドバイス</td><td>「ここがポイントです」「具体的には〜」</td></tr>
+        <tr><td>😄 おもしろ</td><td>ユーモアで楽しく</td><td>ダジャレや例え話を交えた親しみやすい口調</td></tr>
+        <tr><td>🍃 おだやか</td><td>ゆったり癒し系</td><td>「今の自分を大切に」マインドフルネス的な声がけ</td></tr>
       </tbody>
     </table>
 
@@ -757,7 +780,7 @@ body {
       <tbody>
         <tr><td><strong>履歴クリア</strong></td><td>バディーヘッダー右の<i class="fas fa-trash-alt"></i>ボタンで全チャット履歴を削除できます。新しい挨拶から再スタートします</td></tr>
         <tr><td><strong>メモ機能</strong></td><td>バディーの回答にある「メモ」ボタンで健康アドバイスを保存。マイページの「バディーメモ」で確認・削除できます</td></tr>
-        <tr><td><strong>履歴の復元</strong></td><td>同じ日にアプリを再度開くと、当日のチャット履歴が自動復元されます。ログアウト後の再ログインは新規スタートです</td></tr>
+        <tr><td><strong>履歴の復元</strong></td><td>同じ日にアプリを再度開くと、当日のチャット履歴が自動復元され「さっきの続きだね！」と自然に再開します</td></tr>
       </tbody>
     </table>
   </div>

@@ -56,8 +56,7 @@ function runCheckupAnalysis() {
       html += '</div>';
 
       html += '<div id="checkup-detail" style="display:none; margin-top:6px;">';
-      html += '<div style="position:relative; height:200px; max-height:200px;"><canvas id="checkup-timeline-chart"></canvas></div>';
-      html += '<div style="overflow-x:auto; margin-top:8px;">';
+      html += '<div style="overflow-x:auto;">';
       html += '<table style="width:100%; border-collapse:collapse; font-size:0.7rem; text-align:center;">';
       html += '<thead><tr style="background:#667eea; color:white;"><th style="padding:4px 6px;">年度</th><th style="padding:4px 6px;">人数</th><th style="padding:4px 6px;">平均年齢</th><th style="padding:4px 6px;">BMI25↑</th>';
       cats.forEach(function(c) { html += '<th style="padding:4px 6px;">' + c + '</th>'; });
@@ -78,50 +77,10 @@ function runCheckupAnalysis() {
     html += '</div>';
     area.innerHTML = html;
 
-    _checkupTimelineData = tl.length >= 2 ? tl : null;
   }).catch(function(e) {
     btn.disabled = false;
     btn.innerHTML = '<i class="fas fa-play me-1"></i>分析実行';
     area.innerHTML = '<div class="alert alert-danger">通信エラー: ' + e.message + '</div>';
-  });
-}
-
-var _checkupTimelineChart = null;
-var _checkupTimelineData = null;
-function renderCheckupTimelineChart(timeline) {
-  var canvas = document.getElementById('checkup-timeline-chart');
-  if (!canvas) return;
-  if (_checkupTimelineChart) { _checkupTimelineChart.destroy(); _checkupTimelineChart = null; }
-  var labels = timeline.map(function(t) { return t.year; });
-  var datasets = [
-    { label: 'BMI25↑', data: timeline.map(function(t) { return t.summary.bmiOver25Pct; }), borderColor: '#e53935', backgroundColor: 'rgba(229,57,53,0.1)', tension: 0.3, borderWidth: 2 },
-    { label: '高血圧', data: timeline.map(function(t) { return t.summary.rates.高血圧 || 0; }), borderColor: '#1e88e5', backgroundColor: 'rgba(30,136,229,0.1)', tension: 0.3, borderWidth: 2 },
-    { label: '脂質異常', data: timeline.map(function(t) { return t.summary.rates.脂質異常 || 0; }), borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.1)', tension: 0.3, borderWidth: 2 },
-    { label: '高血糖', data: timeline.map(function(t) { return t.summary.rates.高血糖 || 0; }), borderColor: '#9c27b0', backgroundColor: 'rgba(156,39,176,0.1)', tension: 0.3, borderWidth: 2 },
-    { label: '肥満', data: timeline.map(function(t) { return t.summary.rates.肥満 || 0; }), borderColor: '#43a047', backgroundColor: 'rgba(67,160,71,0.1)', tension: 0.3, borderWidth: 2 },
-    { label: '肝機能', data: timeline.map(function(t) { return t.summary.rates.肝機能 || 0; }), borderColor: '#ff7043', backgroundColor: 'rgba(255,112,67,0.1)', tension: 0.3, borderWidth: 1, borderDash: [4,2] },
-    { label: '貧血', data: timeline.map(function(t) { return t.summary.rates.貧血 || 0; }), borderColor: '#78909c', backgroundColor: 'rgba(120,144,156,0.1)', tension: 0.3, borderWidth: 1, borderDash: [4,2] }
-  ];
-  _checkupTimelineChart = new Chart(canvas.getContext('2d'), {
-    type: 'line',
-    data: { labels: labels, datasets: datasets },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: { position: 'bottom', labels: { font: { size: 10, family: "'Noto Sans JP'" }, boxWidth: 12, padding: 8 } },
-        datalabels: { display: false }
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          suggestedMax: Math.ceil(Math.max.apply(null, datasets.reduce(function(a, d) { return a.concat(d.data); }, []).concat([10])) / 10) * 10 + 10,
-          ticks: { font: { size: 10 }, stepSize: 5, callback: function(v) { return v + '%'; } },
-          title: { display: true, text: '異常率(%)', font: { size: 10 } }
-        },
-        x: { ticks: { font: { size: 10 } } }
-      },
-      interaction: { mode: 'index', intersect: false }
-    }
   });
 }
 
@@ -132,9 +91,6 @@ function toggleCheckupDetail() {
   var open = detail.style.display !== 'none';
   detail.style.display = open ? 'none' : 'block';
   if (chevron) chevron.style.transform = open ? '' : 'rotate(180deg)';
-  if (!open && _checkupTimelineData && !_checkupTimelineChart) {
-    setTimeout(function() { renderCheckupTimelineChart(_checkupTimelineData); }, 50);
-  }
 }
 
 // ============================================================

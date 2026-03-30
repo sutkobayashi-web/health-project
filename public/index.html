@@ -696,6 +696,9 @@
       <button onclick="inlineMemberConsult()" class="buddy-action-btn" style="display:flex;align-items:center;gap:5px;padding:8px 14px;background:linear-gradient(135deg,#f39c12,#f1c40f);color:white;border:none;border-radius:20px;font-size:0.75rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;box-shadow:0 2px 8px rgba(243,156,18,0.25);font-family:inherit;">
         <i class="fas fa-shield-alt"></i> 推進メンバーに相談・提案
       </button>
+      <button onclick="inlineTimelineView()" class="buddy-action-btn" style="display:flex;align-items:center;gap:5px;padding:8px 14px;background:linear-gradient(135deg,#6c5ce7,#a29bfe);color:white;border:none;border-radius:20px;font-size:0.75rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;box-shadow:0 2px 8px rgba(108,92,231,0.25);font-family:inherit;">
+        <i class="fas fa-stream"></i> みんなの投稿を見る
+      </button>
     </div>
     <!-- 入力バー -->
     <div style="flex-shrink:0;background:white;border-top:1px solid #eee;padding:8px 12px;">
@@ -5130,6 +5133,59 @@ function submitInlineFood(btn) {
   });
 }
 
+
+function inlineTimelineView() {
+  var msgs = document.getElementById('buddy-messages');
+  // ローディング
+  addBuddyMessage('ai', '📋 みんなの投稿を読み込んでるよ...');
+  getPublicPosts(0, currentUser.uid).then(function(res) {
+    // ローディング除去
+    var lastMsg = msgs.lastElementChild;
+    if (lastMsg && lastMsg.textContent.indexOf('読み込んでる') !== -1) lastMsg.remove();
+    if (!res || !res.posts || res.posts.length === 0) {
+      addBuddyMessage('ai', 'まだ投稿がないよ。最初の一人になってみない？😊');
+      return;
+    }
+    // チャット内にタイムラインカードを表示
+    var div = document.createElement('div');
+    div.className = 'buddy-msg ai';
+    div.style.maxWidth = '95%';
+    div.style.alignSelf = 'stretch';
+    var buddyData = null;
+    try { buddyData = JSON.parse(localStorage.getItem('co_heart_buddy')); } catch(e) {}
+    var aiAvatar = buddyData ? getAvatarHtml(buddyData.avatar, 38) : '<i class="fas fa-robot"></i>';
+    var postsHtml = '<div style="font-weight:800;font-size:0.85rem;color:#6c5ce7;margin-bottom:10px;"><i class="fas fa-stream" style="margin-right:4px;"></i>みんなの投稿</div>';
+    res.posts.slice(0, 10).forEach(function(p) {
+      var isFood = p.content.indexOf('【写真】') !== -1 || (p.analysis && p.analysis.indexOf('栄養') !== -1);
+      var catIcon = isFood ? '🍽️' : '💬';
+      var catColor = isFood ? '#20c997' : '#ec407a';
+      var likeHtml = '<span style="font-size:0.7rem;color:#999;">' + (p.likeCount > 0 ? '❤️ ' + p.likeCount : '') + '</span>';
+      var contentPreview = p.content.length > 60 ? p.content.substring(0, 60) + '...' : p.content;
+      postsHtml += '<div style="background:#fafbfc;border-radius:10px;padding:10px 12px;margin-bottom:6px;border-left:3px solid ' + catColor + ';cursor:pointer;" onclick="openPostDetail(' + p.row + ')">' +
+        '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">' +
+          '<span style="font-size:0.9rem;">' + (p.avatar || '😀') + '</span>' +
+          '<span style="font-weight:700;font-size:0.78rem;color:#333;">' + p.nickname + '</span>' +
+          '<span style="font-size:0.6rem;color:#bbb;margin-left:auto;">' + p.date + '</span>' +
+        '</div>' +
+        '<div style="font-size:0.8rem;color:#555;line-height:1.5;">' + catIcon + ' ' + contentPreview.replace(/</g,'&lt;') + '</div>' +
+        '<div style="margin-top:4px;">' + likeHtml + '</div>' +
+      '</div>';
+    });
+    if (res.posts.length > 10) {
+      postsHtml += '<div style="text-align:center;font-size:0.75rem;color:#999;padding:6px;">他 ' + (res.posts.length - 10) + ' 件...</div>';
+    }
+    div.innerHTML = '<div class="buddy-avatar">' + aiAvatar + '</div>' +
+      '<div style="flex:1;min-width:0;background:white;border-radius:16px;padding:12px;box-shadow:0 2px 10px rgba(0,0,0,0.06);border:1px solid #e8e0f0;">' + postsHtml + '</div>';
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+    // キャッシュ更新（タップで詳細を開けるように）
+    res.posts.forEach(function(p) { _postCache[p.row] = p; });
+  }).catch(function() {
+    var lastMsg = msgs.lastElementChild;
+    if (lastMsg && lastMsg.textContent.indexOf('読み込んでる') !== -1) lastMsg.remove();
+    addBuddyMessage('ai', '😅 投稿の取得に失敗したよ。もう一度試してみてね。');
+  });
+}
 
 function inlineChallengeView() {
   // チャレンジ情報をチャット内に表示

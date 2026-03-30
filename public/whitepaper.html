@@ -34,11 +34,13 @@ body { font-family: 'Noto Sans JP', sans-serif; background: #f8f9fc; margin: 0; 
 
 .container { max-width: 800px; margin: 0 auto; padding: 30px 20px 80px; }
 
-.section { margin-bottom: 40px; }
+.section { margin-bottom: 40px; font-size: 0.9rem; line-height: 1.8; color: #333; }
 .section-num { font-size: 0.7rem; font-weight: 700; color: #667eea; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4px; }
 .section h2 { font-weight: 900; font-size: 1.3rem; color: #1a1a2e; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 3px solid #667eea; }
 .section h3 { font-weight: 800; font-size: 1rem; color: #2c3e50; margin: 20px 0 10px; }
-.section p { font-size: 0.9rem; margin-bottom: 12px; }
+.section p { font-size: inherit; line-height: inherit; margin-bottom: 12px; }
+.section ul, .section ol { font-size: 0.88rem; line-height: 1.8; margin-bottom: 12px; }
+.section li { margin-bottom: 4px; }
 
 .comparison-table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.82rem; }
 .comparison-table th { background: #1a1a2e; color: white; padding: 10px 14px; text-align: left; font-weight: 700; }
@@ -167,7 +169,7 @@ body { font-family: 'Noto Sans JP', sans-serif; background: #f8f9fc; margin: 0; 
   <p>従来の産業保健は「健康診断結果に基づく事後措置」と「法令遵守のための安全衛生管理」を中心に設計されてきた。これらはトップダウン型のアプローチであり、組織が課題を定義し、専門家が施策を設計し、社員に実行を指示する構造である。</p>
 
   <p>しかしこのアプローチには以下の限界がある：</p>
-  <ul style="font-size:0.85rem;">
+  <ul>
     <li><strong>健診データだけでは見えない課題</strong> — 睡眠の質、食生活の偏り、職場の人間関係ストレスなど、数値化されにくい健康課題が把握できない</li>
     <li><strong>施策への参加動機の欠如</strong> — 会社が決めた施策に対し「やらされ感」が生じ、行動変容に至らない</li>
     <li><strong>現場の声との乖離</strong> — 専門家が設計した施策が、社員の実際のニーズや関心と一致しないことが多い</li>
@@ -341,7 +343,7 @@ body { font-family: 'Noto Sans JP', sans-serif; background: #f8f9fc; margin: 0; 
 
   <h3>凝集アルゴリズム</h3>
   <p>凝集AIは以下のデータを統合してテーマを生成する：</p>
-  <ul style="font-size:0.85rem;">
+  <ul>
     <li>直近3ヶ月の全投稿内容（最大100件）</li>
     <li>投稿ごとの共感データ（タイプ別件数 + 回答内容）</li>
     <li>推進メンバーのコメント・チャット議論</li>
@@ -427,7 +429,7 @@ body { font-family: 'Noto Sans JP', sans-serif; background: #f8f9fc; margin: 0; 
   <p>本システムは従来のトップダウン型産業保健を<strong>代替するものではなく、補完する</strong>位置づけである。法定健診・ストレスチェック・安全衛生委員会等の制度的枠組みは引き続き必要である。本システムが対象とするのは、これらの制度では捕捉できない「日常的な健康課題の声」と「自発的な行動変容の促進」である。</p>
 
   <h3>本システムの学術的新規性</h3>
-  <ul style="font-size:0.85rem;">
+  <ul>
     <li><strong>構造化共感</strong> — SNS的な「いいね」を、共感タイプ×深掘り質問で構造化し、定量的分析データに変換する仕組み</li>
     <li><strong>AI凝集</strong> — 個別の声を、共感パターン・専門家議論・エビデンスを統合してAIがテーマに凝集する手法</li>
     <li><strong>7軸評価</strong> — COM-Bモデルを拡張した独自の7軸スコアリングで、ボトムアップの声をトップダウンの意思決定に接続する仕組み</li>
@@ -435,7 +437,7 @@ body { font-family: 'Noto Sans JP', sans-serif; background: #f8f9fc; margin: 0; 
   </ul>
 
   <h3>想定される研究課題</h3>
-  <ul style="font-size:0.85rem;">
+  <ul>
     <li>構造化共感データは、健診データでは捕捉できない健康課題をどの程度補完できるか</li>
     <li>ボトムアップで選定されたテーマへのチャレンジ参加率は、トップダウン施策と比較してどの程度高いか</li>
     <li>AI7軸評価のスコアは、産業医の専門判断とどの程度一致するか</li>

@@ -78,11 +78,12 @@ body {
   font-size: 1.3rem; color: #fff; flex-shrink: 0;
 }
 .guide-card-title { font-weight: 800; font-size: 0.95rem; color: #2c3e50; line-height: 1.4; }
-.guide-card-body { padding: 18px 20px 22px; }
-.guide-card-body p {
-  font-size: 0.88rem; line-height: 1.8; color: #555; margin-bottom: 12px;
-}
+.guide-card-body { padding: 18px 20px 22px; font-size: 0.88rem; line-height: 1.8; color: #555; }
+.guide-card-body p { font-size: inherit; line-height: inherit; color: inherit; margin-bottom: 12px; }
 .guide-card-body p:last-child { margin-bottom: 0; }
+.guide-card-body h4 { font-size: 0.92rem; font-weight: 800; margin: 16px 0 8px; }
+.guide-card-body ul, .guide-card-body ol { font-size: inherit; line-height: inherit; color: inherit; margin-bottom: 12px; padding-left: 20px; }
+.guide-card-body li { margin-bottom: 4px; }
 
 /* Card color themes */
 .theme-purple .guide-card-icon { background: linear-gradient(135deg, #8e2de2, #4a00e0); }
@@ -1192,7 +1193,7 @@ body {
     </table>
 
     <h4 style="color:#e64a19; margin-top:20px;"><i class="fas fa-cogs me-2"></i>使い方</h4>
-    <ol style="font-size:0.85rem; line-height:2;">
+    <ol>
       <li>管理画面でAI凝集を実行し、5テーマ候補（各A/B/Cプラン付き）を生成</li>
       <li>テーマを<strong>採用/除外トグル</strong>で絞り込み（除外テーマは保健師画面に表示されない）</li>
       <li>各プラン（AI案A/B/C）に<strong>7種共感ボタン</strong>で評価</li>
@@ -1549,7 +1550,7 @@ body {
     </table>
 
     <p style="margin-top:18px;"><strong>その他の参考資料</strong></p>
-    <ul style="font-size:0.85rem; color:#555; line-height:2;">
+    <ul>
       <li>国立長寿医療研究センター「栄養改善パック」（2020年）</li>
       <li>標準的な健診・保健指導プログラム（令和6年度版）— 保健指導の基本姿勢</li>
     </ul>

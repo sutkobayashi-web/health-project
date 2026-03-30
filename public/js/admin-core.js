@@ -708,7 +708,7 @@ function renderBackupTab(data) {
     var html = '<div class="card shadow-sm mb-4" style="border:none; border-radius:14px; overflow:hidden;">' +
         '<div style="background:linear-gradient(135deg,#667eea,#667eeacc); padding:20px; display:flex; align-items:center; gap:20px;">' +
             '<div style="width:60px; height:60px; border-radius:50%; background:rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center;"><i class="fas fa-heart-pulse" style="color:white; font-size:1.6rem;"></i></div>' +
-            '<div><div style="font-weight:800; font-size:1.1rem; color:white;">健康プロジェクト DB</div><div style="font-size:0.75rem; color:rgba(255,255,255,0.7);">スケジュール: ' + escapeHtml(data.schedule) + '</div></div>' +
+            '<div><div style="font-weight:800; font-size:1.1rem; color:white;">CoWell Health Project 2.0 DB</div><div style="font-size:0.75rem; color:rgba(255,255,255,0.7);">スケジュール: ' + escapeHtml(data.schedule) + '</div></div>' +
             '<div style="margin-left:auto;"><span style="display:inline-block; padding:5px 18px; border-radius:12px; font-size:0.85rem; font-weight:700; color:white; background:' + statusColor + ';">' + statusText + '</span></div>' +
         '</div>' +
         '<div class="card-body">' +

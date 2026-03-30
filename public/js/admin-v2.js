@@ -7,20 +7,20 @@ function runCheckupAnalysis() {
   var btn = document.getElementById('btn-checkup-analysis');
   var area = document.getElementById('checkup-analysis-result');
   btn.disabled = true;
-  btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Box APIから取得・分析中...（30秒ほどかかります）';
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>分析中...';
   area.innerHTML = '';
 
   fetch('/api/checkup/company-analysis', {
     headers: { 'Authorization': 'Bearer ' + getAdminToken() }
   }).then(function(r) { return r.json(); }).then(function(data) {
     btn.disabled = false;
-    btn.innerHTML = '<i class="fas fa-heartbeat me-1"></i>健診データから全社分析＋3パターン提案';
+    btn.innerHTML = '<i class="fas fa-play me-1"></i>分析実行';
     if (!data.success) { area.innerHTML = '<div class="alert alert-danger">' + (data.msg || 'エラー') + '</div>'; return; }
 
     var s = data.summary;
     var a = data.analysis;
-    var html = '<div class="plan-card mb-3">';
-    html += '<div class="fw-bold fs-5 mb-2"><i class="fas fa-heartbeat text-danger me-2"></i>全社健診分析レポート（' + escapeHtml(data.year) + '）</div>';
+    var html = '<div style="border-top:1px solid #eee; padding-top:16px; margin-top:8px;">';
+    html += '<div class="fw-bold" style="font-size:0.95rem; margin-bottom:10px;"><i class="fas fa-chart-bar text-danger me-2"></i>分析レポート（' + escapeHtml(data.year) + '）</div>';
 
     // 集計
     html += '<div class="p-2 mb-3" style="background:#fff3e0;border-radius:10px;border-left:3px solid #ff9800;">';
@@ -40,7 +40,7 @@ function runCheckupAnalysis() {
       // 3パターン
       (a.plans || []).forEach(function(p, i) {
         var colors = ['#e53935', '#1e88e5', '#43a047'];
-        html += '<div class="p-3 mb-2" style="background:white;border-radius:12px;border-left:4px solid ' + colors[i] + ';">';
+        html += '<div class="p-3 mb-2" style="background:#f8f9fa;border-radius:10px;border-left:4px solid ' + colors[i] + ';">';
         html += '<div class="fw-bold" style="color:' + colors[i] + ';">提案' + String.fromCharCode(65 + i) + ': ' + escapeHtml(p.title) + ' <span class="badge bg-' + (p.priority === '高' ? 'danger' : p.priority === '中' ? 'warning' : 'secondary') + '">' + p.priority + '</span></div>';
         html += '<div class="small text-muted mb-1">対象: ' + escapeHtml(p.targetRisk || '') + ' / 期間: ' + escapeHtml(p.duration || '') + '</div>';
         html += '<div class="small mb-1">' + escapeHtml(p.description || '') + '</div>';
@@ -70,7 +70,7 @@ function runCheckupAnalysis() {
     area.innerHTML = html;
   }).catch(function(e) {
     btn.disabled = false;
-    btn.innerHTML = '<i class="fas fa-heartbeat me-1"></i>健診データから全社分析＋3パターン提案';
+    btn.innerHTML = '<i class="fas fa-play me-1"></i>分析実行';
     area.innerHTML = '<div class="alert alert-danger">通信エラー: ' + e.message + '</div>';
   });
 }
@@ -94,7 +94,7 @@ function renderV2Dashboard() {
 
     // サイクルがない場合
     if (!cycle) {
-      statusArea.innerHTML = '<div class="plan-card text-center py-4"><div style="font-size:2rem; margin-bottom:10px;">📊</div><div class="fw-bold mb-2">まだサイクルがありません</div><div class="text-muted small">AIテーマ凝集を実行して、最初のサイクルを開始しましょう</div></div>';
+      statusArea.innerHTML = '<div class="dash-card text-center py-4" style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;"><div style="font-size:2rem; margin-bottom:10px;">📊</div><div class="fw-bold mb-2">まだサイクルがありません</div><div class="text-muted small">AIテーマ凝集を実行して、最初のサイクルを開始しましょう</div></div>';
       actionsArea.innerHTML = '<button class="btn btn-primary fw-bold" onclick="doGenerateThemes()"><i class="fas fa-magic me-2"></i>AIテーマ凝集を実行</button>';
       themesArea.innerHTML = '';
       return;
@@ -128,7 +128,7 @@ function renderV2Dashboard() {
     progressHtml += '</div>';
 
     statusArea.innerHTML =
-      '<div class="plan-card" style="border-left:4px solid ' + st.color + ';">' +
+      '<div class="dash-card dash-card-accent" style="--dash-accent:' + st.color + '; height:100%;">' +
         '<div class="d-flex justify-content-between align-items-center">' +
           '<div><div class="fw-bold">' + escapeHtml(cycle.title || '第' + cycle.cycle_number + '回') + '</div>' +
           '<div class="small text-muted">サイクル #' + cycle.cycle_number + '</div></div>' +
@@ -181,14 +181,14 @@ function renderV2Dashboard() {
       var deptText = Object.keys(deptDist).map(function(k) { return k + ':' + deptDist[k] + '件'; }).join(' / ');
 
       var isExcludedCard = t.status === 'excluded';
-      html += '<div class="col-md-6"><div class="plan-card' + (selected ? ' border-success border-2' : '') + '" style="' + (isExcludedCard ? 'opacity:0.4;' : '') + '">';
+      html += '<div class="col-md-6"><div class="dash-card' + (selected ? ' dash-card-accent' : '') + '" style="' + (selected ? '--dash-accent:#43a047;' : '') + (isExcludedCard ? 'opacity:0.4;' : '') + '">';
       // ヘッダー
       html += '<div class="d-flex justify-content-between align-items-start mb-2">';
       html += '<div class="d-flex align-items-center gap-2"><span style="font-size:1.5rem;">' + (t.icon || '💡') + '</span><div><div class="fw-bold">' + escapeHtml(t.name) + '</div><div class="small text-muted">' + t.post_count + '件の声' + (deptText ? '（' + deptText + '）' : '') + '</div></div></div>';
       html += '<div class="text-end"><div style="font-size:1.3rem; font-weight:900; color:#667eea;">' + t.vote_count + '</div><div style="font-size:0.65rem; color:#999;">票</div></div>';
       html += '</div>';
       // 根拠・説明
-      if (t.description) html += '<div style="font-size:0.8rem; color:#555; line-height:1.5; margin-bottom:8px; padding:8px; background:#f8f9fa; border-radius:8px; border-left:3px solid #667eea;">' + escapeHtml(t.description) + '</div>';
+      if (t.description) html += '<div style="font-size:0.8rem; color:#555; line-height:1.5; margin-bottom:8px; padding:8px; background:#f8f9fa; border-radius:10px; border-left:3px solid #667eea;">' + escapeHtml(t.description) + '</div>';
       // キーワード
       if (keywords.length > 0) {
         html += '<div class="mb-2">';
@@ -221,11 +221,11 @@ function renderV2Dashboard() {
       if (cycle.status === 'candidate' || cycle.status === 'advisor_review') {
         var plans = []; try { plans = JSON.parse(t.action_plans || '[]'); } catch(e) {}
         if (plans.length > 0) {
-          html += '<div class="mt-2 p-2" style="background:#fff8e1;border-radius:8px;border:1px solid #f0c000;">';
+          html += '<div class="mt-2 p-2" style="background:#fff8e1;border-radius:10px;border:1px solid #f0c000;">';
           html += '<div style="font-size:0.68rem;font-weight:700;color:#f57c00;margin-bottom:6px;"><i class="fas fa-clipboard-list me-1"></i>AIプラン案（共感で評価してください）</div>';
           plans.forEach(function(p, pi) {
             var colors = ['#e53935','#1e88e5','#43a047'];
-            html += '<div style="padding:6px 8px;margin-bottom:6px;background:white;border-radius:8px;border-left:3px solid ' + colors[pi % 3] + ';">';
+            html += '<div style="padding:6px 8px;margin-bottom:6px;background:white;border-radius:10px;border-left:3px solid ' + colors[pi % 3] + ';">';
             html += '<div style="font-size:0.75rem;font-weight:700;color:' + colors[pi % 3] + ';">案' + String.fromCharCode(65 + pi) + ': ' + escapeHtml(p.title) + '</div>';
             html += '<div style="font-size:0.7rem;color:#555;">' + escapeHtml(p.description || '') + '</div>';
             if (p.kpi) html += '<div style="font-size:0.65rem;color:#888;">KPI: ' + escapeHtml(p.kpi) + ' / ' + escapeHtml(p.duration || '') + '</div>';
@@ -247,7 +247,7 @@ function renderV2Dashboard() {
       }
       // テーマ議論チャット
       if (cycle.status === 'candidate' || cycle.status === 'advisor_review') {
-        html += '<div class="mt-2 p-2" style="background:#f8f9ff;border-radius:8px;border:1px solid #e0e0e0;">';
+        html += '<div class="mt-2 p-2" style="background:#f8f9ff;border-radius:10px;border:1px solid #e0e0e0;">';
         html += '<div style="font-size:0.68rem;font-weight:700;color:#667eea;margin-bottom:6px;"><i class="fas fa-comments me-1"></i>メンバー議論</div>';
         html += '<div id="theme-disc-' + t.theme_id + '" style="max-height:150px;overflow-y:auto;margin-bottom:6px;font-size:0.75rem;"></div>';
         html += '<div class="d-flex gap-1">';

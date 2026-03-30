@@ -837,18 +837,18 @@ function renderOnlineHeat(users, count) {
     var panel = document.getElementById('online-heat-panel');
     if (!panel) return;
 
-    // ヒートレベル計算（人数に応じた温度）
-    var level, color, bg, icon, label;
+    // ヒートレベル計算
+    var level, color, icon, label, badgeBg;
     if (count === 0) {
-        level = 0; color = '#94a3b8'; bg = 'linear-gradient(135deg,#f1f5f9,#e2e8f0)'; icon = '❄️'; label = 'オフライン';
+        level = 0; color = '#94a3b8'; icon = '❄️'; label = 'オフライン'; badgeBg = '#f1f5f9';
     } else if (count <= 3) {
-        level = 1; color = '#3b82f6'; bg = 'linear-gradient(135deg,#eff6ff,#dbeafe)'; icon = '🟢'; label = '静か';
+        level = 1; color = '#3b82f6'; icon = '🟢'; label = '静か'; badgeBg = '#eff6ff';
     } else if (count <= 8) {
-        level = 2; color = '#f59e0b'; bg = 'linear-gradient(135deg,#fffbeb,#fef3c7)'; icon = '🔥'; label = 'アクティブ';
+        level = 2; color = '#f59e0b'; icon = '🔥'; label = 'アクティブ'; badgeBg = '#fffbeb';
     } else if (count <= 15) {
-        level = 3; color = '#ef4444'; bg = 'linear-gradient(135deg,#fef2f2,#fecaca)'; icon = '🔥🔥'; label = '盛り上がり中';
+        level = 3; color = '#ef4444'; icon = '🔥🔥'; label = '盛り上がり中'; badgeBg = '#fef2f2';
     } else {
-        level = 4; color = '#dc2626'; bg = 'linear-gradient(135deg,#fef2f2,#fca5a5)'; icon = '🔥🔥🔥'; label = '大盛況！';
+        level = 4; color = '#dc2626'; icon = '🔥🔥🔥'; label = '大盛況！'; badgeBg = '#fef2f2';
     }
 
     var barWidth = count === 0 ? 5 : Math.min(100, Math.max(10, count * 5));
@@ -863,63 +863,64 @@ function renderOnlineHeat(users, count) {
     });
     var deptEntries = Object.entries(deptMap).sort(function(a, b) { return b[1] - a[1]; });
 
-    var html = '<div style="background:' + bg + '; border:1px solid ' + color + '22; border-radius:14px; padding:14px 16px; cursor:pointer;' + (level >= 3 ? ' animation:heatGlow 2s ease-in-out infinite;' : '') + '" onclick="toggleOnlineHeatDetail()">';
+    var glowClass = level >= 3 ? ' dash-card-glow' : '';
+    var html = '<div class="dash-card dash-card-clickable' + glowClass + '" style="height:100%;" onclick="toggleOnlineHeatDetail()">';
 
-    // ヘッダー行
-    html += '<div style="display:flex; align-items:center; justify-content:space-between;">';
-    html += '<div style="display:flex; align-items:center; gap:10px;">';
-    html += '<div style="font-size:1.4rem;' + (level >= 2 ? ' animation:heatPulse 1.5s ease-in-out infinite;' : '') + '">' + icon + '</div>';
-    html += '<div>';
-    html += '<div style="font-weight:800; font-size:0.95rem; color:' + color + ';">オンライン <span style="font-size:1.3rem;">' + count + '</span><span style="font-size:0.75rem; font-weight:600;">人</span></div>';
-    html += '<div style="font-size:0.68rem; color:#666; font-weight:600;">' + label + '</div>';
-    html += '</div></div>';
+    // ヒートレベルバッジ
+    html += '<div style="display:inline-flex; align-items:center; gap:6px; padding:4px 12px; border-radius:10px; background:' + badgeBg + '; margin-bottom:12px;">';
+    html += '<span style="font-size:1rem;' + (level >= 2 ? ' animation:heatPulse 1.5s ease-in-out infinite;' : '') + '">' + icon + '</span>';
+    html += '<span style="font-size:0.72rem; font-weight:700; color:' + color + ';">' + label + '</span>';
+    html += '</div>';
 
-    // ミニアバター列（最大8人）
-    html += '<div style="display:flex; align-items:center;">';
-    var showCount = Math.min(users.length, 8);
-    for (var i = 0; i < showCount; i++) {
-        var u = users[i];
-        var av = _renderMemberAvatar(u.avatar, '😀', 32);
-        var isEmoji = !u.avatar || !u.avatar.startsWith('custom:');
-        html += '<div class="heat-avatar" style="margin-left:' + (i === 0 ? '0' : '-8px') + '; background:' + (isEmoji ? '#f0f0f0' : 'transparent') + ';" title="' + escapeHtml(u.nickname) + '">' + av + '</div>';
-    }
-    if (users.length > 8) {
-        html += '<div style="margin-left:-4px; width:32px; height:32px; border-radius:50%; background:rgba(0,0,0,0.08); display:flex; align-items:center; justify-content:center; font-size:0.6rem; font-weight:800; color:#666;">+' + (users.length - 8) + '</div>';
-    }
-    html += '<i class="fas fa-chevron-' + (_onlineHeatExpanded ? 'up' : 'down') + '" style="margin-left:10px; font-size:0.7rem; color:#999;"></i>';
-    html += '</div></div>';
+    // メイン数値
+    html += '<div style="display:flex; align-items:baseline; gap:6px; margin-bottom:8px;">';
+    html += '<div class="dash-stat-value" style="color:' + color + ';">' + count + '</div>';
+    html += '<div class="dash-stat-label">人がオンライン</div>';
+    html += '</div>';
 
     // ヒートバー
-    html += '<div style="margin-top:10px; background:#e2e8f0; border-radius:3px; height:6px; overflow:hidden;">';
+    html += '<div style="background:#e2e8f0; border-radius:3px; height:6px; overflow:hidden; margin-bottom:10px;">';
     html += '<div class="heat-bar" style="width:' + barWidth + '%; background:' + barColor + ';"></div>';
     html += '</div>';
 
+    // ミニアバター列
+    if (users.length > 0) {
+        html += '<div style="display:flex; align-items:center;">';
+        var showCount = Math.min(users.length, 6);
+        for (var i = 0; i < showCount; i++) {
+            var u = users[i];
+            var av = _renderMemberAvatar(u.avatar, '😀', 28);
+            var isEmoji = !u.avatar || !u.avatar.startsWith('custom:');
+            html += '<div class="heat-avatar" style="width:28px; height:28px; margin-left:' + (i === 0 ? '0' : '-6px') + '; background:' + (isEmoji ? '#f0f0f0' : 'transparent') + '; font-size:0.8rem;" title="' + escapeHtml(u.nickname) + '">' + av + '</div>';
+        }
+        if (users.length > 6) {
+            html += '<div style="margin-left:-4px; width:28px; height:28px; border-radius:50%; background:rgba(0,0,0,0.06); display:flex; align-items:center; justify-content:center; font-size:0.55rem; font-weight:800; color:#666;">+' + (users.length - 6) + '</div>';
+        }
+        html += '<i class="fas fa-chevron-' + (_onlineHeatExpanded ? 'up' : 'down') + '" style="margin-left:auto; font-size:0.65rem; color:#bbb;"></i>';
+        html += '</div>';
+    }
+
     // 展開時の詳細
     if (_onlineHeatExpanded) {
-        html += '<div style="margin-top:12px; border-top:1px solid ' + color + '22; padding-top:12px;">';
-
-        // 部署別内訳
+        html += '<div style="margin-top:14px; border-top:1px solid #eee; padding-top:14px;">';
         if (deptEntries.length > 0) {
             html += '<div style="font-size:0.72rem; font-weight:700; color:#555; margin-bottom:8px;"><i class="fas fa-building me-1"></i>部署別</div>';
             html += '<div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px;">';
             deptEntries.forEach(function(de) {
-                html += '<span style="background:white; border:1px solid ' + color + '33; border-radius:20px; padding:3px 10px; font-size:0.7rem; font-weight:700; color:' + color + ';">' + escapeHtml(de[0]) + ' <strong>' + de[1] + '</strong></span>';
+                html += '<span style="background:#f8f9fa; border:1px solid #eee; border-radius:10px; padding:3px 10px; font-size:0.7rem; font-weight:700; color:' + color + ';">' + escapeHtml(de[0]) + ' <strong>' + de[1] + '</strong></span>';
             });
             html += '</div>';
         }
-
-        // ユーザーリスト
-        html += '<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); gap:6px;">';
+        html += '<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(130px, 1fr)); gap:6px;">';
         users.forEach(function(u) {
             var av = _renderMemberAvatar(u.avatar, '😀', 24);
             var isEmoji = !u.avatar || !u.avatar.startsWith('custom:');
-            html += '<div style="display:flex; align-items:center; gap:6px; padding:5px 8px; background:white; border-radius:8px; border:1px solid #f0f0f0;">';
-            html += '<div style="width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.7rem; flex-shrink:0;' + (isEmoji ? ' background:#f0f0f0;' : '') + '">' + av + '</div>';
+            html += '<div style="display:flex; align-items:center; gap:6px; padding:5px 8px; background:#f8f9fa; border-radius:10px;">';
+            html += '<div style="width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.7rem; flex-shrink:0;' + (isEmoji ? ' background:#eee;' : '') + '">' + av + '</div>';
             html += '<div style="font-size:0.7rem; font-weight:600; color:#333; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">' + escapeHtml(u.nickname) + '</div>';
             html += '</div>';
         });
-        html += '</div>';
-        html += '</div>';
+        html += '</div></div>';
     }
 
     html += '</div>';

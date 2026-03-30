@@ -125,6 +125,35 @@
     }
     .plan-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
 
+    /* ====== Dashboard Unified Card System ====== */
+    .dash-grid {
+      display: grid; grid-template-columns: 1fr 2fr; gap: 16px; margin-bottom: 20px;
+    }
+    .dash-card {
+      background: #fff; border-radius: 16px; padding: 20px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06); border: 1px solid #eee;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .dash-card:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,0.09); }
+    .dash-card-header {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 14px;
+    }
+    .dash-card-icon {
+      width: 36px; height: 36px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.9rem; color: #fff; flex-shrink: 0;
+    }
+    .dash-card-title { font-weight: 800; font-size: 0.85rem; color: #2c3e50; }
+    .dash-card-subtitle { font-size: 0.68rem; color: #999; }
+    .dash-card-accent { border-left: 4px solid var(--dash-accent, #667eea); }
+    .dash-stat-value { font-size: 1.6rem; font-weight: 900; line-height: 1; }
+    .dash-stat-label { font-size: 0.68rem; color: #888; font-weight: 600; }
+    .dash-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+    .dash-actions .btn { border-radius: 10px; }
+    .dash-card-glow { animation: heatGlow 2s ease-in-out infinite; }
+    .dash-card-clickable { cursor: pointer; }
+    .dash-card-clickable:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
+
     /* ====== Heartbeat animation ====== */
     @keyframes heartbeat { 0%,100% { transform:scale(1); box-shadow:0 0 0 0 rgba(76,175,80,0.4); } 50% { transform:scale(1.2); box-shadow:0 0 6px 2px rgba(76,175,80,0.3); } }
     @keyframes heatPulse { 0%,100% { opacity:1; } 50% { opacity:0.6; } }
@@ -250,6 +279,8 @@
     .mail-box-switcher .btn { border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
 
     @media (max-width: 768px) {
+      .dash-grid { grid-template-columns: 1fr; }
+      .dash-card { padding: 16px; }
       /* サイドバーをボトムナビに変換 */
       .main-container { flex-direction: column; }
       .sidebar {
@@ -425,17 +456,27 @@ if(localStorage.getItem('co_heart_admin_token') && localStorage.getItem('co_hear
         <div class="section-icon" style="background:linear-gradient(135deg,#667eea,#764ba2);"><i class="fas fa-chart-pie"></i></div>
         <div><div class="section-title">ダッシュボード</div><div class="section-subtitle">テーマ凝集 → 投票 → チャレンジのサイクル管理</div></div>
       </div>
-      <!-- オンラインユーザーヒート -->
-      <div id="online-heat-panel" style="margin-bottom:16px;"></div>
-      <!-- 全社健診データ分析 -->
-      <div style="margin-bottom:16px;">
-        <button onclick="runCheckupAnalysis()" class="btn btn-outline-danger btn-sm fw-bold" id="btn-checkup-analysis"><i class="fas fa-heartbeat me-1"></i>健診データから全社分析＋3パターン提案</button>
-        <div id="checkup-analysis-result" style="margin-top:12px;"></div>
+      <!-- サマリーカード横並び -->
+      <div class="dash-grid">
+        <div id="online-heat-panel"></div>
+        <div id="v2-cycle-status"></div>
       </div>
-      <!-- サイクル状態 -->
-      <div id="v2-cycle-status" class="mb-4"></div>
+      <!-- 全社健診データ分析カード -->
+      <div class="dash-card" style="margin-bottom:20px;">
+        <div class="dash-card-header">
+          <div class="dash-card-icon" style="background:linear-gradient(135deg,#e53935,#ff6b6b);"><i class="fas fa-heartbeat"></i></div>
+          <div>
+            <div class="dash-card-title">全社健診データ分析</div>
+            <div class="dash-card-subtitle">Box APIから健診データを取得し、AIが全社分析＋3パターン提案</div>
+          </div>
+          <button onclick="runCheckupAnalysis()" class="btn btn-danger btn-sm fw-bold ms-auto" id="btn-checkup-analysis" style="border-radius:10px; padding:6px 16px; white-space:nowrap;">
+            <i class="fas fa-play me-1"></i>分析実行
+          </button>
+        </div>
+        <div id="checkup-analysis-result"></div>
+      </div>
       <!-- アクションボタン -->
-      <div id="v2-cycle-actions" class="d-flex gap-2 mb-4"></div>
+      <div id="v2-cycle-actions" class="dash-actions"></div>
       <!-- テーマ一覧 -->
       <div id="v2-themes-area"></div>
     </div>

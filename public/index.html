@@ -4960,6 +4960,7 @@ function inlineConsult() {
         '<div class="buddy-quick-btn" onclick="buddyConsultHint(\'職場\')">🏢 職場環境</div>' +
         '<div class="buddy-quick-btn" onclick="buddyConsultHint(\'提案\')">💡 提案がある</div>' +
         '<div class="buddy-quick-btn" onclick="buddyConsultHint(\'自由\')">✏️ 自由に書く</div>' +
+        '<div class="buddy-quick-btn" onclick="cancelCaptureMode()" style="border-color:#999;color:#999;">✕ やめる</div>' +
       '</div>'
     );
   }, 800);
@@ -4982,9 +4983,26 @@ function buddyConsultHint(type) {
   };
   setTimeout(function() {
     addBuddyMessage('ai', prompts[type] + '\n\n👇 下の入力欄に書いて送信してね');
+    showCancelCapture();
     document.getElementById('buddy-input').placeholder = '匿名でみんなに共有されます...';
     document.getElementById('buddy-input').focus();
   }, 600);
+}
+
+function cancelCaptureMode() {
+  _buddyCaptureMode = null;
+  document.getElementById('buddy-input').placeholder = 'メッセージを入力...';
+  showActionBar();
+  markBuddyQuickUsed();
+  addBuddyMessage('ai', 'わかった！いつでもまた声かけてね😊');
+}
+
+function showCancelCapture() {
+  addBuddyInlineQuick(
+    '<div style="display:flex;justify-content:center;padding:4px 0;">' +
+      '<div class="buddy-quick-btn" onclick="cancelCaptureMode()" style="border-color:#999;color:#999;">✕ やめる</div>' +
+    '</div>'
+  );
 }
 
 function inlineMemberConsult() {
@@ -4993,6 +5011,7 @@ function inlineMemberConsult() {
   addBuddyMessage('ai', '推進メンバーに直接届けたいことがあるんだね！🛡️\n\nバディー経由で届くから、気軽に相談してね。');
   setTimeout(function() {
     addBuddyMessage('ai', 'どんなことを伝えたい？\n\n例えば...\n・職場環境の改善リクエスト\n・健康施策への意見\n・困っていること\n\n👇 下の入力欄に書いて送信してね');
+    showCancelCapture();
     document.getElementById('buddy-input').placeholder = '推進メンバーに届きます...';
     document.getElementById('buddy-input').focus();
   }, 800);

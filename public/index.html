@@ -5293,25 +5293,15 @@ function showHelpAnswer(key) {
   var topic = HELP_TOPICS[key];
   if (!topic) return;
   addBuddyMessage('user', topic.label);
+  var msgs = document.getElementById('buddy-messages');
+  var userMsg = msgs.lastElementChild;
   setTimeout(function() {
-    // 回答をカード型で表示（チャットバブルではなく専用UI）
-    var msgs = document.getElementById('buddy-messages');
-    var buddyData = null;
-    try { buddyData = JSON.parse(localStorage.getItem('co_heart_buddy')); } catch(e) {}
-    var aiAvatar = buddyData ? getAvatarHtml(buddyData.avatar, 38) : '<i class="fas fa-robot"></i>';
-    var div = document.createElement('div');
-    div.className = 'buddy-msg ai';
-    div.style.maxWidth = '90%';
-    var answerHtml = topic.answer.replace(/\n/g, '<br>');
-    div.innerHTML = '<div class="buddy-avatar">' + aiAvatar + '</div>' +
-      '<div style="flex:1;min-width:0;">' +
-        '<div style="background:white;border-radius:14px;padding:12px 14px;border:1.5px solid #e0e8f0;box-shadow:0 1px 4px rgba(0,0,0,0.04);font-size:0.84rem;line-height:1.7;color:#333;max-height:200px;overflow-y:auto;">' +
-          answerHtml +
-        '</div>' +
-      '</div>';
-    msgs.appendChild(div);
-    // 回答の下部が見えるようにスクロール
-    setTimeout(function() { div.scrollIntoView({ behavior: 'smooth', block: 'end' }); }, 100);
+    // 通常のチャットバブルで回答を流す
+    addBuddyMessage('ai', topic.answer);
+    // ユーザーの質問が見える位置にスクロール（回答の出だしが見えるように）
+    setTimeout(function() {
+      if (userMsg) userMsg.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
 
     // 他の質問ボタン
     setTimeout(function() {

@@ -3925,16 +3925,13 @@ function startBuddyChat(buddyData) {
           if (m.content && m.content.indexOf('[MOOD_LOG]') !== -1) hasMoodLog = true;
         });
         window._buddyRestoring = false;
+        _buddyMoodChecked = true;
         // バディー経由メッセージも読み込む
         loadBuddyNotices();
-        // 体調チェック済みか判定して適切な選択肢を表示
-        if (hasMoodLog) {
-          _buddyMoodChecked = true;
-          setTimeout(function() { showFollowUpTopics(); }, 500);
-        } else {
-          _buddyMoodChecked = false;
-          setTimeout(function() { showMoodCheck(); }, 500);
-        }
+        // 履歴復元後は「続きから」メッセージのみ（選択肢は出さない）
+        setTimeout(function() {
+          addBuddyMessage('ai', 'さっきの続きだね！何か聞きたいことがあればいつでもどうぞ😊');
+        }, 500);
       } else {
         // 履歴なし → 通常の初回フロー
         startBuddyChatFresh(buddyData);

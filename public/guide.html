@@ -1678,6 +1678,121 @@ body {
   </div>
 </div>
 
+<!-- ====== セクション18-3: 全社健診データ分析（管理画面） ====== -->
+<div class="guide-card theme-red" data-keywords="健診 分析 全社 Box API AI 提案 保健師 エビデンス ダッシュボード">
+  <div class="guide-card-header">
+    <div class="guide-card-icon"><i class="fas fa-heartbeat"></i></div>
+    <div class="guide-card-title">セクション18-3: 全社健診データ分析</div>
+  </div>
+  <div class="guide-card-body">
+    <p>管理画面ダッシュボードから、<strong>Box API経由で全社の健診データを取得</strong>し、AIがエビデンスに基づく3パターンのアクションプランを提案する機能です。</p>
+
+    <h4 style="color:#e53935; margin-top:16px;"><i class="fas fa-cogs me-2"></i>仕組み</h4>
+    <table class="guide-table">
+      <thead><tr><th>項目</th><th>内容</th></tr></thead>
+      <tbody>
+        <tr><td><strong>データソース</strong></td><td>エルスケアネットワーク提供の健診データ（xlsm形式）をBox Cloudから取得</td></tr>
+        <tr><td><strong>判定記号</strong></td><td>●=要受診、▲=要注意、★=要経過観察、空=異常なし</td></tr>
+        <tr><td><strong>分析項目</strong></td><td>肥満・高血圧・脂質異常・高血糖・肝機能・腎機能・貧血</td></tr>
+        <tr><td><strong>AI提案</strong></td><td>エビデンス18領域に基づき、優先度付きの3パターン提案（EAST設計含む）</td></tr>
+        <tr><td><strong>保健師連携</strong></td><td>AIが「下書き」を高速作成 → 保健師が「承認・修正・補足」する役割分担</td></tr>
+      </tbody>
+    </table>
+
+    <h4 style="color:#e53935; margin-top:16px;"><i class="fas fa-desktop me-2"></i>使い方</h4>
+    <ol>
+      <li>管理画面の<strong>ダッシュボード</strong>タブを開く</li>
+      <li>「全社健診データ分析」カードの<strong>「分析実行」</strong>ボタンをクリック</li>
+      <li>Box APIからデータ取得〜AI分析に約30秒</li>
+      <li>集計結果（BMI・各リスク率）＋3パターンの提案が表示される</li>
+      <li>保健師・産業医への申し送りも自動生成</li>
+    </ol>
+
+    <div class="tip-box">
+      <i class="fas fa-lightbulb" style="color:#f59e0b;"></i>
+      分析結果はテーマ凝集（AIクラスタリング）にも自動参照されるため、<strong>健診データに基づいたエビデンスベースのテーマ選定</strong>が可能になります。
+    </div>
+  </div>
+</div>
+
+<!-- ====== セクション18-4: ダッシュボード統一デザイン ====== -->
+<div class="guide-card theme-purple" data-keywords="ダッシュボード デザイン カード 管理画面 レイアウト グリッド">
+  <div class="guide-card-header">
+    <div class="guide-card-icon"><i class="fas fa-th-large"></i></div>
+    <div class="guide-card-title">セクション18-4: ダッシュボード統一デザイン</div>
+  </div>
+  <div class="guide-card-body">
+    <p>管理画面のダッシュボードは<strong>統一カードシステム（dash-card）</strong>で設計されており、一貫性のある視認性の高いUIを実現しています。</p>
+
+    <h4 style="color:#667eea; margin-top:16px;"><i class="fas fa-layer-group me-2"></i>レイアウト構成</h4>
+    <table class="guide-table">
+      <thead><tr><th>エリア</th><th>内容</th></tr></thead>
+      <tbody>
+        <tr><td><strong>上段左（1/3幅）</strong></td><td>オンラインヒートパネル — 現在のアクティブユーザー数・アバター・ヒートレベル</td></tr>
+        <tr><td><strong>上段右（2/3幅）</strong></td><td>サイクル状態 — 現在のテーマ凝集サイクルの進捗（精査→助言→承認→投票→確定）</td></tr>
+        <tr><td><strong>中段（全幅）</strong></td><td>全社健診データ分析カード — ボタン一体型のカードデザイン</td></tr>
+        <tr><td><strong>下段</strong></td><td>アクションボタン群 ＋ テーマ候補カード（2列グリッド）</td></tr>
+      </tbody>
+    </table>
+
+    <h4 style="color:#667eea; margin-top:16px;"><i class="fas fa-ruler-combined me-2"></i>デザイントークン</h4>
+    <table class="guide-table">
+      <thead><tr><th>要素</th><th>値</th></tr></thead>
+      <tbody>
+        <tr><td>カード角丸</td><td>16px（全カード統一）</td></tr>
+        <tr><td>サブ要素角丸</td><td>10px（ボタン・バッジ・内部ボックス）</td></tr>
+        <tr><td>影</td><td><code>0 2px 12px rgba(0,0,0,0.06)</code></td></tr>
+        <tr><td>パディング</td><td>20px（モバイル時16px）</td></tr>
+        <tr><td>グリッド間隔</td><td>16px</td></tr>
+      </tbody>
+    </table>
+
+    <p style="margin-top:12px;"><strong>レスポンシブ対応:</strong> 768px以下では全カードが自動的に1カラム表示に切り替わります。</p>
+  </div>
+</div>
+
+<!-- ====== セクション18-5: プラン案評価（共感）システム ====== -->
+<div class="guide-card theme-green" data-keywords="プラン 評価 共感 賛成 最優先 効果的 議論 テーマ 推進メンバー">
+  <div class="guide-card-header">
+    <div class="guide-card-icon"><i class="fas fa-thumbs-up"></i></div>
+    <div class="guide-card-title">セクション18-5: プラン案評価（共感）システム</div>
+  </div>
+  <div class="guide-card-body">
+    <p>AIが生成したテーマ別プラン案（案A/B/C）や、メンバーが追加した自由提案（案D以降）に対して、推進メンバーが<strong>複数の評価タイプを同時に付けられる</strong>共感システムです。</p>
+
+    <h4 style="color:#43a047; margin-top:16px;"><i class="fas fa-icons me-2"></i>評価タイプ（7種類）</h4>
+    <table class="guide-table">
+      <thead><tr><th>アイコン</th><th>ラベル</th><th>意味</th></tr></thead>
+      <tbody>
+        <tr><td>👍</td><td>賛成</td><td>基本的な賛同を示す</td></tr>
+        <tr><td>🔥</td><td>最優先</td><td>急いで対応すべきと考える</td></tr>
+        <tr><td>💡</td><td>効果的</td><td>高い効果が見込めると評価</td></tr>
+        <tr><td>👥</td><td>巻き込める</td><td>多くの社員を参加させられそう</td></tr>
+        <tr><td>🤔</td><td>要議論</td><td>もう少し議論が必要</td></tr>
+        <tr><td>⚠️</td><td>難しい</td><td>実行が困難と感じる</td></tr>
+        <tr><td>❌</td><td>見送り</td><td>今回は不採用が妥当</td></tr>
+      </tbody>
+    </table>
+
+    <h4 style="color:#43a047; margin-top:16px;"><i class="fas fa-mouse-pointer me-2"></i>操作方法</h4>
+    <ul>
+      <li>各プラン案の下に表示されるボタンをタップして評価</li>
+      <li><strong>複数の評価タイプを同時に付けられます</strong>（例: 👍賛成 + 💡効果的 + 🔥最優先）</li>
+      <li>もう一度タップすると解除（トグル式）</li>
+      <li>各ボタンに評価人数がバッジ表示される</li>
+      <li>自分が押した評価はハイライト表示で一目で判別可能</li>
+    </ul>
+
+    <h4 style="color:#43a047; margin-top:16px;"><i class="fas fa-edit me-2"></i>メンバー自由提案</h4>
+    <p>AIの案A/B/Cに加えて、推進メンバーは<strong>案D以降の自由提案</strong>を追加できます。タイトル・概要・KPIを入力して追加すると、AI案と同じ共感ボタンで評価されます。</p>
+
+    <div class="tip-box">
+      <i class="fas fa-lightbulb" style="color:#f59e0b;"></i>
+      評価結果はチャレンジ自動生成時にAIが参照し、最も支持されたプラン案をベースにチャレンジ内容を作成します。<strong>推進メンバー全員の意見が反映される仕組み</strong>です。
+    </div>
+  </div>
+</div>
+
 <!-- ============================================================ -->
 <!-- 技術基盤セクション（19〜20）                                 -->
 <!-- ============================================================ -->

@@ -2310,25 +2310,15 @@ function loadMoreCat(cat) {
 }
 
 function toggleTimeline() {
-  isTimelineOpen = !isTimelineOpen;
-  var wrapper = document.getElementById('timeline-wrapper');
-  var btn = document.getElementById('btn-toggle-tl');
-  if (isTimelineOpen) { wrapper.classList.add('active'); btn.classList.add('active'); btn.innerHTML = '<i class="fas fa-times"></i> 閉じる'; loadTimeline(0, true); }
-  else { wrapper.classList.remove('active'); btn.classList.remove('active'); btn.innerHTML = '<i class="fas fa-stream"></i> みんなの投稿を見る'; }
+  // タイムラインは「みんなの投稿を見る」セクションに統合済み
 }
 
 function loadTimeline(page, isReset) {
-  if (isReset) { currentPage = 0; document.getElementById('timeline-content').innerHTML = '<div class="text-center p-3"><div class="spinner-border text-secondary" role="status"></div></div>'; }
-  getPublicPosts(page, currentUser.uid).then(function(res) {
-    var el = document.getElementById('timeline-content');
-    if (isReset) el.innerHTML = "";
-    if (!res.posts || res.posts.length === 0) { if (isReset) el.innerHTML = '<div class="text-center text-muted py-4">まだ投稿はありません</div>'; else alert("これ以上投稿はありません"); return; }
-    var html = res.posts.map(function(p) { return renderPost(p); }).join('');
-    el.insertAdjacentHTML('beforeend', html);
-  });
+  // 旧タイムラインは「みんなの投稿を見る」セクションに統合済み
+  // 呼び出し元の後方互換のため空関数として残す
 }
 
-function loadMore() { currentPage++; loadTimeline(currentPage, false); }
+function loadMore() { loadMorePostsView(); }
 
 var _postCache = {};
 
@@ -2878,7 +2868,6 @@ function submitPost() {
       updateHeaderStats();
       // AI分析結果をポップアップ表示
       showAIResponse(res.analysis || "投稿を受け付けました。健康推進メンバーが確認します。");
-      if (!isTimelineOpen) toggleTimeline(); else loadTimeline(0, true);
     } else {
       alert("投稿エラー: " + (res ? res.error || res.msg : "不明なエラー"));
     }
@@ -2958,7 +2947,6 @@ function submitFoodPost() {
         if (res.analysis.nurse) msg += '【AIヘルスアドバイザー】\n' + res.analysis.nurse;
       }
       showFoodResponse(msg || '食事の投稿を受け付けました。');
-      if (!isTimelineOpen) toggleTimeline(); else loadTimeline(0, true);
     } else {
       alert("投稿エラー: " + (res ? res.msg : "不明なエラー"));
     }

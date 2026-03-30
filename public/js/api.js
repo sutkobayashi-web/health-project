@@ -329,7 +329,7 @@ function saveChatMemo(uid, memoText, sourceMessage) {
   return api('/chat/save-memo', { uid, memoText, sourceMessage });
 }
 function getChatMemos(uid) {
-  return api('/chat/memos/' + uid, undefined);
+  return api('/chat/memos/' + uid, undefined, getToken());
 }
 function deleteChatMemo(memoId) {
   return api('/chat/delete-memo', { memoId });

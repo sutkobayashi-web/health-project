@@ -3928,9 +3928,16 @@ function startBuddyChat(buddyData) {
         _buddyMoodChecked = true;
         // バディー経由メッセージも読み込む
         loadBuddyNotices();
-        // 履歴復元後は「続きから」メッセージのみ（選択肢は出さない）
+        // 履歴復元後は「続きから」メッセージ
         setTimeout(function() {
           addBuddyMessage('ai', 'さっきの続きだね！何か聞きたいことがあればいつでもどうぞ😊');
+          // カスタマイズ案内（非表示設定されていなければ）
+          if (!localStorage.getItem('co_heart_buddy_setup_hidden')) {
+            setTimeout(function() {
+              addBuddyMessage('ai', '🎨 バディーの名前・見た目・性格をカスタマイズできるよ！');
+              showBuddySetupPromptWithDismiss();
+            }, 1000);
+          }
         }, 500);
       } else {
         // 履歴なし → 通常の初回フロー

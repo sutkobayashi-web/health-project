@@ -127,6 +127,11 @@
 
     /* ====== Heartbeat animation ====== */
     @keyframes heartbeat { 0%,100% { transform:scale(1); box-shadow:0 0 0 0 rgba(76,175,80,0.4); } 50% { transform:scale(1.2); box-shadow:0 0 6px 2px rgba(76,175,80,0.3); } }
+    @keyframes heatPulse { 0%,100% { opacity:1; } 50% { opacity:0.6; } }
+    @keyframes heatGlow { 0% { box-shadow:0 0 8px rgba(255,107,53,0.3); } 50% { box-shadow:0 0 20px rgba(255,107,53,0.6); } 100% { box-shadow:0 0 8px rgba(255,107,53,0.3); } }
+    .heat-bar { height:6px; border-radius:3px; transition:width 0.8s ease, background 0.8s ease; }
+    .heat-avatar { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.9rem; flex-shrink:0; border:2px solid #fff; box-shadow:0 2px 6px rgba(0,0,0,0.1); transition:transform 0.2s; }
+    .heat-avatar:hover { transform:scale(1.2); z-index:2; }
 
     .prio-tab { padding:10px 16px; border:none; background:transparent; font-size:0.8rem; font-weight:700; color:#888; cursor:pointer; border-bottom:3px solid transparent; transition:all 0.2s; flex:1; text-align:center; }
     .prio-tab:hover { color:#667eea; background:#f0f0ff; }
@@ -420,6 +425,8 @@ if(localStorage.getItem('co_heart_admin_token') && localStorage.getItem('co_hear
         <div class="section-icon" style="background:linear-gradient(135deg,#667eea,#764ba2);"><i class="fas fa-chart-pie"></i></div>
         <div><div class="section-title">ダッシュボード</div><div class="section-subtitle">テーマ凝集 → 投票 → チャレンジのサイクル管理</div></div>
       </div>
+      <!-- オンラインユーザーヒート -->
+      <div id="online-heat-panel" style="margin-bottom:16px;"></div>
       <!-- サイクル状態 -->
       <div id="v2-cycle-status" class="mb-4"></div>
       <!-- アクションボタン -->

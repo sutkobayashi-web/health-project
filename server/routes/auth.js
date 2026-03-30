@@ -380,4 +380,32 @@ router.post('/update-buddy', (req, res) => {
   }
 });
 
+// ユーザーオンライン状態管理（メモリ）
+const onlineUsers = {}; // { uid: { nickname, avatar, department, lastSeen } }
+
+router.post('/user-heartbeat', (req, res) => {
+  const { uid, nickname, avatar, department } = req.body;
+  if (!uid) return res.json({ success: false });
+  onlineUsers[uid] = { nickname: nickname || '', avatar: avatar || '😀', department: department || '', lastSeen: Date.now() };
+  res.json({ success: true });
+});
+
+// 管理者向け: オンラインユーザー一覧
+router.get('/online-users', (req, res) => {
+  const now = Date.now();
+  const threshold = 3 * 60 * 1000; // 3分以内をオンラインとする
+  const users = Object.entries(onlineUsers)
+    .filter(([, u]) => (now - u.lastSeen) < threshold)
+    .map(([uid, u]) => ({
+      uid, nickname: u.nickname, avatar: u.avatar, department: u.department,
+      lastSeen: u.lastSeen
+    }))
+    .sort((a, b) => b.lastSeen - a.lastSeen);
+  // 古いデータを掃除（10分以上前）
+  for (const uid of Object.keys(onlineUsers)) {
+    if ((now - onlineUsers[uid].lastSeen) > 10 * 60 * 1000) delete onlineUsers[uid];
+  }
+  res.json({ success: true, online: users, count: users.length });
+});
+
 module.exports = router;

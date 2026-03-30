@@ -1939,6 +1939,8 @@ function onLoginSuccess() {
   setInterval(checkUnreadNotices, 60000);
   loadMyUnread();
   setInterval(loadMyUnread, 60000);
+  // オンライン状態をサーバーに送信（60秒ごと）
+  startUserHeartbeat();
   // タブ状態復元
   try {
     // ログイン後は常にバディーチャットから開始
@@ -7108,6 +7110,20 @@ if ('serviceWorker' in navigator) {
       }
     });
   });
+}
+
+// ユーザーオンライン状態送信
+function startUserHeartbeat() {
+  function sendBeat() {
+    if (!currentUser || !currentUser.uid) return;
+    fetch('/api/auth/user-heartbeat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ uid: currentUser.uid, nickname: currentUser.nickname, avatar: currentUser.avatar, department: currentUser.department || '' })
+    }).catch(function(){});
+  }
+  sendBeat();
+  setInterval(sendBeat, 60000);
 }
 
 // バージョンチェック: サーバーと不一致なら強制リロード（1回のみ）

@@ -438,7 +438,26 @@ router.get('/company-analysis', async (req, res) => {
     }
     timeline.sort(function(a, b) { return a.year.localeCompare(b.year); });
 
-    res.json({ success: true, year: latestFolder.name, summary: summary, branches: branches, timeline: timeline });
+    // AI簡易プラン提案（3つ、タイトルと1行概要のみ）
+    var aiPlans = null;
+    try {
+      const { callAIWithFallback } = require('../services/ai');
+      // 経年変化の情報も渡す
+      var tlText = timeline.map(function(t) {
+        return t.year + ': 🔴' + (t.summary.redTotal||0) + ' 🟡' + (t.summary.yellow||0) + ' BMI25↑' + t.summary.bmiOver25Pct + '% 高血圧' + (t.summary.rates.高血圧||0) + '% 脂質' + (t.summary.rates.脂質異常||0) + '% 高血糖' + (t.summary.rates.高血糖||0) + '%';
+      }).join('\n');
+      var prompt = '運輸業(ドライバー中心)の全社健診データに基づき、推進メンバーが検討する参考として3つの施策案をJSON配列で出力。各案はtitle(10字以内)とdesc(30字以内)のみ。\n' +
+        '【最新】' + summary.total + '名 平均' + summary.averageAge + '歳 🔴' + (summary.redTotal||0) + ' 🟡' + (summary.yellow||0) + ' BMI25↑' + summary.bmiOver25Pct + '% 肥満' + summary.rates.肥満 + '% 高血圧' + summary.rates.高血圧 + '% 脂質' + summary.rates.脂質異常 + '% 高血糖' + summary.rates.高血糖 + '% 肝機能' + summary.rates.肝機能 + '%\n' +
+        '【経年】\n' + tlText + '\n' +
+        '出力: [{"title":"...","desc":"..."},{"title":"...","desc":"..."},{"title":"...","desc":"..."}]';
+      var aiRes = await callAIWithFallback('JSON配列のみ出力。余計なテキスト不要。', prompt);
+      if (aiRes) {
+        var m = aiRes.match(/\[[\s\S]*\]/);
+        if (m) aiPlans = JSON.parse(m[0]);
+      }
+    } catch(e) { console.log('AI簡易提案エラー:', e.message); }
+
+    res.json({ success: true, year: latestFolder.name, summary: summary, branches: branches, timeline: timeline, aiPlans: aiPlans });
   } catch (e) {
     console.error('全社健診分析エラー:', e.message);
     res.json({ success: false, msg: e.message });

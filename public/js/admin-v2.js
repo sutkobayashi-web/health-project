@@ -134,6 +134,22 @@ function runCheckupAnalysis() {
       html += '</tbody></table></div></div>';
     }
 
+    // AI簡易プラン提案
+    var plans = data.aiPlans || [];
+    if (plans.length > 0) {
+      var pColors = ['#e53935','#1e88e5','#43a047'];
+      html += '<div style="margin-bottom:8px;">';
+      html += '<div style="font-size:0.72rem; font-weight:700; color:#555; margin-bottom:6px;"><i class="fas fa-lightbulb me-1" style="color:#f59e0b;"></i>AIからの施策ヒント（参考）</div>';
+      html += '<div style="display:flex; flex-wrap:wrap; gap:6px;">';
+      plans.forEach(function(p, i) {
+        html += '<div style="flex:1; min-width:120px; padding:8px 10px; border-radius:10px; border-left:3px solid ' + pColors[i % 3] + '; background:#f8f9fa;">';
+        html += '<div style="font-size:0.75rem; font-weight:800; color:' + pColors[i % 3] + ';">' + escapeHtml(p.title || '') + '</div>';
+        html += '<div style="font-size:0.65rem; color:#666;">' + escapeHtml(p.desc || '') + '</div>';
+        html += '</div>';
+      });
+      html += '</div></div>';
+    }
+
     html += '</div>'; // checkup-detail 閉じ
     html += '</div>';
     area.innerHTML = html;

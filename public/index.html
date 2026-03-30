@@ -4945,94 +4945,100 @@ function showActionBar() {
   if (bar) bar.style.display = 'flex';
 }
 
+// ====== チャット会話フロー型の相談 ======
+var _buddyCaptureMode = null; // null | 'consult' | 'member_consult'
+
 function inlineConsult() {
+  _buddyCaptureMode = 'consult';
   hideActionBar();
-  // チャット内に相談入力フォームを表示
-  var msgs = document.getElementById('buddy-messages');
-  var div = document.createElement('div');
-  div.className = 'buddy-msg user';
-  div.style.maxWidth = '92%';
-  div.style.alignSelf = 'stretch';
-  div.innerHTML =
-    '<div style="width:100%;background:white;border-radius:16px;padding:16px;box-shadow:0 2px 10px rgba(0,0,0,0.06);border:2px solid #f0e0ea;">' +
-      '<div style="font-weight:800;font-size:0.85rem;color:#d63384;margin-bottom:8px;"><i class="far fa-comment-dots" style="margin-right:4px;"></i>みんなに相談・提案</div>' +
-      '<div style="font-size:0.72rem;color:#999;margin-bottom:10px;">投稿は匿名で健康推進メンバーとみんなに共有されます</div>' +
-      '<textarea id="inline-consult-input" rows="3" placeholder="体調や気になること、職場への提案など..." style="width:100%;border:1.5px solid #eee;border-radius:10px;padding:10px;font-size:0.85rem;resize:none;outline:none;font-family:inherit;box-sizing:border-box;" onfocus="this.style.borderColor=\'#d63384\'" onblur="this.style.borderColor=\'#eee\'"></textarea>' +
-      '<button onclick="submitInlineConsult(this)" style="width:100%;margin-top:8px;padding:12px;background:linear-gradient(135deg,#d63384,#e91e8c);color:white;border:none;border-radius:12px;font-size:0.88rem;font-weight:700;cursor:pointer;font-family:inherit;"><i class="fas fa-paper-plane" style="margin-right:6px;"></i>送信する</button>' +
-    '</div>';
-  msgs.appendChild(div);
-  msgs.scrollTop = msgs.scrollHeight;
-  setTimeout(function() { document.getElementById('inline-consult-input').focus(); }, 100);
+  addBuddyMessage('ai', 'みんなに共有したいことがあるんだね！📢\n\n投稿は匿名だから安心してね🔒\nニックネームで表示されるよ。');
+  setTimeout(function() {
+    addBuddyMessage('ai', 'どんなことを共有したい？');
+    addBuddyInlineQuick(
+      '<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;padding:4px 0;">' +
+        '<div class="buddy-quick-btn" onclick="buddyConsultHint(\'体調\')">🤒 最近の体調</div>' +
+        '<div class="buddy-quick-btn" onclick="buddyConsultHint(\'職場\')">🏢 職場環境</div>' +
+        '<div class="buddy-quick-btn" onclick="buddyConsultHint(\'提案\')">💡 提案がある</div>' +
+        '<div class="buddy-quick-btn" onclick="buddyConsultHint(\'自由\')">✏️ 自由に書く</div>' +
+      '</div>'
+    );
+  }, 800);
 }
 
-function submitInlineConsult(btn) {
-  var input = document.getElementById('inline-consult-input');
-  var txt = input ? input.value.trim() : '';
-  if (!txt) return alert('内容を入力してください');
-  // フォームを送信済み表示に変更
-  var card = btn.closest('div[style*="border:2px"]') || btn.parentElement;
-  card.innerHTML = '<div style="text-align:center;padding:10px;"><i class="fas fa-spinner fa-spin" style="color:#d63384;font-size:1.2rem;"></i><div style="font-size:0.8rem;color:#999;margin-top:6px;">送信中...</div></div>';
-  processForm({ uid: currentUser.uid, nickname: currentUser.nickname, avatar: currentUser.avatar, honne: encodeURIComponent(txt), department: currentUser.department, birthDate: currentUser.birthDate }).then(function(res) {
-    showActionBar();
-    if (res && res.success) {
-      card.innerHTML = '<div style="text-align:center;padding:10px;"><i class="fas fa-check-circle" style="color:#20c997;font-size:1.5rem;"></i><div style="font-size:0.82rem;color:#333;font-weight:700;margin-top:6px;">送信しました！</div></div>';
-      updateHeaderStats();
-      setTimeout(function() {
-        addBuddyMessage('ai', '相談を受け付けたよ！健康推進メンバーが確認してくれるからね😊');
-        if (res.analysis) {
-          setTimeout(function() { addBuddyMessage('ai', '📝 AIからのコメント：\n' + res.analysis); }, 800);
-        }
-      }, 500);
-    } else {
-      card.innerHTML = '<div style="text-align:center;padding:10px;color:#e74c3c;"><i class="fas fa-exclamation-circle"></i> 送信に失敗しました</div>';
-    }
-  }).catch(function() {
-    showActionBar();
-    card.innerHTML = '<div style="text-align:center;padding:10px;color:#e74c3c;"><i class="fas fa-exclamation-circle"></i> 通信エラー</div>';
-  });
+function buddyConsultHint(type) {
+  markBuddyQuickUsed();
+  var hints = {
+    '体調': '🤒 体調のことを相談したい',
+    '職場': '🏢 職場環境のことで気になる',
+    '提案': '💡 提案がある',
+    '自由': '✏️ 自由に書きたい'
+  };
+  addBuddyMessage('user', hints[type]);
+  var prompts = {
+    '体調': 'どんな体調の変化が気になる？\n例えば「最近疲れやすい」「肩こりがひどい」など、気軽に教えてね😊',
+    '職場': '職場で気になっていることを教えてね！\n例えば「休憩スペースがほしい」「空調が寒い」など💬',
+    '提案': 'いいね！どんな提案？\n例えば「ストレッチタイムを作りたい」「健康メニューを増やしたい」など✨',
+    '自由': 'なんでも書いてね！\n体調のこと、職場のこと、気になること、なんでもOKだよ😊'
+  };
+  setTimeout(function() {
+    addBuddyMessage('ai', prompts[type] + '\n\n👇 下の入力欄に書いて送信してね');
+    document.getElementById('buddy-input').placeholder = '匿名でみんなに共有されます...';
+    document.getElementById('buddy-input').focus();
+  }, 600);
 }
 
 function inlineMemberConsult() {
+  _buddyCaptureMode = 'member_consult';
   hideActionBar();
-  var msgs = document.getElementById('buddy-messages');
-  var div = document.createElement('div');
-  div.className = 'buddy-msg user';
-  div.style.maxWidth = '92%';
-  div.style.alignSelf = 'stretch';
-  div.innerHTML =
-    '<div style="width:100%;background:white;border-radius:16px;padding:16px;box-shadow:0 2px 10px rgba(0,0,0,0.06);border:2px solid #f5deb3;">' +
-      '<div style="font-weight:800;font-size:0.85rem;color:#f39c12;margin-bottom:8px;"><i class="fas fa-shield-alt" style="margin-right:4px;"></i>推進メンバーに相談・提案</div>' +
-      '<div style="font-size:0.72rem;color:#999;margin-bottom:10px;">健康推進メンバーに直接届きます（バディー経由で匿名送信）</div>' +
-      '<textarea id="inline-member-consult-input" rows="3" placeholder="職場環境の改善提案、健康施策のリクエストなど..." style="width:100%;border:1.5px solid #eee;border-radius:10px;padding:10px;font-size:0.85rem;resize:none;outline:none;font-family:inherit;box-sizing:border-box;" onfocus="this.style.borderColor=\'#f39c12\'" onblur="this.style.borderColor=\'#eee\'"></textarea>' +
-      '<button onclick="submitInlineMemberConsult(this)" style="width:100%;margin-top:8px;padding:12px;background:linear-gradient(135deg,#f39c12,#f1c40f);color:white;border:none;border-radius:12px;font-size:0.88rem;font-weight:700;cursor:pointer;font-family:inherit;"><i class="fas fa-paper-plane" style="margin-right:6px;"></i>推進メンバーに送信</button>' +
-    '</div>';
-  msgs.appendChild(div);
-  msgs.scrollTop = msgs.scrollHeight;
-  setTimeout(function() { document.getElementById('inline-member-consult-input').focus(); }, 100);
+  addBuddyMessage('ai', '推進メンバーに直接届けたいことがあるんだね！🛡️\n\nバディー経由で届くから、気軽に相談してね。');
+  setTimeout(function() {
+    addBuddyMessage('ai', 'どんなことを伝えたい？\n\n例えば...\n・職場環境の改善リクエスト\n・健康施策への意見\n・困っていること\n\n👇 下の入力欄に書いて送信してね');
+    document.getElementById('buddy-input').placeholder = '推進メンバーに届きます...';
+    document.getElementById('buddy-input').focus();
+  }, 800);
 }
 
-function submitInlineMemberConsult(btn) {
-  var input = document.getElementById('inline-member-consult-input');
-  var txt = input ? input.value.trim() : '';
-  if (!txt) return alert('内容を入力してください');
-  var card = btn.closest('div[style*="border:2px"]') || btn.parentElement;
-  card.innerHTML = '<div style="text-align:center;padding:10px;"><i class="fas fa-spinner fa-spin" style="color:#f39c12;font-size:1.2rem;"></i><div style="font-size:0.8rem;color:#999;margin-top:6px;">送信中...</div></div>';
-  // お知らせAPIで推進メンバー全員に通知
-  var noticeContent = '【バディー経由の相談・提案】\n' + txt;
-  saveAdminNotice({ content: noticeContent, sender: currentUser.nickname || '匿名ユーザー', targetId: 'ADMIN' }).then(function(res) {
-    showActionBar();
-    if (res && res.success) {
-      card.innerHTML = '<div style="text-align:center;padding:10px;"><i class="fas fa-check-circle" style="color:#20c997;font-size:1.5rem;"></i><div style="font-size:0.82rem;color:#333;font-weight:700;margin-top:6px;">送信しました！</div></div>';
-      setTimeout(function() {
-        addBuddyMessage('ai', '推進メンバーに届けたよ！🛡️\nあなたの声が職場を変える力になるからね✨');
-      }, 500);
-    } else {
-      card.innerHTML = '<div style="text-align:center;padding:10px;color:#e74c3c;"><i class="fas fa-exclamation-circle"></i> 送信に失敗しました</div>';
-    }
-  }).catch(function() {
-    showActionBar();
-    card.innerHTML = '<div style="text-align:center;padding:10px;color:#e74c3c;"><i class="fas fa-exclamation-circle"></i> 通信エラー</div>';
-  });
+function handleCapturedMessage(msg) {
+  var mode = _buddyCaptureMode;
+  _buddyCaptureMode = null;
+  document.getElementById('buddy-input').placeholder = 'メッセージを入力...';
+  showActionBar();
+
+  if (mode === 'consult') {
+    addBuddyMessage('ai', '📨 投稿を送信中...');
+    processForm({ uid: currentUser.uid, nickname: currentUser.nickname, avatar: currentUser.avatar, honne: encodeURIComponent(msg), department: currentUser.department, birthDate: currentUser.birthDate }).then(function(res) {
+      // 送信中メッセージを除去
+      var msgs = document.getElementById('buddy-messages');
+      var last = msgs.lastElementChild;
+      if (last && last.textContent.indexOf('送信中') !== -1) last.remove();
+      if (res && res.success) {
+        updateHeaderStats();
+        addBuddyMessage('ai', '投稿できたよ！✅\nみんなに共有されて、健康推進メンバーも確認してくれるからね😊');
+        if (res.analysis) {
+          setTimeout(function() { addBuddyMessage('ai', '📝 AIからのコメント：\n' + res.analysis); }, 800);
+        }
+      } else {
+        addBuddyMessage('ai', '😅 送信がうまくいかなかったみたい。もう一度試してみてね。');
+      }
+    }).catch(function() {
+      addBuddyMessage('ai', '😅 通信エラーが発生したよ。もう一度試してみてね。');
+    });
+  } else if (mode === 'member_consult') {
+    addBuddyMessage('ai', '🛡️ 推進メンバーに送信中...');
+    var noticeContent = '【バディー経由の相談・提案】\n' + msg;
+    saveAdminNotice({ content: noticeContent, sender: currentUser.nickname || '匿名ユーザー', targetId: 'ADMIN' }).then(function(res) {
+      var msgs = document.getElementById('buddy-messages');
+      var last = msgs.lastElementChild;
+      if (last && last.textContent.indexOf('送信中') !== -1) last.remove();
+      if (res && res.success) {
+        addBuddyMessage('ai', '推進メンバーに届けたよ！✅\nあなたの声が職場を変える力になるからね✨');
+      } else {
+        addBuddyMessage('ai', '😅 送信がうまくいかなかったみたい。もう一度試してみてね。');
+      }
+    }).catch(function() {
+      addBuddyMessage('ai', '😅 通信エラーが発生したよ。もう一度試してみてね。');
+    });
+  }
 }
 
 function inlineFoodCheck() {
@@ -5257,6 +5263,13 @@ function sendBuddyMessage() {
   input.value = '';
 
   addBuddyMessage('user', msg);
+
+  // キャプチャモード中 → 相談/推進メンバー送信として処理
+  if (_buddyCaptureMode) {
+    handleCapturedMessage(msg);
+    return;
+  }
+
   buddyAskAI('free', msg);
 }
 

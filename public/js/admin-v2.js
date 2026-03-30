@@ -112,7 +112,12 @@ function renderCheckupTimelineChart(timeline) {
         datalabels: { display: false }
       },
       scales: {
-        y: { beginAtZero: true, max: 100, ticks: { font: { size: 10 }, callback: function(v) { return v + '%'; } }, title: { display: true, text: '異常率(%)', font: { size: 10 } } },
+        y: {
+          beginAtZero: true,
+          suggestedMax: Math.ceil(Math.max.apply(null, datasets.reduce(function(a, d) { return a.concat(d.data); }, []).concat([10])) / 10) * 10 + 10,
+          ticks: { font: { size: 10 }, stepSize: 5, callback: function(v) { return v + '%'; } },
+          title: { display: true, text: '異常率(%)', font: { size: 10 } }
+        },
         x: { ticks: { font: { size: 10 } } }
       },
       interaction: { mode: 'index', intersect: false }

@@ -3934,7 +3934,7 @@ function startBuddyChat(buddyData) {
           // カスタマイズ案内（非表示設定されていなければ）
           if (!localStorage.getItem('co_heart_buddy_setup_hidden')) {
             setTimeout(function() {
-              addBuddyMessage('ai', '🎨 バディーの名前・見た目・性格をカスタマイズできるよ！');
+              addBuddyMessage('ai', '🎨 そういえば、バディーの名前・見た目・性格をカスタマイズできるよ！');
               showBuddySetupPromptWithDismiss();
             }, 1000);
           }
@@ -3979,7 +3979,7 @@ function startBuddyChatFresh(buddyData) {
       setTimeout(function() {
         addBuddyMessage('ai', 'はじめに少しだけ、このアプリの仕組みを紹介させてね！\n\n🤖 私（バディー）は「あなた個人」の健康アドバイスが得意だよ。体調相談、食事、睡眠、なんでも聞いてね！\n\n🛡️ でも「職場の環境を変えたい」時は推進メンバーの出番！チャットの中で「推進メンバーに相談」を選ぶと、あなたの声が届くよ。\n\n📢→🗳️→💪 届いた声はテーマ候補になって、みんなの投票でチャレンジに変わるんだ！\n\nあなたの一言が、職場を変える力になるよ✨');
         setTimeout(function() {
-          addBuddyMessage('ai', '🎨 ところで、私の見た目や名前、性格はカスタマイズできるよ！\n自分だけのバディーにしてみない？');
+          addBuddyMessage('ai', '🎨 そういえば、バディーの名前・見た目・性格をカスタマイズできるよ！\n自分だけのバディーにしてみない？');
           showBuddySetupPromptWithDismiss();
           setTimeout(function() {
             addBuddyMessage('ai', 'さて、今日の調子はいかがですか？');
@@ -3996,7 +3996,7 @@ function startBuddyChatFresh(buddyData) {
     // カスタマイズ案内（「表示しない」を選ぶまで毎回表示）
     if (!localStorage.getItem('co_heart_buddy_setup_hidden')) {
       setTimeout(function() {
-        addBuddyMessage('ai', '🎨 バディーの名前・見た目・性格をカスタマイズできるよ！');
+        addBuddyMessage('ai', '🎨 そういえば、バディーの名前・見た目・性格をカスタマイズできるよ！');
         showBuddySetupPromptWithDismiss();
       }, 2000);
     }

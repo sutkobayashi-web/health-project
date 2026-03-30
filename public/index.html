@@ -3972,8 +3972,8 @@ function startBuddyChatFresh(buddyData) {
       setTimeout(function() {
         addBuddyMessage('ai', 'はじめに少しだけ、このアプリの仕組みを紹介させてね！\n\n🤖 私（バディー）は「あなた個人」の健康アドバイスが得意だよ。体調相談、食事、睡眠、なんでも聞いてね！\n\n🛡️ でも「職場の環境を変えたい」時は推進メンバーの出番！チャットの中で「推進メンバーに相談」を選ぶと、あなたの声が届くよ。\n\n📢→🗳️→💪 届いた声はテーマ候補になって、みんなの投票でチャレンジに変わるんだ！\n\nあなたの一言が、職場を変える力になるよ✨');
         setTimeout(function() {
-          addBuddyMessage('ai', 'ところで、私の見た目や名前、性格はカスタマイズできるよ！🎨\n\n自分だけのバディーにしてみない？');
-          showBuddySetupPrompt();
+          addBuddyMessage('ai', '🎨 ところで、私の見た目や名前、性格はカスタマイズできるよ！\n自分だけのバディーにしてみない？');
+          showBuddySetupPromptWithDismiss();
           setTimeout(function() {
             addBuddyMessage('ai', 'さて、今日の調子はいかがですか？');
             loadBuddyNotices();
@@ -3986,12 +3986,11 @@ function startBuddyChatFresh(buddyData) {
 
     msg += '\n\nさて、今日の調子はいかがですか？';
     addBuddyMessage('ai', msg);
-    // まだカスタマイズしていない場合 → カスタマイズを案内（1度だけ）
-    if (!localStorage.getItem('co_heart_buddy_customized') && !localStorage.getItem('co_heart_buddy_setup_prompted')) {
-      localStorage.setItem('co_heart_buddy_setup_prompted', '1');
+    // カスタマイズ案内（「表示しない」を選ぶまで毎回表示）
+    if (!localStorage.getItem('co_heart_buddy_setup_hidden')) {
       setTimeout(function() {
-        addBuddyMessage('ai', '💡 そういえば、私のことまだカスタマイズしてないよね？\n名前・見た目・性格を変えて、自分だけのバディーにできるよ！');
-        showBuddySetupPrompt();
+        addBuddyMessage('ai', '🎨 バディーの名前・見た目・性格をカスタマイズできるよ！');
+        showBuddySetupPromptWithDismiss();
       }, 2000);
     }
     loadBuddyNotices();
@@ -4215,6 +4214,10 @@ function formatBuddyText(text) {
 }
 
 function showBuddySetupPrompt() {
+  showBuddySetupPromptWithDismiss();
+}
+
+function showBuddySetupPromptWithDismiss() {
   var msgs = document.getElementById('buddy-messages');
   var div = document.createElement('div');
   div.className = 'buddy-msg ai';
@@ -4222,16 +4225,31 @@ function showBuddySetupPrompt() {
   var buddyData = null;
   try { buddyData = JSON.parse(localStorage.getItem('co_heart_buddy')); } catch(e) {}
   var aiAvatar = buddyData ? getAvatarHtml(buddyData.avatar, 38) : '<i class="fas fa-robot"></i>';
+  var dismissId = 'buddy-dismiss-' + Date.now();
   div.innerHTML = '<div class="buddy-avatar">' + aiAvatar + '</div>' +
     '<div style="flex:1;min-width:0;">' +
-      '<button onclick="openBuddySetup()" style="display:flex;align-items:center;gap:10px;width:100%;padding:14px 16px;background:linear-gradient(135deg,#0ea5e9,#0284c7);color:white;border:none;border-radius:16px;font-size:0.88rem;font-weight:700;cursor:pointer;box-shadow:0 3px 12px rgba(14,165,233,0.3);transition:transform 0.15s;font-family:inherit;" onmousedown="this.style.transform=\'scale(0.97)\'" onmouseup="this.style.transform=\'scale(1)\'">' +
+      '<button onclick="openBuddySetup()" style="display:flex;align-items:center;gap:10px;width:100%;padding:14px 16px;background:linear-gradient(135deg,#0ea5e9,#0284c7);color:white;border:none;border-radius:16px;font-size:0.88rem;font-weight:700;cursor:pointer;box-shadow:0 3px 12px rgba(14,165,233,0.3);transition:transform 0.15s;font-family:inherit;">' +
         '<i class="fas fa-palette" style="font-size:1.2rem;"></i>' +
         '<span>バディーをカスタマイズする</span>' +
         '<i class="fas fa-chevron-right" style="margin-left:auto;opacity:0.7;"></i>' +
       '</button>' +
+      '<label id="' + dismissId + '" style="display:flex;align-items:center;gap:6px;margin-top:8px;cursor:pointer;font-size:0.75rem;color:#999;">' +
+        '<input type="checkbox" onchange="dismissBuddySetupPrompt(this)" style="width:auto;margin:0;transform:scale(1.2);accent-color:#0ea5e9;">' +
+        '<span>次回から表示しない</span>' +
+      '</label>' +
     '</div>';
   msgs.appendChild(div);
   msgs.scrollTop = msgs.scrollHeight;
+}
+
+function dismissBuddySetupPrompt(checkbox) {
+  if (checkbox.checked) {
+    localStorage.setItem('co_heart_buddy_setup_hidden', '1');
+    var label = checkbox.closest('label');
+    if (label) label.innerHTML = '<i class="fas fa-check" style="color:#0ea5e9;"></i> <span>次回から非表示にしました</span>';
+  } else {
+    localStorage.removeItem('co_heart_buddy_setup_hidden');
+  }
 }
 
 function addBuddyMessage(role, text) {

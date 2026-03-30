@@ -19,12 +19,27 @@ function runCheckupAnalysis() {
 
     var s = data.summary;
     var a = data.analysis;
-    var html = '<div style="border-top:1px solid #eee; padding-top:16px; margin-top:8px;">';
-    html += '<div class="fw-bold" style="font-size:0.95rem; margin-bottom:10px;"><i class="fas fa-chart-bar text-danger me-2"></i>分析レポート（' + escapeHtml(data.year) + '）</div>';
+    var riskBadges = (a && a.topRisks || []).map(function(r) { return '<span class="badge bg-danger me-1" style="font-size:0.65rem;">' + escapeHtml(r) + '</span>'; }).join('');
+
+    // サマリー行（常時表示）
+    var html = '<div style="border-top:1px solid #eee; padding-top:12px; margin-top:8px;">';
+    html += '<div onclick="toggleCheckupDetail()" style="cursor:pointer; display:flex; align-items:center; justify-content:space-between; padding:8px 0;">';
+    html += '<div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">';
+    html += '<span style="font-size:0.8rem; font-weight:700; color:#e53935;"><i class="fas fa-chart-bar me-1"></i>' + escapeHtml(data.year) + '年度</span>';
+    html += '<span style="font-size:0.75rem; color:#666;">' + s.total + '名 / 平均' + s.averageAge + '歳</span>';
+    html += '<span style="font-size:0.75rem; color:#666;">BMI25↑: <strong>' + s.bmiOver25Pct + '%</strong></span>';
+    html += riskBadges;
+    html += '</div>';
+    html += '<i id="checkup-chevron" class="fas fa-chevron-down" style="font-size:0.7rem; color:#bbb; transition:transform 0.2s;"></i>';
+    html += '</div>';
+    html += '<div style="font-size:0.68rem; color:#999; margin-top:-4px; margin-bottom:4px;"><i class="fas fa-info-circle me-1"></i>推進メンバーへの参考資料です。クリックで詳細を表示</div>';
+
+    // 詳細（折りたたみ）
+    html += '<div id="checkup-detail" style="display:none; margin-top:10px;">';
 
     // 集計
     html += '<div class="p-2 mb-3" style="background:#fff3e0;border-radius:10px;border-left:3px solid #ff9800;">';
-    html += '<div class="fw-bold small text-warning mb-1"><i class="fas fa-chart-bar me-1"></i>集計結果（' + s.total + '名 / 平均' + s.averageAge + '歳）</div>';
+    html += '<div class="fw-bold small text-warning mb-1"><i class="fas fa-chart-bar me-1"></i>集計結果</div>';
     html += '<div class="row g-2 small">';
     html += '<div class="col-4">BMI25↑: <strong>' + s.bmiOver25Pct + '%</strong></div>';
     Object.keys(s.rates).forEach(function(k) {
@@ -35,7 +50,7 @@ function runCheckupAnalysis() {
     if (a) {
       // 全体所見
       html += '<div class="mb-2 small"><strong>所見:</strong> ' + escapeHtml(a.summary || '') + '</div>';
-      html += '<div class="mb-3 small"><strong>重点リスク:</strong> ' + (a.topRisks || []).map(function(r) { return '<span class="badge bg-danger me-1">' + escapeHtml(r) + '</span>'; }).join('') + '</div>';
+      html += '<div class="mb-3 small"><strong>重点リスク:</strong> ' + riskBadges + '</div>';
 
       // 3パターン
       (a.plans || []).forEach(function(p, i) {
@@ -66,13 +81,22 @@ function runCheckupAnalysis() {
       }
     }
 
-    html += '</div>';
+    html += '</div></div>';
     area.innerHTML = html;
   }).catch(function(e) {
     btn.disabled = false;
     btn.innerHTML = '<i class="fas fa-play me-1"></i>分析実行';
     area.innerHTML = '<div class="alert alert-danger">通信エラー: ' + e.message + '</div>';
   });
+}
+
+function toggleCheckupDetail() {
+  var detail = document.getElementById('checkup-detail');
+  var chevron = document.getElementById('checkup-chevron');
+  if (!detail) return;
+  var open = detail.style.display !== 'none';
+  detail.style.display = open ? 'none' : 'block';
+  if (chevron) chevron.style.transform = open ? '' : 'rotate(180deg)';
 }
 
 // ============================================================

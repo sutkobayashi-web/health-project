@@ -446,10 +446,20 @@ router.get('/company-analysis', async (req, res) => {
       var tlText = timeline.map(function(t) {
         return t.year + ': 🔴' + (t.summary.redTotal||0) + ' 🟡' + (t.summary.yellow||0) + ' BMI25↑' + t.summary.bmiOver25Pct + '% 高血圧' + (t.summary.rates.高血圧||0) + '% 脂質' + (t.summary.rates.脂質異常||0) + '% 高血糖' + (t.summary.rates.高血糖||0) + '%';
       }).join('\n');
-      var prompt = '運輸業(ドライバー中心)の全社健診データに基づき、推進メンバーが検討する参考として3つの施策案をJSON配列で出力。各案はtitle(10字以内)とdesc(30字以内)のみ。\n' +
-        '【最新】' + summary.total + '名 平均' + summary.averageAge + '歳 🔴' + (summary.redTotal||0) + ' 🟡' + (summary.yellow||0) + ' BMI25↑' + summary.bmiOver25Pct + '% 肥満' + summary.rates.肥満 + '% 高血圧' + summary.rates.高血圧 + '% 脂質' + summary.rates.脂質異常 + '% 高血糖' + summary.rates.高血糖 + '% 肝機能' + summary.rates.肝機能 + '%\n' +
-        '【経年】\n' + tlText + '\n' +
-        '出力: [{"title":"...","desc":"..."},{"title":"...","desc":"..."},{"title":"...","desc":"..."}]';
+      var prompt = '運輸業(トラックドライバー中心、平均年齢' + summary.averageAge + '歳)の全社健診データに基づき、健康推進メンバーがボトムアップで検討する参考として3つの施策案をJSON配列で出力してください。\n' +
+        '素人にもわかりやすく、具体的に書いてください。\n\n' +
+        '【最新年度】' + summary.total + '名\n' +
+        'レッドカード(死の四重奏+三重奏): ' + (summary.redTotal||0) + '名\n' +
+        'イエローカード(予備軍): ' + (summary.yellow||0) + '名\n' +
+        'BMI25↑: ' + summary.bmiOver25Pct + '% / 肥満: ' + summary.rates.肥満 + '% / 高血圧: ' + summary.rates.高血圧 + '% / 脂質異常: ' + summary.rates.脂質異常 + '% / 高血糖: ' + summary.rates.高血糖 + '% / 肝機能: ' + summary.rates.肝機能 + '% / 腎機能: ' + summary.rates.腎機能 + '% / 貧血: ' + summary.rates.貧血 + '%\n\n' +
+        '【経年推移】\n' + tlText + '\n\n' +
+        '【出力形式】JSON配列のみ。各案に以下5項目:\n' +
+        '- title: 施策名（15字以内）\n' +
+        '- why: なぜこの施策が必要か（データの根拠を含め40字以内）\n' +
+        '- who: 対象者（20字以内）\n' +
+        '- what: 具体的にやること（50字以内、ドライバーが実践しやすい内容）\n' +
+        '- effect: 期待される効果（30字以内）\n\n' +
+        '出力例: [{"title":"...","why":"...","who":"...","what":"...","effect":"..."}]';
       var aiRes = await callAIWithFallback('JSON配列のみ出力。余計なテキスト不要。', prompt);
       if (aiRes) {
         var m = aiRes.match(/\[[\s\S]*\]/);

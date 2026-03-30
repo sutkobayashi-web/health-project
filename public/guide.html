@@ -1626,6 +1626,58 @@ body {
   </div>
 </div>
 
+<!-- ====== セクション18-2: オンラインヒート表示（管理画面） ====== -->
+<div class="guide-card theme-red" data-keywords="オンライン ヒート 管理画面 リアルタイム アクティブ ダッシュボード 温度">
+  <div class="guide-card-header">
+    <div class="guide-card-icon"><i class="fas fa-fire"></i></div>
+    <div class="guide-card-title">セクション18-2: オンラインヒート表示</div>
+  </div>
+  <div class="guide-card-body">
+    <p>管理画面（<code>/admin</code>）のダッシュボード最上部に、<strong>現在アプリを利用中のユーザー数</strong>をリアルタイムで温度表現するパネルです。</p>
+
+    <h4 style="color:#ef4444; margin-top:16px;"><i class="fas fa-thermometer-half me-2"></i>ヒートレベル</h4>
+    <table class="guide-table">
+      <thead>
+        <tr><th>アイコン</th><th>人数</th><th>状態</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>❄️</td><td>0人</td><td>オフライン</td></tr>
+        <tr><td>🟢</td><td>1〜3人</td><td>静か</td></tr>
+        <tr><td>🔥</td><td>4〜8人</td><td>アクティブ</td></tr>
+        <tr><td>🔥🔥</td><td>9〜15人</td><td>盛り上がり中</td></tr>
+        <tr><td>🔥🔥🔥</td><td>16人以上</td><td>大盛況！</td></tr>
+      </tbody>
+    </table>
+
+    <h4 style="color:#ef4444; margin-top:16px;"><i class="fas fa-eye me-2"></i>表示内容</h4>
+    <table class="guide-table">
+      <thead>
+        <tr><th>要素</th><th>説明</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>ヒートアイコン＋人数</strong></td><td>現在のオンラインユーザー数を温度アイコンで表現。盛り上がり時はグローアニメーション付き</td></tr>
+        <tr><td><strong>ミニアバター列</strong></td><td>オンラインユーザーのアバターを最大8人まで横並び表示。誰がいるか一目で判別可能</td></tr>
+        <tr><td><strong>ヒートバー</strong></td><td>人数に応じて幅と色が変化するプログレスバー（青→黄→赤のグラデーション）</td></tr>
+        <tr><td><strong>部署別内訳</strong></td><td>パネルをクリックすると展開。どの部署から何人が利用中かをバッジで表示</td></tr>
+        <tr><td><strong>ユーザーリスト</strong></td><td>展開時にオンライン全ユーザーをアバター付きグリッドで一覧表示</td></tr>
+      </tbody>
+    </table>
+
+    <h4 style="color:#ef4444; margin-top:16px;"><i class="fas fa-cogs me-2"></i>仕組み</h4>
+    <ul>
+      <li>ユーザーがアプリにログインすると、<strong>60秒ごと</strong>にサーバーにheartbeat（生存信号）を自動送信</li>
+      <li>サーバーは<strong>3分以内</strong>にheartbeatがあったユーザーを「オンライン」と判定</li>
+      <li>管理画面は<strong>30秒ごと</strong>に最新データを自動取得し、パネルを更新</li>
+      <li>10分以上heartbeatのないユーザーのデータはサーバーメモリから自動削除</li>
+    </ul>
+
+    <div class="tip-box">
+      <i class="fas fa-lightbulb" style="color:#f59e0b;"></i>
+      推進メンバーが「今、誰がアプリを使っているか」を把握できるため、リアルタイムでのメッセージ配信やチャレンジ促進の<strong>タイミング判断</strong>に活用できます。
+    </div>
+  </div>
+</div>
+
 <!-- ============================================================ -->
 <!-- 技術基盤セクション（19〜20）                                 -->
 <!-- ============================================================ -->

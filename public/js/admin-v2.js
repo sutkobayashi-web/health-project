@@ -56,7 +56,7 @@ function runCheckupAnalysis() {
       html += '</div>';
 
       html += '<div id="checkup-detail" style="display:none; margin-top:6px;">';
-      html += '<canvas id="checkup-timeline-chart" height="160"></canvas>';
+      html += '<div style="position:relative; height:200px; max-height:200px;"><canvas id="checkup-timeline-chart"></canvas></div>';
       html += '<div style="overflow-x:auto; margin-top:8px;">';
       html += '<table style="width:100%; border-collapse:collapse; font-size:0.7rem; text-align:center;">';
       html += '<thead><tr style="background:#667eea; color:white;"><th style="padding:4px 6px;">年度</th><th style="padding:4px 6px;">人数</th><th style="padding:4px 6px;">平均年齢</th><th style="padding:4px 6px;">BMI25↑</th>';

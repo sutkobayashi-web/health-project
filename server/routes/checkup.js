@@ -335,6 +335,7 @@ function aggregateCheckupData(allData) {
   var bmiOver25 = 0;
   var ageSum = 0, ageCount = 0;
 
+  var redQuartet = 0, redTrio = 0, yellow = 0;
   allData.forEach(function(d) {
     if (isAbnormal(d.肥満判定)) counts.肥満++;
     if (isAbnormal(d.高血圧判定)) counts.高血圧++;
@@ -347,6 +348,14 @@ function aggregateCheckupData(allData) {
     if (!isNaN(bmi) && bmi >= 25) bmiOver25++;
     var age = parseInt(d.年齢);
     if (!isNaN(age)) { ageSum += age; ageCount++; }
+    // レッドカード・イエローカード判定
+    var ob = isAbnormal(d.肥満判定);
+    var bp = isAbnormal(d.高血圧判定);
+    var lip = isAbnormal(d.脂質異常判定);
+    var glu = isAbnormal(d.高血糖判定);
+    if (ob && bp && lip && glu) { redQuartet++; }
+    else if (bp && lip && glu) { redTrio++; }
+    else if ((ob ? 1 : 0) + (bp ? 1 : 0) + (lip ? 1 : 0) + (glu ? 1 : 0) >= 1) { yellow++; }
   });
 
   return {
@@ -355,7 +364,11 @@ function aggregateCheckupData(allData) {
     bmiOver25: bmiOver25,
     bmiOver25Pct: Math.round(bmiOver25 / total * 100),
     counts: counts,
-    rates: Object.fromEntries(Object.entries(counts).map(function(e) { return [e[0], Math.round(e[1] / total * 100)]; }))
+    rates: Object.fromEntries(Object.entries(counts).map(function(e) { return [e[0], Math.round(e[1] / total * 100)]; })),
+    redQuartet: redQuartet,
+    redTrio: redTrio,
+    redTotal: redQuartet + redTrio,
+    yellow: yellow
   };
 }
 

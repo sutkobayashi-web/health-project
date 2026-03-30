@@ -21,25 +21,55 @@ function runCheckupAnalysis() {
     var tl = data.timeline || [];
     var cats = ['肥満','高血圧','脂質異常','高血糖','肝機能','腎機能','貧血'];
 
-    // 最新年度サマリー＋前年比
-    var html = '<div style="border-top:1px solid #eee; padding-top:12px; margin-top:8px;">';
-    html += '<div style="font-size:0.68rem; color:#999; margin-bottom:8px;"><i class="fas fa-info-circle me-1"></i>推進メンバーへの参考資料（数値サマリー）</div>';
-
-    // 最新年度の数値カード
-    html += '<div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px;">';
-    var items = [{ label: '対象', val: s.total + '名' }, { label: '平均年齢', val: s.averageAge + '歳' }, { label: 'BMI25↑', val: s.bmiOver25Pct + '%' }];
-    cats.forEach(function(c) { items.push({ label: c, val: (s.rates[c] || 0) + '%' }); });
-
-    // 前年度データがあれば差分を計算
     var prev = tl.length >= 2 ? tl[tl.length - 2].summary : null;
+    function diffBadge(cur, prv) {
+      if (prv === null || prv === undefined) return '';
+      var d = cur - prv;
+      if (d > 0) return '<span style="color:#e53935; font-size:0.6rem; font-weight:700;"> +' + d + '</span>';
+      if (d < 0) return '<span style="color:#43a047; font-size:0.6rem; font-weight:700;"> ' + d + '</span>';
+      return '<span style="color:#999; font-size:0.6rem;"> ±0</span>';
+    }
+
+    var html = '<div style="border-top:1px solid #eee; padding-top:12px; margin-top:8px;">';
+    html += '<div style="font-size:0.68rem; color:#999; margin-bottom:10px;"><i class="fas fa-info-circle me-1"></i>推進メンバーへの参考資料（数値サマリー）</div>';
+
+    // レッドカード・イエローカード
+    html += '<div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px;">';
+    // レッドカード
+    html += '<div style="background:linear-gradient(135deg,#fef2f2,#fecaca); border:1.5px solid #ef4444; border-radius:10px; padding:10px 14px; flex:1; min-width:140px;">';
+    html += '<div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">';
+    html += '<span style="font-size:1.1rem;">🔴</span>';
+    html += '<span style="font-size:0.78rem; font-weight:800; color:#dc2626;">レッドカード</span>';
+    html += '<span style="font-size:1.2rem; font-weight:900; color:#dc2626; margin-left:auto;">' + (s.redTotal || 0) + '<span style="font-size:0.7rem; font-weight:600;">名</span></span>';
+    if (prev) html += diffBadge(s.redTotal || 0, prev.redTotal || 0);
+    html += '</div>';
+    html += '<div style="font-size:0.65rem; color:#555; line-height:1.5;">';
+    html += '<div>死の四重奏（肥満+高血圧+高血糖+脂質異常）: <strong style="color:#dc2626;">' + (s.redQuartet || 0) + '名</strong></div>';
+    html += '<div>死の三重奏（高血圧+高血糖+脂質異常）: <strong style="color:#dc2626;">' + (s.redTrio || 0) + '名</strong></div>';
+    html += '</div></div>';
+    // イエローカード
+    html += '<div style="background:linear-gradient(135deg,#fffbeb,#fef3c7); border:1.5px solid #f59e0b; border-radius:10px; padding:10px 14px; flex:1; min-width:140px;">';
+    html += '<div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">';
+    html += '<span style="font-size:1.1rem;">🟡</span>';
+    html += '<span style="font-size:0.78rem; font-weight:800; color:#d97706;">イエローカード</span>';
+    html += '<span style="font-size:1.2rem; font-weight:900; color:#d97706; margin-left:auto;">' + (s.yellow || 0) + '<span style="font-size:0.7rem; font-weight:600;">名</span></span>';
+    if (prev) html += diffBadge(s.yellow || 0, prev.yellow || 0);
+    html += '</div>';
+    html += '<div style="font-size:0.65rem; color:#555; line-height:1.5;">';
+    html += '<div>レッドカード予備軍（肥満・高血圧・高血糖・脂質異常のいずれか1項目以上）</div>';
+    html += '</div></div>';
+    html += '</div>';
+
+    // 異常率カード
+    html += '<div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px;">';
+    var items = [{ label: '対象', val: s.total + '名', key: null }, { label: '平均年齢', val: s.averageAge + '歳', key: null }, { label: 'BMI25↑', val: s.bmiOver25Pct + '%', key: 'bmi' }];
+    cats.forEach(function(c) { items.push({ label: c, val: (s.rates[c] || 0) + '%', key: c }); });
     items.forEach(function(item) {
       var diff = '';
-      if (prev && item.label !== '対象' && item.label !== '平均年齢') {
-        var curVal = item.label === 'BMI25↑' ? s.bmiOver25Pct : (s.rates[item.label] || 0);
-        var prevVal = item.label === 'BMI25↑' ? prev.bmiOver25Pct : (prev.rates[item.label] || 0);
-        var d = curVal - prevVal;
-        if (d > 0) diff = '<span style="color:#e53935; font-size:0.6rem; font-weight:700;"> +' + d + '</span>';
-        else if (d < 0) diff = '<span style="color:#43a047; font-size:0.6rem; font-weight:700;"> ' + d + '</span>';
+      if (prev && item.key) {
+        var curVal = item.key === 'bmi' ? s.bmiOver25Pct : (s.rates[item.key] || 0);
+        var prevVal = item.key === 'bmi' ? prev.bmiOver25Pct : (prev.rates[item.key] || 0);
+        diff = diffBadge(curVal, prevVal);
       }
       html += '<div style="background:#f8f9fa; border-radius:10px; padding:6px 10px; text-align:center; min-width:60px;">';
       html += '<div style="font-size:0.6rem; color:#999; font-weight:600;">' + item.label + '</div>';
@@ -51,22 +81,24 @@ function runCheckupAnalysis() {
     // 経年推移テーブル（2年度以上）
     if (tl.length >= 2) {
       html += '<div onclick="toggleCheckupDetail()" style="cursor:pointer; display:flex; align-items:center; gap:6px; padding:6px 0;">';
-      html += '<span style="font-size:0.75rem; font-weight:700; color:#667eea;"><i class="fas fa-chart-line me-1"></i>経年推移（' + escapeHtml(tl[0].year) + '〜' + escapeHtml(tl[tl.length-1].year) + '）</span>';
+      html += '<span style="font-size:0.75rem; font-weight:700; color:#667eea;"><i class="fas fa-table me-1"></i>経年推移（' + escapeHtml(tl[0].year) + '〜' + escapeHtml(tl[tl.length-1].year) + '）</span>';
       html += '<i id="checkup-chevron" class="fas fa-chevron-down" style="font-size:0.65rem; color:#bbb; transition:transform 0.2s;"></i>';
       html += '</div>';
 
       html += '<div id="checkup-detail" style="display:none; margin-top:6px;">';
       html += '<div style="overflow-x:auto;">';
       html += '<table style="width:100%; border-collapse:collapse; font-size:0.7rem; text-align:center;">';
-      html += '<thead><tr style="background:#667eea; color:white;"><th style="padding:4px 6px;">年度</th><th style="padding:4px 6px;">人数</th><th style="padding:4px 6px;">平均年齢</th><th style="padding:4px 6px;">BMI25↑</th>';
+      html += '<thead><tr style="background:#667eea; color:white;"><th style="padding:4px 6px;">年度</th><th style="padding:4px 6px;">人数</th><th style="padding:4px 6px;">🔴</th><th style="padding:4px 6px;">🟡</th><th style="padding:4px 6px;">BMI25↑</th>';
       cats.forEach(function(c) { html += '<th style="padding:4px 6px;">' + c + '</th>'; });
       html += '</tr></thead><tbody>';
       tl.forEach(function(t, idx) {
         var bg = idx % 2 === 0 ? '#fff' : '#f0f4ff';
         var isLatest = idx === tl.length - 1;
-        html += '<tr style="background:' + bg + ';' + (isLatest ? 'font-weight:700;' : '') + '"><td style="padding:4px 6px;">' + escapeHtml(t.year) + (isLatest ? ' ★' : '') + '</td>';
+        html += '<tr style="background:' + bg + ';' + (isLatest ? 'font-weight:700;' : '') + '">';
+        html += '<td style="padding:4px 6px;">' + escapeHtml(t.year) + (isLatest ? ' ★' : '') + '</td>';
         html += '<td style="padding:4px 6px;">' + t.summary.total + '</td>';
-        html += '<td style="padding:4px 6px;">' + t.summary.averageAge + '</td>';
+        html += '<td style="padding:4px 6px; color:#dc2626; font-weight:700;">' + (t.summary.redTotal || 0) + '</td>';
+        html += '<td style="padding:4px 6px; color:#d97706; font-weight:700;">' + (t.summary.yellow || 0) + '</td>';
         html += '<td style="padding:4px 6px;">' + t.summary.bmiOver25Pct + '%</td>';
         cats.forEach(function(c) { html += '<td style="padding:4px 6px;">' + (t.summary.rates[c] || 0) + '%</td>'; });
         html += '</tr>';

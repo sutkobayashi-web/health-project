@@ -682,7 +682,7 @@
     <!-- チャットメッセージエリア -->
     <div style="flex:1;position:relative;overflow:hidden;">
       <div id="buddy-float-avatar"></div>
-      <div id="buddy-challenge-bar" style="display:none;position:absolute;top:8px;right:8px;z-index:10;"></div>
+      <!-- buddy-challenge-bar removed: チャレンジはインラインアクションバーに移行 -->
       <div id="buddy-messages" style="height:100%;overflow-y:auto;overscroll-behavior:contain;padding:12px;display:flex;flex-direction:column;gap:8px;"></div>
     </div>
     <!-- インラインアクションバー -->
@@ -4830,6 +4830,8 @@ function toggleChallengeTabDetail(cid) {
 
 // ===== チャレンジミニステータスバー =====
 function loadBuddyChallengeBar() {
+  // フローティングチャレンジバー廃止（インラインアクションバーに移行）
+  return;
   if (!currentUser || !currentUser.uid) return;
   var bar = document.getElementById('buddy-challenge-bar');
   if (!bar) return;

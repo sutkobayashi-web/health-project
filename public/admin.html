@@ -245,14 +245,53 @@
     .mail-box-switcher .btn { border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
 
     @media (max-width: 768px) {
-      .sidebar { width: 52px; }
-      .nav-item { width: 46px; }
+      /* サイドバーをボトムナビに変換 */
+      .main-container { flex-direction: column; }
+      .sidebar {
+        position: fixed; bottom: 0; left: 0; right: 0; top: auto;
+        width: 100% !important; height: auto !important;
+        flex-direction: row; overflow-x: auto; overflow-y: hidden;
+        padding: 4px 6px; gap: 2px; z-index: 200;
+        box-shadow: 0 -2px 12px rgba(0,0,0,0.15);
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+      }
+      .sidebar::-webkit-scrollbar { display: none; }
+      .nav-item {
+        width: auto; min-width: 52px; padding: 6px 4px;
+        flex-shrink: 0; border-left: none !important;
+        margin-left: 0 !important;
+      }
+      .nav-item.active { border-left: none; border-bottom: 2px solid #667eea; }
+      .nav-item:hover { transform: none; }
+      .nav-icon { font-size: 1rem; margin-bottom: 1px; }
       .nav-label { font-size: 0.45rem; }
-      /* prio-tab responsive - no special overrides needed for tab layout */
+      /* コンテンツ全幅 */
+      .content-area { padding: 12px 10px; padding-bottom: 70px; }
+      /* ヘッダー簡素化 */
+      .admin-header { padding: 0 10px; height: 46px; }
+      .app-name-main { font-size: 0.75rem; }
+      .app-name-sub { font-size: 0.55rem; }
+      .user-status-box { display: none !important; }
+      .btn-return span { display: none; }
+      .btn-return { padding: 5px 10px; }
+      /* セクション調整 */
+      .section-header .section-title { font-size: 0.9rem; }
+      .section-header .section-icon { width: 32px; height: 32px; font-size: 0.85rem; }
+      /* モーダル全画面化 */
+      .priority-modal { padding: 0 !important; }
+      .priority-modal > div { border-radius: 0 !important; max-height: 100vh !important; }
+      .prio-tab { font-size: 0.72rem; padding: 8px 10px; }
+      /* チャット調整 */
+      .deep-dive-container { max-height: calc(100vh - 200px) !important; }
+      .council-bubble { max-width: 85%; }
+      /* テーマモーダル */
       .theme-modal-body { flex-direction: column; }
       .theme-left-col, .theme-right-col { width: 100%; }
       .meeting-split { flex-direction: column; }
       .meeting-left { width: 100%; }
+      /* 区切り線を非表示 */
+      .sidebar > div[style*="border-top"] { display: none; }
     }
   </style>
 </head>

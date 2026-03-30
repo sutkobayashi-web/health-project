@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const { v4: uuidv4 } = require('uuid');
 const { getDb } = require('../services/db');
-const { generateToken, authUser } = require('../middleware/auth');
+const { generateToken, authUser, authAdmin } = require('../middleware/auth');
 const rateLimit = require('express-rate-limit');
 
 const router = express.Router();
@@ -383,7 +383,7 @@ router.post('/update-buddy', (req, res) => {
 // ユーザーオンライン状態管理（メモリ）
 const onlineUsers = {}; // { uid: { nickname, avatar, department, lastSeen } }
 
-router.post('/user-heartbeat', (req, res) => {
+router.post('/user-heartbeat', authUser, (req, res) => {
   const { uid, nickname, avatar, department } = req.body;
   if (!uid) return res.json({ success: false });
   onlineUsers[uid] = { nickname: nickname || '', avatar: avatar || '😀', department: department || '', lastSeen: Date.now() };
@@ -391,7 +391,7 @@ router.post('/user-heartbeat', (req, res) => {
 });
 
 // 管理者向け: オンラインユーザー一覧
-router.get('/online-users', (req, res) => {
+router.get('/online-users', authAdmin, (req, res) => {
   const now = Date.now();
   const threshold = 3 * 60 * 1000; // 3分以内をオンラインとする
   const users = Object.entries(onlineUsers)

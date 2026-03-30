@@ -7118,7 +7118,7 @@ function startUserHeartbeat() {
     if (!currentUser || !currentUser.uid) return;
     fetch('/api/auth/user-heartbeat', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
       body: JSON.stringify({ uid: currentUser.uid, nickname: currentUser.nickname, avatar: currentUser.avatar, department: currentUser.department || '' })
     }).catch(function(){});
   }

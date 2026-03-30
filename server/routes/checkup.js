@@ -7,7 +7,7 @@ const express = require('express');
 const router = express.Router();
 const fetch = require('node-fetch');
 const XLSX = require('xlsx');
-const { authUser } = require('../middleware/auth');
+const { authUser, authAdmin } = require('../middleware/auth');
 const { getBoxToken } = require('../services/backup');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
@@ -373,7 +373,7 @@ function aggregateCheckupData(allData) {
 }
 
 // Admin用: 全社健診分析 + AI 3パターン提案
-router.get('/company-analysis', async (req, res) => {
+router.get('/company-analysis', authAdmin, async (req, res) => {
   try {
     const token = await getBoxToken();
     const items = await boxListFolder(token, CHECKUP_FOLDER_ID);

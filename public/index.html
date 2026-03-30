@@ -685,6 +685,18 @@
       <div id="buddy-challenge-bar" style="display:none;position:absolute;top:8px;right:8px;z-index:10;"></div>
       <div id="buddy-messages" style="height:100%;overflow-y:auto;overscroll-behavior:contain;padding:12px;display:flex;flex-direction:column;gap:8px;"></div>
     </div>
+    <!-- インラインアクションバー -->
+    <div id="buddy-action-bar" style="flex-shrink:0;background:#f0f9ff;border-top:1px solid #e0e8f0;padding:6px 10px;display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;">
+      <button onclick="inlineConsult()" class="buddy-action-btn" style="display:flex;align-items:center;gap:5px;padding:8px 14px;background:linear-gradient(135deg,#ec407a,#f48fb1);color:white;border:none;border-radius:20px;font-size:0.75rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;box-shadow:0 2px 8px rgba(236,64,122,0.25);font-family:inherit;">
+        <i class="far fa-comment-dots"></i> みんなに相談・提案
+      </button>
+      <button onclick="inlineFoodCheck()" class="buddy-action-btn" style="display:flex;align-items:center;gap:5px;padding:8px 14px;background:linear-gradient(135deg,#20c997,#38d9a9);color:white;border:none;border-radius:20px;font-size:0.75rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;box-shadow:0 2px 8px rgba(32,201,151,0.25);font-family:inherit;">
+        <i class="fas fa-utensils"></i> 食事診断
+      </button>
+      <button onclick="inlineChallengeView()" class="buddy-action-btn" style="display:flex;align-items:center;gap:5px;padding:8px 14px;background:linear-gradient(135deg,#6c5ce7,#a29bfe);color:white;border:none;border-radius:20px;font-size:0.75rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;box-shadow:0 2px 8px rgba(108,92,231,0.25);font-family:inherit;">
+        <i class="fas fa-trophy"></i> 健康チャレンジを見る
+      </button>
+    </div>
     <!-- 入力バー -->
     <div style="flex-shrink:0;background:white;border-top:1px solid #eee;padding:8px 12px;">
       <div style="display:flex;align-items:center;gap:8px;">
@@ -4897,6 +4909,156 @@ function clearBuddyChat() {
       startBuddyChatFresh(buddyData || DEFAULT_BUDDY);
     }
   }).catch(function() {});
+}
+
+// ====== インラインアクション（チャット内で直接実行） ======
+function inlineConsult() {
+  // チャット内に相談入力フォームを表示
+  var msgs = document.getElementById('buddy-messages');
+  var div = document.createElement('div');
+  div.className = 'buddy-msg user';
+  div.style.maxWidth = '92%';
+  div.style.alignSelf = 'stretch';
+  div.innerHTML =
+    '<div style="width:100%;background:white;border-radius:16px;padding:16px;box-shadow:0 2px 10px rgba(0,0,0,0.06);border:2px solid #f0e0ea;">' +
+      '<div style="font-weight:800;font-size:0.85rem;color:#d63384;margin-bottom:8px;"><i class="far fa-comment-dots" style="margin-right:4px;"></i>みんなに相談・提案</div>' +
+      '<div style="font-size:0.72rem;color:#999;margin-bottom:10px;">投稿は匿名で健康推進メンバーとみんなに共有されます</div>' +
+      '<textarea id="inline-consult-input" rows="3" placeholder="体調や気になること、職場への提案など..." style="width:100%;border:1.5px solid #eee;border-radius:10px;padding:10px;font-size:0.85rem;resize:none;outline:none;font-family:inherit;box-sizing:border-box;" onfocus="this.style.borderColor=\'#d63384\'" onblur="this.style.borderColor=\'#eee\'"></textarea>' +
+      '<button onclick="submitInlineConsult(this)" style="width:100%;margin-top:8px;padding:12px;background:linear-gradient(135deg,#d63384,#e91e8c);color:white;border:none;border-radius:12px;font-size:0.88rem;font-weight:700;cursor:pointer;font-family:inherit;"><i class="fas fa-paper-plane" style="margin-right:6px;"></i>送信する</button>' +
+    '</div>';
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  setTimeout(function() { document.getElementById('inline-consult-input').focus(); }, 100);
+}
+
+function submitInlineConsult(btn) {
+  var input = document.getElementById('inline-consult-input');
+  var txt = input ? input.value.trim() : '';
+  if (!txt) return alert('内容を入力してください');
+  // フォームを送信済み表示に変更
+  var card = btn.closest('div[style*="border:2px"]') || btn.parentElement;
+  card.innerHTML = '<div style="text-align:center;padding:10px;"><i class="fas fa-spinner fa-spin" style="color:#d63384;font-size:1.2rem;"></i><div style="font-size:0.8rem;color:#999;margin-top:6px;">送信中...</div></div>';
+  processForm({ uid: currentUser.uid, nickname: currentUser.nickname, avatar: currentUser.avatar, honne: encodeURIComponent(txt), department: currentUser.department, birthDate: currentUser.birthDate }).then(function(res) {
+    if (res && res.success) {
+      card.innerHTML = '<div style="text-align:center;padding:10px;"><i class="fas fa-check-circle" style="color:#20c997;font-size:1.5rem;"></i><div style="font-size:0.82rem;color:#333;font-weight:700;margin-top:6px;">送信しました！</div></div>';
+      updateHeaderStats();
+      setTimeout(function() {
+        addBuddyMessage('ai', '相談を受け付けたよ！健康推進メンバーが確認してくれるからね😊');
+        if (res.analysis) {
+          setTimeout(function() { addBuddyMessage('ai', '📝 AIからのコメント：\n' + res.analysis); }, 800);
+        }
+      }, 500);
+    } else {
+      card.innerHTML = '<div style="text-align:center;padding:10px;color:#e74c3c;"><i class="fas fa-exclamation-circle"></i> 送信に失敗しました</div>';
+    }
+  }).catch(function() {
+    card.innerHTML = '<div style="text-align:center;padding:10px;color:#e74c3c;"><i class="fas fa-exclamation-circle"></i> 通信エラー</div>';
+  });
+}
+
+function inlineFoodCheck() {
+  // チャット内に食事写真の撮影を促す
+  addBuddyMessage('ai', '🍽️ 食事の写真を撮ってね！\nAI栄養士がバランスを分析するよ📸');
+  // カメラ/写真選択を開く（既存のfile-inputを使用）
+  var existingInput = document.getElementById('inline-food-input');
+  if (!existingInput) {
+    existingInput = document.createElement('input');
+    existingInput.type = 'file';
+    existingInput.id = 'inline-food-input';
+    existingInput.accept = 'image/*';
+    existingInput.capture = 'environment';
+    existingInput.style.display = 'none';
+    existingInput.onchange = function() { handleInlineFoodPhoto(this); };
+    document.body.appendChild(existingInput);
+  }
+  existingInput.click();
+}
+
+function handleInlineFoodPhoto(input) {
+  if (!input.files || !input.files[0]) return;
+  var file = input.files[0];
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var img = new Image();
+    img.onload = function() {
+      var canvas = document.createElement('canvas');
+      var MAX = 1024;
+      var w = img.width, h = img.height;
+      if (w > h) { if (w > MAX) { h *= MAX / w; w = MAX; } } else { if (h > MAX) { w *= MAX / h; h = MAX; } }
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      var dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+      var base64 = dataUrl.split(',')[1];
+      // チャット内に写真プレビュー表示
+      var msgs = document.getElementById('buddy-messages');
+      var div = document.createElement('div');
+      div.className = 'buddy-msg user';
+      div.innerHTML = '<div class="buddy-avatar">' + getAvatarHtml(currentUser.avatar, 38) + '</div><div><div class="buddy-bubble"><img src="' + dataUrl + '" style="max-width:200px;border-radius:10px;display:block;margin-bottom:4px;">📸 食事チェックをお願い！</div></div>';
+      msgs.appendChild(div);
+      msgs.scrollTop = msgs.scrollHeight;
+      // 分析中メッセージ
+      addBuddyMessage('ai', '🔍 写真を分析中...少し待ってね！');
+      // 食事投稿APIを呼ぶ
+      handleFoodPost({ uid: currentUser.uid, nickname: currentUser.nickname, avatar: currentUser.avatar, imageBase64: base64, mimeType: 'image/jpeg', userComment: '', department: currentUser.department, birthDate: currentUser.birthDate, isPublic: true }).then(function(res) {
+        // 分析中メッセージを除去
+        var lastMsg = msgs.lastElementChild;
+        if (lastMsg && lastMsg.textContent.indexOf('分析中') !== -1) lastMsg.remove();
+        if (res && res.success) {
+          updateHeaderStats();
+          var report = '';
+          if (res.analysis) {
+            if (res.analysis.nutrition) report += '🥗 栄養分析：\n' + res.analysis.nutrition;
+            if (res.analysis.nurse) report += '\n\n💬 アドバイス：\n' + res.analysis.nurse;
+          }
+          addBuddyMessage('ai', report || '食事の投稿を受け付けたよ！🍽️');
+        } else {
+          addBuddyMessage('ai', '😅 分析がうまくいかなかったみたい。もう一度試してみてね。');
+        }
+      }).catch(function() {
+        addBuddyMessage('ai', '😅 通信エラーが発生したよ。もう一度試してみてね。');
+      });
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+  input.value = '';
+}
+
+function inlineChallengeView() {
+  // チャレンジ情報をチャット内に表示
+  addBuddyMessage('ai', '🏆 チャレンジ情報を読み込んでるよ...');
+  getCurrentCycle(currentUser.uid).then(function(data) {
+    var msgs = document.getElementById('buddy-messages');
+    // ローディングメッセージ除去
+    var lastMsg = msgs.lastElementChild;
+    if (lastMsg && lastMsg.textContent.indexOf('読み込んでる') !== -1) lastMsg.remove();
+    if (!data || !data.challenges || data.challenges.length === 0) {
+      addBuddyMessage('ai', '現在アクティブなチャレンジはないよ。\n新しいチャレンジが始まったらお知らせするね！🔔');
+      return;
+    }
+    var challengeMsg = '🏆 現在のチャレンジ一覧：\n';
+    data.challenges.forEach(function(c, i) {
+      challengeMsg += '\n' + (c.icon || '💪') + ' ' + c.title;
+      if (c.isJoined) challengeMsg += ' ✅参加中';
+      if (c.period_end) challengeMsg += '\n   📅 〜' + c.period_end;
+    });
+    addBuddyMessage('ai', challengeMsg);
+    // チャレンジ詳細ボタンを表示
+    var div = document.createElement('div');
+    div.className = 'buddy-msg ai';
+    div.style.maxWidth = '85%';
+    var buddyData = null;
+    try { buddyData = JSON.parse(localStorage.getItem('co_heart_buddy')); } catch(e) {}
+    var aiAvatar = buddyData ? getAvatarHtml(buddyData.avatar, 38) : '<i class="fas fa-robot"></i>';
+    var btns = data.challenges.map(function(c) {
+      return '<button onclick="selectConcern(\'challenge_detail_' + c.challenge_id + '\')" class="buddy-quick-btn" style="margin:3px;">' + (c.icon || '💪') + ' ' + c.title + 'の詳細</button>';
+    }).join('');
+    div.innerHTML = '<div class="buddy-avatar">' + aiAvatar + '</div><div style="flex:1;min-width:0;"><div style="display:flex;flex-wrap:wrap;gap:4px;">' + btns + '</div></div>';
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+  }).catch(function() {
+    addBuddyMessage('ai', '😅 チャレンジ情報の取得に失敗したよ。もう一度試してみてね。');
+  });
 }
 
 function sendBuddyMessage() {

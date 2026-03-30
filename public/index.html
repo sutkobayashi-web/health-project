@@ -5060,51 +5060,41 @@ function handleCapturedMessage(msg) {
   }
 }
 
+// ====== 食事診断チャットフロー ======
+var _inlineFoodBase64 = null;
+var _inlineFoodDataUrl = null;
+
 function inlineFoodCheck() {
   hideActionBar();
-  // チャット内に食事診断カードを表示
-  var msgs = document.getElementById('buddy-messages');
-  var div = document.createElement('div');
-  div.className = 'buddy-msg user';
-  div.style.maxWidth = '92%';
-  div.style.alignSelf = 'stretch';
-  div.innerHTML =
-    '<div style="width:100%;background:white;border-radius:16px;padding:16px;box-shadow:0 2px 10px rgba(0,0,0,0.06);border:2px solid #b8e6d4;">' +
-      '<div style="font-weight:800;font-size:0.85rem;color:#20c997;margin-bottom:8px;"><i class="fas fa-utensils" style="margin-right:4px;"></i>食事診断</div>' +
-      '<div style="font-size:0.72rem;color:#999;margin-bottom:10px;">食事の写真を撮ると、AI栄養士がバランスを分析します</div>' +
-      '<div id="inline-food-preview" style="display:none;margin-bottom:10px;text-align:center;">' +
-        '<img id="inline-food-preview-img" style="max-width:100%;max-height:200px;border-radius:10px;border:1px solid #eee;">' +
-      '</div>' +
-      '<textarea id="inline-food-comment" rows="2" placeholder="ひとこと（任意）" style="width:100%;border:1.5px solid #eee;border-radius:10px;padding:10px;font-size:0.85rem;resize:none;outline:none;font-family:inherit;box-sizing:border-box;display:none;" onfocus="this.style.borderColor=\'#20c997\'" onblur="this.style.borderColor=\'#eee\'"></textarea>' +
-      '<div style="display:flex;gap:8px;margin-top:8px;">' +
-        '<button onclick="triggerInlineFoodCamera()" style="flex:1;padding:12px;background:linear-gradient(135deg,#20c997,#38d9a9);color:white;border:none;border-radius:12px;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit;"><i class="fas fa-camera" style="margin-right:6px;"></i>写真を撮る</button>' +
-        '<button id="inline-food-submit-btn" onclick="submitInlineFood(this)" style="flex:1;padding:12px;background:#d8dde3;color:white;border:none;border-radius:12px;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit;pointer-events:none;"><i class="fas fa-search" style="margin-right:6px;"></i>診断する</button>' +
-      '</div>' +
-    '</div>';
-  msgs.appendChild(div);
-  msgs.scrollTop = msgs.scrollHeight;
-
-  // file input準備
-  var existingInput = document.getElementById('inline-food-input');
-  if (!existingInput) {
-    existingInput = document.createElement('input');
-    existingInput.type = 'file';
-    existingInput.id = 'inline-food-input';
-    existingInput.accept = 'image/*';
-    existingInput.capture = 'environment';
-    existingInput.style.display = 'none';
-    existingInput.onchange = function() { previewInlineFoodPhoto(this); };
-    document.body.appendChild(existingInput);
-  }
+  addBuddyMessage('ai', '食事チェックだね！🍽️\nAI栄養士がバランスを分析するよ📊\n\nまずは食事の写真を撮ってね📸');
+  setTimeout(function() {
+    addBuddyInlineQuick(
+      '<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;padding:4px 0;">' +
+        '<div class="buddy-quick-btn" onclick="triggerFoodCamera()" style="border-color:#20c997;color:#20c997;">📸 写真を撮る</div>' +
+        '<div class="buddy-quick-btn" onclick="cancelCaptureMode()" style="border-color:#999;color:#999;">✕ やめる</div>' +
+      '</div>'
+    );
+    // file input準備
+    var existingInput = document.getElementById('inline-food-input');
+    if (!existingInput) {
+      existingInput = document.createElement('input');
+      existingInput.type = 'file';
+      existingInput.id = 'inline-food-input';
+      existingInput.accept = 'image/*';
+      existingInput.capture = 'environment';
+      existingInput.style.display = 'none';
+      existingInput.onchange = function() { handleFoodPhotoCapture(this); };
+      document.body.appendChild(existingInput);
+    }
+  }, 600);
 }
 
-var _inlineFoodBase64 = null;
-
-function triggerInlineFoodCamera() {
+function triggerFoodCamera() {
+  markBuddyQuickUsed();
   document.getElementById('inline-food-input').click();
 }
 
-function previewInlineFoodPhoto(input) {
+function handleFoodPhotoCapture(input) {
   if (!input.files || !input.files[0]) return;
   var file = input.files[0];
   var reader = new FileReader();
@@ -5119,22 +5109,26 @@ function previewInlineFoodPhoto(input) {
       canvas.getContext('2d').drawImage(img, 0, 0, w, h);
       var dataUrl = canvas.toDataURL('image/jpeg', 0.7);
       _inlineFoodBase64 = dataUrl.split(',')[1];
-      // プレビュー表示
-      var previewArea = document.getElementById('inline-food-preview');
-      var previewImg = document.getElementById('inline-food-preview-img');
-      if (previewArea && previewImg) {
-        previewImg.src = dataUrl;
-        previewArea.style.display = 'block';
-      }
-      // コメント欄表示
-      var commentArea = document.getElementById('inline-food-comment');
-      if (commentArea) commentArea.style.display = 'block';
-      // 診断ボタン有効化
-      var submitBtn = document.getElementById('inline-food-submit-btn');
-      if (submitBtn) {
-        submitBtn.style.background = 'linear-gradient(135deg,#20c997,#38d9a9)';
-        submitBtn.style.pointerEvents = 'auto';
-      }
+      _inlineFoodDataUrl = dataUrl;
+      // チャットにプレビュー表示
+      var msgs = document.getElementById('buddy-messages');
+      var div = document.createElement('div');
+      div.className = 'buddy-msg user';
+      div.innerHTML = '<div class="buddy-avatar">' + getAvatarHtml(currentUser.avatar, 38) + '</div><div><div class="buddy-bubble"><img src="' + dataUrl + '" style="max-width:200px;border-radius:10px;display:block;margin-bottom:4px;">📸 この食事を診断して！</div></div>';
+      msgs.appendChild(div);
+      msgs.scrollTop = msgs.scrollHeight;
+      // バディーが確認
+      setTimeout(function() {
+        addBuddyMessage('ai', 'おいしそう！😋\nひとことコメントがあれば入力してね。\nなければそのまま「診断する」をタップ！');
+        _buddyCaptureMode = 'food_comment';
+        document.getElementById('buddy-input').placeholder = 'ひとこと（任意、空でもOK）...';
+        addBuddyInlineQuick(
+          '<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;padding:4px 0;">' +
+            '<div class="buddy-quick-btn" onclick="submitFoodFromChat(\'\')" style="border-color:#20c997;color:#20c997;">🔍 コメントなしで診断する</div>' +
+            '<div class="buddy-quick-btn" onclick="cancelFoodCapture()" style="border-color:#999;color:#999;">✕ やめる</div>' +
+          '</div>'
+        );
+      }, 500);
     };
     img.src = e.target.result;
   };
@@ -5142,38 +5136,43 @@ function previewInlineFoodPhoto(input) {
   input.value = '';
 }
 
-function submitInlineFood(btn) {
-  if (!_inlineFoodBase64) return;
-  var comment = '';
-  var commentEl = document.getElementById('inline-food-comment');
-  if (commentEl) comment = commentEl.value.trim();
-  // カードを送信中に変更
-  var card = btn.closest('div[style*="border:2px"]') || btn.parentElement.parentElement;
-  var previewSrc = document.getElementById('inline-food-preview-img') ? document.getElementById('inline-food-preview-img').src : '';
-  card.innerHTML = '<div style="text-align:center;padding:14px;">' +
-    (previewSrc ? '<img src="' + previewSrc + '" style="max-width:150px;border-radius:10px;margin-bottom:8px;">' : '') +
-    '<div><i class="fas fa-spinner fa-spin" style="color:#20c997;font-size:1.2rem;"></i></div>' +
-    '<div style="font-size:0.8rem;color:#999;margin-top:6px;">AI栄養士が分析中...</div></div>';
+function submitFoodFromChat(comment) {
+  _buddyCaptureMode = null;
+  markBuddyQuickUsed();
+  document.getElementById('buddy-input').placeholder = 'メッセージを入力...';
+  if (!_inlineFoodBase64) { showActionBar(); return; }
 
+  addBuddyMessage('ai', '🔍 AI栄養士が分析中...少し待ってね！');
   handleFoodPost({ uid: currentUser.uid, nickname: currentUser.nickname, avatar: currentUser.avatar, imageBase64: _inlineFoodBase64, mimeType: 'image/jpeg', userComment: comment, department: currentUser.department, birthDate: currentUser.birthDate, isPublic: true }).then(function(res) {
-    _inlineFoodBase64 = null;
+    _inlineFoodBase64 = null; _inlineFoodDataUrl = null;
     showActionBar();
+    // 分析中メッセージ除去
+    var msgs = document.getElementById('buddy-messages');
+    var last = msgs.lastElementChild;
+    if (last && last.textContent.indexOf('分析中') !== -1) last.remove();
     if (res && res.success) {
-      card.innerHTML = '<div style="text-align:center;padding:10px;"><i class="fas fa-check-circle" style="color:#20c997;font-size:1.5rem;"></i><div style="font-size:0.82rem;color:#333;font-weight:700;margin-top:6px;">診断完了！</div></div>';
       updateHeaderStats();
       var report = '';
       if (res.analysis) {
         if (res.analysis.nutrition) report += '🥗 栄養分析：\n' + res.analysis.nutrition;
         if (res.analysis.nurse) report += '\n\n💬 アドバイス：\n' + res.analysis.nurse;
       }
-      setTimeout(function() { addBuddyMessage('ai', report || '食事の投稿を受け付けたよ！🍽️'); }, 500);
+      addBuddyMessage('ai', report || '食事の投稿を受け付けたよ！🍽️');
     } else {
-      card.innerHTML = '<div style="text-align:center;padding:10px;color:#e74c3c;"><i class="fas fa-exclamation-circle"></i> 分析に失敗しました</div>';
+      addBuddyMessage('ai', '😅 分析がうまくいかなかったみたい。もう一度試してみてね。');
     }
   }).catch(function() {
-    _inlineFoodBase64 = null;
+    _inlineFoodBase64 = null; _inlineFoodDataUrl = null;
     showActionBar();
-    card.innerHTML = '<div style="text-align:center;padding:10px;color:#e74c3c;"><i class="fas fa-exclamation-circle"></i> 通信エラー</div>';
+    addBuddyMessage('ai', '😅 通信エラーが発生したよ。もう一度試してみてね。');
+  });
+}
+
+function cancelFoodCapture() {
+  _buddyCaptureMode = null;
+  _inlineFoodBase64 = null;
+  _inlineFoodDataUrl = null;
+  cancelCaptureMode();
   });
 }
 
@@ -5283,7 +5282,12 @@ function sendBuddyMessage() {
 
   addBuddyMessage('user', msg);
 
-  // キャプチャモード中 → 相談/推進メンバー送信として処理
+  // キャプチャモード中 → 相談/推進メンバー/食事コメントとして処理
+  if (_buddyCaptureMode === 'food_comment') {
+    markBuddyQuickUsed();
+    submitFoodFromChat(msg);
+    return;
+  }
   if (_buddyCaptureMode) {
     handleCapturedMessage(msg);
     return;

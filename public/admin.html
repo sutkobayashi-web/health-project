@@ -292,6 +292,11 @@
       .meeting-left { width: 100%; }
       /* 区切り線を非表示 */
       .sidebar > div[style*="border-top"] { display: none; }
+      /* 投稿詳細の左右分割を縦並びに */
+      .inbox-detail-split { flex-direction: column !important; min-height: auto !important; }
+      .inbox-detail-split > div { border-right: none !important; border-bottom: 1px solid #eee; max-height: none !important; }
+      /* 投稿カード内の画像サイズ調整 */
+      .inbox-detail-split img { max-width: 100% !important; width: auto !important; height: auto !important; }
     }
   </style>
 </head>

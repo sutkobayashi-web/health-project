@@ -219,14 +219,14 @@ function renderReportList(data) {
                 '<div class="user-info" style="margin-bottom:6px;">'+avatarDiv+'<div class="nick">'+escapeHtml(r[INBOX_COLS.USER_NAME])+'</div>' +
                 (likeCount > 0 ? '<span style="margin-left:auto; background:linear-gradient(135deg,#667eea,#764ba2); color:white; font-size:0.6rem; font-weight:700; padding:2px 7px; border-radius:10px;"><i class="fas fa-hand-paper"></i> '+likeCount+'</span>' : '') +
                 ' '+empathyBadge+' '+commentBadge+' '+chatBadge+' '+chatUnreadBadge+'</div>' +
-                '<div style="display:flex; gap:10px; align-items:flex-start;">' +
+                '<div style="display:flex; gap:10px; align-items:flex-start; flex-wrap:wrap;">' +
                     // 左: サムネ+投稿文
                     '<div style="flex:1; min-width:0; display:flex; gap:8px; align-items:flex-start;">' +
                         (thumbTag ? thumbTag : '') +
                         '<div style="flex:1; font-size:0.85rem; line-height:1.5; color:#444; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">'+escapeHtml(rawContent)+'</div>' +
                     '</div>' +
                     // 右: 共感サマリー
-                    '<div id="empathy-mini-'+pid+'" style="flex-shrink:0; width:300px; max-height:200px; overflow-y:auto;"></div>' +
+                    '<div id="empathy-mini-'+pid+'" style="flex-shrink:0; width:300px; max-width:100%; max-height:200px; overflow-y:auto;"></div>' +
                 '</div>' +
                 // 操作ボタン行
                 '<div style="margin-top:8px; text-align:right;">' +
@@ -235,8 +235,8 @@ function renderReportList(data) {
             '</div>' +
             // 詳細パネル（左右分割モーダル）
             '<div id="inbox-detail-'+pid+'" style="display:none; border-top:2px solid #667eea;">' +
-                // 左右分割エリア
-                '<div style="display:flex; min-height:300px;">' +
+                // 左右分割エリア（スマホでは縦並び）
+                '<div class="inbox-detail-split" style="display:flex; min-height:300px;">' +
                     // 左: 投稿内容
                     '<div style="flex:1; padding:12px; overflow-y:auto; max-height:450px; border-right:1px solid #eee;">' +
                         '<div style="font-size:0.7rem; font-weight:700; color:#667eea; margin-bottom:6px;"><i class="fas fa-file-alt me-1"></i>投稿内容</div>' +

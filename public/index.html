@@ -4242,7 +4242,7 @@ function showBuddySetupPromptWithDismiss() {
       '</button>' +
       '<label id="' + dismissId + '" style="display:flex;align-items:center;gap:6px;margin-top:8px;cursor:pointer;font-size:0.75rem;color:#999;">' +
         '<input type="checkbox" onchange="dismissBuddySetupPrompt(this)" style="width:auto;margin:0;transform:scale(1.2);accent-color:#0ea5e9;">' +
-        '<span>次回から表示しない</span>' +
+        '<span class="dismiss-status">次回から表示しない</span>' +
       '</label>' +
     '</div>';
   msgs.appendChild(div);
@@ -4250,12 +4250,13 @@ function showBuddySetupPromptWithDismiss() {
 }
 
 function dismissBuddySetupPrompt(checkbox) {
+  var statusSpan = checkbox.parentElement.querySelector('.dismiss-status');
   if (checkbox.checked) {
     localStorage.setItem('co_heart_buddy_setup_hidden', '1');
-    var label = checkbox.closest('label');
-    if (label) label.innerHTML = '<i class="fas fa-check" style="color:#0ea5e9;"></i> <span>次回から非表示にしました</span>';
+    if (statusSpan) statusSpan.textContent = '✔ 次回から表示しません';
   } else {
     localStorage.removeItem('co_heart_buddy_setup_hidden');
+    if (statusSpan) statusSpan.textContent = '次回から表示しない';
   }
 }
 

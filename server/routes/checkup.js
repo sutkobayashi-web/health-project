@@ -387,60 +387,7 @@ router.get('/company-analysis', async (req, res) => {
     var summary = aggregateCheckupData(allData);
     if (!summary) return res.json({ success: false, msg: 'データの集計に失敗しました' });
 
-    // AI分析 - 3パターン提案
-    const { callAIWithFallback, EVIDENCE_BASE } = require('../services/ai');
-    var prompt = `あなたは産業保健の専門家（保健師）を支援するAIコンサルタントです。
-以下の全社健康診断の集計結果に基づいて、会社として取り組むべきアクションプランを3パターン提案してください。
-
-【会社概要】
-業種: 運輸業（トラックドライバー中心）
-従業員数: ${summary.total}名
-平均年齢: ${summary.averageAge}歳
-
-【健診集計結果】
-BMI25以上: ${summary.bmiOver25}名（${summary.bmiOver25Pct}%）
-肥満判定異常: ${summary.rates.肥満}%
-高血圧判定異常: ${summary.rates.高血圧}%
-脂質異常判定異常: ${summary.rates.脂質異常}%
-高血糖判定異常: ${summary.rates.高血糖}%
-肝機能判定異常: ${summary.rates.肝機能}%
-腎機能判定異常: ${summary.rates.腎機能}%
-貧血判定異常: ${summary.rates.貧血}%
-
-【エビデンス基盤】
-${EVIDENCE_BASE}
-
-【出力形式】以下のJSON形式のみ出力。
-{
-  "summary": "全体所見（3文以内）",
-  "topRisks": ["リスク1", "リスク2", "リスク3"],
-  "plans": [
-    {
-      "title": "プランA名称",
-      "priority": "高/中/低",
-      "targetRisk": "対象リスク",
-      "description": "概要説明（3文）",
-      "evidence": "根拠となるエビデンス・ガイドライン名",
-      "kpi": "測定指標",
-      "duration": "推奨期間",
-      "eastDesign": {"easy":"ハードルを下げる工夫","attractive":"魅力","social":"仲間の力","timely":"タイミング"}
-    },
-    { プランB... },
-    { プランC... }
-  ],
-  "advisorNote": "保健師・産業医への申し送り事項（2文）"
-}`;
-
-    var aiResult = await callAIWithFallback('JSON出力専門AI。指定JSON形式のみ出力。', prompt);
-    var analysis = null;
-    if (aiResult) {
-      try {
-        var jsonStr = aiResult.replace(/```json?\s*/g, '').replace(/```/g, '').trim();
-        analysis = JSON.parse(jsonStr);
-      } catch (e) { console.log('AI分析JSON解析エラー'); }
-    }
-
-    // テーマ凝集用にキャッシュ保存
+    // キャッシュ保存（参考資料として）
     try {
       var cacheText = `従業員${summary.total}名 平均${summary.averageAge}歳\nBMI25↑:${summary.bmiOver25Pct}% 肥満:${summary.rates.肥満}% 高血圧:${summary.rates.高血圧}% 脂質異常:${summary.rates.脂質異常}% 高血糖:${summary.rates.高血糖}% 肝機能:${summary.rates.肝機能}% 腎機能:${summary.rates.腎機能}% 貧血:${summary.rates.貧血}%`;
       const db = getDb();
@@ -466,7 +413,7 @@ ${EVIDENCE_BASE}
     }
     timeline.sort(function(a, b) { return a.year.localeCompare(b.year); });
 
-    res.json({ success: true, year: latestFolder.name, summary: summary, analysis: analysis, timeline: timeline });
+    res.json({ success: true, year: latestFolder.name, summary: summary, timeline: timeline });
   } catch (e) {
     console.error('全社健診分析エラー:', e.message);
     res.json({ success: false, msg: e.message });

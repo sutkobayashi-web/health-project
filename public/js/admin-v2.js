@@ -18,101 +18,67 @@ function runCheckupAnalysis() {
     if (!data.success) { area.innerHTML = '<div class="alert alert-danger">' + (data.msg || 'エラー') + '</div>'; return; }
 
     var s = data.summary;
-    var a = data.analysis;
-    var riskBadges = (a && a.topRisks || []).map(function(r) { return '<span class="badge bg-danger me-1" style="font-size:0.65rem;">' + escapeHtml(r) + '</span>'; }).join('');
+    var tl = data.timeline || [];
+    var cats = ['肥満','高血圧','脂質異常','高血糖','肝機能','腎機能','貧血'];
 
-    // サマリー行（常時表示）
+    // 最新年度サマリー＋前年比
     var html = '<div style="border-top:1px solid #eee; padding-top:12px; margin-top:8px;">';
-    html += '<div onclick="toggleCheckupDetail()" style="cursor:pointer; display:flex; align-items:center; justify-content:space-between; padding:8px 0;">';
-    html += '<div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">';
-    html += '<span style="font-size:0.8rem; font-weight:700; color:#e53935;"><i class="fas fa-chart-bar me-1"></i>' + escapeHtml(data.year) + '年度</span>';
-    html += '<span style="font-size:0.75rem; color:#666;">' + s.total + '名 / 平均' + s.averageAge + '歳</span>';
-    html += '<span style="font-size:0.75rem; color:#666;">BMI25↑: <strong>' + s.bmiOver25Pct + '%</strong></span>';
-    html += riskBadges;
-    html += '</div>';
-    html += '<i id="checkup-chevron" class="fas fa-chevron-down" style="font-size:0.7rem; color:#bbb; transition:transform 0.2s;"></i>';
-    html += '</div>';
-    html += '<div style="font-size:0.68rem; color:#999; margin-top:-4px; margin-bottom:4px;"><i class="fas fa-info-circle me-1"></i>推進メンバーへの参考資料です。クリックで詳細を表示</div>';
+    html += '<div style="font-size:0.68rem; color:#999; margin-bottom:8px;"><i class="fas fa-info-circle me-1"></i>推進メンバーへの参考資料（数値サマリー）</div>';
 
-    // 詳細（折りたたみ）
-    html += '<div id="checkup-detail" style="display:none; margin-top:10px;">';
+    // 最新年度の数値カード
+    html += '<div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px;">';
+    var items = [{ label: '対象', val: s.total + '名' }, { label: '平均年齢', val: s.averageAge + '歳' }, { label: 'BMI25↑', val: s.bmiOver25Pct + '%' }];
+    cats.forEach(function(c) { items.push({ label: c, val: (s.rates[c] || 0) + '%' }); });
 
-    // 集計
-    html += '<div class="p-2 mb-3" style="background:#fff3e0;border-radius:10px;border-left:3px solid #ff9800;">';
-    html += '<div class="fw-bold small text-warning mb-1"><i class="fas fa-chart-bar me-1"></i>集計結果</div>';
-    html += '<div class="row g-2 small">';
-    html += '<div class="col-4">BMI25↑: <strong>' + s.bmiOver25Pct + '%</strong></div>';
-    Object.keys(s.rates).forEach(function(k) {
-      html += '<div class="col-4">' + k + ': <strong>' + s.rates[k] + '%</strong></div>';
-    });
-    html += '</div></div>';
-
-    if (a) {
-      // 全体所見
-      html += '<div class="mb-2 small"><strong>所見:</strong> ' + escapeHtml(a.summary || '') + '</div>';
-      html += '<div class="mb-3 small"><strong>重点リスク:</strong> ' + riskBadges + '</div>';
-
-      // 3パターン
-      (a.plans || []).forEach(function(p, i) {
-        var colors = ['#e53935', '#1e88e5', '#43a047'];
-        html += '<div class="p-3 mb-2" style="background:#f8f9fa;border-radius:10px;border-left:4px solid ' + colors[i] + ';">';
-        html += '<div class="fw-bold" style="color:' + colors[i] + ';">提案' + String.fromCharCode(65 + i) + ': ' + escapeHtml(p.title) + ' <span class="badge bg-' + (p.priority === '高' ? 'danger' : p.priority === '中' ? 'warning' : 'secondary') + '">' + p.priority + '</span></div>';
-        html += '<div class="small text-muted mb-1">対象: ' + escapeHtml(p.targetRisk || '') + ' / 期間: ' + escapeHtml(p.duration || '') + '</div>';
-        html += '<div class="small mb-1">' + escapeHtml(p.description || '') + '</div>';
-        html += '<div class="small mb-1" style="color:#1565c0;"><i class="fas fa-book me-1"></i>' + escapeHtml(p.evidence || '') + '</div>';
-        html += '<div class="small text-muted">KPI: ' + escapeHtml(p.kpi || '') + '</div>';
-        if (p.eastDesign) {
-          html += '<div class="mt-1 small" style="display:grid;grid-template-columns:1fr 1fr;gap:2px;color:#555;">';
-          if (p.eastDesign.easy) html += '<div><strong>Easy:</strong> ' + escapeHtml(p.eastDesign.easy) + '</div>';
-          if (p.eastDesign.attractive) html += '<div><strong>Attractive:</strong> ' + escapeHtml(p.eastDesign.attractive) + '</div>';
-          if (p.eastDesign.social) html += '<div><strong>Social:</strong> ' + escapeHtml(p.eastDesign.social) + '</div>';
-          if (p.eastDesign.timely) html += '<div><strong>Timely:</strong> ' + escapeHtml(p.eastDesign.timely) + '</div>';
-          html += '</div>';
-        }
-        html += '</div>';
-      });
-
-      // 保健師への申し送り
-      if (a.advisorNote) {
-        html += '<div class="p-2 mt-2" style="background:#e8f5e9;border-radius:10px;border-left:3px solid #43a047;">';
-        html += '<div class="fw-bold small text-success"><i class="fas fa-user-md me-1"></i>保健師・産業医への申し送り</div>';
-        html += '<div class="small">' + escapeHtml(a.advisorNote) + '</div>';
-        html += '</div>';
+    // 前年度データがあれば差分を計算
+    var prev = tl.length >= 2 ? tl[tl.length - 2].summary : null;
+    items.forEach(function(item) {
+      var diff = '';
+      if (prev && item.label !== '対象' && item.label !== '平均年齢') {
+        var curVal = item.label === 'BMI25↑' ? s.bmiOver25Pct : (s.rates[item.label] || 0);
+        var prevVal = item.label === 'BMI25↑' ? prev.bmiOver25Pct : (prev.rates[item.label] || 0);
+        var d = curVal - prevVal;
+        if (d > 0) diff = '<span style="color:#e53935; font-size:0.6rem; font-weight:700;"> +' + d + '</span>';
+        else if (d < 0) diff = '<span style="color:#43a047; font-size:0.6rem; font-weight:700;"> ' + d + '</span>';
       }
-    }
+      html += '<div style="background:#f8f9fa; border-radius:10px; padding:6px 10px; text-align:center; min-width:60px;">';
+      html += '<div style="font-size:0.6rem; color:#999; font-weight:600;">' + item.label + '</div>';
+      html += '<div style="font-size:0.85rem; font-weight:800; color:#2c3e50;">' + item.val + diff + '</div>';
+      html += '</div>';
+    });
+    html += '</div>';
 
-    // 時系列推移グラフ
-    if (data.timeline && data.timeline.length >= 2) {
-      html += '<div class="mt-3 p-3" style="background:#f8f9fa;border-radius:10px;">';
-      html += '<div class="fw-bold small mb-2" style="color:#1a1a2e;"><i class="fas fa-chart-line me-1 text-primary"></i>経年推移（' + escapeHtml(data.timeline[0].year) + '〜' + escapeHtml(data.timeline[data.timeline.length-1].year) + '）</div>';
-      html += '<canvas id="checkup-timeline-chart" height="180"></canvas>';
-      // 数値テーブル
-      html += '<div style="overflow-x:auto; margin-top:10px;">';
+    // 経年推移テーブル（2年度以上）
+    if (tl.length >= 2) {
+      html += '<div onclick="toggleCheckupDetail()" style="cursor:pointer; display:flex; align-items:center; gap:6px; padding:6px 0;">';
+      html += '<span style="font-size:0.75rem; font-weight:700; color:#667eea;"><i class="fas fa-chart-line me-1"></i>経年推移（' + escapeHtml(tl[0].year) + '〜' + escapeHtml(tl[tl.length-1].year) + '）</span>';
+      html += '<i id="checkup-chevron" class="fas fa-chevron-down" style="font-size:0.65rem; color:#bbb; transition:transform 0.2s;"></i>';
+      html += '</div>';
+
+      html += '<div id="checkup-detail" style="display:none; margin-top:6px;">';
+      html += '<canvas id="checkup-timeline-chart" height="160"></canvas>';
+      html += '<div style="overflow-x:auto; margin-top:8px;">';
       html += '<table style="width:100%; border-collapse:collapse; font-size:0.7rem; text-align:center;">';
       html += '<thead><tr style="background:#667eea; color:white;"><th style="padding:4px 6px;">年度</th><th style="padding:4px 6px;">人数</th><th style="padding:4px 6px;">平均年齢</th><th style="padding:4px 6px;">BMI25↑</th>';
-      var cats = ['肥満','高血圧','脂質異常','高血糖','肝機能','腎機能','貧血'];
       cats.forEach(function(c) { html += '<th style="padding:4px 6px;">' + c + '</th>'; });
       html += '</tr></thead><tbody>';
-      data.timeline.forEach(function(t, idx) {
+      tl.forEach(function(t, idx) {
         var bg = idx % 2 === 0 ? '#fff' : '#f0f4ff';
-        html += '<tr style="background:' + bg + ';"><td style="padding:4px 6px;font-weight:700;">' + escapeHtml(t.year) + '</td>';
+        var isLatest = idx === tl.length - 1;
+        html += '<tr style="background:' + bg + ';' + (isLatest ? 'font-weight:700;' : '') + '"><td style="padding:4px 6px;">' + escapeHtml(t.year) + (isLatest ? ' ★' : '') + '</td>';
         html += '<td style="padding:4px 6px;">' + t.summary.total + '</td>';
         html += '<td style="padding:4px 6px;">' + t.summary.averageAge + '</td>';
         html += '<td style="padding:4px 6px;">' + t.summary.bmiOver25Pct + '%</td>';
         cats.forEach(function(c) { html += '<td style="padding:4px 6px;">' + (t.summary.rates[c] || 0) + '%</td>'; });
         html += '</tr>';
       });
-      html += '</tbody></table></div>';
-      html += '</div>';
+      html += '</tbody></table></div></div>';
     }
 
-    html += '</div></div>';
+    html += '</div>';
     area.innerHTML = html;
 
-    // Chart.js で経年推移チャート描画
-    if (data.timeline && data.timeline.length >= 2) {
-      renderCheckupTimelineChart(data.timeline);
-    }
+    _checkupTimelineData = tl.length >= 2 ? tl : null;
   }).catch(function(e) {
     btn.disabled = false;
     btn.innerHTML = '<i class="fas fa-play me-1"></i>分析実行';
@@ -121,6 +87,7 @@ function runCheckupAnalysis() {
 }
 
 var _checkupTimelineChart = null;
+var _checkupTimelineData = null;
 function renderCheckupTimelineChart(timeline) {
   var canvas = document.getElementById('checkup-timeline-chart');
   if (!canvas) return;
@@ -160,6 +127,9 @@ function toggleCheckupDetail() {
   var open = detail.style.display !== 'none';
   detail.style.display = open ? 'none' : 'block';
   if (chevron) chevron.style.transform = open ? '' : 'rotate(180deg)';
+  if (!open && _checkupTimelineData && !_checkupTimelineChart) {
+    setTimeout(function() { renderCheckupTimelineChart(_checkupTimelineData); }, 50);
+  }
 }
 
 // ============================================================

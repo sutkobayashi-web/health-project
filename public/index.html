@@ -702,6 +702,9 @@
       <button onclick="inlineTimelineView()" class="buddy-action-btn" style="display:flex;align-items:center;gap:5px;padding:8px 14px;background:linear-gradient(135deg,#6c5ce7,#a29bfe);color:white;border:none;border-radius:20px;font-size:0.75rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;box-shadow:0 2px 8px rgba(108,92,231,0.25);font-family:inherit;">
         <i class="fas fa-stream"></i> みんなの投稿を見る
       </button>
+      <button onclick="inlineHelp()" class="buddy-action-btn" style="display:flex;align-items:center;gap:5px;padding:8px 14px;background:linear-gradient(135deg,#78909c,#90a4ae);color:white;border:none;border-radius:20px;font-size:0.75rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;box-shadow:0 2px 8px rgba(120,144,156,0.25);font-family:inherit;">
+        <i class="fas fa-question-circle"></i> 使い方
+      </button>
     </div>
     <!-- 入力バー -->
     <div style="flex-shrink:0;background:white;border-top:1px solid #eee;padding:8px 12px;">
@@ -5241,6 +5244,77 @@ function openChallengeFromChat(challengeId) {
   setTimeout(function() { loadChallengeDetail(challengeId); }, 300);
 }
 
+// ====== ヘルプ（定型回答・アルゴリズム） ======
+var HELP_TOPICS = {
+  overview: {
+    label: '📱 このアプリって何？',
+    answer: 'このアプリは「みんなの声で職場を元気にする」健康プロジェクトだよ！\n\n🤖 私（バディー）に健康の相談ができる\n📢 みんなに相談・提案を匿名で投稿できる\n🍽️ 食事の写真を撮るとAI栄養士が分析してくれる\n🏆 健康チャレンジに参加できる\n🛡️ 推進メンバーに直接提案もできる\n\nあなたの声が職場を変える力になるよ✨'
+  },
+  consult: {
+    label: '💬 みんなに相談・提案',
+    answer: '「みんなに相談・提案」は、体調の悩みや職場への提案を匿名で共有できる機能だよ！\n\n📝 使い方：\n1. 下のアクションバーから「みんなに相談・提案」をタップ\n2. カテゴリを選ぶ（体調・職場・提案・自由）\n3. 内容を入力して送信！\n\n🔒 ニックネームで表示されるから安心してね\n🤖 AIが内容を分析してコメントもくれるよ\n👀 推進メンバーも確認して対応してくれるよ'
+  },
+  food: {
+    label: '🍽️ 食事診断・投稿',
+    answer: '「食事診断・投稿」は、食事の写真を撮るとAI栄養士がバランスを分析してくれる機能だよ！\n\n📝 使い方：\n1. アクションバーから「食事診断・投稿」をタップ\n2. 「写真を撮る」で食事を撮影\n3. コメントを入力（任意）して診断！\n\n🥗 栄養バランスを5大栄養素で分析\n📊 週間レポートも届くことがあるよ\n🏆 野菜チャレンジのスコアにも反映されるよ'
+  },
+  member: {
+    label: '🛡️ 推進メンバーに相談',
+    answer: '「推進メンバーに相談・提案」は、健康推進メンバーに直接声を届ける機能だよ！\n\n📝 使い方：\n1. アクションバーから「推進メンバーに相談・提案」をタップ\n2. 内容を入力して送信！\n\n💡 「みんなに共有」との違い：\n・みんなに共有 → タイムラインに匿名投稿\n・推進メンバー → メンバーに直接届く（非公開）\n\n職場環境の改善リクエストや健康施策への意見に使ってね！'
+  },
+  challenge: {
+    label: '🔥 チャレンジ',
+    answer: 'チャレンジは、みんなで健康目標に取り組む機能だよ！\n\n📝 使い方：\n1. アクションバーの「チャレンジに挑戦する」か、下のタブの「チャレンジ」をタップ\n2. 参加したいチャレンジを選んでエントリー\n3. 毎日のKPI（歩数・野菜・睡眠など）を記録\n\n🏅 ランキングで競い合える\n🎁 バッジやQUOカード報酬もあるかも！\n📅 期間中いつでも参加・離脱OK'
+  },
+  buddy: {
+    label: '🤖 バディーの使い方',
+    answer: '私はあなたの「ヘルスバディー」だよ！😊\n\n💬 何でも話しかけてね。健康の悩み、食事、睡眠、ストレス…AIが答えるよ\n📸 写真も送れる！食事写真や健診結果を見せてくれたら分析するよ\n🎨 私の名前・見た目・性格はカスタマイズできるよ（マイページから）\n\n⬇️ 下のアクションバーから各機能に直接アクセスもできるよ！'
+  },
+  timeline: {
+    label: '📋 投稿の見方',
+    answer: 'みんなの投稿を見るには2つの方法があるよ！\n\n方法1️⃣ アクションバーの「みんなの投稿を見る」をタップ\n方法2️⃣ 下のメニュータブで「みんなの投稿を見る」セクションを開く\n\n「すべて」「相談」「食事」でフィルターもできるよ！\n\n❤️ 投稿にはいいねできる\n💬 投稿をタップすると詳細が見れるよ'
+  },
+  mypage: {
+    label: '👤 マイページ',
+    answer: 'マイページでは自分の情報を確認・変更できるよ！\n\n📊 投稿数・招待数・ランクの確認\n🎨 バディーのカスタマイズ\n😀 アバターの変更\n📋 自分の投稿一覧\n🔗 招待QRコードの表示\n\n下のタブの「マイページ」アイコンからアクセスしてね！'
+  }
+};
+
+function inlineHelp() {
+  hideActionBar();
+  addBuddyMessage('ai', '使い方を知りたいんだね！📖\nどの機能について聞きたい？');
+  setTimeout(function() {
+    var btns = Object.keys(HELP_TOPICS).map(function(key) {
+      return '<div class="buddy-quick-btn" onclick="showHelpAnswer(\'' + key + '\')">' + HELP_TOPICS[key].label + '</div>';
+    }).join('');
+    btns += '<div class="buddy-quick-btn" onclick="cancelCaptureMode()" style="border-color:#999;color:#999;">✕ 閉じる</div>';
+    addBuddyInlineQuick(
+      '<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;padding:4px 0;">' + btns + '</div>'
+    );
+  }, 500);
+}
+
+function showHelpAnswer(key) {
+  markBuddyQuickUsed();
+  var topic = HELP_TOPICS[key];
+  if (!topic) return;
+  addBuddyMessage('user', topic.label);
+  setTimeout(function() {
+    addBuddyMessage('ai', topic.answer);
+    // 他の質問もできるように
+    setTimeout(function() {
+      addBuddyMessage('ai', '他にも聞きたいことはある？😊');
+      var btns = Object.keys(HELP_TOPICS).filter(function(k) { return k !== key; }).map(function(k) {
+        return '<div class="buddy-quick-btn" onclick="showHelpAnswer(\'' + k + '\')">' + HELP_TOPICS[k].label + '</div>';
+      }).join('');
+      btns += '<div class="buddy-quick-btn" onclick="cancelCaptureMode()" style="border-color:#999;color:#999;">✕ 大丈夫！</div>';
+      addBuddyInlineQuick(
+        '<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;padding:4px 0;">' + btns + '</div>'
+      );
+    }, 800);
+  }, 400);
+}
+
 function inlineTimelineView() {
   switchAppTab('menu');
   // 「みんなの投稿を見る」アコーディオンを開いてallで読み込み
@@ -5345,6 +5419,13 @@ function sendBuddyMessage() {
   input.value = '';
 
   addBuddyMessage('user', msg);
+
+  // ヘルプキーワード検知
+  var helpWords = ['使い方', 'ヘルプ', 'help', 'わからない', '操作方法', 'どうやって'];
+  if (!_buddyCaptureMode && helpWords.some(function(w) { return msg.indexOf(w) !== -1; })) {
+    inlineHelp();
+    return;
+  }
 
   // キャプチャモード中 → 相談/推進メンバー/食事コメントとして処理
   if (_buddyCaptureMode === 'food_comment') {

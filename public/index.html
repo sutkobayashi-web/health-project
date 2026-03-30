@@ -3919,15 +3919,22 @@ function startBuddyChat(buddyData) {
       if (data && data.success && data.messages && data.messages.length > 0) {
         // 当日の履歴がある → 復元
         window._buddyRestoring = true;
+        var hasMoodLog = false;
         data.messages.forEach(function(m) {
           addBuddyMessage(m.role, m.content);
+          if (m.content && m.content.indexOf('[MOOD_LOG]') !== -1) hasMoodLog = true;
         });
         window._buddyRestoring = false;
-        _buddyMoodChecked = true;
         // バディー経由メッセージも読み込む
         loadBuddyNotices();
-        // 履歴復元後はフォローアップ選択肢を表示
-        setTimeout(function() { showFollowUpTopics(); }, 500);
+        // 体調チェック済みか判定して適切な選択肢を表示
+        if (hasMoodLog) {
+          _buddyMoodChecked = true;
+          setTimeout(function() { showFollowUpTopics(); }, 500);
+        } else {
+          _buddyMoodChecked = false;
+          setTimeout(function() { showMoodCheck(); }, 500);
+        }
       } else {
         // 履歴なし → 通常の初回フロー
         startBuddyChatFresh(buddyData);

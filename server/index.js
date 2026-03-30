@@ -113,8 +113,27 @@ app.get('/api/health', (req, res) => {
 });
 
 // アプリバージョン（クライアント強制更新用）
+// サーバー起動時にindex.htmlのバージョンを自動更新
+(function autoUpdateAppVersion() {
+  const fs = require('fs');
+  const path = require('path');
+  const htmlPath = path.join(__dirname, '..', 'public', 'index.html');
+  try {
+    const html = fs.readFileSync(htmlPath, 'utf8');
+    const now = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    const newVer = now.getFullYear() + pad(now.getMonth() + 1) + pad(now.getDate()) + '_' + pad(now.getHours()) + pad(now.getMinutes());
+    const updated = html.replace(/data-app-version="[^"]*"/, 'data-app-version="' + newVer + '"');
+    if (updated !== html) {
+      fs.writeFileSync(htmlPath, updated, 'utf8');
+      console.log('[AutoVersion] Updated to', newVer);
+    }
+  } catch (e) {
+    console.log('[AutoVersion] Skip:', e.message);
+  }
+})();
+
 app.get('/api/version', (req, res) => {
-  // public/index.htmlのdata-app-versionと一致させること
   const fs = require('fs');
   const path = require('path');
   try {

@@ -446,21 +446,34 @@ router.get('/company-analysis', async (req, res) => {
       var tlText = timeline.map(function(t) {
         return t.year + ': 🔴' + (t.summary.redTotal||0) + ' 🟡' + (t.summary.yellow||0) + ' BMI25↑' + t.summary.bmiOver25Pct + '% 高血圧' + (t.summary.rates.高血圧||0) + '% 脂質' + (t.summary.rates.脂質異常||0) + '% 高血糖' + (t.summary.rates.高血糖||0) + '%';
       }).join('\n');
-      var prompt = '運輸業(トラックドライバー中心、平均年齢' + summary.averageAge + '歳)の全社健診データに基づき、健康推進メンバーがボトムアップで検討する参考として3つの施策案をJSON配列で出力してください。\n' +
-        '素人にもわかりやすく、具体的に書いてください。\n\n' +
-        '【最新年度】' + summary.total + '名\n' +
-        'レッドカード(死の四重奏+三重奏): ' + (summary.redTotal||0) + '名\n' +
-        'イエローカード(予備軍): ' + (summary.yellow||0) + '名\n' +
-        'BMI25↑: ' + summary.bmiOver25Pct + '% / 肥満: ' + summary.rates.肥満 + '% / 高血圧: ' + summary.rates.高血圧 + '% / 脂質異常: ' + summary.rates.脂質異常 + '% / 高血糖: ' + summary.rates.高血糖 + '% / 肝機能: ' + summary.rates.肝機能 + '% / 腎機能: ' + summary.rates.腎機能 + '% / 貧血: ' + summary.rates.貧血 + '%\n\n' +
-        '【経年推移】\n' + tlText + '\n\n' +
-        '【出力形式】JSON配列のみ。各案に以下5項目:\n' +
-        '- title: 施策名（15字以内）\n' +
-        '- why: なぜこの施策が必要か（データの根拠を含め40字以内）\n' +
-        '- who: 対象者（20字以内）\n' +
-        '- what: 具体的にやること（50字以内、ドライバーが実践しやすい内容）\n' +
-        '- effect: 期待される効果（30字以内）\n\n' +
-        '出力例: [{"title":"...","why":"...","who":"...","what":"...","effect":"..."}]';
-      var aiRes = await callAIWithFallback('JSON配列のみ出力。余計なテキスト不要。', prompt);
+      var prompt = `あなたは中小運送会社の健康推進を支援する産業保健コンサルタントです。
+以下の全社健診データを分析し、健康推進メンバー（医療の素人）が理解できる具体的な施策案を3つ提案してください。
+
+■ 会社情報
+業種: 運輸業（トラックドライバー中心）
+従業員数: ${summary.total}名 / 平均年齢: ${summary.averageAge}歳
+
+■ 最新年度の健診結果
+レッドカード（死の四重奏＋三重奏）: ${summary.redTotal||0}名
+イエローカード（予備軍）: ${summary.yellow||0}名
+BMI25以上: ${summary.bmiOver25Pct}%
+肥満: ${summary.rates.肥満}% / 高血圧: ${summary.rates.高血圧}% / 脂質異常: ${summary.rates.脂質異常}%
+高血糖: ${summary.rates.高血糖}% / 肝機能: ${summary.rates.肝機能}% / 腎機能: ${summary.rates.腎機能}% / 貧血: ${summary.rates.貧血}%
+
+■ 経年推移
+${tlText}
+
+■ 出力ルール
+- JSON配列のみ出力（説明文不要）
+- 3案それぞれに以下の5項目を含める
+- 各項目は具体的かつ詳細に。ドライバーの生活実態（長時間運転、コンビニ食中心、不規則な生活）を踏まえた実践的な内容にする
+
+title: 施策名（例：「コンビニ食で始める減塩チャレンジ」）
+why: この施策が必要な理由。健診データの具体的な数値を引用し、放置した場合のリスクもわかりやすく説明する（80〜120字）
+who: 対象者と優先度（例：「レッドカード29名を最優先、イエローカード100名も段階的に参加」）（30〜50字）
+what: 具体的な実施内容。「いつ・何を・どうやるか」をステップで示す（100〜150字）
+effect: 期待される効果と達成の目安（例：「3ヶ月で脂質異常率5%低下、6ヶ月で再検査受診率80%達成を目指す」）（50〜80字）`;
+      var aiRes = await callAIWithFallback('産業保健コンサルタントとして、指定されたJSON配列形式のみを出力してください。', prompt);
       if (aiRes) {
         var m = aiRes.match(/\[[\s\S]*\]/);
         if (m) aiPlans = JSON.parse(m[0]);

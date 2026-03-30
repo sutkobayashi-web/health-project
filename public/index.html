@@ -696,6 +696,9 @@
       <button onclick="inlineMemberConsult()" class="buddy-action-btn" style="display:flex;align-items:center;gap:5px;padding:8px 14px;background:linear-gradient(135deg,#f39c12,#f1c40f);color:white;border:none;border-radius:20px;font-size:0.75rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;box-shadow:0 2px 8px rgba(243,156,18,0.25);font-family:inherit;">
         <i class="fas fa-shield-alt"></i> 推進メンバーに相談・提案
       </button>
+      <button onclick="inlineChallengeJoin()" class="buddy-action-btn" style="display:flex;align-items:center;gap:5px;padding:8px 14px;background:linear-gradient(135deg,#ff6b35,#ff9a5c);color:white;border:none;border-radius:20px;font-size:0.75rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;box-shadow:0 2px 8px rgba(255,107,53,0.25);font-family:inherit;">
+        <i class="fas fa-fire"></i> チャレンジに挑戦する
+      </button>
       <button onclick="inlineTimelineView()" class="buddy-action-btn" style="display:flex;align-items:center;gap:5px;padding:8px 14px;background:linear-gradient(135deg,#6c5ce7,#a29bfe);color:white;border:none;border-radius:20px;font-size:0.75rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;box-shadow:0 2px 8px rgba(108,92,231,0.25);font-family:inherit;">
         <i class="fas fa-stream"></i> みんなの投稿を見る
       </button>
@@ -5175,6 +5178,68 @@ function cancelFoodCapture() {
   cancelCaptureMode();
 }
 
+
+function inlineChallengeJoin() {
+  hideActionBar();
+  addBuddyMessage('ai', 'チャレンジに挑戦したいんだね！🔥\n\n今開催中のチャレンジを確認するよ...');
+  getCurrentCycle(currentUser.uid).then(function(data) {
+    // ローディング除去
+    var msgs = document.getElementById('buddy-messages');
+    var last = msgs.lastElementChild;
+    if (last && last.textContent.indexOf('確認するよ') !== -1) last.remove();
+
+    if (!data || !data.challenges || data.challenges.length === 0) {
+      addBuddyMessage('ai', '今はアクティブなチャレンジがないみたい😅\n新しいチャレンジが始まったらお知らせするね！🔔');
+      showActionBar();
+      return;
+    }
+
+    // チャレンジ一覧をバディーが紹介
+    var active = data.challenges.filter(function(c) { return c.status === 'active'; });
+    var recruiting = data.challenges.filter(function(c) { return c.status === 'recruiting'; });
+    var all = active.concat(recruiting);
+
+    if (all.length === 0) {
+      addBuddyMessage('ai', '今は参加できるチャレンジがないみたい😅\nもうすぐ新しいのが始まるかも！🔔');
+      showActionBar();
+      return;
+    }
+
+    var msg = '現在のチャレンジはこちら！\n';
+    all.forEach(function(c) {
+      var statusLabel = c.status === 'active' ? '🔥開催中' : '📢募集中';
+      msg += '\n' + (c.icon || '💪') + ' ' + c.title + ' ' + statusLabel;
+      if (c.isJoined) msg += ' ✅参加中';
+      if (c.period_end) msg += '\n   📅 〜' + c.period_end;
+    });
+    addBuddyMessage('ai', msg);
+
+    // 選択ボタンを表示
+    setTimeout(function() {
+      addBuddyMessage('ai', 'どのチャレンジに挑戦する？👇');
+      var btns = all.map(function(c) {
+        var label = c.isJoined ? (c.icon || '💪') + ' ' + c.title + 'の記録' : (c.icon || '💪') + ' ' + c.title + 'に参加！';
+        return '<div class="buddy-quick-btn" onclick="openChallengeFromChat(\'' + c.challenge_id + '\')" style="border-color:#ff6b35;color:#ff6b35;">' + label + '</div>';
+      }).join('');
+      btns += '<div class="buddy-quick-btn" onclick="cancelCaptureMode()" style="border-color:#999;color:#999;">✕ やめる</div>';
+      addBuddyInlineQuick(
+        '<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;padding:4px 0;">' + btns + '</div>'
+      );
+    }, 600);
+  }).catch(function() {
+    addBuddyMessage('ai', '😅 チャレンジ情報の取得に失敗したよ。もう一度試してみてね。');
+    showActionBar();
+  });
+}
+
+function openChallengeFromChat(challengeId) {
+  markBuddyQuickUsed();
+  showActionBar();
+  addBuddyMessage('user', '🔥 チャレンジに挑戦！');
+  // チャレンジタブに切り替えて詳細を開く
+  switchAppTab('challenge');
+  setTimeout(function() { loadChallengeDetail(challengeId); }, 300);
+}
 
 function inlineTimelineView() {
   switchAppTab('menu');

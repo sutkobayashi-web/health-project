@@ -778,8 +778,6 @@
       <div id="honne-body" style="display:none; margin-top:12px; padding-top:12px; border-top:1px solid rgba(214,51,132,0.2);">
         <textarea id="honne-input" placeholder="最近の体調や気になること、健康の悩みなど、なんでもどうぞ（みんなと共有されます）"></textarea>
         <button class="btn-submit" onclick="submitPost()"><i class="fas fa-paper-plane" style="margin-right:6px;"></i> 健康推進メンバーへ相談する</button>
-        <button style="width:100%; margin-top:8px; padding:12px; background:white; border:2px solid #d63384; color:#d63384; border-radius:14px; font-weight:700; font-size:0.88rem; cursor:pointer;" onclick="toggleCatTimeline('consult')"><i class="fas fa-stream" style="margin-right:6px;"></i>相談の投稿を見る</button>
-        <div id="cat-timeline-consult" style="display:none; margin-top:12px;"><div id="cat-tl-consult-content"></div><div style="display:flex; gap:8px; margin-top:8px;"><button style="flex:1; padding:10px; background:#f8f8f8; border:1px solid #ddd; border-radius:10px; font-size:0.8rem; font-weight:700; color:#555; cursor:pointer;" onclick="loadMoreCat('consult')">もっと見る</button><button style="flex:1; padding:10px; background:#fce4ec; border:none; border-radius:10px; font-size:0.8rem; font-weight:700; color:#d63384; cursor:pointer;" onclick="toggleCatTimeline('consult')">閉じる</button></div></div>
       </div>
     </div>
 
@@ -807,11 +805,31 @@
           <label for="food-confirm" style="font-size:0.82rem; color:#555; cursor:pointer; margin:0;">AI食事アドバイザーに診断してもらう</label>
         </div>
         <button class="btn-food-submit" id="btn-food-submit" onclick="submitFoodPost()"><i class="fas fa-notes-medical" style="margin-right:6px;"></i>食事診断を受ける</button>
-        <button style="width:100%; margin-top:8px; padding:12px; background:white; border:2px solid #20c997; color:#20c997; border-radius:14px; font-weight:700; font-size:0.88rem; cursor:pointer;" onclick="toggleCatTimeline('food')"><i class="fas fa-stream" style="margin-right:6px;"></i>食事の投稿を見る</button>
-        <div id="cat-timeline-food" style="display:none; margin-top:12px;"><div id="cat-tl-food-content"></div><div style="display:flex; gap:8px; margin-top:8px;"><button style="flex:1; padding:10px; background:#f8f8f8; border:1px solid #ddd; border-radius:10px; font-size:0.8rem; font-weight:700; color:#555; cursor:pointer;" onclick="loadMoreCat('food')">もっと見る</button><button style="flex:1; padding:10px; background:#e0f7ed; border:none; border-radius:10px; font-size:0.8rem; font-weight:700; color:#20c997; cursor:pointer;" onclick="toggleCatTimeline('food')">閉じる</button></div></div>
       </div>
     </div>
 
+
+    <!-- みんなの投稿を見る -->
+    <div class="card-section" style="background:linear-gradient(135deg,#ede7f6,#e8eaf6); border:2px solid #6c5ce7; box-shadow:0 4px 16px rgba(108,92,231,0.12);">
+      <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="toggleAccordion('posts-view-body','posts-view-chevron')">
+        <div style="display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#6c5ce7,#a29bfe);flex-shrink:0;"><i class="fas fa-stream" style="font-size:22px;color:#fff;"></i></div>
+        <div style="flex:1;">
+          <div class="section-title" style="margin-bottom:2px; padding-bottom:3px; border-bottom:2px solid rgba(108,92,231,0.2);"><i class="fas fa-stream"></i> みんなの投稿を見る</div>
+          <div style="font-size:0.75rem; color:#999;">相談・食事投稿をまとめて閲覧</div>
+        </div>
+      </div>
+      <div id="posts-view-body" style="display:none; margin-top:12px; padding-top:12px; border-top:1px solid rgba(108,92,231,0.2);">
+        <div style="display:flex;gap:6px;margin-bottom:12px;">
+          <button id="pv-filter-all" onclick="loadPostsView('all')" style="flex:1;padding:8px;border-radius:20px;font-size:0.78rem;font-weight:700;cursor:pointer;border:2px solid #6c5ce7;background:#6c5ce7;color:white;font-family:inherit;">すべて</button>
+          <button id="pv-filter-consult" onclick="loadPostsView('consult')" style="flex:1;padding:8px;border-radius:20px;font-size:0.78rem;font-weight:700;cursor:pointer;border:2px solid #d63384;background:white;color:#d63384;font-family:inherit;">💬 相談</button>
+          <button id="pv-filter-food" onclick="loadPostsView('food')" style="flex:1;padding:8px;border-radius:20px;font-size:0.78rem;font-weight:700;cursor:pointer;border:2px solid #20c997;background:white;color:#20c997;font-family:inherit;">🍽️ 食事</button>
+        </div>
+        <div id="posts-view-content"><div style="text-align:center;padding:20px;color:#bbb;">タブを選んで投稿を表示</div></div>
+        <div style="display:flex; gap:8px; margin-top:8px;">
+          <button onclick="loadMorePostsView()" style="flex:1;padding:10px;background:#f8f8f8;border:1px solid #ddd;border-radius:10px;font-size:0.8rem;font-weight:700;color:#555;cursor:pointer;font-family:inherit;">もっと見る</button>
+        </div>
+      </div>
+    </div>
 
     <!-- 健診結果 -->
     <div class="card-section" id="checkup-section" style="background:linear-gradient(135deg,#fce4ec,#f3e5f5); border:2px solid #e91e63; box-shadow:0 4px 16px rgba(233,30,99,0.12);">
@@ -5136,8 +5154,62 @@ function submitInlineFood(btn) {
 
 function inlineTimelineView() {
   switchAppTab('menu');
-  // タイムラインを自動で開く
-  if (!isTimelineOpen) toggleTimeline();
+  // 「みんなの投稿を見る」アコーディオンを開いてallで読み込み
+  var body = document.getElementById('posts-view-body');
+  if (body && body.style.display === 'none') {
+    body.style.display = 'block';
+  }
+  loadPostsView('all');
+  // スクロール
+  setTimeout(function() { body.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+var _postsViewPage = 0;
+var _postsViewFilter = 'all';
+
+function loadPostsView(filter) {
+  _postsViewFilter = filter;
+  _postsViewPage = 0;
+  // フィルターボタンのアクティブ状態更新
+  ['all', 'consult', 'food'].forEach(function(f) {
+    var btn = document.getElementById('pv-filter-' + f);
+    if (!btn) return;
+    if (f === filter) {
+      btn.style.background = f === 'all' ? '#6c5ce7' : f === 'consult' ? '#d63384' : '#20c997';
+      btn.style.color = 'white';
+    } else {
+      btn.style.background = 'white';
+      btn.style.color = f === 'all' ? '#6c5ce7' : f === 'consult' ? '#d63384' : '#20c997';
+    }
+  });
+  var el = document.getElementById('posts-view-content');
+  el.innerHTML = '<div style="text-align:center;padding:20px;"><div class="spinner-border text-secondary" role="status"></div></div>';
+  var cat = filter === 'consult' ? 'consult' : filter === 'food' ? 'food' : '';
+  getPublicPosts(0, currentUser.uid, cat).then(function(res) {
+    renderPostsView(res, true);
+  });
+}
+
+function loadMorePostsView() {
+  _postsViewPage++;
+  var cat = _postsViewFilter === 'consult' ? 'consult' : _postsViewFilter === 'food' ? 'food' : '';
+  getPublicPosts(_postsViewPage, currentUser.uid, cat).then(function(res) {
+    renderPostsView(res, false);
+  });
+}
+
+function renderPostsView(res, isReset) {
+  var el = document.getElementById('posts-view-content');
+  if (isReset) el.innerHTML = '';
+  if (!res || !res.posts || res.posts.length === 0) {
+    if (isReset) el.innerHTML = '<div style="text-align:center;padding:20px;color:#bbb;font-size:0.85rem;">投稿はまだありません</div>';
+    else alert('これ以上投稿はありません');
+    return;
+  }
+  var html = res.posts.map(function(p) { return renderPost(p); }).join('');
+  el.insertAdjacentHTML('beforeend', html);
+  // キャッシュ更新
+  res.posts.forEach(function(p) { _postCache[p.row] = p; });
 }
 
 function inlineChallengeView() {

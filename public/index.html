@@ -223,7 +223,7 @@
   /* ====== フッター ====== */
   .app-footer { text-align: center; padding: 24px 0 8px; color: #ccc; font-size: 0.7rem; }
 
-  /* ====== QR招待カード ====== */
+  /* ====== QRコードカード ====== */
   #qr-area img { border-radius: 12px !important; border: 2px solid #f0f2f5 !important; }
 
   /* ヘルスバディーチャット */
@@ -538,7 +538,6 @@
           </div>
           <div style="display:flex;align-items:center;gap:8px;margin-top:5px;">
             <span id="mypage-posts" style="flex:1;font-size:0.65rem;font-weight:700;color:#555;background:#f0f0f0;padding:4px 10px;border-radius:10px;text-align:center;"><i class="fas fa-pen" style="font-size:0.55rem;"></i> 投稿 0</span>
-            <span id="mypage-invites" style="flex:1;font-size:0.65rem;font-weight:700;color:#555;background:#f0f0f0;padding:4px 10px;border-radius:10px;text-align:center;"><i class="fas fa-user-plus" style="font-size:0.55rem;"></i> 紹介者 0</span>
           </div>
         </div>
       </div>
@@ -932,18 +931,18 @@
       </div>
     </div>
 
-    <!-- QR招待 -->
+    <!-- QRコード -->
     <div class="card-section" style="background:linear-gradient(135deg,#ede7f6,#e8eaf6); border:2px solid #6c5ce7; box-shadow:0 4px 16px rgba(108,92,231,0.12);">
       <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="toggleAccordion('qr-body','qr-chevron')">
         <div style="display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#6c5ce7,#a29bfe);flex-shrink:0;"><i class="fas fa-qrcode" style="font-size:22px;color:#fff;"></i></div>
         <div style="flex:1;">
-          <div class="section-title" style="margin-bottom:2px; padding-bottom:3px; border-bottom:2px solid rgba(108,92,231,0.2);"><i class="fas fa-user-plus"></i> 仲間を招待しよう！</div>
-          <div style="font-size:0.75rem; color:#999;">QRコードを同僚に見せて参加してもらおう</div>
+          <div class="section-title" style="margin-bottom:2px; padding-bottom:3px; border-bottom:2px solid rgba(108,92,231,0.2);"><i class="fas fa-qrcode"></i> アプリのQRコード</div>
+          <div style="font-size:0.75rem; color:#999;">このQRコードでアプリにアクセスできます</div>
         </div>
       </div>
       <div id="qr-body" style="display:none; margin-top:12px; padding-top:12px; border-top:1px solid rgba(108,92,231,0.2); text-align:center;">
         <div id="qr-area"></div>
-        <div style="margin-top:10px; font-size:0.75rem; color:#bbb;"><i class="fas fa-users" style="margin-right:4px;"></i> 招待するとランクがアップ！</div>
+        <div style="margin-top:10px; font-size:0.75rem; color:#bbb;"><i class="fas fa-mobile-alt" style="margin-right:4px;"></i> カメラで読み取ってアクセス</div>
       </div>
     </div>
 
@@ -966,8 +965,7 @@ var isTimelineOpen = false;
 var selectedFoodData = null;
 var selectedFoodMime = null;
 var deployUrl = window.location.origin;
-var qrBaseUrl = window.location.origin + '/';
-var inviterId = new URLSearchParams(window.location.search).get('inviter') || '';
+var inviterId = ''; // 招待制廃止（共通QR化）
 
 // ====== 認証 ======
 var avatarList = [
@@ -2180,7 +2178,7 @@ function showRanking() {
       badgeHtml += '<div style="margin-top:6px; font-size:0.7rem; color:#ffd700; font-weight:700;">最高ランク達成！</div>';
     }
     badgeHtml += '</div>';
-    content.innerHTML = badgeHtml + renderRankList('投稿数ランキング TOP5', 'pen', res.postRanking) + renderRankList('紹介者数ランキング TOP5', 'user-plus', res.inviteRanking);
+    content.innerHTML = badgeHtml + renderRankList('投稿数ランキング TOP5', 'pen', res.postRanking);
   }).catch(function() {
     content.innerHTML = '<p style="color:#999;">通信エラー</p>';
   });
@@ -2267,16 +2265,15 @@ function updateHeaderStats() {
     if (prRank) prRank.innerHTML = getRankBadgeHtml(res.rank);
     var prPosts = document.getElementById('profile-posts');
     if (prPosts) prPosts.innerHTML = '<i class="fas fa-pen"></i> 投稿 ' + res.postCount + (res.postRankPos ? '<span style="color:#667eea;">（' + res.postRankPos + '位）</span>' : '');
-    var prInvites = document.getElementById('profile-invites');
-    if (prInvites) prInvites.innerHTML = '<i class="fas fa-user-plus"></i> 紹介者 ' + (res.inviteCount || 0) + (res.inviteRankPos ? '<span style="color:#667eea;">（' + res.inviteRankPos + '位）</span>' : '');
   });
 }
 
 // ====== QR ======
 function generateQR() {
-  var link = qrBaseUrl + "?inviter=" + currentUser.uid;
+  var link = window.location.origin + '/';
   var qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" + encodeURIComponent(link);
-  document.getElementById('qr-area').innerHTML = '<img src="' + qrUrl + '" style="width:150px; height:150px; border-radius:8px; border:1px solid #eee;">';
+  var el = document.getElementById('qr-area');
+  if (el) el.innerHTML = '<img src="' + qrUrl + '" style="width:150px; height:150px; border-radius:8px; border:1px solid #eee;">';
 }
 
 // ====== タイムライン ======
@@ -2711,9 +2708,6 @@ function openMyPosts() {
     var postsEl = document.getElementById('mypage-posts');
     var srcPosts = document.getElementById('profile-posts');
     if (postsEl && srcPosts) postsEl.innerHTML = srcPosts.innerHTML;
-    var invEl = document.getElementById('mypage-invites');
-    var srcInv = document.getElementById('profile-invites');
-    if (invEl && srcInv) invEl.innerHTML = srcInv.innerHTML;
   }
   loadMyMemos();
   var list = document.getElementById('my-posts-list');
@@ -5276,7 +5270,7 @@ var HELP_TOPICS = {
   },
   mypage: {
     label: '👤 マイページ',
-    answer: 'マイページでは自分の情報を確認・変更できるよ！\n\n📊 投稿数・招待数・ランクの確認\n🎨 バディーのカスタマイズ\n😀 アバターの変更\n📋 自分の投稿一覧\n🔗 招待QRコードの表示\n\n下のタブの「マイページ」アイコンからアクセスしてね！'
+    answer: 'マイページでは自分の情報を確認・変更できるよ！\n\n📊 投稿数・ランクの確認\n🎨 バディーのカスタマイズ\n😀 アバターの変更\n📋 自分の投稿一覧\n\n下のタブの「マイページ」アイコンからアクセスしてね！'
   }
 };
 

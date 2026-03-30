@@ -81,12 +81,75 @@ function runCheckupAnalysis() {
       }
     }
 
+    // 時系列推移グラフ
+    if (data.timeline && data.timeline.length >= 2) {
+      html += '<div class="mt-3 p-3" style="background:#f8f9fa;border-radius:10px;">';
+      html += '<div class="fw-bold small mb-2" style="color:#1a1a2e;"><i class="fas fa-chart-line me-1 text-primary"></i>経年推移（' + escapeHtml(data.timeline[0].year) + '〜' + escapeHtml(data.timeline[data.timeline.length-1].year) + '）</div>';
+      html += '<canvas id="checkup-timeline-chart" height="180"></canvas>';
+      // 数値テーブル
+      html += '<div style="overflow-x:auto; margin-top:10px;">';
+      html += '<table style="width:100%; border-collapse:collapse; font-size:0.7rem; text-align:center;">';
+      html += '<thead><tr style="background:#667eea; color:white;"><th style="padding:4px 6px;">年度</th><th style="padding:4px 6px;">人数</th><th style="padding:4px 6px;">平均年齢</th><th style="padding:4px 6px;">BMI25↑</th>';
+      var cats = ['肥満','高血圧','脂質異常','高血糖','肝機能','腎機能','貧血'];
+      cats.forEach(function(c) { html += '<th style="padding:4px 6px;">' + c + '</th>'; });
+      html += '</tr></thead><tbody>';
+      data.timeline.forEach(function(t, idx) {
+        var bg = idx % 2 === 0 ? '#fff' : '#f0f4ff';
+        html += '<tr style="background:' + bg + ';"><td style="padding:4px 6px;font-weight:700;">' + escapeHtml(t.year) + '</td>';
+        html += '<td style="padding:4px 6px;">' + t.summary.total + '</td>';
+        html += '<td style="padding:4px 6px;">' + t.summary.averageAge + '</td>';
+        html += '<td style="padding:4px 6px;">' + t.summary.bmiOver25Pct + '%</td>';
+        cats.forEach(function(c) { html += '<td style="padding:4px 6px;">' + (t.summary.rates[c] || 0) + '%</td>'; });
+        html += '</tr>';
+      });
+      html += '</tbody></table></div>';
+      html += '</div>';
+    }
+
     html += '</div></div>';
     area.innerHTML = html;
+
+    // Chart.js で経年推移チャート描画
+    if (data.timeline && data.timeline.length >= 2) {
+      renderCheckupTimelineChart(data.timeline);
+    }
   }).catch(function(e) {
     btn.disabled = false;
     btn.innerHTML = '<i class="fas fa-play me-1"></i>分析実行';
     area.innerHTML = '<div class="alert alert-danger">通信エラー: ' + e.message + '</div>';
+  });
+}
+
+var _checkupTimelineChart = null;
+function renderCheckupTimelineChart(timeline) {
+  var canvas = document.getElementById('checkup-timeline-chart');
+  if (!canvas) return;
+  if (_checkupTimelineChart) { _checkupTimelineChart.destroy(); _checkupTimelineChart = null; }
+  var labels = timeline.map(function(t) { return t.year; });
+  var datasets = [
+    { label: 'BMI25↑', data: timeline.map(function(t) { return t.summary.bmiOver25Pct; }), borderColor: '#e53935', backgroundColor: 'rgba(229,57,53,0.1)', tension: 0.3, borderWidth: 2 },
+    { label: '高血圧', data: timeline.map(function(t) { return t.summary.rates.高血圧 || 0; }), borderColor: '#1e88e5', backgroundColor: 'rgba(30,136,229,0.1)', tension: 0.3, borderWidth: 2 },
+    { label: '脂質異常', data: timeline.map(function(t) { return t.summary.rates.脂質異常 || 0; }), borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.1)', tension: 0.3, borderWidth: 2 },
+    { label: '高血糖', data: timeline.map(function(t) { return t.summary.rates.高血糖 || 0; }), borderColor: '#9c27b0', backgroundColor: 'rgba(156,39,176,0.1)', tension: 0.3, borderWidth: 2 },
+    { label: '肥満', data: timeline.map(function(t) { return t.summary.rates.肥満 || 0; }), borderColor: '#43a047', backgroundColor: 'rgba(67,160,71,0.1)', tension: 0.3, borderWidth: 2 },
+    { label: '肝機能', data: timeline.map(function(t) { return t.summary.rates.肝機能 || 0; }), borderColor: '#ff7043', backgroundColor: 'rgba(255,112,67,0.1)', tension: 0.3, borderWidth: 1, borderDash: [4,2] },
+    { label: '貧血', data: timeline.map(function(t) { return t.summary.rates.貧血 || 0; }), borderColor: '#78909c', backgroundColor: 'rgba(120,144,156,0.1)', tension: 0.3, borderWidth: 1, borderDash: [4,2] }
+  ];
+  _checkupTimelineChart = new Chart(canvas.getContext('2d'), {
+    type: 'line',
+    data: { labels: labels, datasets: datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { font: { size: 10, family: "'Noto Sans JP'" }, boxWidth: 12, padding: 8 } },
+        datalabels: { display: false }
+      },
+      scales: {
+        y: { beginAtZero: true, max: 100, ticks: { font: { size: 10 }, callback: function(v) { return v + '%'; } }, title: { display: true, text: '異常率(%)', font: { size: 10 } } },
+        x: { ticks: { font: { size: 10 } } }
+      },
+      interaction: { mode: 'index', intersect: false }
+    }
   });
 }
 

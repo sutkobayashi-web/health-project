@@ -447,7 +447,26 @@ ${EVIDENCE_BASE}
       db.prepare("INSERT OR REPLACE INTO system_cache (key, data, updated_at) VALUES ('checkup_summary', ?, datetime('now'))").run(cacheText);
     } catch(e) {}
 
-    res.json({ success: true, year: latestFolder.name, summary: summary, analysis: analysis });
+    // 時系列データも取得（最新以外の年度フォルダ）
+    var timeline = [];
+    for (var yf of yearFolders) {
+      try {
+        var yFiles = yf === latestFolder ? xlsmFiles : await findCheckupFiles(token, yf.id, 0);
+        if (yFiles.length === 0) continue;
+        var yData = [];
+        for (var yFile of yFiles) {
+          try {
+            var yBuf = await boxDownloadFile(token, yFile.id);
+            yData = yData.concat(extractAllCheckupData(yBuf));
+          } catch(e) {}
+        }
+        var ySummary = aggregateCheckupData(yData);
+        if (ySummary) timeline.push({ year: yf.name, summary: ySummary });
+      } catch(e) {}
+    }
+    timeline.sort(function(a, b) { return a.year.localeCompare(b.year); });
+
+    res.json({ success: true, year: latestFolder.name, summary: summary, analysis: analysis, timeline: timeline });
   } catch (e) {
     console.error('全社健診分析エラー:', e.message);
     res.json({ success: false, msg: e.message });

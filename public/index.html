@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260330b">
+<html data-app-version="20260330c">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -4912,7 +4912,17 @@ function clearBuddyChat() {
 }
 
 // ====== インラインアクション（チャット内で直接実行） ======
+function hideActionBar() {
+  var bar = document.getElementById('buddy-action-bar');
+  if (bar) bar.style.display = 'none';
+}
+function showActionBar() {
+  var bar = document.getElementById('buddy-action-bar');
+  if (bar) bar.style.display = 'flex';
+}
+
 function inlineConsult() {
+  hideActionBar();
   // チャット内に相談入力フォームを表示
   var msgs = document.getElementById('buddy-messages');
   var div = document.createElement('div');
@@ -4939,6 +4949,7 @@ function submitInlineConsult(btn) {
   var card = btn.closest('div[style*="border:2px"]') || btn.parentElement;
   card.innerHTML = '<div style="text-align:center;padding:10px;"><i class="fas fa-spinner fa-spin" style="color:#d63384;font-size:1.2rem;"></i><div style="font-size:0.8rem;color:#999;margin-top:6px;">送信中...</div></div>';
   processForm({ uid: currentUser.uid, nickname: currentUser.nickname, avatar: currentUser.avatar, honne: encodeURIComponent(txt), department: currentUser.department, birthDate: currentUser.birthDate }).then(function(res) {
+    showActionBar();
     if (res && res.success) {
       card.innerHTML = '<div style="text-align:center;padding:10px;"><i class="fas fa-check-circle" style="color:#20c997;font-size:1.5rem;"></i><div style="font-size:0.82rem;color:#333;font-weight:700;margin-top:6px;">送信しました！</div></div>';
       updateHeaderStats();
@@ -4952,11 +4963,13 @@ function submitInlineConsult(btn) {
       card.innerHTML = '<div style="text-align:center;padding:10px;color:#e74c3c;"><i class="fas fa-exclamation-circle"></i> 送信に失敗しました</div>';
     }
   }).catch(function() {
+    showActionBar();
     card.innerHTML = '<div style="text-align:center;padding:10px;color:#e74c3c;"><i class="fas fa-exclamation-circle"></i> 通信エラー</div>';
   });
 }
 
 function inlineFoodCheck() {
+  hideActionBar();
   // チャット内に食事診断カードを表示
   var msgs = document.getElementById('buddy-messages');
   var div = document.createElement('div');
@@ -5052,6 +5065,7 @@ function submitInlineFood(btn) {
 
   handleFoodPost({ uid: currentUser.uid, nickname: currentUser.nickname, avatar: currentUser.avatar, imageBase64: _inlineFoodBase64, mimeType: 'image/jpeg', userComment: comment, department: currentUser.department, birthDate: currentUser.birthDate, isPublic: true }).then(function(res) {
     _inlineFoodBase64 = null;
+    showActionBar();
     if (res && res.success) {
       card.innerHTML = '<div style="text-align:center;padding:10px;"><i class="fas fa-check-circle" style="color:#20c997;font-size:1.5rem;"></i><div style="font-size:0.82rem;color:#333;font-weight:700;margin-top:6px;">診断完了！</div></div>';
       updateHeaderStats();
@@ -5066,6 +5080,7 @@ function submitInlineFood(btn) {
     }
   }).catch(function() {
     _inlineFoodBase64 = null;
+    showActionBar();
     card.innerHTML = '<div style="text-align:center;padding:10px;color:#e74c3c;"><i class="fas fa-exclamation-circle"></i> 通信エラー</div>';
   });
 }

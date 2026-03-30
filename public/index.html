@@ -4736,10 +4736,14 @@ function loadAvatarChallengeInTab() {
     sec.innerHTML = '<div style="margin-top:16px;background:rgba(233,30,99,0.15);border:1.5px solid rgba(233,30,99,0.4);border-radius:14px;overflow:hidden;">' +
       '<div onclick="var b=document.getElementById(\'chtab-avatar-body\');b.style.display=b.style.display===\'none\'?\'block\':\'none\';" style="display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;">' +
         '<div style="font-size:1.3rem;">🎨</div>' +
-        '<div style="flex:1;"><div style="font-weight:800;font-size:0.85rem;color:#b0003a;">アバターチャレンジ</div>' +
+        '<div style="flex:1;"><div style="font-weight:800;font-size:0.85rem;color:#b0003a;">🏆 特別企画：アバターチャレンジ</div>' +
         '<div style="font-size:0.68rem;color:#999;">残り' + remaining + '日 / ' + res.totalVoters + '/' + res.totalUsers + '名が参加中</div></div>' +
       '</div>' +
       '<div id="chtab-avatar-body" style="display:none;padding:0 14px 14px;">' +
+        '<div style="background:linear-gradient(135deg,#fff8e1,#ffecb3);border:1.5px solid #ffc107;border-radius:10px;padding:10px;margin-bottom:10px;text-align:center;">' +
+          '<div style="font-weight:800;font-size:0.82rem;color:#f57f17;">🎁 投票1位にはQUOカード500円分プレゼント！</div>' +
+          '<div style="font-size:0.7rem;color:#999;margin-top:2px;">期間：4月10日まで</div>' +
+        '</div>' +
         '<div style="font-size:0.75rem;color:#00897b;font-weight:700;text-align:center;margin-bottom:10px;"><i class="fas fa-heart" style="color:#e91e63;"></i> ' + (config.max_votes || 5) + '票まで投票OK</div>' +
         '<div id="chtab-avatar-gallery"></div>' +
         '<div id="chtab-avatar-ranking" style="display:none;"></div>' +
@@ -6298,8 +6302,9 @@ function loadAvatarChallenge() {
     var config = res.config || {};
     var endDate = config.end_date ? new Date(config.end_date) : null;
     var remaining = endDate ? Math.max(0, Math.ceil((endDate - Date.now()) / 86400000)) : '?';
-    document.getElementById('avatar-challenge-subtitle').innerText = 'アバターチャレンジ（残り' + remaining + '日）';
+    document.getElementById('avatar-challenge-subtitle').innerText = '🏆 特別企画：アバターチャレンジ（残り' + remaining + '日）';
     document.getElementById('avatar-challenge-status').innerHTML =
+      '<div style="background:linear-gradient(135deg,#fff8e1,#ffecb3);border:1.5px solid #ffc107;border-radius:8px;padding:6px 10px;margin-bottom:6px;text-align:center;font-weight:800;font-size:0.78rem;color:#f57f17;">🎁 投票1位にはQUOカード500円分！（4/10まで）</div>' +
       '<i class="fas fa-users"></i> ' + res.totalVoters + '/' + res.totalUsers + '名が参加中' +
       '　<i class="fas fa-heart" style="color:#e91e63;"></i> ' + (config.max_votes || 5) + '票まで投票OK';
     renderAvatarGallery(res);

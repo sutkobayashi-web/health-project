@@ -614,7 +614,7 @@ ${challengeReactionInfo}
 // Gemini テキスト生成（Groqフォールバック用）
 async function callGeminiText(systemPrompt, userMessage) {
   try {
-    var model = process.env.GEMINI_VISION_MODEL || 'gemini-2.5-flash-preview-05-20';
+    var model = process.env.GEMINI_TEXT_MODEL || 'gemini-2.0-flash';
     var url = 'https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + GEMINI_API_KEY();
     var res = await fetch(url, {
       method: 'POST',

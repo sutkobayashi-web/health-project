@@ -99,6 +99,8 @@ function getDb() {
     if (!postCols.find(c => c.name === 'admin_read_at')) {
       db.exec("ALTER TABLE posts ADD COLUMN admin_read_at DATETIME");
     }
+    // 既存投稿で admin_read_at が NULL のものを既読扱いにする
+    db.exec("UPDATE posts SET admin_read_at = datetime('now') WHERE admin_read_at IS NULL");
 
     // マイグレーション: バディーチャット履歴テーブル
     db.exec(`CREATE TABLE IF NOT EXISTS buddy_messages (

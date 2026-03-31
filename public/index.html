@@ -2949,6 +2949,9 @@ function submitFoodPost() {
         if (res.analysis.nurse) msg += '【AIヘルスアドバイザー】\n' + res.analysis.nurse;
       }
       showFoodResponse(msg || '食事の投稿を受け付けました。');
+      if (res.analysis && res.analysis.nutrientScores) {
+        setTimeout(function() { renderNutrientRadar('food-radar-chart-area', res.analysis.nutrientScores); }, 100);
+      }
     } else {
       alert("投稿エラー: " + (res ? res.msg : "不明なエラー"));
     }
@@ -2967,12 +2970,78 @@ function showFoodResponse(text) {
       '<div style="font-weight:800; font-size:1.1rem; color:#20c997;">食事分析レポート</div>' +
       '<div style="font-size:0.75rem; color:#aaa; margin-top:4px;">AI食事アドバイザー × AIヘルスアドバイザー</div>' +
     '</div>' +
+    '<div id="food-radar-chart-area"></div>' +
     '<div style="background:linear-gradient(135deg,#f0faf4,#edf4ff);padding:16px;border-radius:14px;font-size:0.9rem;line-height:1.8;color:#333;white-space:pre-wrap;border-left:4px solid #20c997;">' + escInbox(text) + '</div>' +
     '<button onclick="this.closest(\'div[style*=fixed]\').remove()" style="width:100%;margin-top:16px;padding:14px;background:linear-gradient(135deg,#20c997,#38d9a9);color:white;border:none;border-radius:14px;font-weight:700;font-size:0.95rem;cursor:pointer;box-shadow:0 4px 14px rgba(32,201,151,0.3);">閉じる</button>';
   overlay.appendChild(box);
   document.body.appendChild(overlay);
 }
 
+
+// ====== 栄養素レーダーチャート（SVG） ======
+function renderNutrientRadar(containerId, scores) {
+  var el = document.getElementById(containerId);
+  if (!el || !scores) return;
+
+  var labels = ['たんぱく質', '脂質', '炭水化物', 'ビタミン', 'ミネラル', '塩分'];
+  var keys = ['protein', 'fat', 'carbs', 'vitamin', 'mineral', 'salt'];
+  var values = keys.map(function(k) { return Math.max(1, Math.min(5, scores[k] || 1)); });
+  var n = labels.length;
+  var cx = 130, cy = 120, maxR = 85;
+  var angleStep = (2 * Math.PI) / n;
+  var startAngle = -Math.PI / 2;
+
+  function polar(i, r) {
+    var a = startAngle + i * angleStep;
+    return { x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) };
+  }
+
+  var svg = '<svg width="260" height="270" viewBox="0 0 260 270" xmlns="http://www.w3.org/2000/svg">';
+
+  // 背景グリッド
+  for (var lv = 1; lv <= 5; lv++) {
+    var r = maxR * lv / 5;
+    var pts = [];
+    for (var i = 0; i < n; i++) { var p = polar(i, r); pts.push(p.x + ',' + p.y); }
+    svg += '<polygon points="' + pts.join(' ') + '" fill="none" stroke="' + (lv === 3 ? '#94a3b8' : '#e2e8f0') + '" stroke-width="' + (lv === 3 ? '1.5' : '0.8') + '" stroke-dasharray="' + (lv === 3 ? '4,2' : 'none') + '"/>';
+  }
+
+  // 軸線
+  for (var i = 0; i < n; i++) {
+    var p = polar(i, maxR);
+    svg += '<line x1="' + cx + '" y1="' + cy + '" x2="' + p.x + '" y2="' + p.y + '" stroke="#e2e8f0" stroke-width="0.8"/>';
+  }
+
+  // データ多角形
+  var dataPts = [];
+  for (var i = 0; i < n; i++) { var p = polar(i, maxR * values[i] / 5); dataPts.push(p.x + ',' + p.y); }
+  svg += '<polygon points="' + dataPts.join(' ') + '" fill="rgba(32,201,151,0.2)" stroke="#20c997" stroke-width="2.5"/>';
+
+  // データポイント
+  for (var i = 0; i < n; i++) {
+    var p = polar(i, maxR * values[i] / 5);
+    var dotColor = values[i] >= 4 ? '#20c997' : values[i] >= 3 ? '#f59e0b' : '#ef4444';
+    svg += '<circle cx="' + p.x + '" cy="' + p.y + '" r="4" fill="' + dotColor + '" stroke="white" stroke-width="1.5"/>';
+  }
+
+  // ラベル
+  for (var i = 0; i < n; i++) {
+    var p = polar(i, maxR + 22);
+    var anchor = 'middle';
+    if (p.x < cx - 10) anchor = 'end';
+    else if (p.x > cx + 10) anchor = 'start';
+    svg += '<text x="' + p.x + '" y="' + (p.y + 4) + '" text-anchor="' + anchor + '" font-size="10" font-weight="700" fill="#555">' + labels[i] + '</text>';
+    svg += '<text x="' + p.x + '" y="' + (p.y + 16) + '" text-anchor="' + anchor + '" font-size="9" font-weight="600" fill="' + (values[i] >= 4 ? '#20c997' : values[i] >= 3 ? '#f59e0b' : '#ef4444') + '">' + values[i] + '/5</text>';
+  }
+
+  // 凡例
+  svg += '<text x="' + cx + '" y="260" text-anchor="middle" font-size="9" fill="#aaa">破線=適量ライン(3) 🟢4以上 🟡3 🔴2以下</text>';
+  svg += '</svg>';
+
+  el.innerHTML = '<div style="text-align:center; margin-bottom:12px;">' +
+    '<div style="font-weight:800; font-size:0.85rem; color:#20c997; margin-bottom:4px;">📊 栄養バランスチャート</div>' +
+    svg + '</div>';
+}
 
 // ====== ローディング ======
 function showLoading(msg) {
@@ -5152,6 +5221,18 @@ function submitFoodFromChat(comment) {
         if (res.analysis.nurse) report += '\n\n💬 アドバイス：\n' + res.analysis.nurse;
       }
       addBuddyMessage('ai', report || '食事の投稿を受け付けたよ！🍽️');
+      if (res.analysis && res.analysis.nutrientScores) {
+        var radarDiv = document.createElement('div');
+        radarDiv.id = 'buddy-radar-' + Date.now();
+        var msgs = document.getElementById('buddy-messages');
+        var aiMsg = document.createElement('div');
+        aiMsg.className = 'buddy-msg buddy-msg-ai';
+        aiMsg.style.cssText = 'padding:8px 12px;';
+        aiMsg.appendChild(radarDiv);
+        msgs.appendChild(aiMsg);
+        msgs.scrollTop = msgs.scrollHeight;
+        renderNutrientRadar(radarDiv.id, res.analysis.nutrientScores);
+      }
     } else {
       addBuddyMessage('ai', '😅 分析がうまくいかなかったみたい。もう一度試してみてね。');
     }

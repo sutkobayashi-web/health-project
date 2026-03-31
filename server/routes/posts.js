@@ -220,9 +220,30 @@ router.post('/food', async (req, res) => {
 - ビタミン・ミネラル源（特にビタミンD）の有無
 - 1日3食のうちこの食事の位置づけ
 - CANフレームワーク（Convenient・Attractive・Normative）の観点で改善提案があれば簡潔に
-- ★★★マークダウン記法（**太字**や###見出し等）は絶対に使わない。強調したい語句は【】で囲むこと★★★`;
-    let nutRes = await callGeminiVision(nutSys, imageBase64, mimeType);
-    if (!nutRes || nutRes === '通信エラー') nutRes = '解析できませんでした。';
+- ★★★マークダウン記法（**太字**や###見出し等）は絶対に使わない。強調したい語句は【】で囲むこと★★★
+
+【重要】テキスト分析の最後に、以下のJSON形式で推定栄養スコアを必ず出力してください。
+///NUTRIENTS///
+{"protein":X,"fat":X,"carbs":X,"vitamin":X,"mineral":X,"salt":X}
+
+各値は1食の目標摂取量に対する達成度を1〜5で評価（1=不足/過剰、3=適量、5=理想的）。
+- protein: たんぱく質（目標: 1食20g程度）
+- fat: 脂質（目標: エネルギー比20-30%）
+- carbs: 炭水化物（目標: エネルギー比50-65%）
+- vitamin: ビタミン類（緑黄色野菜・果物の充実度）
+- mineral: ミネラル（カルシウム・鉄分源の充実度）
+- salt: 塩分コントロール（目標: 1食2.5g未満。少ないほど高スコア）`;
+    let nutResRaw = await callGeminiVision(nutSys, imageBase64, mimeType);
+    if (!nutResRaw || nutResRaw === '通信エラー') nutResRaw = '解析できませんでした。';
+
+    // 栄養スコアJSONを抽出
+    let nutrientScores = null;
+    let nutRes = nutResRaw;
+    const nutMatch = nutResRaw.match(/\/\/\/NUTRIENTS\/\/\/\s*(\{[\s\S]*?\})/);
+    if (nutMatch) {
+      try { nutrientScores = JSON.parse(nutMatch[1]); } catch(e) {}
+      nutRes = nutResRaw.replace(/\/\/\/NUTRIENTS\/\/\/[\s\S]*$/, '').trim();
+    }
 
     // Groq でヘルスアドバイザーコメント
     const nurseSys = `あなたはエビデンスに基づく健康支援を行うAIヘルスアドバイザーです。相手:${dName}。つぶやき:「${comment}」食事分析:「${nutRes}」。
@@ -240,7 +261,7 @@ router.post('/food', async (req, res) => {
     db.prepare(`INSERT INTO posts (post_id, user_id, content, analysis, nickname, avatar, status, category, department, birth_date, image_url)
       VALUES (?, ?, ?, ?, ?, ?, ?, '🍱 食事・栄養', ?, ?, ?)`).run(pid, uid, `【写真】${comment}`, finalForDb, dName, decodeURIComponent(avatar), status, department, birthDate, imageUrl);
 
-    res.json({ success: true, analysis: { nutrition: nutRes, nurse: nurseRes }, imageUrl });
+    res.json({ success: true, analysis: { nutrition: nutRes, nurse: nurseRes, nutrientScores }, imageUrl });
   } catch (e) {
     res.json({ success: false, msg: e.toString() });
   }

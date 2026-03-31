@@ -420,9 +420,16 @@ ${tone}
     try {
       result = await callGroqApi(null, null, { messages, temperature: 0.6, max_tokens: 500 });
     } catch (e) {
-      // Groq失敗時はGeminiにフォールバック
-      var combined = messages.map(m => (m.role === 'system' ? '[指示] ' : m.role === 'assistant' ? '[AI] ' : '[ユーザー] ') + m.content).join('\n\n');
-      result = await callGeminiText(null, combined);
+      console.log('[BuddyChat] Groq failed:', e.message, '-> trying Gemini');
+    }
+    // Groqがnull返却またはthrowした場合、Geminiにフォールバック
+    if (!result) {
+      try {
+        var combined = messages.map(m => (m.role === 'system' ? '[指示] ' : m.role === 'assistant' ? '[AI] ' : '[ユーザー] ') + m.content).join('\n\n');
+        result = await callGeminiText(null, combined);
+      } catch (e2) {
+        console.error('[BuddyChat] Gemini also failed:', e2.message);
+      }
     }
 
     if (result) return { success: true, reply: result };
@@ -513,8 +520,16 @@ ${tone}
     try {
       result = await callGroqApi(null, null, { messages, temperature: 0.5, max_tokens: 1000 });
     } catch (e) {
-      var combined = messages.map(m => (m.role === 'system' ? '[指示] ' : m.role === 'assistant' ? '[AI] ' : '[ユーザー] ') + m.content).join('\n\n');
-      result = await callGeminiText(null, combined);
+      console.log('[BuddyImage] Groq failed:', e.message, '-> trying Gemini');
+    }
+    // Groqがnull返却またはthrowした場合、Geminiにフォールバック
+    if (!result) {
+      try {
+        var combined = messages.map(m => (m.role === 'system' ? '[指示] ' : m.role === 'assistant' ? '[AI] ' : '[ユーザー] ') + m.content).join('\n\n');
+        result = await callGeminiText(null, combined);
+      } catch (e2) {
+        console.error('[BuddyImage] Gemini also failed:', e2.message);
+      }
     }
     if (result) return { success: true, reply: result };
     return { success: false, reply: '申し訳ありません、回答を生成できませんでした。' };

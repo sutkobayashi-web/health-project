@@ -344,7 +344,7 @@ router.get('/stats/:uid', (req, res) => {
   }
 });
 
-// ランキング（投稿数・紹介者数 TOP5）
+// ランキング（投稿数 TOP5）
 router.get('/ranking', (req, res) => {
   try {
     const db = getDb();
@@ -354,13 +354,7 @@ router.get('/ranking', (req, res) => {
       FROM users u LEFT JOIN posts p ON u.id = p.user_id
       GROUP BY u.id ORDER BY count DESC LIMIT 5
     `).all();
-    // 紹介者数TOP5
-    const inviteRanking = db.prepare(`
-      SELECT u.id, u.nickname, u.avatar, COUNT(u2.id) as count
-      FROM users u LEFT JOIN users u2 ON u.id = u2.inviter_id
-      GROUP BY u.id ORDER BY count DESC LIMIT 5
-    `).all();
-    res.json({ success: true, postRanking, inviteRanking });
+    res.json({ success: true, postRanking, inviteRanking: [] });
   } catch (e) {
     res.json({ success: false, error: e.toString() });
   }

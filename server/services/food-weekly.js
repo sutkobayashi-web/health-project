@@ -35,7 +35,7 @@ async function runWeeklyFoodAnalysis() {
 
   // 先週の食事投稿をユーザーごとに集計
   var foodPosts = db.prepare(`
-    SELECT user_id, nickname, content, analysis, created_at FROM posts
+    SELECT user_id, nickname, content, analysis, nutrition_scores, created_at FROM posts
     WHERE (content LIKE '【写真】%' OR COALESCE(category,'') LIKE '%食事%' OR COALESCE(category,'') LIKE '%栄養%')
     AND date(created_at) >= ? AND date(created_at) <= ?
     ORDER BY user_id, created_at ASC
@@ -80,18 +80,46 @@ async function runWeeklyFoodAnalysis() {
 async function generateUserFoodReport(uid, userData, weekLabel, weekStart) {
   var db = getDb();
 
-  // 食事投稿の内容とAI分析をまとめる
+  // 食事投稿の内容とAI分析をまとめる + 個別スコアを収集
+  var mealScores = [];
   var mealSummary = userData.posts.map(function(p, idx) {
     var content = (p.content || '').replace(/^【写真】/, '').substring(0, 120);
-    // AI分析からケアコメント部分を抽出
     var aiComment = '';
     if (p.analysis) {
       var parts = p.analysis.split('///SCORE///');
       aiComment = (parts[0] || '').substring(0, 150);
+      // ///NUTRIENTS/// からスコアを抽出（DB未保存の過去投稿対応）
+      var nutMatch = p.analysis.match(/\/\/\/NUTRIENTS\/\/\/\s*(\{[\s\S]*?\})/);
+      if (nutMatch) { try { mealScores.push(JSON.parse(nutMatch[1])); } catch(e) {} }
+    }
+    // nutrition_scoresカラムから取得（新しい投稿）
+    if (p.nutrition_scores && !mealScores[mealScores.length - 1]) {
+      try { mealScores.push(JSON.parse(p.nutrition_scores)); } catch(e) {}
     }
     var date = p.created_at ? p.created_at.substring(5, 10) : '';
     return '[' + date + '] ' + content + (aiComment ? ' → AI: ' + aiComment.substring(0, 80) : '');
   }).join('\n');
+
+  // 実データから平均スコアを計算
+  var avgScores = null;
+  if (mealScores.length > 0) {
+    var keys = ['protein','fat','carb','carbs','vitamin','mineral','salt'];
+    var sums = {}; var counts = {};
+    keys.forEach(function(k) { sums[k] = 0; counts[k] = 0; });
+    mealScores.forEach(function(s) {
+      keys.forEach(function(k) {
+        if (s[k] !== undefined && s[k] !== null) { sums[k] += Number(s[k]); counts[k]++; }
+      });
+    });
+    // carbs → carb に正規化
+    if (counts.carbs > 0 && counts.carb === 0) { sums.carb = sums.carbs; counts.carb = counts.carbs; }
+    var outKeys = ['protein','fat','carb','vitamin','mineral','salt'];
+    avgScores = {};
+    outKeys.forEach(function(k) {
+      avgScores[k] = counts[k] > 0 ? Math.round(sums[k] / counts[k]) : 3;
+    });
+    console.log('[food-weekly] ' + userData.nickname + ': ' + mealScores.length + '食分の実スコアから平均算出');
+  }
 
   var prompt = EVIDENCE_BASE + '\n\n' +
     'あなたは管理栄養士です。以下は' + userData.nickname + 'さんの1週間(' + weekLabel + ')の食事記録です。\n\n' +
@@ -123,7 +151,7 @@ async function generateUserFoodReport(uid, userData, weekLabel, weekStart) {
   var aiResult = await callAIWithFallback('管理栄養士として週間食事分析レポートを作成してください。', prompt);
   if (!aiResult) throw new Error('AI分析失敗');
 
-  // スコアのパース
+  // スコアのパース（AI出力からのフォールバック用）
   var reportText = aiResult;
   var nutritionScores = null;
   if (aiResult.indexOf('///WEEKLY_SCORE///') !== -1) {
@@ -132,6 +160,11 @@ async function generateUserFoodReport(uid, userData, weekLabel, weekStart) {
     try {
       nutritionScores = JSON.parse(scoreParts[1].trim());
     } catch(e) { console.error('[food-weekly] スコアパース失敗:', e.message); }
+  }
+  // 実データ平均スコアがあればそちらを優先
+  if (avgScores) {
+    nutritionScores = avgScores;
+    console.log('[food-weekly] ' + userData.nickname + ': 実データ平均スコアを使用:', JSON.stringify(avgScores));
   }
 
   // nutrition_scoresカラムが無ければ追加

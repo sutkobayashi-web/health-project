@@ -258,8 +258,11 @@ router.post('/food', async (req, res) => {
     const pid = 'post_' + uuidv4().substring(0, 8);
     const status = isPublic ? 'open' : 'private';
 
-    db.prepare(`INSERT INTO posts (post_id, user_id, content, analysis, nickname, avatar, status, category, department, birth_date, image_url)
-      VALUES (?, ?, ?, ?, ?, ?, ?, '🍱 食事・栄養', ?, ?, ?)`).run(pid, uid, `【写真】${comment}`, finalForDb, dName, decodeURIComponent(avatar), status, department, birthDate, imageUrl);
+    // nutrition_scoresカラムが無ければ追加
+    try { db.prepare("ALTER TABLE posts ADD COLUMN nutrition_scores TEXT").run(); } catch(e) { /* already exists */ }
+
+    db.prepare(`INSERT INTO posts (post_id, user_id, content, analysis, nickname, avatar, status, category, department, birth_date, image_url, nutrition_scores)
+      VALUES (?, ?, ?, ?, ?, ?, ?, '🍱 食事・栄養', ?, ?, ?, ?)`).run(pid, uid, `【写真】${comment}`, finalForDb, dName, decodeURIComponent(avatar), status, department, birthDate, imageUrl, nutrientScores ? JSON.stringify(nutrientScores) : null);
 
     res.json({ success: true, analysis: { nutrition: nutRes, nurse: nurseRes, nutrientScores }, imageUrl });
   } catch (e) {

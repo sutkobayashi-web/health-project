@@ -406,81 +406,16 @@ function loadMemberManagement() {
         var userOnlineMap = {};
         var onlineData = (results[3] && Array.isArray(results[3].online)) ? results[3].online : [];
         onlineData.forEach(function(u) { if (u && u.uid) userOnlineMap[u.uid] = true; });
-        renderMembersOnlinePanel(results[0], memberStatusMap, results[1], onlineData);
         renderCoreMembers(results[0], memberStatusMap);
         renderGeneralUsers(results[1], userOnlineMap);
     }).catch(function(e) {
         console.error('loadMemberManagement error:', e);
         // フォールバック: オンライン情報なしで描画
         Promise.all([getAllCoreMembers(), getAllGeneralUsers()]).then(function(r) {
-            renderMembersOnlinePanel(r[0], {}, r[1], []);
             renderCoreMembers(r[0], {});
             renderGeneralUsers(r[1], {});
         });
     });
-}
-
-function renderMembersOnlinePanel(coreMembers, coreMemberOnlineMap, generalUsers, onlineUsersList) {
-    var panel = document.getElementById('members-online-panel');
-    if (!panel) return;
-
-    // オンラインのコアメンバー
-    var onlineCore = (coreMembers || []).filter(function(m) {
-        return m.status !== 'pending' && coreMemberOnlineMap && coreMemberOnlineMap[m.email];
-    });
-    // オンラインの一般ユーザー
-    var onlineGeneral = onlineUsersList || [];
-    var totalOnline = onlineCore.length + onlineGeneral.length;
-    var totalMembers = ((coreMembers || []).filter(function(m) { return m.status !== 'pending'; }).length) + (generalUsers || []).length;
-
-    // ヒートアイコン
-    var icon, label, color, bg;
-    if (totalOnline === 0) { icon = '❄️'; label = 'オフライン'; color = '#94a3b8'; bg = 'linear-gradient(135deg,#f1f5f9,#e2e8f0)'; }
-    else if (totalOnline <= 3) { icon = '🟢'; label = '静か'; color = '#3b82f6'; bg = 'linear-gradient(135deg,#eff6ff,#dbeafe)'; }
-    else if (totalOnline <= 10) { icon = '🔥'; label = 'アクティブ'; color = '#f59e0b'; bg = 'linear-gradient(135deg,#fffbeb,#fef3c7)'; }
-    else if (totalOnline <= 20) { icon = '🔥🔥'; label = '盛り上がり中'; color = '#ef4444'; bg = 'linear-gradient(135deg,#fef2f2,#fecaca)'; }
-    else { icon = '🔥🔥🔥'; label = '大盛況！'; color = '#dc2626'; bg = 'linear-gradient(135deg,#fef2f2,#fecaca)'; }
-
-    var html = '<div style="background:' + bg + '; border-radius:16px; padding:16px 20px; border:1px solid rgba(0,0,0,0.06);">';
-
-    // ヘッダー行
-    html += '<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">';
-    html += '<div style="display:flex; align-items:center; gap:8px;">';
-    html += '<span style="font-size:1.2rem;">' + icon + '</span>';
-    html += '<span style="font-size:1.3rem; font-weight:800; color:' + color + ';">' + totalOnline + '</span>';
-    html += '<span style="font-size:0.8rem; font-weight:600; color:#666;">人がオンライン</span>';
-    html += '</div>';
-    html += '<span style="font-size:0.7rem; color:#999; font-weight:600;">' + label + ' / 全' + totalMembers + '人</span>';
-    html += '</div>';
-
-    // アバター一覧
-    var allOnline = [];
-    onlineCore.forEach(function(m) { allOnline.push({ name: m.name, avatar: m.avatar || '🛡️', type: 'core' }); });
-    onlineGeneral.forEach(function(u) { allOnline.push({ name: u.nickname, avatar: u.avatar || '😀', type: 'user' }); });
-
-    if (allOnline.length > 0) {
-        html += '<div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">';
-        var showMax = 20;
-        allOnline.slice(0, showMax).forEach(function(p) {
-            var av = _renderMemberAvatar(p.avatar, p.type === 'core' ? '🛡️' : '😀', 36);
-            var isEmoji = !p.avatar || !p.avatar.startsWith('custom:');
-            var borderColor = p.type === 'core' ? '#667eea' : '#20c997';
-            html += '<div style="display:flex; flex-direction:column; align-items:center; gap:2px;" title="' + escapeHtml(p.name) + '">';
-            html += '<div style="position:relative; width:36px; height:36px; border-radius:50%; border:2px solid ' + borderColor + '; overflow:hidden; display:flex; align-items:center; justify-content:center; font-size:1.1rem;' + (isEmoji ? ' background:#f8f9fa;' : '') + '">' + av + '';
-            html += '<div style="position:absolute;bottom:0;right:0;width:10px;height:10px;border-radius:50%;background:#4caf50;border:2px solid white;"></div></div>';
-            html += '<div style="font-size:0.55rem; font-weight:600; color:#555; max-width:48px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">' + escapeHtml(p.name) + '</div>';
-            html += '</div>';
-        });
-        if (allOnline.length > showMax) {
-            html += '<div style="width:36px; height:36px; border-radius:50%; background:rgba(0,0,0,0.08); display:flex; align-items:center; justify-content:center; font-size:0.7rem; font-weight:800; color:#666;">+' + (allOnline.length - showMax) + '</div>';
-        }
-        html += '</div>';
-    } else {
-        html += '<div style="font-size:0.75rem; color:#aaa; text-align:center; padding:8px 0;">現在オンラインのメンバーはいません</div>';
-    }
-
-    html += '</div>';
-    panel.innerHTML = html;
 }
 
 function renderCoreMembers(members, onlineMap) {
@@ -915,43 +850,47 @@ function sendBroadcastNotice() {
 var _onlineHeatExpanded = false;
 
 function loadOnlineHeat() {
-    fetch('/api/auth/online-users', {
-        headers: { 'Authorization': 'Bearer ' + getAdminToken() }
-    }).then(function(r) { return r.json(); }).then(function(data) {
-        if (!data || !data.success) return;
-        renderOnlineHeat(data.online || [], data.count || 0);
-    }).catch(function() {});
+    Promise.all([
+        api('/admin/members-status', undefined, getAdminToken()).catch(function() { return []; }),
+        fetch('/api/auth/online-users', { headers: { 'Authorization': 'Bearer ' + getAdminToken() } }).then(function(r) { return r.json(); }).catch(function() { return { online: [] }; })
+    ]).then(function(results) {
+        var coreMembers = Array.isArray(results[0]) ? results[0] : [];
+        var userData = results[1] || {};
+        var onlineUsers = (userData.success && Array.isArray(userData.online)) ? userData.online : [];
+        renderOnlineHeat(coreMembers, onlineUsers);
+    });
 }
 
-function renderOnlineHeat(users, count) {
+function renderOnlineHeat(coreMembers, onlineUsers) {
     var panel = document.getElementById('online-heat-panel');
     if (!panel) return;
 
+    // オンラインのコアメンバー
+    var onlineCore = coreMembers.filter(function(m) { return m.status !== 'pending' && m.online; });
+    var totalOnline = onlineCore.length + onlineUsers.length;
+    var totalAll = coreMembers.filter(function(m) { return m.status !== 'pending'; }).length + '名+ユーザー';
+
     // ヒートレベル計算
     var level, color, icon, label, badgeBg;
-    if (count === 0) {
-        level = 0; color = '#94a3b8'; icon = '❄️'; label = 'オフライン'; badgeBg = '#f1f5f9';
-    } else if (count <= 3) {
-        level = 1; color = '#3b82f6'; icon = '🟢'; label = '静か'; badgeBg = '#eff6ff';
-    } else if (count <= 8) {
-        level = 2; color = '#f59e0b'; icon = '🔥'; label = 'アクティブ'; badgeBg = '#fffbeb';
-    } else if (count <= 15) {
-        level = 3; color = '#ef4444'; icon = '🔥🔥'; label = '盛り上がり中'; badgeBg = '#fef2f2';
-    } else {
-        level = 4; color = '#dc2626'; icon = '🔥🔥🔥'; label = '大盛況！'; badgeBg = '#fef2f2';
-    }
+    if (totalOnline === 0) { level = 0; color = '#94a3b8'; icon = '❄️'; label = 'オフライン'; badgeBg = '#f1f5f9'; }
+    else if (totalOnline <= 3) { level = 1; color = '#3b82f6'; icon = '🟢'; label = '静か'; badgeBg = '#eff6ff'; }
+    else if (totalOnline <= 8) { level = 2; color = '#f59e0b'; icon = '🔥'; label = 'アクティブ'; badgeBg = '#fffbeb'; }
+    else if (totalOnline <= 15) { level = 3; color = '#ef4444'; icon = '🔥🔥'; label = '盛り上がり中'; badgeBg = '#fef2f2'; }
+    else { level = 4; color = '#dc2626'; icon = '🔥🔥🔥'; label = '大盛況！'; badgeBg = '#fef2f2'; }
 
-    var barWidth = count === 0 ? 5 : Math.min(100, Math.max(10, count * 5));
-    var barColor = count === 0 ? '#e2e8f0' : count <= 3 ? '#93c5fd' : count <= 8 ? '#fbbf24' : count <= 15 ? '#f87171' : '#ef4444';
+    var barWidth = totalOnline === 0 ? 5 : Math.min(100, Math.max(10, totalOnline * 5));
+    var barColor = totalOnline === 0 ? '#e2e8f0' : totalOnline <= 3 ? '#93c5fd' : totalOnline <= 8 ? '#fbbf24' : totalOnline <= 15 ? '#f87171' : '#ef4444';
 
-    // 部署別集計
+    // 部署別集計（コアメンバー＋一般ユーザー統合）
     var deptMap = {};
-    users.forEach(function(u) {
-        var d = u.department || '未設定';
-        if (!deptMap[d]) deptMap[d] = 0;
-        deptMap[d]++;
-    });
+    onlineCore.forEach(function(m) { var d = m.dept || '推進メンバー'; if (!deptMap[d]) deptMap[d] = 0; deptMap[d]++; });
+    onlineUsers.forEach(function(u) { var d = u.department || '未設定'; if (!deptMap[d]) deptMap[d] = 0; deptMap[d]++; });
     var deptEntries = Object.entries(deptMap).sort(function(a, b) { return b[1] - a[1]; });
+
+    // 全オンラインメンバーリスト統合
+    var allOnline = [];
+    onlineCore.forEach(function(m) { allOnline.push({ name: m.name, avatar: m.avatar || '🛡️', type: 'core', dept: m.dept || '' }); });
+    onlineUsers.forEach(function(u) { allOnline.push({ name: u.nickname, avatar: u.avatar || '😀', type: 'user', dept: u.department || '' }); });
 
     var glowClass = level >= 3 ? ' dash-card-glow' : '';
     var html = '<div class="dash-card dash-card-clickable' + glowClass + '" style="height:100%;" onclick="toggleOnlineHeatDetail()">';
@@ -963,28 +902,39 @@ function renderOnlineHeat(users, count) {
     html += '</div>';
 
     // メイン数値
-    html += '<div style="display:flex; align-items:baseline; gap:6px; margin-bottom:8px;">';
-    html += '<div class="dash-stat-value" style="color:' + color + ';">' + count + '</div>';
+    html += '<div style="display:flex; align-items:baseline; gap:6px; margin-bottom:4px;">';
+    html += '<div class="dash-stat-value" style="color:' + color + ';">' + totalOnline + '</div>';
     html += '<div class="dash-stat-label">人がオンライン</div>';
     html += '</div>';
+
+    // 内訳テキスト
+    if (totalOnline > 0) {
+        var breakdown = [];
+        if (onlineCore.length > 0) breakdown.push('推進' + onlineCore.length);
+        if (onlineUsers.length > 0) breakdown.push('ユーザー' + onlineUsers.length);
+        html += '<div style="font-size:0.65rem; color:#999; margin-bottom:8px;">' + breakdown.join(' / ') + '</div>';
+    } else {
+        html += '<div style="height:8px;"></div>';
+    }
 
     // ヒートバー
     html += '<div style="background:#e2e8f0; border-radius:3px; height:6px; overflow:hidden; margin-bottom:10px;">';
     html += '<div class="heat-bar" style="width:' + barWidth + '%; background:' + barColor + ';"></div>';
     html += '</div>';
 
-    // ミニアバター列
-    if (users.length > 0) {
+    // アバター列
+    if (allOnline.length > 0) {
         html += '<div style="display:flex; align-items:center;">';
-        var showCount = Math.min(users.length, 6);
+        var showCount = Math.min(allOnline.length, 8);
         for (var i = 0; i < showCount; i++) {
-            var u = users[i];
-            var av = _renderMemberAvatar(u.avatar, '😀', 28);
-            var isEmoji = !u.avatar || !u.avatar.startsWith('custom:');
-            html += '<div class="heat-avatar" style="width:28px; height:28px; margin-left:' + (i === 0 ? '0' : '-6px') + '; background:' + (isEmoji ? '#f0f0f0' : 'transparent') + '; font-size:0.8rem;" title="' + escapeHtml(u.nickname) + '">' + av + '</div>';
+            var p = allOnline[i];
+            var av = _renderMemberAvatar(p.avatar, p.type === 'core' ? '🛡️' : '😀', 28);
+            var isEmoji = !p.avatar || !p.avatar.startsWith('custom:');
+            var borderCol = p.type === 'core' ? '#667eea' : '#20c997';
+            html += '<div class="heat-avatar" style="width:28px; height:28px; margin-left:' + (i === 0 ? '0' : '-6px') + '; background:' + (isEmoji ? '#f0f0f0' : 'transparent') + '; border:2px solid ' + borderCol + '; font-size:0.8rem;" title="' + escapeHtml(p.name) + '">' + av + '</div>';
         }
-        if (users.length > 6) {
-            html += '<div style="margin-left:-4px; width:28px; height:28px; border-radius:50%; background:rgba(0,0,0,0.06); display:flex; align-items:center; justify-content:center; font-size:0.55rem; font-weight:800; color:#666;">+' + (users.length - 6) + '</div>';
+        if (allOnline.length > showCount) {
+            html += '<div style="margin-left:-4px; width:28px; height:28px; border-radius:50%; background:rgba(0,0,0,0.06); display:flex; align-items:center; justify-content:center; font-size:0.55rem; font-weight:800; color:#666;">+' + (allOnline.length - showCount) + '</div>';
         }
         html += '<i class="fas fa-chevron-' + (_onlineHeatExpanded ? 'up' : 'down') + '" style="margin-left:auto; font-size:0.65rem; color:#bbb;"></i>';
         html += '</div>';
@@ -1002,12 +952,14 @@ function renderOnlineHeat(users, count) {
             html += '</div>';
         }
         html += '<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(130px, 1fr)); gap:6px;">';
-        users.forEach(function(u) {
-            var av = _renderMemberAvatar(u.avatar, '😀', 24);
-            var isEmoji = !u.avatar || !u.avatar.startsWith('custom:');
+        allOnline.forEach(function(p) {
+            var av = _renderMemberAvatar(p.avatar, p.type === 'core' ? '🛡️' : '😀', 24);
+            var isEmoji = !p.avatar || !p.avatar.startsWith('custom:');
+            var tagColor = p.type === 'core' ? '#667eea' : '#20c997';
+            var tagLabel = p.type === 'core' ? '推進' : '';
             html += '<div style="display:flex; align-items:center; gap:6px; padding:5px 8px; background:#f8f9fa; border-radius:10px;">';
-            html += '<div style="width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.7rem; flex-shrink:0;' + (isEmoji ? ' background:#eee;' : '') + '">' + av + '</div>';
-            html += '<div style="font-size:0.7rem; font-weight:600; color:#333; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">' + escapeHtml(u.nickname) + '</div>';
+            html += '<div style="position:relative; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.7rem; flex-shrink:0;' + (isEmoji ? ' background:#eee;' : '') + '">' + av + '<div style="position:absolute;bottom:-1px;right:-1px;width:8px;height:8px;border-radius:50%;background:#4caf50;border:1.5px solid white;"></div></div>';
+            html += '<div style="font-size:0.7rem; font-weight:600; color:#333; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">' + escapeHtml(p.name) + (tagLabel ? ' <span style="font-size:0.5rem;color:' + tagColor + ';font-weight:800;">' + tagLabel + '</span>' : '') + '</div>';
             html += '</div>';
         });
         html += '</div></div>';

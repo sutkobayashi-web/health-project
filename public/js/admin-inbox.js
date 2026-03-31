@@ -44,7 +44,7 @@
 `; document.head.appendChild(s);})();
 
 /* ── Constants ── */
-var INBOX_COLS = { ROW_ID:1, CONTENT:2, ANALYSIS:3, USER_NAME:4, AVATAR:5, LIKE_COUNT:6, PID:7, CAT:8, STATUS:9, UID:10, IMG:11, DATE:14, CHAT_COUNT:15 };
+var INBOX_COLS = { ROW_ID:1, CONTENT:2, ANALYSIS:3, USER_NAME:4, AVATAR:5, LIKE_COUNT:6, PID:7, CAT:8, STATUS:9, UID:10, IMG:11, DATE:14, CHAT_COUNT:15, ADMIN_READ:19 };
 var currentInboxCatFilter = 'all';
 var INBOX_AVATAR_MAP = { "メディカル":"🩺","医":"🩺","ヘルス":"💉","看護":"💉","食事":"🥗","管理":"📝","課長":"📝","事務":"📝","専務":"👨‍⚖️","経営":"👨‍⚖️","佐藤":"💁‍♀️","山本":"👨‍💼","高橋":"👩‍💼","中村":"👨‍💻","伊藤":"👦","林":"👩‍🍳" };
 
@@ -153,6 +153,7 @@ function renderReportList(data) {
     list.innerHTML = "";
     if(!data || data.length === 0) { list.innerHTML = '<div class="text-center text-muted py-5 small">投稿データがありません</div>'; return; }
     var catCount = { all:0, consult:0, food:0, target:0 };
+    var catUnread = { all:0, consult:0, food:0, target:0 };
     var catColors = { all:'#6c757d', consult:'#d63384', food:'#20c997', target:'#fd7e14' };
     var catLabels = { all:'📋 すべて', consult:'💬 相談', food:'🍱 食事', target:'⭐ 重点' };
     data.forEach(function(r) {
@@ -161,8 +162,12 @@ function renderReportList(data) {
         if(analysisText.includes("///SCORE///")) { try { var s = JSON.parse(analysisText.split("///SCORE///")[1]); if(s.is_target) isTarget = true; } catch(e){} }
         var dbCat = String(r[INBOX_COLS.CAT]||"");
         var isFood = dbCat.includes("食事") || dbCat.includes("栄養");
+        var isUnread = !r[INBOX_COLS.ADMIN_READ];
         catCount.all++;
-        if(isTarget) catCount.target++; else if(isFood) catCount.food++; else catCount.consult++;
+        if(isUnread) catUnread.all++;
+        if(isTarget) { catCount.target++; if(isUnread) catUnread.target++; }
+        else if(isFood) { catCount.food++; if(isUnread) catUnread.food++; }
+        else { catCount.consult++; if(isUnread) catUnread.consult++; }
     });
     var filterBar = document.createElement('div'); filterBar.className = 'inbox-filter-bar';
     ['all','consult','food','target'].forEach(function(cat) {
@@ -171,7 +176,9 @@ function renderReportList(data) {
         btn.setAttribute('data-cat',cat); btn.setAttribute('data-color',catColors[cat]);
         btn.style.borderColor = catColors[cat]; btn.style.color = cat===currentInboxCatFilter ? 'white' : catColors[cat];
         btn.style.backgroundColor = cat===currentInboxCatFilter ? catColors[cat] : 'white';
-        btn.innerHTML = catLabels[cat] + ' <span class="inbox-filter-badge" style="background:'+catColors[cat]+'; color:white;">'+catCount[cat]+'</span>';
+        var badgeText = catUnread[cat] > 0 ? catUnread[cat] + '/' + catCount[cat] : String(catCount[cat]);
+        var badgeBg = catUnread[cat] > 0 ? '#e91e63' : catColors[cat];
+        btn.innerHTML = catLabels[cat] + ' <span class="inbox-filter-badge" style="background:'+badgeBg+'; color:white;">'+badgeText+'</span>';
         btn.onclick = function(){ window.switchInboxCat(cat); };
         filterBar.appendChild(btn);
     });
@@ -211,9 +218,11 @@ function renderReportList(data) {
           ? '<span id="chat-total-'+pid+'" style="font-size:0.6rem; background:#e8eaf6; color:#5c6bc0; padding:1px 6px; border-radius:8px; font-weight:700; cursor:pointer;" onclick="event.stopPropagation(); openPriorityModal(\''+pid+'\');"><i class="fas fa-comments" style="margin-right:2px;"></i>議論'+chatCount+'</span>'
           : '<span id="chat-total-'+pid+'" style="display:none;"></span>';
         var chatUnreadBadge = '<span id="chat-unread-'+pid+'" style="display:none; cursor:pointer;" onclick="event.stopPropagation(); openPriorityModal(\''+pid+'\');"></span>';
+        var adminUnread = !r[INBOX_COLS.ADMIN_READ];
+        var newBadge = adminUnread ? '<span id="admin-new-'+pid+'" style="display:inline-flex;align-items:center;gap:3px;background:#e91e63;color:white;border-radius:8px;padding:1px 8px;font-size:0.6rem;font-weight:700;animation:pulseGlow 1.5s infinite;">NEW</span>' : '';
         div.innerHTML =
             // ヘッダー
-            '<div class="post-header-bar '+headerClass+'"><span><i class="'+icon+'"></i> '+catName+'</span><span>'+dateStr+'</span></div>' +
+            '<div class="post-header-bar '+headerClass+'"><span><i class="'+icon+'"></i> '+catName+' '+newBadge+'</span><span>'+dateStr+'</span></div>' +
             // コンパクト本体
             '<div style="padding:10px 14px; background:#fafaff;">' +
                 '<div class="user-info" style="margin-bottom:6px;">'+avatarDiv+'<div class="nick">'+escapeHtml(r[INBOX_COLS.USER_NAME])+'</div>' +
@@ -474,6 +483,8 @@ function toggleInboxDetail(pid) {
     if (panel.style.display === 'none') {
         panel.style.display = 'block';
         if (btn) btn.innerHTML = '<i class="fas fa-chevron-up" style="font-size:0.6rem;margin-right:3px;"></i>閉じる';
+        // 管理者既読マーク
+        markAdminRead(pid);
         // 全データ読み込み
         loadEmpathyDisplay(pid);
         loadEmpathyTabFull(pid);
@@ -908,4 +919,17 @@ function sendReplyToUser(postId, targetUid, userName) {
     }).catch(function(e) {
         alert('通信エラー: ' + e.message);
     });
+}
+
+// 管理者既読マーク（詳細を開いた時に自動呼び出し）
+function markAdminRead(pid) {
+    // NEWバッジを即座に消す
+    var newEl = document.getElementById('admin-new-' + pid);
+    if (newEl) newEl.style.display = 'none';
+    // サーバーに既読を記録
+    fetch('/api/admin/inbox-mark-read', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getAdminToken() },
+        body: JSON.stringify({ postId: pid })
+    }).catch(function() {});
 }

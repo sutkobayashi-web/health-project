@@ -50,6 +50,7 @@ CREATE TABLE IF NOT EXISTS posts (
   image_url TEXT,
   likes TEXT DEFAULT '',
   demotes TEXT DEFAULT '',
+  admin_read_at DATETIME,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id)
 );

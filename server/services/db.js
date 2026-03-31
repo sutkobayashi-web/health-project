@@ -94,6 +94,12 @@ function getDb() {
     // buddyカラム追加
     try { db.exec("ALTER TABLE users ADD COLUMN buddy_data TEXT DEFAULT ''"); } catch(e) {}
 
+    // マイグレーション: posts に admin_read_at カラム追加（管理者既読管理）
+    const postCols = db.prepare("PRAGMA table_info(posts)").all();
+    if (!postCols.find(c => c.name === 'admin_read_at')) {
+      db.exec("ALTER TABLE posts ADD COLUMN admin_read_at DATETIME");
+    }
+
     // マイグレーション: バディーチャット履歴テーブル
     db.exec(`CREATE TABLE IF NOT EXISTS buddy_messages (
       id INTEGER PRIMARY KEY AUTOINCREMENT,

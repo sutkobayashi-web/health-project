@@ -406,16 +406,81 @@ function loadMemberManagement() {
         var userOnlineMap = {};
         var onlineData = (results[3] && Array.isArray(results[3].online)) ? results[3].online : [];
         onlineData.forEach(function(u) { if (u && u.uid) userOnlineMap[u.uid] = true; });
+        renderMembersOnlinePanel(results[0], memberStatusMap, results[1], onlineData);
         renderCoreMembers(results[0], memberStatusMap);
         renderGeneralUsers(results[1], userOnlineMap);
     }).catch(function(e) {
         console.error('loadMemberManagement error:', e);
         // フォールバック: オンライン情報なしで描画
         Promise.all([getAllCoreMembers(), getAllGeneralUsers()]).then(function(r) {
+            renderMembersOnlinePanel(r[0], {}, r[1], []);
             renderCoreMembers(r[0], {});
             renderGeneralUsers(r[1], {});
         });
     });
+}
+
+function renderMembersOnlinePanel(coreMembers, coreMemberOnlineMap, generalUsers, onlineUsersList) {
+    var panel = document.getElementById('members-online-panel');
+    if (!panel) return;
+
+    // オンラインのコアメンバー
+    var onlineCore = (coreMembers || []).filter(function(m) {
+        return m.status !== 'pending' && coreMemberOnlineMap && coreMemberOnlineMap[m.email];
+    });
+    // オンラインの一般ユーザー
+    var onlineGeneral = onlineUsersList || [];
+    var totalOnline = onlineCore.length + onlineGeneral.length;
+    var totalMembers = ((coreMembers || []).filter(function(m) { return m.status !== 'pending'; }).length) + (generalUsers || []).length;
+
+    // ヒートアイコン
+    var icon, label, color, bg;
+    if (totalOnline === 0) { icon = '❄️'; label = 'オフライン'; color = '#94a3b8'; bg = 'linear-gradient(135deg,#f1f5f9,#e2e8f0)'; }
+    else if (totalOnline <= 3) { icon = '🟢'; label = '静か'; color = '#3b82f6'; bg = 'linear-gradient(135deg,#eff6ff,#dbeafe)'; }
+    else if (totalOnline <= 10) { icon = '🔥'; label = 'アクティブ'; color = '#f59e0b'; bg = 'linear-gradient(135deg,#fffbeb,#fef3c7)'; }
+    else if (totalOnline <= 20) { icon = '🔥🔥'; label = '盛り上がり中'; color = '#ef4444'; bg = 'linear-gradient(135deg,#fef2f2,#fecaca)'; }
+    else { icon = '🔥🔥🔥'; label = '大盛況！'; color = '#dc2626'; bg = 'linear-gradient(135deg,#fef2f2,#fecaca)'; }
+
+    var html = '<div style="background:' + bg + '; border-radius:16px; padding:16px 20px; border:1px solid rgba(0,0,0,0.06);">';
+
+    // ヘッダー行
+    html += '<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">';
+    html += '<div style="display:flex; align-items:center; gap:8px;">';
+    html += '<span style="font-size:1.2rem;">' + icon + '</span>';
+    html += '<span style="font-size:1.3rem; font-weight:800; color:' + color + ';">' + totalOnline + '</span>';
+    html += '<span style="font-size:0.8rem; font-weight:600; color:#666;">人がオンライン</span>';
+    html += '</div>';
+    html += '<span style="font-size:0.7rem; color:#999; font-weight:600;">' + label + ' / 全' + totalMembers + '人</span>';
+    html += '</div>';
+
+    // アバター一覧
+    var allOnline = [];
+    onlineCore.forEach(function(m) { allOnline.push({ name: m.name, avatar: m.avatar || '🛡️', type: 'core' }); });
+    onlineGeneral.forEach(function(u) { allOnline.push({ name: u.nickname, avatar: u.avatar || '😀', type: 'user' }); });
+
+    if (allOnline.length > 0) {
+        html += '<div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">';
+        var showMax = 20;
+        allOnline.slice(0, showMax).forEach(function(p) {
+            var av = _renderMemberAvatar(p.avatar, p.type === 'core' ? '🛡️' : '😀', 36);
+            var isEmoji = !p.avatar || !p.avatar.startsWith('custom:');
+            var borderColor = p.type === 'core' ? '#667eea' : '#20c997';
+            html += '<div style="display:flex; flex-direction:column; align-items:center; gap:2px;" title="' + escapeHtml(p.name) + '">';
+            html += '<div style="position:relative; width:36px; height:36px; border-radius:50%; border:2px solid ' + borderColor + '; overflow:hidden; display:flex; align-items:center; justify-content:center; font-size:1.1rem;' + (isEmoji ? ' background:#f8f9fa;' : '') + '">' + av + '';
+            html += '<div style="position:absolute;bottom:0;right:0;width:10px;height:10px;border-radius:50%;background:#4caf50;border:2px solid white;"></div></div>';
+            html += '<div style="font-size:0.55rem; font-weight:600; color:#555; max-width:48px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">' + escapeHtml(p.name) + '</div>';
+            html += '</div>';
+        });
+        if (allOnline.length > showMax) {
+            html += '<div style="width:36px; height:36px; border-radius:50%; background:rgba(0,0,0,0.08); display:flex; align-items:center; justify-content:center; font-size:0.7rem; font-weight:800; color:#666;">+' + (allOnline.length - showMax) + '</div>';
+        }
+        html += '</div>';
+    } else {
+        html += '<div style="font-size:0.75rem; color:#aaa; text-align:center; padding:8px 0;">現在オンラインのメンバーはいません</div>';
+    }
+
+    html += '</div>';
+    panel.innerHTML = html;
 }
 
 function renderCoreMembers(members, onlineMap) {

@@ -192,11 +192,11 @@ function sendBroadcast() {
 
 // ---- 個別メッセージ送信 (Inbox詳細から呼ばれる) ----
 function sendPersonalMessage(targetUid, targetName) {
-  const msg = prompt('「' + targetName + '」さんにメッセージを送信:\n(管理者からの個別通知として届きます)');
+  const msg = prompt('「' + targetName + '」さんにバディー経由でメッセージを送信:\n(バディーチャット画面に表示されます)');
   if (!msg || !msg.trim()) return;
 
   showLoading('送信中...');
-  saveAdminNotice({ content: msg.trim(), isBroadcast: false, targetUid: targetUid, sender: currentAdminProfile.name || 'Admin' })
+  saveAdminNotice({ content: '【BUDDY】' + msg.trim(), isBroadcast: false, targetUid: targetUid, sender: currentAdminProfile.name || 'Admin' })
     .then(function(res) {
       hideLoading();
       if (res && res.success) {

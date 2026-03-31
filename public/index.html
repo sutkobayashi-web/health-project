@@ -2394,7 +2394,17 @@ function openPostDetail(row) {
   var sheet = document.getElementById('post-detail-sheet');
   var detailAvHtml = getAvatarHtml(p.avatar, 40);
   var imgHtml = (p.imageUrl && p.imageUrl.length > 1) ? '<img src="' + p.imageUrl + '" style="width:100%;border-radius:12px;margin-bottom:12px;" onerror="this.style.display=\'none\'">' : '';
-  var analysisHtml = p.analysis ? '<div class="ai-reply"><i class="fas fa-robot text-primary"></i> ' + p.analysis.replace(/\n/g, '<br>') + '</div>' : '';
+  // ///NUTRIENTS///からスコアを抽出し、テキストからは除去
+  var analysisText = p.analysis || '';
+  var detailNutrientScores = null;
+  var nutMatch = analysisText.match(/\/\/\/NUTRIENTS\/\/\/\s*(\{[\s\S]*?\})/);
+  if (nutMatch) {
+    try { detailNutrientScores = JSON.parse(nutMatch[1]); } catch(e) {}
+    analysisText = analysisText.replace(/\/\/\/NUTRIENTS\/\/\/[\s\S]*?(\n\/\/\/|$)/, '').trim();
+  }
+  // ///SCORE///も除去
+  analysisText = analysisText.replace(/\/\/\/SCORE\/\/\/[\s\S]*$/, '').trim();
+  var analysisHtml = analysisText ? '<div class="ai-reply"><i class="fas fa-robot text-primary"></i> ' + analysisText.replace(/\n/g, '<br>') + '</div>' : '';
 
   sheet.innerHTML =
     '<div style="padding:12px 18px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #eee;flex-shrink:0;">' +
@@ -2403,11 +2413,16 @@ function openPostDetail(row) {
     '</div>' +
     '<div id="post-detail-body" style="padding:14px 18px; flex:1; overflow-y:auto;">' +
       '<div style="font-size:0.92rem;line-height:1.8;color:#333;white-space:pre-wrap;margin-bottom:14px;">' + p.content + '</div>' +
-      imgHtml + analysisHtml +
+      imgHtml +
+      '<div id="post-detail-radar"></div>' +
+      analysisHtml +
     '</div>' +
     '<div id="post-detail-footer" style="padding:12px 18px;">' +
       '<button id="post-detail-close-btn" style="width:60%;padding:10px;background:linear-gradient(135deg,#6c5ce7,#a29bfe);color:white;border:none;border-radius:12px;font-weight:700;font-size:0.82rem;cursor:pointer;display:block;margin:0 auto;box-shadow:0 2px 8px rgba(108,92,231,0.2);">閉じる</button>' +
     '</div>';
+  if (detailNutrientScores) {
+    setTimeout(function() { renderNutrientRadar('post-detail-radar', detailNutrientScores); }, 50);
+  }
   document.getElementById('post-detail-modal').classList.add('active');
   lockScroll();
 }
@@ -2749,7 +2764,16 @@ function openMyPostDetail(postId, authorUid) {
 
     var detailAvHtml = getAvatarHtml(p.avatar, 40);
     var imgHtml = (p.imageUrl && p.imageUrl.length > 1) ? '<img src="' + p.imageUrl + '" style="width:100%;border-radius:12px;margin-bottom:12px;" onerror="this.style.display=\'none\'">' : '';
-    var analysisHtml = p.analysis ? '<div class="ai-reply"><i class="fas fa-robot text-primary"></i> ' + p.analysis.replace(/\n/g, '<br>') + '</div>' : '';
+    // ///NUTRIENTS///と///SCORE///をパース・除去
+    var myAnalysisText = p.analysis || '';
+    var myNutrientScores = null;
+    var myNutMatch = myAnalysisText.match(/\/\/\/NUTRIENTS\/\/\/\s*(\{[\s\S]*?\})/);
+    if (myNutMatch) {
+      try { myNutrientScores = JSON.parse(myNutMatch[1]); } catch(e) {}
+      myAnalysisText = myAnalysisText.replace(/\/\/\/NUTRIENTS\/\/\/[\s\S]*?(\n\/\/\/|$)/, '').trim();
+    }
+    myAnalysisText = myAnalysisText.replace(/\/\/\/SCORE\/\/\/[\s\S]*$/, '').trim();
+    var analysisHtml = myAnalysisText ? '<div class="ai-reply"><i class="fas fa-robot text-primary"></i> ' + myAnalysisText.replace(/\n/g, '<br>') + '</div>' : '';
 
     var html =
       '<div style="padding:12px 18px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #eee;flex-shrink:0;">' +
@@ -2758,13 +2782,18 @@ function openMyPostDetail(postId, authorUid) {
       '</div>' +
       '<div style="padding:14px 18px;flex:1;overflow-y:auto;">' +
         '<div style="font-size:0.92rem;line-height:1.8;color:#333;white-space:pre-wrap;margin-bottom:14px;">' + escapeHtml(p.content) + '</div>' +
-        imgHtml + analysisHtml +
+        imgHtml +
+        '<div id="my-post-detail-radar"></div>' +
+        analysisHtml +
         '<div id="my-post-chats" style="margin-top:16px;"></div>' +
       '</div>' +
       '<div style="padding:12px 18px;">' +
         '<button id="post-detail-close-btn" style="width:60%;padding:10px;background:linear-gradient(135deg,#6c5ce7,#a29bfe);color:white;border:none;border-radius:12px;font-weight:700;font-size:0.82rem;cursor:pointer;display:block;margin:0 auto;">閉じる</button>' +
       '</div>';
     sheet.innerHTML = html;
+    if (myNutrientScores) {
+      setTimeout(function() { renderNutrientRadar('my-post-detail-radar', myNutrientScores); }, 50);
+    }
 
     // 推進メンバーチャット読み込み（既読化も実行）
     var chatArea = document.getElementById('my-post-chats');

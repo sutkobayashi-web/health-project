@@ -400,12 +400,21 @@ function loadMemberManagement() {
     ]).then(function(results) {
         // メンバーのオンライン状態をマップ化（email → boolean）
         var memberStatusMap = {};
-        (results[2] || []).forEach(function(m) { memberStatusMap[m.email] = m.online; });
+        var memberStatus = Array.isArray(results[2]) ? results[2] : [];
+        memberStatus.forEach(function(m) { if (m && m.email) memberStatusMap[m.email] = m.online; });
         // ユーザーのオンライン状態をマップ化（uid → boolean）
         var userOnlineMap = {};
-        ((results[3] && results[3].online) || []).forEach(function(u) { userOnlineMap[u.uid] = true; });
+        var onlineData = (results[3] && Array.isArray(results[3].online)) ? results[3].online : [];
+        onlineData.forEach(function(u) { if (u && u.uid) userOnlineMap[u.uid] = true; });
         renderCoreMembers(results[0], memberStatusMap);
         renderGeneralUsers(results[1], userOnlineMap);
+    }).catch(function(e) {
+        console.error('loadMemberManagement error:', e);
+        // フォールバック: オンライン情報なしで描画
+        Promise.all([getAllCoreMembers(), getAllGeneralUsers()]).then(function(r) {
+            renderCoreMembers(r[0], {});
+            renderGeneralUsers(r[1], {});
+        });
     });
 }
 

@@ -285,20 +285,38 @@ router.get('/daily-greeting', async (req, res) => {
       : '';
     const weatherInstruction = weatherText ? '\n天気情報: ' + weatherText : '';
 
-    const prompt = `今日は${dateStr}です。${weatherInstruction}
+    // 日替わりの多様性を確保するためランダムカテゴリを選択
+    const tipCategories = [
+      '食事・栄養（具体的な食材や献立を1つ提案）',
+      '運動・ストレッチ（デスクワーク中や通勤中にできるもの）',
+      '睡眠・休息（今夜からできる工夫）',
+      'メンタルヘルス・リラックス法',
+      '水分補給・熱中症対策',
+      '姿勢・腰痛予防（ドライバー向け）',
+      '目の疲れ・VDT対策',
+      '歯と口の健康',
+      '感染症予防・免疫力アップ',
+      '季節の変わり目の体調管理'
+    ];
+    const todayTipCategory = tipCategories[(month * 31 + day) % tipCategories.length];
 
-以下を簡潔に生成してください。JSON形式で返してください。
+    const prompt = `今日は${d.getFullYear()}年${dateStr}です。${weatherInstruction}
+
+以下のJSON形式で正確な情報を返してください。
 
 {
-  "dateInfo": "${dateStr}の記念日や歴史的出来事を1つ選び、20文字以内で紹介（例: 三ツ矢の日🥤）",
-  "dateFact": "その記念日・出来事の簡単な説明を30文字以内で",${weatherField}
-  "healthTip": "今の季節に合った健康アドバイスを40文字以内で1つ。具体的な行動を提案"
+  "dateInfo": "${month}月${day}日の正式な記念日、または歴史的出来事を1つ。絵文字1つ付き、20文字以内。存在しない記念日を創作しないこと",
+  "dateFact": "上記の記念日・出来事の由来や豆知識を具体的に30文字以内で",${weatherField}
+  "healthTip": "カテゴリ「${todayTipCategory}」から、今日すぐ実践できる具体的な健康アドバイスを絵文字1つ付きで40文字以内。「〜してみよう」調で"
 }
 
-必ず有効なJSONのみ返してください。コードブロックや説明は不要です。weatherフィールドがない場合は天気情報を生成しないでください。`;
+【重要】
+- ${month}月${day}日に実在する記念日・出来事のみを使用すること
+- 「春分の日」は3月20-21日頃のみ有効。日付と合わない記念日は使わない
+- 有効なJSONのみ返すこと。コードブロックや説明文は不要`;
 
     const aiResult = await callAIWithFallback(
-      'あなたは日本の記念日・歴史に詳しいアシスタントです。正確な情報を簡潔に返してください。',
+      `あなたは日本の記念日・歴史・暦に精通した百科事典です。${d.getFullYear()}年${month}月${day}日について正確な情報のみを返してください。不確かな情報は返さないでください。`,
       prompt
     );
 

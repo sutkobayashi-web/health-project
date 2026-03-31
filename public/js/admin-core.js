@@ -392,13 +392,24 @@ function handleRejectMember(id) {
 // メンバー管理
 // =============================================
 function loadMemberManagement() {
-    Promise.all([getAllCoreMembers(), getAllGeneralUsers()]).then(function(results) {
-        renderCoreMembers(results[0]);
-        renderGeneralUsers(results[1]);
+    Promise.all([
+        getAllCoreMembers(),
+        getAllGeneralUsers(),
+        api('/admin/members-status', undefined, getAdminToken()).catch(function() { return []; }),
+        api('/auth/online-users', undefined, getAdminToken()).catch(function() { return { online: [] }; })
+    ]).then(function(results) {
+        // メンバーのオンライン状態をマップ化（email → boolean）
+        var memberStatusMap = {};
+        (results[2] || []).forEach(function(m) { memberStatusMap[m.email] = m.online; });
+        // ユーザーのオンライン状態をマップ化（uid → boolean）
+        var userOnlineMap = {};
+        ((results[3] && results[3].online) || []).forEach(function(u) { userOnlineMap[u.uid] = true; });
+        renderCoreMembers(results[0], memberStatusMap);
+        renderGeneralUsers(results[1], userOnlineMap);
     });
 }
 
-function renderCoreMembers(members) {
+function renderCoreMembers(members, onlineMap) {
     var area = document.getElementById('core-members-list');
     if (!area) return;
     if (!members || members.length === 0) {
@@ -433,9 +444,11 @@ function renderCoreMembers(members) {
         '<thead style="background:#f8f9fa;"><tr><th style="width:50px;"></th><th>氏名</th><th>部署</th><th>メール</th><th>役割</th><th style="width:100px;">操作</th></tr></thead>' +
         '<tbody>' + approved.map(function(m) {
             var avatarHtml = _renderMemberAvatar(m.avatar, '🛡️', 32);
+            var isOnline = onlineMap && onlineMap[m.email];
+            var onlineDot = '<div style="position:absolute;bottom:0;right:0;width:10px;height:10px;border-radius:50%;border:2px solid white;background:' + (isOnline ? '#4caf50' : '#ccc') + ';"></div>';
             var roleLabel = m.is_exec ? '<span class="badge bg-danger">Exec</span>' : (m.is_university ? '<span class="badge bg-info">大学</span>' : '<span class="badge bg-secondary">Member</span>');
             return '<tr>' +
-                '<td class="text-center"><div style="width:32px;height:32px;border-radius:50%;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;font-size:1.3rem;">' + avatarHtml + '</div></td>' +
+                '<td class="text-center"><div style="position:relative;width:32px;height:32px;display:inline-block;"><div style="width:32px;height:32px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:1.3rem;">' + avatarHtml + '</div>' + onlineDot + '</div></td>' +
                 '<td class="fw-bold">' + escapeHtml(m.name) + '</td>' +
                 '<td>' + escapeHtml(m.dept || m.university_org || '') + '</td>' +
                 '<td class="text-muted small">' + escapeHtml(m.email) + '</td>' +
@@ -447,7 +460,7 @@ function renderCoreMembers(members) {
     area.innerHTML = html;
 }
 
-function renderGeneralUsers(users) {
+function renderGeneralUsers(users, onlineMap) {
     var area = document.getElementById('general-users-list');
     if (!area) return;
     if (!users || users.length === 0) {
@@ -458,9 +471,11 @@ function renderGeneralUsers(users) {
         '<thead style="background:#f8f9fa;"><tr><th style="width:50px;"></th><th>ニックネーム</th><th>本名</th><th>部署</th><th>投稿数</th><th>登録日</th><th style="width:130px;">操作</th></tr></thead>' +
         '<tbody>' + users.map(function(u) {
             var avatarHtml = _renderMemberAvatar(u.avatar, '😀', 32);
+            var isOnline = onlineMap && onlineMap[u.id];
+            var onlineDot = '<div style="position:absolute;bottom:0;right:0;width:10px;height:10px;border-radius:50%;border:2px solid white;background:' + (isOnline ? '#4caf50' : '#ccc') + ';"></div>';
             var dateStr = u.created_at ? new Date(u.created_at + 'Z').toLocaleDateString('ja-JP', { timeZone: 'Asia/Tokyo' }) : '';
             return '<tr>' +
-                '<td class="text-center"><div style="width:32px;height:32px;border-radius:50%;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;font-size:1.3rem;">' + avatarHtml + '</div></td>' +
+                '<td class="text-center"><div style="position:relative;width:32px;height:32px;display:inline-block;"><div style="width:32px;height:32px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:1.3rem;">' + avatarHtml + '</div>' + onlineDot + '</div></td>' +
                 '<td class="fw-bold">' + escapeHtml(u.nickname) + '</td>' +
                 '<td>' + escapeHtml(u.real_name || '') + '</td>' +
                 '<td>' + escapeHtml(u.department || '') + '</td>' +

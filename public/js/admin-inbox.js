@@ -886,7 +886,7 @@ function sendReplyToUser(postId, targetUid, userName) {
     var replyText = textarea.value.trim();
     if (!replyText) { alert('返事の内容を入力してください'); return; }
 
-    var content = '【BUDDY】🛡️ 推進メンバーからの返事\n━━━━━━━━━━━━━━\n' + replyText;
+    var content = '🛡️ 推進メンバーからの返事\n━━━━━━━━━━━━━━\n' + replyText;
 
     fetch('/api/notices/save', {
         method: 'POST',

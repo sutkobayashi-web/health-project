@@ -192,7 +192,27 @@ function sendBroadcast() {
 
 // ---- 個別メッセージ送信 (Inbox詳細から呼ばれる) ----
 function sendPersonalMessage(targetUid, targetName) {
-  const msg = prompt('「' + targetName + '」さんにバディー経由でメッセージを送信:\n(バディーチャット画面に表示されます)');
+  const msg = prompt('「' + targetName + '」さんにお知らせを送信:\n(お知らせタブに表示されます)');
+  if (!msg || !msg.trim()) return;
+
+  showLoading('送信中...');
+  saveAdminNotice({ content: msg.trim(), isBroadcast: false, targetUid: targetUid, sender: currentAdminProfile.name || 'Admin' })
+    .then(function(res) {
+      hideLoading();
+      if (res && res.success) {
+        alert('お知らせを送信しました');
+      } else {
+        alert('送信エラー: ' + ((res && res.msg) || '不明'));
+      }
+    })
+    .catch(function(err) {
+      hideLoading();
+      alert('エラー: ' + (err.message || '不明'));
+    });
+}
+
+function sendBuddyMessage(targetUid, targetName) {
+  const msg = prompt('「' + targetName + '」さんにバディーチャットで送信:\n(バディー画面に吹き出しで表示されます)');
   if (!msg || !msg.trim()) return;
 
   showLoading('送信中...');
@@ -200,7 +220,7 @@ function sendPersonalMessage(targetUid, targetName) {
     .then(function(res) {
       hideLoading();
       if (res && res.success) {
-        alert('送信しました');
+        alert('バディーチャットに送信しました');
       } else {
         alert('送信エラー: ' + ((res && res.msg) || '不明'));
       }

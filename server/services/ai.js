@@ -8,9 +8,8 @@ function logAiUsage(provider, model, functionName, tokensIn, tokensOut, success)
   } catch (e) { /* ログ失敗は無視 */ }
 }
 
-const GROQ_API_KEY = () => process.env.GROQ_API_KEY;
 const GEMINI_API_KEY = () => process.env.GEMINI_API_KEY;
-const GROQ_MODEL = () => process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
+const GEMINI_TEXT_MODEL = () => process.env.GEMINI_TEXT_MODEL || 'gemini-2.5-flash';
 const GEMINI_VISION_MODEL = () => process.env.GEMINI_VISION_MODEL || 'gemini-flash-latest';
 
 // ========================================
@@ -171,46 +170,9 @@ const EVIDENCE_BASE = `
 - 疾患が疑われる場合は「医療機関を受診してください」と促す
 `;
 
-// Groq API (OpenAI互換)
+// AI API呼び出し（Gemini統一）— 後方互換のためcallGroqApiシグネチャを維持
 async function callGroqApi(systemPrompt, userMessage, options = {}) {
-  try {
-    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${GROQ_API_KEY()}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: GROQ_MODEL(),
-        messages: options.messages || [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userMessage }
-        ],
-        temperature: options.temperature || 0.3,
-        max_tokens: options.max_tokens || undefined
-      })
-    });
-    if (res.status === 429) {
-      logAiUsage('groq', GROQ_MODEL(), options._fn || 'groq_429', 0, 0, false);
-      throw new Error('HTTP 429 Rate Limited');
-    }
-    const json = await res.json();
-    var tokensIn = (json.usage && json.usage.prompt_tokens) || 0;
-    var tokensOut = (json.usage && json.usage.completion_tokens) || 0;
-    var fnName = options._fn || _detectFnName(systemPrompt, userMessage);
-    if (json.choices && json.choices.length > 0) {
-      logAiUsage('groq', GROQ_MODEL(), fnName, tokensIn, tokensOut, true);
-      return json.choices[0].message.content;
-    }
-    logAiUsage('groq', GROQ_MODEL(), fnName, tokensIn, tokensOut, false);
-    return null;
-  } catch (e) {
-    console.error('Groq API error:', e.message);
-    logAiUsage('groq', GROQ_MODEL(), options._fn || 'groq_error', 0, 0, false);
-    // 429はリトライ可能なので再throwする
-    if (e.message && e.message.includes('429')) throw e;
-    return null;
-  }
+  return await callGeminiText(systemPrompt, userMessage, options);
 }
 
 function _detectFnName(sys, user) {
@@ -416,21 +378,7 @@ ${tone}
     }
     messages.push({ role: 'user', content: userMessage });
 
-    let result = null;
-    try {
-      result = await callGroqApi(null, null, { messages, temperature: 0.6, max_tokens: 500 });
-    } catch (e) {
-      console.log('[BuddyChat] Groq failed:', e.message, '-> trying Gemini');
-    }
-    // Groqがnull返却またはthrowした場合、Geminiにフォールバック
-    if (!result) {
-      try {
-        var combined = messages.map(m => (m.role === 'system' ? '[指示] ' : m.role === 'assistant' ? '[AI] ' : '[ユーザー] ') + m.content).join('\n\n');
-        result = await callGeminiText(null, combined);
-      } catch (e2) {
-        console.error('[BuddyChat] Gemini also failed:', e2.message);
-      }
-    }
+    const result = await callGeminiText(null, null, { messages, temperature: 0.6, max_tokens: 500, _fn: 'chat' });
 
     if (result) return { success: true, reply: result };
     return { success: false, reply: 'すみません、うまく応答できませんでした。もう一度お話しいただけますか？' };
@@ -516,21 +464,7 @@ ${tone}
     }
     messages.push({ role: 'user', content: combinedMessage });
 
-    let result = null;
-    try {
-      result = await callGroqApi(null, null, { messages, temperature: 0.5, max_tokens: 1000 });
-    } catch (e) {
-      console.log('[BuddyImage] Groq failed:', e.message, '-> trying Gemini');
-    }
-    // Groqがnull返却またはthrowした場合、Geminiにフォールバック
-    if (!result) {
-      try {
-        var combined = messages.map(m => (m.role === 'system' ? '[指示] ' : m.role === 'assistant' ? '[AI] ' : '[ユーザー] ') + m.content).join('\n\n');
-        result = await callGeminiText(null, combined);
-      } catch (e2) {
-        console.error('[BuddyImage] Gemini also failed:', e2.message);
-      }
-    }
+    const result = await callGeminiText(null, null, { messages, temperature: 0.5, max_tokens: 1000, _fn: 'image_chat' });
     if (result) return { success: true, reply: result };
     return { success: false, reply: '申し訳ありません、回答を生成できませんでした。' };
   } catch (e) {
@@ -611,44 +545,59 @@ ${challengeReactionInfo}
   }
 }
 
-// Gemini テキスト生成（Groqフォールバック用）
-async function callGeminiText(systemPrompt, userMessage) {
+// Gemini テキスト生成（メインAIエンジン）
+async function callGeminiText(systemPrompt, userMessage, options = {}) {
   try {
-    var model = process.env.GEMINI_TEXT_MODEL || 'gemini-2.5-flash';
+    var model = GEMINI_TEXT_MODEL();
     var url = 'https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + GEMINI_API_KEY();
+    var body = { generationConfig: { temperature: options.temperature || 0.3, maxOutputTokens: options.max_tokens || 4096 } };
+
+    if (options.messages) {
+      // OpenAI互換messages配列 → Gemini形式に変換
+      var sysText = '';
+      var contents = [];
+      options.messages.forEach(function(m) {
+        if (m.role === 'system') { sysText += (sysText ? '\n' : '') + m.content; }
+        else if (m.role === 'assistant') { contents.push({ role: 'model', parts: [{ text: m.content }] }); }
+        else { contents.push({ role: 'user', parts: [{ text: m.content }] }); }
+      });
+      if (sysText) body.system_instruction = { parts: [{ text: sysText }] };
+      if (contents.length === 0) contents.push({ role: 'user', parts: [{ text: '開始' }] });
+      body.contents = contents;
+    } else {
+      // シンプルなsystem + user形式
+      if (systemPrompt) body.system_instruction = { parts: [{ text: systemPrompt }] };
+      body.contents = [{ role: 'user', parts: [{ text: userMessage }] }];
+    }
+
     var res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: (systemPrompt ? systemPrompt + '\n\n' : '') + userMessage }] }],
-        generationConfig: { temperature: 0.3, maxOutputTokens: 4096 }
-      })
+      body: JSON.stringify(body)
     });
     if (!res.ok) {
       var errText = await res.text();
       throw new Error('Gemini HTTP ' + res.status + ': ' + errText.substring(0, 200));
     }
     var json = await res.json();
+    var fnName = options._fn || _detectFnName(systemPrompt, userMessage);
+    var tokensIn = (json.usageMetadata && json.usageMetadata.promptTokenCount) || 0;
+    var tokensOut = (json.usageMetadata && json.usageMetadata.candidatesTokenCount) || 0;
     if (json.candidates && json.candidates[0] && json.candidates[0].content) {
+      logAiUsage('gemini', model, fnName, tokensIn, tokensOut, true);
       return json.candidates[0].content.parts[0].text;
     }
+    logAiUsage('gemini', model, fnName, tokensIn, tokensOut, false);
     return null;
   } catch (e) {
     console.error('Gemini Text error:', e.message);
+    logAiUsage('gemini', GEMINI_TEXT_MODEL(), options._fn || 'gemini_error', 0, 0, false);
     return null;
   }
 }
 
-// Groq → Gemini フォールバック付きAPI呼び出し
+// AI呼び出し（Gemini統一）
 async function callAIWithFallback(systemPrompt, userMessage) {
-  // まずGroqを試す
-  try {
-    var result = await callGroqApi(systemPrompt, userMessage);
-    if (result) return result;
-  } catch (e) {
-    console.log('[AI Fallback] Groq failed:', e.message, '-> trying Gemini');
-  }
-  // GeminiにフォールバックS
   return await callGeminiText(systemPrompt, userMessage);
 }
 

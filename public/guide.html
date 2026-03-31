@@ -659,7 +659,7 @@ body {
       <thead><tr><th>ボタン</th><th>内容</th></tr></thead>
       <tbody>
         <tr><td><strong>🗨 みんなに相談・提案</strong></td><td>バディーが誘導→カテゴリ選択→入力→匿名で投稿。AIがコメント</td></tr>
-        <tr><td><strong>🍽 食事診断・投稿</strong></td><td>バディーが誘導→写真撮影→プレビュー→AI栄養士が分析</td></tr>
+        <tr><td><strong>🍽 食事診断・投稿</strong></td><td>バディーが誘導→写真撮影→プレビュー→AI栄養士が分析→<strong>6軸レーダーチャート</strong>（たんぱく質・脂質・炭水化物・ビタミン・ミネラル・塩分）で視覚表示</td></tr>
         <tr><td><strong>🛡 推進メンバーに相談・提案</strong></td><td>バディーが誘導→入力→推進メンバーに直接送信（非公開）</td></tr>
         <tr><td><strong>🔥 チャレンジに挑戦する</strong></td><td>バディーがチャレンジ一覧を紹介→選択→詳細画面へ遷移</td></tr>
         <tr><td><strong>📋 みんなの投稿を見る</strong></td><td>メニュータブの統合投稿一覧へ遷移（すべて/相談/食事フィルター）</td></tr>
@@ -1152,7 +1152,7 @@ body {
         <tr><td><strong>食事投稿除外</strong></td><td>7軸評価・凝集の対象から食事投稿を除外。評価対象が98件→9件に削減</td></tr>
         <tr><td><strong>投稿時リアルタイム評価</strong></td><td>相談投稿時にAIスコアをauto_evaluationsテーブルに即時保存。凝集時の一括評価が不要に</td></tr>
         <tr><td><strong>バックグラウンド処理</strong></td><td>7軸一括評価をバックグラウンドジョブ化。5秒ポーリングで進捗表示（504タイムアウト回避）</td></tr>
-        <tr><td><strong>Geminiフォールバック</strong></td><td>Groq APIが429（レートリミット）の場合、自動的にGeminiで実行</td></tr>
+        <tr><td><strong>AI基盤統一</strong></td><td>全AIプロンプトをGemini 2.5 Flashに統一（2026年3月〜）</td></tr>
       </tbody>
     </table>
   </div>
@@ -1408,7 +1408,7 @@ body {
 
     <div class="step-flow">
       <div class="step-item"><div class="step-num">1</div><div class="step-text"><strong>自動集計</strong>：先週月曜〜日曜の食事投稿（写真投稿）をユーザーごとに収集</div></div>
-      <div class="step-item"><div class="step-num">2</div><div class="step-text"><strong>AI分析</strong>：各ユーザーの1週間分の食事を栄養学的に分析（Groq/Geminiフォールバック）</div></div>
+      <div class="step-item"><div class="step-num">2</div><div class="step-text"><strong>AI分析</strong>：各ユーザーの1週間分の食事を栄養学的に分析（Gemini 2.5 Flash）</div></div>
       <div class="step-item"><div class="step-num">3</div><div class="step-text"><strong>本人通知</strong>：「お知らせ」に個人レポートとして自動配信</div></div>
       <div class="step-item"><div class="step-num">4</div><div class="step-text"><strong>管理者閲覧</strong>：管理画面で全ユーザーのレポートを一覧表示、推進メンバーが議論・コメント</div></div>
     </div>
@@ -1559,14 +1559,14 @@ body {
 </div>
 
 <!-- ====== セクション17: AIプロンプト一覧 ====== -->
-<div class="guide-card theme-indigo" data-keywords="AI プロンプト Groq Gemini LLM モデル チャット 評価 分析">
+<div class="guide-card theme-indigo" data-keywords="AI プロンプト Gemini LLM モデル チャット 評価 分析">
   <div class="guide-card-header">
     <div class="guide-card-icon"><i class="fas fa-robot"></i></div>
     <div class="guide-card-title">セクション17: AIプロンプト一覧</div>
   </div>
   <div class="guide-card-body">
     <p>本システムでは<strong>22種のAIプロンプト</strong>を使用しています。<br>
-    テキスト処理には<strong>Groq（Llama 3.3 70B）</strong>、画像分析には<strong>Gemini Vision</strong>を使用。<br>
+    テキスト処理には<strong>Gemini 2.5 Flash</strong>、画像分析には<strong>Gemini Flash（Vision）</strong>を使用。全AIをGeminiに統一。<br>
     全プロンプトは<strong>18領域の公的ガイドライン</strong>をエビデンス基盤として参照しています。</p>
 
     <div class="highlight-box">
@@ -1581,11 +1581,11 @@ body {
     <table class="guide-table">
       <thead><tr><th>機能</th><th>モデル</th><th>概要</th></tr></thead>
       <tbody>
-        <tr><td><strong>AIヘルスアドバイザー（チャット）</strong></td><td>Groq</td><td>エビデンスに基づく健康相談チャット。コーチング重視、ティーチングより質問で気づきを促す</td></tr>
-        <tr><td><strong>初回あいさつ生成</strong></td><td>Groq</td><td>新規チャット開始時の自己紹介と健康に関するオープンな質問</td></tr>
-        <tr><td><strong>画像分析（食事・健診）</strong></td><td>Gemini Vision + Groq</td><td>食事写真の五大栄養素分析（たんぱく質/脂質/炭水化物/ビタミン/ミネラル）＋推定塩分量(g)＋推定カロリー＋改善提案。健診結果の数値解説</td></tr>
-        <tr><td><strong>投稿ケアコメント生成</strong></td><td>Groq</td><td>健康相談投稿に対するAIからの温かいケアコメント + 7軸自動評価スコア</td></tr>
-        <tr><td><strong>健康ナレッジBot</strong></td><td>Groq</td><td>健康経営の専門知識を平易な言葉で解説。ナッジ/EAST/CAN等のフレームワークも教育</td></tr>
+        <tr><td><strong>AIヘルスアドバイザー（チャット）</strong></td><td>Gemini 2.5 Flash</td><td>エビデンスに基づく健康相談チャット。コーチング重視、ティーチングより質問で気づきを促す</td></tr>
+        <tr><td><strong>初回あいさつ生成</strong></td><td>Gemini 2.5 Flash</td><td>新規チャット開始時の自己紹介と健康に関するオープンな質問</td></tr>
+        <tr><td><strong>画像分析（食事・健診）</strong></td><td>Gemini Vision + 2.5 Flash</td><td>食事写真の五大栄養素分析（たんぱく質/脂質/炭水化物/ビタミン/ミネラル）＋推定塩分量(g)＋推定カロリー＋改善提案＋<strong>6軸レーダーチャート</strong>（SVG描画）。健診結果の数値解説</td></tr>
+        <tr><td><strong>投稿ケアコメント生成</strong></td><td>Gemini 2.5 Flash</td><td>健康相談投稿に対するAIからの温かいケアコメント + 7軸自動評価スコア</td></tr>
+        <tr><td><strong>健康ナレッジBot</strong></td><td>Gemini 2.5 Flash</td><td>健康経営の専門知識を平易な言葉で解説。ナッジ/EAST/CAN等のフレームワークも教育</td></tr>
       </tbody>
     </table>
 
@@ -1593,15 +1593,15 @@ body {
     <table class="guide-table">
       <thead><tr><th>機能</th><th>モデル</th><th>概要</th></tr></thead>
       <tbody>
-        <tr><td><strong>7軸AI評価</strong></td><td>Groq</td><td>投稿をCOM-Bモデル準拠の7軸（法令/リスク/頻度/緊急/安全/価値/ニーズ）で1-5点評価</td></tr>
-        <tr><td><strong>総合7軸評価</strong></td><td>Groq</td><td>共感データ + メンバーコメント + 議論を統合した多角的7軸評価</td></tr>
-        <tr><td><strong>共感→スコア変換</strong></td><td>Groq</td><td>ハートリアクションの種別・件数から7軸スコアを自動算出</td></tr>
-        <tr><td><strong>AI会議シミュレーション</strong></td><td>Groq</td><td>11人のペルソナ（20代ドライバー/50代役員/保健師等）による議論を自動生成</td></tr>
-        <tr><td><strong>AIリアクション</strong></td><td>Groq</td><td>人間のコメントに対するAI会議メンバーの反応を1-2件生成</td></tr>
-        <tr><td><strong>専門家アドバイス</strong></td><td>Groq</td><td>健康経営コンサルタントとしての専門的助言</td></tr>
-        <tr><td><strong>栄養レポート生成</strong></td><td>Groq</td><td>ユーザーの食事履歴を分析し、傾向/良い点/改善点/目標のレポートを生成</td></tr>
-        <tr><td><strong>類似投稿検索</strong></td><td>Groq</td><td>テーマが似ている投稿をAIが分析してグルーピング</td></tr>
-        <tr><td><strong>テーマ自動凝集</strong></td><td>Groq</td><td>全投稿から3-5個の健康テーマを自動クラスタリング。共感データ・評価スコアを重み付け</td></tr>
+        <tr><td><strong>7軸AI評価</strong></td><td>Gemini 2.5 Flash</td><td>投稿をCOM-Bモデル準拠の7軸（法令/リスク/頻度/緊急/安全/価値/ニーズ）で1-5点評価</td></tr>
+        <tr><td><strong>総合7軸評価</strong></td><td>Gemini 2.5 Flash</td><td>共感データ + メンバーコメント + 議論を統合した多角的7軸評価</td></tr>
+        <tr><td><strong>共感→スコア変換</strong></td><td>Gemini 2.5 Flash</td><td>ハートリアクションの種別・件数から7軸スコアを自動算出</td></tr>
+        <tr><td><strong>AI会議シミュレーション</strong></td><td>Gemini 2.5 Flash</td><td>11人のペルソナ（20代ドライバー/50代役員/保健師等）による議論を自動生成</td></tr>
+        <tr><td><strong>AIリアクション</strong></td><td>Gemini 2.5 Flash</td><td>人間のコメントに対するAI会議メンバーの反応を1-2件生成</td></tr>
+        <tr><td><strong>専門家アドバイス</strong></td><td>Gemini 2.5 Flash</td><td>健康経営コンサルタントとしての専門的助言</td></tr>
+        <tr><td><strong>栄養レポート生成</strong></td><td>Gemini 2.5 Flash</td><td>ユーザーの食事履歴を分析し、傾向/良い点/改善点/目標のレポートを生成</td></tr>
+        <tr><td><strong>類似投稿検索</strong></td><td>Gemini 2.5 Flash</td><td>テーマが似ている投稿をAIが分析してグルーピング</td></tr>
+        <tr><td><strong>テーマ自動凝集</strong></td><td>Gemini 2.5 Flash</td><td>全投稿から3-5個の健康テーマを自動クラスタリング。共感データ・評価スコアを重み付け</td></tr>
       </tbody>
     </table>
 
@@ -1609,10 +1609,10 @@ body {
     <table class="guide-table">
       <thead><tr><th>機能</th><th>モデル</th><th>概要</th></tr></thead>
       <tbody>
-        <tr><td><strong>アクションプラン生成</strong></td><td>Groq</td><td>現状分析/経営根拠/実行計画/KPI指標を含む企画書をMarkdownで自動生成</td></tr>
-        <tr><td><strong>3パターンアイデア</strong></td><td>Groq</td><td>小さく始める案/ゲーミフィケーション案/根本解決案の3パターンを提案</td></tr>
-        <tr><td><strong>企画書リファイン</strong></td><td>Groq</td><td>フィードバックを反映して企画書を改善。セクションごとの修正意図も出力</td></tr>
-        <tr><td><strong>チャレンジ自動設計</strong></td><td>Groq</td><td>30日間の任意参加プログラムを自動設計。EAST/COM-Bフレームワーク準拠、KPI定義、バッジシステム（初記録/7日連続/皆勤賞等）を含む</td></tr>
+        <tr><td><strong>アクションプラン生成</strong></td><td>Gemini 2.5 Flash</td><td>現状分析/経営根拠/実行計画/KPI指標を含む企画書をMarkdownで自動生成</td></tr>
+        <tr><td><strong>3パターンアイデア</strong></td><td>Gemini 2.5 Flash</td><td>小さく始める案/ゲーミフィケーション案/根本解決案の3パターンを提案</td></tr>
+        <tr><td><strong>企画書リファイン</strong></td><td>Gemini 2.5 Flash</td><td>フィードバックを反映して企画書を改善。セクションごとの修正意図も出力</td></tr>
+        <tr><td><strong>チャレンジ自動設計</strong></td><td>Gemini 2.5 Flash</td><td>30日間の任意参加プログラムを自動設計。EAST/COM-Bフレームワーク準拠、KPI定義、バッジシステム（初記録/7日連続/皆勤賞等）を含む</td></tr>
       </tbody>
     </table>
 

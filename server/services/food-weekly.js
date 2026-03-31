@@ -113,28 +113,48 @@ async function generateUserFoodReport(uid, userData, weekLabel, weekStart) {
     '4. 良かった点（具体的に1〜2つ褒める）\n' +
     '5. 来週の心がけ（減塩のコツを含む。具体的で実践しやすいアドバイスを2〜3つ。スモールステップで）\n' +
     '6. 📚 出典: 根拠となるガイドライン名\n\n' +
-    '温かく励ましつつ、エビデンスに基づいた具体的なアドバイスをお願いします。特に塩分については運輸業のドライバーはコンビニ弁当・惣菜中心の食生活が多いため、具体的な減塩提案を重視してください。';
+    '温かく励ましつつ、エビデンスに基づいた具体的なアドバイスをお願いします。特に塩分については運輸業のドライバーはコンビニ弁当・惣菜中心の食生活が多いため、具体的な減塩提案を重視してください。\n\n' +
+    '★★★重要: レポート本文の最後に、必ず以下の形式で栄養スコアを出力すること★★★\n' +
+    '///WEEKLY_SCORE///{"protein":数値,"fat":数値,"carb":数値,"vitamin":数値,"mineral":数値,"salt":数値}\n' +
+    '各数値は1〜5の整数。5=理想的、4=良好、3=適量、2=やや過不足、1=要改善。\n' +
+    '塩分(salt)は逆スコア: 5=少なく理想的、1=過剰摂取。\n' +
+    '食事記録の内容から総合的に判断して1週間の平均的なスコアを算出すること。';
 
   var aiResult = await callAIWithFallback('管理栄養士として週間食事分析レポートを作成してください。', prompt);
   if (!aiResult) throw new Error('AI分析失敗');
 
+  // スコアのパース
+  var reportText = aiResult;
+  var nutritionScores = null;
+  if (aiResult.indexOf('///WEEKLY_SCORE///') !== -1) {
+    var scoreParts = aiResult.split('///WEEKLY_SCORE///');
+    reportText = scoreParts[0].trim();
+    try {
+      nutritionScores = JSON.parse(scoreParts[1].trim());
+    } catch(e) { console.error('[food-weekly] スコアパース失敗:', e.message); }
+  }
+
+  // nutrition_scoresカラムが無ければ追加
+  try { db.prepare("ALTER TABLE food_weekly_reports ADD COLUMN nutrition_scores TEXT").run(); } catch(e) { /* already exists */ }
+
   // food_weekly_reportsに保存
   var reportId = 'fwr_' + uuidv4().substring(0, 8);
-  db.prepare(`INSERT INTO food_weekly_reports (report_id, user_id, nickname, week_start, week_end, meal_count, report_text, created_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))`).run(
+  db.prepare(`INSERT INTO food_weekly_reports (report_id, user_id, nickname, week_start, week_end, meal_count, report_text, nutrition_scores, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`).run(
     reportId, uid, userData.nickname, weekStart,
     new Date(new Date(weekStart).getTime() + 6 * 86400000).toISOString().slice(0, 10),
-    userData.posts.length, aiResult
+    userData.posts.length, reportText, nutritionScores ? JSON.stringify(nutritionScores) : null
   );
 
-  // ユーザーへ個人通知
+  // ユーザーへ個人通知（スコアタグを埋め込み — 表示側でレーダーチャートに変換）
   var noticeId = 'notice_' + uuidv4().substring(0, 8);
+  var scoreTag = nutritionScores ? '\n\n<!--NUTRITION_RADAR:' + JSON.stringify(nutritionScores) + '-->' : '';
   var noticeContent = '【週間食事レポート ' + weekLabel + '】\n\n' +
-    userData.nickname + 'さんの今週の食事分析です（' + userData.posts.length + '食分）\n\n' + aiResult;
+    userData.nickname + 'さんの今週の食事分析です（' + userData.posts.length + '食分）\n\n' + reportText + scoreTag;
   db.prepare(`INSERT INTO notices (notice_id, content, sender, target_id, status, created_at)
     VALUES (?, ?, '🥗 AI栄養士', ?, 'unread', datetime('now'))`).run(noticeId, noticeContent, uid);
 
-  return { reportId: reportId, reportText: aiResult };
+  return { reportId: reportId, reportText: reportText, nutritionScores: nutritionScores };
 }
 
 module.exports = { runWeeklyFoodAnalysis };

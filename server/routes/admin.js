@@ -1079,4 +1079,45 @@ router.post('/food-weekly-run', async (req, res) => {
   } catch (e) { res.json({ success: false, msg: e.message }); }
 });
 
+// 過去の週間食事レポートにスコアを付与し、お知らせを再配信
+router.post('/food-weekly-rescore', async (req, res) => {
+  try {
+    const { callAIWithFallback } = require('../services/ai');
+    const { v4: uuidv4 } = require('uuid');
+    var db = getDb();
+    try { db.prepare("ALTER TABLE food_weekly_reports ADD COLUMN nutrition_scores TEXT").run(); } catch(e) { /* already exists */ }
+    var reports = db.prepare("SELECT report_id, user_id, nickname, week_start, week_end, meal_count, report_text FROM food_weekly_reports WHERE nutrition_scores IS NULL").all();
+    if (reports.length === 0) return res.json({ success: true, msg: 'スコア未付与のレポートはありません', count: 0 });
+
+    var updated = 0;
+    for (var i = 0; i < reports.length; i++) {
+      var r = reports[i];
+      if (i > 0) await new Promise(function(resolve) { setTimeout(resolve, 2000); });
+      try {
+        var scorePrompt = '以下の週間食事分析レポートを読み、五大栄養素+塩分の6軸スコアをJSON形式のみで出力してください。\n' +
+          '出力形式: {"protein":数値,"fat":数値,"carb":数値,"vitamin":数値,"mineral":数値,"salt":数値}\n' +
+          '各数値は1〜5の整数。5=理想的、4=良好、3=適量、2=やや過不足、1=要改善。塩分は逆スコア（5=少なく理想的、1=過剰）。\n' +
+          'JSON以外の文章は一切出力しないこと。\n\n' +
+          '【レポート】\n' + (r.report_text || '').substring(0, 2000);
+        var scoreResult = await callAIWithFallback('JSONのみ出力してください。', scorePrompt);
+        if (scoreResult) {
+          var jsonMatch = scoreResult.match(/\{[^}]+\}/);
+          if (jsonMatch) {
+            var scores = JSON.parse(jsonMatch[0]);
+            db.prepare("UPDATE food_weekly_reports SET nutrition_scores = ? WHERE report_id = ?").run(JSON.stringify(scores), r.report_id);
+            // 既存のお知らせを更新（レーダータグ追加）
+            var scoreTag = '\n\n<!--NUTRITION_RADAR:' + JSON.stringify(scores) + '-->';
+            var weekLabel = r.week_start + ' 〜 ' + r.week_end;
+            db.prepare("UPDATE notices SET content = content || ?, status = 'unread' WHERE target_id = ? AND content LIKE ? AND content NOT LIKE '%NUTRITION_RADAR%'")
+              .run(scoreTag, r.user_id, '%週間食事レポート ' + weekLabel + '%');
+            updated++;
+            console.log('[rescore] ' + r.nickname + ' (' + weekLabel + '): スコア付与完了');
+          }
+        }
+      } catch(e) { console.error('[rescore] ' + r.nickname + ': 失敗 -', e.message); }
+    }
+    res.json({ success: true, msg: updated + '/' + reports.length + '件のレポートにスコアを付与しました', count: updated });
+  } catch (e) { res.json({ success: false, msg: e.message }); }
+});
+
 module.exports = router;

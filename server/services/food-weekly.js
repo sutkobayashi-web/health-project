@@ -122,7 +122,7 @@ async function generateUserFoodReport(uid, userData, weekLabel, weekStart) {
   }
 
   var prompt = EVIDENCE_BASE + '\n\n' +
-    'あなたは管理栄養士です。以下は' + userData.nickname + 'さんの1週間(' + weekLabel + ')の食事記録です。\n\n' +
+    'あなたはAI栄養アドバイザーです。以下は' + userData.nickname + 'さんの1週間(' + weekLabel + ')の食事記録です。\n\n' +
     '【食事記録(' + userData.posts.length + '食分)】\n' + mealSummary + '\n\n' +
     '以下の形式で週間栄養分析レポートを作成してください。\n' +
     '★★★マークダウン記法（**太字**や###見出し等）は絶対に使わない★★★\n\n' +
@@ -148,7 +148,7 @@ async function generateUserFoodReport(uid, userData, weekLabel, weekStart) {
     '塩分(salt)は逆スコア: 5=少なく理想的、1=過剰摂取。\n' +
     '食事記録の内容から総合的に判断して1週間の平均的なスコアを算出すること。';
 
-  var aiResult = await callAIWithFallback('管理栄養士として週間食事分析レポートを作成してください。', prompt);
+  var aiResult = await callAIWithFallback('AI栄養アドバイザーとして週間食事分析レポートを作成してください。', prompt);
   if (!aiResult) throw new Error('AI分析失敗');
 
   // スコアのパース（AI出力からのフォールバック用）
@@ -185,7 +185,7 @@ async function generateUserFoodReport(uid, userData, weekLabel, weekStart) {
   var noticeContent = '【週間食事レポート ' + weekLabel + '】\n\n' +
     userData.nickname + 'さんの今週の食事分析です（' + userData.posts.length + '食分）\n\n' + reportText + scoreTag;
   db.prepare(`INSERT INTO notices (notice_id, content, sender, target_id, status, created_at)
-    VALUES (?, ?, '🥗 AI栄養士', ?, 'unread', datetime('now'))`).run(noticeId, noticeContent, uid);
+    VALUES (?, ?, '🥗 AI栄養アドバイザー', ?, 'unread', datetime('now'))`).run(noticeId, noticeContent, uid);
 
   return { reportId: reportId, reportText: reportText, nutritionScores: nutritionScores };
 }

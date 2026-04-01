@@ -413,7 +413,7 @@ ${tone}`;
 // ヘルスバディー画像付きチャット
 async function chatWithBuddyImage(userMessage, imageBase64, mimeType, history, userName, buddyType) {
   try {
-    const visionSys = `あなたは熟練のヘルスアドバイザー・管理栄養士です。送られた画像（健康診断結果、薬、体の症状、食事写真など）の内容を正確に読み取り、簡潔に要約してください。
+    const visionSys = `あなたは熟練のヘルスアドバイザー・AI栄養アドバイザーです。送られた画像（健康診断結果、薬、体の症状、食事写真など）の内容を正確に読み取り、簡潔に要約してください。
 
 食事画像の場合は以下の観点で分析すること（国立長寿医療研究センター「栄養改善パック」2020 + 日本人の食事摂取基準2025準拠）：
 

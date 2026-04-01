@@ -187,6 +187,14 @@ async function generateUserFoodReport(uid, userData, weekLabel, weekStart) {
   db.prepare(`INSERT INTO notices (notice_id, content, sender, target_id, status, created_at)
     VALUES (?, ?, '🥗 AI栄養アドバイザー', ?, 'unread', datetime('now'))`).run(noticeId, noticeContent, uid);
 
+  // バディーチャットにお知らせメッセージを挿入
+  try {
+    var buddyMsg = '📩 ' + userData.nickname + 'さん、今週の食事レポートが届いてるよ！\n' +
+      '先週の' + userData.posts.length + '食分を分析した栄養バランスレーダーチャート付きだよ🎯\n' +
+      'お知らせ（画面下の🔔）を開いてチェックしてみてね！';
+    db.prepare('INSERT INTO buddy_messages (user_id, role, content) VALUES (?, ?, ?)').run(uid, 'assistant', buddyMsg);
+  } catch(e) { /* バディーメッセージ挿入失敗は無視 */ }
+
   return { reportId: reportId, reportText: reportText, nutritionScores: nutritionScores };
 }
 

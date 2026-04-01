@@ -6009,33 +6009,59 @@ function renderInboxMessage(msg) {
 }
 function buildNutritionRadarSvg(sc) {
   if (!sc) return '';
-  var labels = ['たんぱく質','脂質','炭水化物','ビタミン','ミネラル','塩分'];
-  var keys = ['protein','fat','carb','vitamin','mineral','salt'];
+  // 五大栄養素（5軸レーダー）
+  var labels = ['たんぱく質','脂質','炭水化物','ビタミン','ミネラル'];
+  var keys = ['protein','fat','carb','vitamin','mineral'];
   var vals = keys.map(function(k){ return Math.max(1, Math.min(5, sc[k] || 3)); });
-  var cx=120, cy=120, r=90, n=6;
-  // 六角グリッド
+  var n=5, cx=120, cy=115, r=85;
+  // 五角グリッド
   function pt(i,lv){ var a = Math.PI*2*i/n - Math.PI/2; return [cx+r*(lv/5)*Math.cos(a), cy+r*(lv/5)*Math.sin(a)]; }
   function poly(lv,col,w,dash){
     var pts=[]; for(var i=0;i<n;i++) pts.push(pt(i,lv).join(','));
     return '<polygon points="'+pts.join(' ')+'" fill="none" stroke="'+col+'" stroke-width="'+w+'"'+(dash?' stroke-dasharray="3,2"':'')+'/>';
   }
-  var svg = '<div style="text-align:center;margin:12px 0"><svg width="260" height="260" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg">';
-  // グリッド線
+  var svg = '<div style="text-align:center;margin:12px 0">';
+  svg += '<div style="font-size:0.75rem;font-weight:700;color:#1a3c34;margin-bottom:4px">五大栄養素バランス</div>';
+  svg += '<svg width="260" height="240" viewBox="0 0 240 230" xmlns="http://www.w3.org/2000/svg">';
   for(var lv=1;lv<=5;lv++) svg += poly(lv, lv===3?'rgba(0,0,0,0.15)':'rgba(0,0,0,0.07)', lv===3?1.5:1, lv===3);
-  // 軸線
   for(var i=0;i<n;i++){ var p=pt(i,5); svg+='<line x1="'+cx+'" y1="'+cy+'" x2="'+p[0]+'" y2="'+p[1]+'" stroke="rgba(0,0,0,0.06)" stroke-width="1"/>'; }
-  // データ
   var dataPts=[]; for(var i=0;i<n;i++) dataPts.push(pt(i,vals[i]).join(','));
   svg += '<polygon points="'+dataPts.join(' ')+'" fill="rgba(26,154,122,0.2)" stroke="#1a9a7a" stroke-width="2.5"/>';
-  // ドット＋ラベル
   for(var i=0;i<n;i++){
-    var d=pt(i,vals[i]), l=pt(i,5.7);
+    var d=pt(i,vals[i]), l=pt(i,5.8);
     var col = vals[i]>=4?'#1a9a7a':vals[i]===3?'#a06b10':'#c0392b';
     svg += '<circle cx="'+d[0]+'" cy="'+d[1]+'" r="4.5" fill="'+col+'" stroke="white" stroke-width="1.5"/>';
     svg += '<text x="'+l[0]+'" y="'+(l[1]+4)+'" text-anchor="middle" font-size="11" font-weight="700" fill="#1a3c34">'+labels[i]+'</text>';
-    svg += '<text x="'+l[0]+'" y="'+(l[1]+17)+'" text-anchor="middle" font-size="10" fill="'+col+'">'+vals[i]+'/5</text>';
+    svg += '<text x="'+l[0]+'" y="'+(l[1]+16)+'" text-anchor="middle" font-size="10" fill="'+col+'">'+vals[i]+'/5</text>';
   }
-  svg += '</svg></div>';
+  svg += '</svg>';
+  // 塩分バー（別表示）
+  var saltScore = Math.max(1, Math.min(5, sc.salt || 3));
+  // saltスコア: 5=少ない(良い), 1=多い(悪い) → バー上の位置に変換（左=少ない, 右=多い）
+  var saltPos = (5 - saltScore) / 4; // 0=少ない, 1=多い
+  var barW = 200, barX = 20;
+  var saltCol = saltScore>=4?'#1a9a7a':saltScore===3?'#a06b10':'#c0392b';
+  var saltLabel = saltScore>=4?'少なめ（良好）':saltScore===3?'適量':saltScore===2?'やや多い':'多い（要注意）';
+  svg += '<div style="margin:8px auto 0;max-width:240px">';
+  svg += '<div style="font-size:0.75rem;font-weight:700;color:#1a3c34;margin-bottom:6px">🧂 塩分摂取</div>';
+  svg += '<svg width="240" height="40" viewBox="0 0 240 40" xmlns="http://www.w3.org/2000/svg">';
+  // グラデーションバー
+  svg += '<defs><linearGradient id="saltGrad" x1="0%" y1="0%" x2="100%" y2="0%">';
+  svg += '<stop offset="0%" stop-color="#1a9a7a"/><stop offset="40%" stop-color="#a06b10"/><stop offset="100%" stop-color="#c0392b"/>';
+  svg += '</linearGradient></defs>';
+  svg += '<rect x="'+barX+'" y="10" width="'+barW+'" height="10" rx="5" fill="url(#saltGrad)" opacity="0.25"/>';
+  // 適量ライン
+  svg += '<line x1="'+(barX+barW*0.4)+'" y1="8" x2="'+(barX+barW*0.4)+'" y2="22" stroke="rgba(0,0,0,0.2)" stroke-width="1" stroke-dasharray="2,2"/>';
+  // ポインター
+  var px = barX + barW * saltPos;
+  svg += '<circle cx="'+px+'" cy="15" r="7" fill="'+saltCol+'" stroke="white" stroke-width="2"/>';
+  // ラベル
+  svg += '<text x="'+barX+'" y="35" font-size="9" fill="#7a8c9d" text-anchor="start">少ない</text>';
+  svg += '<text x="'+(barX+barW*0.4)+'" y="35" font-size="9" fill="#7a8c9d" text-anchor="middle">適量</text>';
+  svg += '<text x="'+(barX+barW)+'" y="35" font-size="9" fill="#7a8c9d" text-anchor="end">多い</text>';
+  svg += '</svg>';
+  svg += '<div style="font-size:0.78rem;font-weight:700;color:'+saltCol+';margin-top:2px">'+saltLabel+'</div>';
+  svg += '</div></div>';
   return svg;
 }
 </script>

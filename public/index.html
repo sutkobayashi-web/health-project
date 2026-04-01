@@ -4387,7 +4387,7 @@ function dismissBuddySetupPrompt(checkbox) {
 function addBuddyMessage(role, text) {
   var msgs = document.getElementById('buddy-messages');
   var time = new Date().toLocaleTimeString('ja-JP', {hour:'2-digit', minute:'2-digit'});
-  var isAI = role === 'ai';
+  var isAI = role === 'ai' || role === 'assistant' || role === 'model';
 
   var bubbleContent = isAI ? formatBuddyText(text) : text.replace(/\n/g, '<br>');
 

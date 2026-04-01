@@ -5160,7 +5160,7 @@ var _inlineFoodDataUrl = null;
 
 function inlineFoodCheck() {
   hideActionBar();
-  addBuddyMessage('ai', '食事チェックだね！🍽️\nAI栄養士がバランスを分析するよ📊\n\nまずは食事の写真を撮ってね📸');
+  addBuddyMessage('ai', '食事チェックだね！🍽️\nAI栄養アドバイザーがバランスを分析するよ📊\n\nまずは食事の写真を撮ってね📸');
   setTimeout(function() {
     addBuddyInlineQuick(
       '<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;padding:4px 0;">' +
@@ -5236,7 +5236,7 @@ function submitFoodFromChat(comment) {
   document.getElementById('buddy-input').placeholder = 'メッセージを入力...';
   if (!_inlineFoodBase64) { showActionBar(); return; }
 
-  addBuddyMessage('ai', '🔍 AI栄養士が分析中...少し待ってね！');
+  addBuddyMessage('ai', '🔍 AI栄養アドバイザーが分析中...少し待ってね！');
   handleFoodPost({ uid: currentUser.uid, nickname: currentUser.nickname, avatar: currentUser.avatar, imageBase64: _inlineFoodBase64, mimeType: 'image/jpeg', userComment: comment, department: currentUser.department, birthDate: currentUser.birthDate, isPublic: true }).then(function(res) {
     _inlineFoodBase64 = null; _inlineFoodDataUrl = null;
     showActionBar();
@@ -5348,7 +5348,7 @@ function openChallengeFromChat(challengeId) {
 var HELP_TOPICS = {
   overview: {
     label: '📱 このアプリって何？',
-    answer: 'このアプリは「みんなの声で職場を元気にする」CoWell Health Project 2.0だよ！\n\n🤖 私（バディー）に健康の相談ができる\n📢 みんなに相談・提案を匿名で投稿できる\n🍽️ 食事の写真を撮るとAI栄養士が分析してくれる\n🏆 健康チャレンジに参加できる\n🛡️ 推進メンバーに直接提案もできる\n\nあなたの声が職場を変える力になるよ✨'
+    answer: 'このアプリは「みんなの声で職場を元気にする」CoWell Health Project 2.0だよ！\n\n🤖 私（バディー）に健康の相談ができる\n📢 みんなに相談・提案を匿名で投稿できる\n🍽️ 食事の写真を撮るとAI栄養アドバイザーが分析してくれる\n🏆 健康チャレンジに参加できる\n🛡️ 推進メンバーに直接提案もできる\n\nあなたの声が職場を変える力になるよ✨'
   },
   consult: {
     label: '💬 みんなに相談・提案',
@@ -5356,7 +5356,7 @@ var HELP_TOPICS = {
   },
   food: {
     label: '🍽️ 食事診断・投稿',
-    answer: '「食事診断・投稿」は、食事の写真を撮るとAI栄養士がバランスを分析してくれる機能だよ！\n\n📝 使い方：\n1. アクションバーから「食事診断・投稿」をタップ\n2. 「写真を撮る」で食事を撮影\n3. コメントを入力（任意）して診断！\n\n🥗 栄養バランスを5大栄養素で分析\n📊 週間レポートも届くことがあるよ\n🏆 野菜チャレンジのスコアにも反映されるよ'
+    answer: '「食事診断・投稿」は、食事の写真を撮るとAI栄養アドバイザーがバランスを分析してくれる機能だよ！\n\n📝 使い方：\n1. アクションバーから「食事診断・投稿」をタップ\n2. 「写真を撮る」で食事を撮影\n3. コメントを入力（任意）して診断！\n\n🥗 栄養バランスを5大栄養素で分析\n📊 週間レポートも届くことがあるよ\n🏆 野菜チャレンジのスコアにも反映されるよ'
   },
   member: {
     label: '🛡️ 推進メンバーに相談',

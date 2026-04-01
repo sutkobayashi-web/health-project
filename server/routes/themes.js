@@ -429,7 +429,7 @@ router.post('/change-status', (req, res) => {
   } catch (e) { res.json({ success: false, msg: e.message }); }
 });
 
-// 保健師助言を確認→役員承認へ
+// 専門家助言を確認→役員承認へ
 router.post('/submit-advisor-advice', (req, res) => {
   try {
     const { cycleNumber, advisorComment } = req.body;
@@ -951,7 +951,7 @@ router.post('/ambassador-login', (req, res) => {
     var amb = db.prepare("SELECT * FROM ambassadors WHERE name = ? AND status = 'active'").get(name.trim());
     // デモモード: アンバサダー未登録の場合は仮プロフィールで通す
     if (!amb) {
-      amb = { id: 0, name: name.trim(), organization: 'デモ', role: '保健師' };
+      amb = { id: 0, name: name.trim(), organization: 'デモ', role: '専門家アドバイザー' };
     } else if (amb.password_hash && password !== 'demo' && !bcrypt.compareSync(password, amb.password_hash)) {
       return res.json({ success: false, msg: '認証失敗' });
     }

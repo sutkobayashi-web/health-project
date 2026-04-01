@@ -204,7 +204,7 @@ function renderV2Dashboard() {
     var statusMap = {
       'collecting': { label:'候補準備中', color:'#f39c12' },
       'candidate': { label:'① 推進メンバー精査中', color:'#f39c12' },
-      'advisor_review': { label:'② 保健師助言待ち', color:'#9c27b0' },
+      'advisor_review': { label:'② 専門家助言待ち', color:'#9c27b0' },
       'exec_approval': { label:'③ 役員承認待ち', color:'#e53935' },
       'voting': { label:'④ 全社投票中', color:'#667eea' },
       'finalized': { label:'⑤ テーマ確定', color:'#43a047' }
@@ -235,14 +235,14 @@ function renderV2Dashboard() {
         '</div>' +
         progressHtml +
         (cycle.status === 'voting' ? '<div class="mt-2 small"><i class="fas fa-users text-primary me-1"></i>投票済み: <strong>' + (res.totalVoters || 0) + '</strong> / ' + (res.totalUsers || 0) + '名</div>' : '') +
-        (cycle.advisor_comment ? '<div class="mt-2 small" style="background:#f3e5f5; padding:6px 10px; border-radius:8px;"><i class="fas fa-user-md text-purple me-1"></i><strong>保健師助言:</strong> ' + escapeHtml(cycle.advisor_comment) + '</div>' : '') +
+        (cycle.advisor_comment ? '<div class="mt-2 small" style="background:#f3e5f5; padding:6px 10px; border-radius:8px;"><i class="fas fa-user-md text-purple me-1"></i><strong>専門家助言:</strong> ' + escapeHtml(cycle.advisor_comment) + '</div>' : '') +
         (cycle.exec_comment ? '<div class="mt-2 small" style="background:#ffebee; padding:6px 10px; border-radius:8px;"><i class="fas fa-gavel text-danger me-1"></i><strong>役員コメント:</strong> ' + escapeHtml(cycle.exec_comment) + '</div>' : '') +
       '</div>';
 
     // アクションボタン（ステータスごと）
     var btns = '';
     if (cycle.status === 'candidate') {
-      btns += '<button class="btn btn-primary fw-bold" onclick="doRequestAdvisorReview(' + cycle.cycle_number + ')"><i class="fas fa-user-md me-1"></i>保健師に助言を依頼</button>';
+      btns += '<button class="btn btn-primary fw-bold" onclick="doRequestAdvisorReview(' + cycle.cycle_number + ')"><i class="fas fa-user-md me-1"></i>専門家に助言を依頼</button>';
       btns += '<button class="btn btn-outline-warning fw-bold" onclick="doGenerateThemes()"><i class="fas fa-redo me-1"></i>テーマを再生成</button>';
     } else if (cycle.status === 'advisor_review') {
       btns += '<button class="btn btn-success fw-bold" onclick="doSubmitAdvisorAdvice(' + cycle.cycle_number + ')"><i class="fas fa-check me-1"></i>助言を確認・役員承認へ</button>';
@@ -723,18 +723,18 @@ function doDeleteCycle(cycleNum) {
   });
 }
 
-// 保健師に助言を依頼
+// 専門家に助言を依頼
 function doRequestAdvisorReview(cycleNum) {
-  if (!confirm('テーマ候補を保健師に助言依頼しますか？')) return;
+  if (!confirm('テーマ候補を専門家に助言依頼しますか？')) return;
   api('/themes/change-status', { cycleNumber: cycleNum, status: 'advisor_review' }, getAdminToken()).then(function(res) {
-    if (res.success) { alert('保健師助言待ちに移行しました。アンバサダー画面またはこの画面から助言を入力してください。'); renderV2Dashboard(); }
+    if (res.success) { alert('専門家助言待ちに移行しました。アンバサダー画面またはこの画面から助言を入力してください。'); renderV2Dashboard(); }
     else alert('エラー: ' + res.msg);
   });
 }
 
 // 助言確認→役員承認へ
 function doSubmitAdvisorAdvice(cycleNum) {
-  var advice = prompt('保健師からの助言内容を入力（または確認済みならそのままOK）:');
+  var advice = prompt('専門家からの助言内容を入力（または確認済みならそのままOK）:');
   if (advice === null) return;
   api('/themes/submit-advisor-advice', { cycleNumber: cycleNum, advisorComment: advice }, getAdminToken()).then(function(res) {
     if (res.success) { alert('役員承認待ちに移行しました'); renderV2Dashboard(); }
@@ -1132,7 +1132,7 @@ function renderV2Ambassador() {
     });
     html += '</select></div>';
     html += '<div class="col-md-3"><select id="amb-advice-type" class="form-select form-select-sm"><option value="plan_review">プラン策定時</option><option value="midterm">中間チェック</option><option value="final">最終レビュー</option></select></div>';
-    html += '<div class="col-md-5"><div class="input-group input-group-sm"><input type="text" id="amb-advisor-name" class="form-control" placeholder="助言者名（例: 田中保健師）"></div></div>';
+    html += '<div class="col-md-5"><div class="input-group input-group-sm"><input type="text" id="amb-advisor-name" class="form-control" placeholder="助言者名（例: 田中先生）"></div></div>';
     html += '</div>';
     html += '<textarea id="amb-advice-content" class="form-control form-control-sm mt-2" rows="4" placeholder="専門的な助言を入力..."></textarea>';
     html += '<button class="btn btn-sm btn-primary fw-bold mt-2" onclick="doPostAmbassadorAdvice()"><i class="fas fa-paper-plane me-1"></i>助言を登録</button>';

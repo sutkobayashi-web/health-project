@@ -35,11 +35,12 @@ router.get('/inbox', (req, res) => {
         if (parsed.score.hasOwnProperty('is_planned')) isPlanned = parsed.score.is_planned;
       }
       let nurse = '', nutri = '';
-      if (parsed.text.includes('【AIヘルスアドバイザー】')) {
-        const p = parsed.text.split('【AIヘルスアドバイザー】');
+      const normalizedText = parsed.text.replace(/【AI栄養士】/g, '【AI食事アドバイザー】').replace(/【AI保健師】/g, '【AIヘルスアドバイザー】').replace(/【AI産業医】/g, '【AIメディカルアドバイザー】');
+      if (normalizedText.includes('【AIヘルスアドバイザー】')) {
+        const p = normalizedText.split('【AIヘルスアドバイザー】');
         if (p[0].includes('【AI食事アドバイザー】')) nutri = p[0].replace('【AI食事アドバイザー】', '').trim();
         nurse = p[1] ? p[1].trim() : '';
-      } else { nurse = parsed.text; }
+      } else { nurse = normalizedText; }
       const likesArr = r.likes ? r.likes.split(',').filter(x => x) : [];
       const demotesArr = r.demotes ? r.demotes.split(',').filter(x => x) : [];
       const dateStr = new Date(r.created_at + 'Z').toLocaleString('ja-JP', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Tokyo' });

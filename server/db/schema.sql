@@ -273,7 +273,7 @@ CREATE TABLE IF NOT EXISTS ambassadors (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
   organization TEXT,
-  role TEXT DEFAULT '保健師',
+  role TEXT DEFAULT '専門家アドバイザー',
   email TEXT UNIQUE NOT NULL,
   password_hash TEXT,
   status TEXT DEFAULT 'active',

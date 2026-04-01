@@ -2395,7 +2395,7 @@ function openPostDetail(row) {
   var detailAvHtml = getAvatarHtml(p.avatar, 40);
   var imgHtml = (p.imageUrl && p.imageUrl.length > 1) ? '<img src="' + p.imageUrl + '" style="width:100%;border-radius:12px;margin-bottom:12px;" onerror="this.style.display=\'none\'">' : '';
   // ///NUTRIENTS///からスコアを抽出し、テキストからは除去
-  var analysisText = p.analysis || '';
+  var analysisText = (p.analysis || '').replace(/【AI栄養士】/g, '【AI食事アドバイザー】').replace(/【AI保健師】/g, '【AIヘルスアドバイザー】').replace(/【AI産業医】/g, '【AIメディカルアドバイザー】');
   var detailNutrientScores = null;
   var nutMatch = analysisText.match(/\/\/\/NUTRIENTS\/\/\/\s*(\{[\s\S]*?\})/);
   if (nutMatch) {
@@ -2765,7 +2765,7 @@ function openMyPostDetail(postId, authorUid) {
     var detailAvHtml = getAvatarHtml(p.avatar, 40);
     var imgHtml = (p.imageUrl && p.imageUrl.length > 1) ? '<img src="' + p.imageUrl + '" style="width:100%;border-radius:12px;margin-bottom:12px;" onerror="this.style.display=\'none\'">' : '';
     // ///NUTRIENTS///と///SCORE///をパース・除去
-    var myAnalysisText = p.analysis || '';
+    var myAnalysisText = (p.analysis || '').replace(/【AI栄養士】/g, '【AI食事アドバイザー】').replace(/【AI保健師】/g, '【AIヘルスアドバイザー】').replace(/【AI産業医】/g, '【AIメディカルアドバイザー】');
     var myNutrientScores = null;
     var myNutMatch = myAnalysisText.match(/\/\/\/NUTRIENTS\/\/\/\s*(\{[\s\S]*?\})/);
     if (myNutMatch) {

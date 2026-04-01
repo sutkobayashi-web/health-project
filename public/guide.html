@@ -471,8 +471,8 @@ body {
 
       <div class="flow-step" style="border-top-color:#11998e;">
         <div class="flow-icon">🩺</div>
-        <div class="flow-label">保健師<br>プラン別助言</div>
-        <div class="flow-who">保健師</div>
+        <div class="flow-label">専門家<br>プラン別助言</div>
+        <div class="flow-who">専門家アドバイザー</div>
       </div>
       <div class="flow-arrow"><i class="fas fa-chevron-right"></i></div>
 
@@ -528,7 +528,7 @@ body {
       <div class="flow-step" style="border-top-color:#a29bfe;">
         <div class="flow-icon">📋</div>
         <div class="flow-label">成果レポート</div>
-        <div class="flow-who">AI + 保健師</div>
+        <div class="flow-who">AI + 専門家アドバイザー</div>
       </div>
       <div class="flow-arrow"><i class="fas fa-chevron-right"></i></div>
 
@@ -547,7 +547,7 @@ body {
 </div>
 
 <!-- ====== セクション3: 役割分担 ====== -->
-<div class="guide-card theme-orange" data-keywords="役割 権限 社員 推進メンバー 保健師 役員 アンバサダー">
+<div class="guide-card theme-orange" data-keywords="役割 権限 社員 推進メンバー 専門家アドバイザー 役員 アンバサダー">
   <div class="guide-card-header">
     <div class="guide-card-icon"><i class="fas fa-users"></i></div>
     <div class="guide-card-title">セクション3: 役割分担</div>
@@ -583,9 +583,9 @@ body {
         </ul>
       </div>
 
-      <!-- 保健師 -->
+      <!-- 専門家アドバイザー -->
       <div class="role-card role-nurse">
-        <h4><span class="role-emoji">🩺</span> 保健師（アンバサダー）</h4>
+        <h4><span class="role-emoji">🩺</span> 専門家アドバイザー（アンバサダー）</h4>
         <ul>
           <li>採用テーマのみ表示（除外テーマは非表示）</li>
           <li>AIプラン+メンバープラン+共感データ+議論を一覧で確認</li>
@@ -1148,7 +1148,7 @@ body {
         <tr><td><strong>5テーマ+プラン案生成</strong></td><td>AIが5つのテーマ候補を生成し、各テーマにA/B/Cの3つのアクションプラン案（タイトル・説明・KPI付き）を自動提案</td></tr>
         <tr><td><strong>メンバーカスタムプラン</strong></td><td>推進メンバーがD以降のプランを自由に追加可能（タイトル・説明・KPI）。AI案と同列に並ぶ</td></tr>
         <tr><td><strong>7種共感ボタン</strong></td><td>全プラン（AI案+メンバー案）に対し7種の共感ボタンで評価: 👍賛成 / 🔥最優先 / 💡効果的 / 👥巻き込める / 🤔要議論 / ⚠️難しい / ❌見送り</td></tr>
-        <tr><td><strong>採用/除外トグル</strong></td><td>メンバーがテーマを採用・除外に切り替えて候補を絞り込み。保健師画面には採用テーマのみ表示</td></tr>
+        <tr><td><strong>採用/除外トグル</strong></td><td>メンバーがテーマを採用・除外に切り替えて候補を絞り込み。アンバサダー画面には採用テーマのみ表示</td></tr>
         <tr><td><strong>食事投稿除外</strong></td><td>7軸評価・凝集の対象から食事投稿を除外。評価対象が98件→9件に削減</td></tr>
         <tr><td><strong>投稿時リアルタイム評価</strong></td><td>相談投稿時にAIスコアをauto_evaluationsテーブルに即時保存。凝集時の一括評価が不要に</td></tr>
         <tr><td><strong>バックグラウンド処理</strong></td><td>7軸一括評価をバックグラウンドジョブ化。5秒ポーリングで進捗表示（504タイムアウト回避）</td></tr>
@@ -1173,7 +1173,7 @@ body {
       <tbody>
         <tr><td><strong>対象</strong></td><td>テーマ候補ごとに個別のチャットスレッド + プラン案一覧（候補段階から利用可能）</td></tr>
         <tr><td><strong>参加者</strong></td><td>推進メンバー全員（管理画面からアクセス）</td></tr>
-        <tr><td><strong>タイミング</strong></td><td>AI凝集後。採用/除外トグルで絞り込み → プラン評価・追加 → 保健師助言・役員承認の前</td></tr>
+        <tr><td><strong>タイミング</strong></td><td>AI凝集後。採用/除外トグルで絞り込み → プラン評価・追加 → 専門家助言・役員承認の前</td></tr>
         <tr><td><strong>目的</strong></td><td>AIプラン（A/B/C）+メンバー追加プラン（D〜）に共感ボタンで評価し、ディスカッションで合意形成</td></tr>
       </tbody>
     </table>
@@ -1195,30 +1195,30 @@ body {
     <h4 style="color:#e64a19; margin-top:20px;"><i class="fas fa-cogs me-2"></i>使い方</h4>
     <ol>
       <li>管理画面でAI凝集を実行し、5テーマ候補（各A/B/Cプラン付き）を生成</li>
-      <li>テーマを<strong>採用/除外トグル</strong>で絞り込み（除外テーマは保健師画面に表示されない）</li>
+      <li>テーマを<strong>採用/除外トグル</strong>で絞り込み（除外テーマはアンバサダー画面に表示されない）</li>
       <li>各プラン（AI案A/B/C）に<strong>7種共感ボタン</strong>で評価</li>
       <li>必要に応じて<strong>カスタムプラン（D以降）</strong>を追加（タイトル・説明・KPI）</li>
       <li>各テーマ候補カードの<strong>「ディスカッション」</strong>ボタンで議論</li>
       <li>チャット画面でメンバー名入りのメッセージを投稿し合意形成</li>
-      <li>精査が完了したら保健師プラン別助言 → 役員承認へ進行</li>
+      <li>精査が完了したら専門家プラン別助言 → 役員承認へ進行</li>
     </ol>
 
     <div class="highlight-box">
       <strong>v2サイクルでの位置づけ</strong><br>
-      AI凝集（5候補+A/B/Cプラン） → <strong>採用/除外トグル → メンバープラン追加（D〜） → 7種共感評価 → ディスカッション</strong> → 保健師プラン別助言 → 役員承認 → 全社投票<br>
+      AI凝集（5候補+A/B/Cプラン） → <strong>採用/除外トグル → メンバープラン追加（D〜） → 7種共感評価 → ディスカッション</strong> → 専門家プラン別助言 → 役員承認 → 全社投票<br>
       共感データ・議論の内容は次回以降のAI凝集にも反映され、テーマとプランの質が継続的に向上します。
     </div>
 
     <div class="highlight-box" style="border-left-color:#11998e;">
-      <strong><i class="fas fa-user-md" style="color:#11998e; margin-right:4px;"></i>保健師（アンバサダー）画面</strong><br>
+      <strong><i class="fas fa-user-md" style="color:#11998e; margin-right:4px;"></i>専門家アドバイザー（アンバサダー）画面</strong><br>
       採用テーマのみが表示され、各テーマのAIプラン・メンバー追加プラン・共感データ集計・メンバー議論を一覧で確認。<br>
-      保健師はプランごとに専門的助言を記入できます（全体コメントではなくプラン単位）。
+      専門家アドバイザーはプランごとに専門的助言を記入できます（全体コメントではなくプラン単位）。
     </div>
   </div>
 </div>
 
 <!-- ====== セクション11: 承認フロー（内部統制） ====== -->
-<div class="guide-card theme-red" data-keywords="承認 内部統制 フロー 保健師 役員 投票 確定">
+<div class="guide-card theme-red" data-keywords="承認 内部統制 フロー 専門家アドバイザー 役員 投票 確定">
   <div class="guide-card-header">
     <div class="guide-card-icon"><i class="fas fa-shield-alt"></i></div>
     <div class="guide-card-title">セクション11: 承認フロー（内部統制）</div>
@@ -1249,7 +1249,7 @@ body {
       <div class="approval-arrow"><i class="fas fa-chevron-right"></i></div>
       <div class="approval-step">
         <div class="approval-num">5</div>
-        <div class="approval-label">保健師<br>プラン別助言</div>
+        <div class="approval-label">専門家<br>プラン別助言</div>
       </div>
       <div class="approval-arrow"><i class="fas fa-chevron-right"></i></div>
       <div class="approval-step">
@@ -1270,8 +1270,8 @@ body {
 
     <div class="warn-box">
       <strong><i class="fas fa-exclamation-triangle" style="color:#ffa000;"></i> 統制ルール</strong><br>
-      ・保健師のプラン別助言なしでは役員承認に進めない<br>
-      ・保健師画面には採用テーマのみ表示（除外テーマは非表示）<br>
+      ・専門家アドバイザーのプラン別助言なしでは役員承認に進めない<br>
+      ・アンバサダー画面には採用テーマのみ表示（除外テーマは非表示）<br>
       ・役員承認なしでは投票を開始できない<br>
       ・Exec権限のアカウントのみ承認可能（なりすまし防止）
     </div>
@@ -1484,15 +1484,15 @@ body {
       <tbody>
         <tr><td><strong>集計項目</strong></td><td>BMI、肥満・高血圧・脂質異常・高血糖・肝機能・腎機能・貧血の異常率</td></tr>
         <tr><td><strong>AI 3パターン提案</strong></td><td>各プランに優先度・対象リスク・エビデンス根拠・EAST設計・KPI指標・推奨期間を提示</td></tr>
-        <tr><td><strong>保健師への申し送り</strong></td><td>AIが分析に基づく注意事項を保健師・産業医向けに記載</td></tr>
+        <tr><td><strong>専門家アドバイザーへの申し送り</strong></td><td>AIが分析に基づく注意事項を専門家アドバイザー向けに記載</td></tr>
         <tr><td><strong>推進メンバーへの参考資料</strong></td><td>分析結果はボトムアップでプラン案を検討する推進メンバーへの参考情報として活用。テーマ選定や施策立案時のエビデンスとなる</td></tr>
       </tbody>
     </table>
 
     <div class="warn-box">
-      <strong><i class="fas fa-user-md" style="color:#43a047;"></i> AIと保健師の役割分担</strong><br>
+      <strong><i class="fas fa-user-md" style="color:#43a047;"></i> AIと専門家アドバイザーの役割分担</strong><br>
       ・<strong>AI</strong>: データ集計・分析・提案の「下書き」を高速で作る<br>
-      ・<strong>保健師（アンバサダー）</strong>: 現場を知る専門家として「承認・修正・補足」する<br>
+      ・<strong>専門家アドバイザー（アンバサダー）</strong>: 現場を知る専門家として「承認・修正・補足」する<br>
       ・AIが専門家を代替するのではなく、専門家の判断を支援する設計
     </div>
   </div>
@@ -1596,7 +1596,7 @@ body {
         <tr><td><strong>7軸AI評価</strong></td><td>Gemini 2.5 Flash</td><td>投稿をCOM-Bモデル準拠の7軸（法令/リスク/頻度/緊急/安全/価値/ニーズ）で1-5点評価</td></tr>
         <tr><td><strong>総合7軸評価</strong></td><td>Gemini 2.5 Flash</td><td>共感データ + メンバーコメント + 議論を統合した多角的7軸評価</td></tr>
         <tr><td><strong>共感→スコア変換</strong></td><td>Gemini 2.5 Flash</td><td>ハートリアクションの種別・件数から7軸スコアを自動算出</td></tr>
-        <tr><td><strong>AI会議シミュレーション</strong></td><td>Gemini 2.5 Flash</td><td>11人のペルソナ（20代ドライバー/50代役員/保健師等）による議論を自動生成</td></tr>
+        <tr><td><strong>AI会議シミュレーション</strong></td><td>Gemini 2.5 Flash</td><td>11人のペルソナ（20代ドライバー/50代役員/専門家アドバイザー等）による議論を自動生成</td></tr>
         <tr><td><strong>AIリアクション</strong></td><td>Gemini 2.5 Flash</td><td>人間のコメントに対するAI会議メンバーの反応を1-2件生成</td></tr>
         <tr><td><strong>専門家アドバイス</strong></td><td>Gemini 2.5 Flash</td><td>健康経営コンサルタントとしての専門的助言</td></tr>
         <tr><td><strong>栄養レポート生成</strong></td><td>Gemini 2.5 Flash</td><td>ユーザーの食事履歴を分析し、傾向/良い点/改善点/目標のレポートを生成</td></tr>
@@ -1638,7 +1638,7 @@ body {
       <tbody>
         <tr><td><code>/</code></td><td>ユーザー画面</td><td>全社員</td></tr>
         <tr><td><code>/admin</code></td><td>管理画面</td><td>推進メンバー・役員</td></tr>
-        <tr><td><code>/ambassador</code></td><td>アンバサダー画面</td><td>保健師</td></tr>
+        <tr><td><code>/ambassador</code></td><td>アンバサダー画面</td><td>専門家アドバイザー</td></tr>
         <tr><td><code>/knowledge</code></td><td>学習資料</td><td>全員</td></tr>
         <tr><td><code>/guide</code></td><td>このガイド</td><td>全員</td></tr>
       </tbody>
@@ -1699,7 +1699,7 @@ body {
 </div>
 
 <!-- ====== セクション18-3: 全社健診データ分析（管理画面） ====== -->
-<div class="guide-card theme-red" data-keywords="健診 分析 全社 Box API AI 提案 保健師 エビデンス ダッシュボード">
+<div class="guide-card theme-red" data-keywords="健診 分析 全社 Box API AI 提案 専門家アドバイザー エビデンス ダッシュボード">
   <div class="guide-card-header">
     <div class="guide-card-icon"><i class="fas fa-heartbeat"></i></div>
     <div class="guide-card-title">セクション18-3: 全社健診データ分析</div>
@@ -1715,7 +1715,7 @@ body {
         <tr><td><strong>判定記号</strong></td><td>●=要受診、▲=要注意、★=要経過観察、空=異常なし</td></tr>
         <tr><td><strong>分析項目</strong></td><td>肥満・高血圧・脂質異常・高血糖・肝機能・腎機能・貧血</td></tr>
         <tr><td><strong>AI提案</strong></td><td>エビデンス18領域に基づき、優先度付きの3パターン提案（EAST設計含む）</td></tr>
-        <tr><td><strong>保健師連携</strong></td><td>AIが「下書き」を高速作成 → 保健師が「承認・修正・補足」する役割分担</td></tr>
+        <tr><td><strong>専門家連携</strong></td><td>AIが「下書き」を高速作成 → 専門家アドバイザーが「承認・修正・補足」する役割分担</td></tr>
       </tbody>
     </table>
 
@@ -1725,7 +1725,7 @@ body {
       <li>「全社健診データ分析」カードの<strong>「分析実行」</strong>ボタンをクリック</li>
       <li>Box APIからデータ取得〜AI分析に約30秒</li>
       <li>集計結果（BMI・各リスク率）＋3パターンの提案が表示される</li>
-      <li>保健師・産業医への申し送りも自動生成</li>
+      <li>専門家アドバイザーへの申し送りも自動生成</li>
     </ol>
 
     <div class="tip-box">
@@ -1824,7 +1824,7 @@ body {
     <div class="guide-card-title">セクション19: セキュリティ対策</div>
   </div>
   <div class="guide-card-body">
-    <p>本システムは外部アクセス（大学関係者・保健師等）を想定し、以下のセキュリティ対策を実装しています。</p>
+    <p>本システムは外部アクセス（大学関係者・専門家アドバイザー等）を想定し、以下のセキュリティ対策を実装しています。</p>
 
     <table class="guide-table">
       <thead>
@@ -1880,7 +1880,7 @@ body {
 <!-- ============================================================ -->
 
 <!-- ====== セクション21: FAQ ====== -->
-<div class="guide-card theme-gray" data-keywords="FAQ 質問 匿名 共感 チャレンジ 保健師 役員 承認">
+<div class="guide-card theme-gray" data-keywords="FAQ 質問 匿名 共感 チャレンジ 専門家アドバイザー 役員 承認">
   <div class="guide-card-header">
     <div class="guide-card-icon"><i class="fas fa-question-circle"></i></div>
     <div class="guide-card-title">セクション21: よくある質問（FAQ）</div>
@@ -1902,7 +1902,7 @@ body {
     </div>
 
     <div class="faq-item">
-      <div class="faq-q"><span>Q.</span> 保健師はどこからアクセスしますか？</div>
+      <div class="faq-q"><span>Q.</span> 専門家アドバイザーはどこからアクセスしますか？</div>
       <div class="faq-a"><a href="/ambassador" style="color:#764ba2; font-weight:700;">/ambassador</a> のアンバサダー画面からアクセスします。</div>
     </div>
 

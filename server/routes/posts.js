@@ -50,6 +50,8 @@ router.get('/public', (req, res) => {
       const likesArr = p.likes ? p.likes.split(',').filter(x => x) : [];
       const parsed = parsePostScore(p.analysis);
 
+      let nutrientScores = null;
+      if (p.nutrition_scores) { try { nutrientScores = JSON.parse(p.nutrition_scores); } catch(e) {} }
       return {
         id: p.post_id, row: p.id,
         date: new Date(p.created_at + 'Z').toLocaleString('ja-JP', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Tokyo' }),
@@ -60,7 +62,8 @@ router.get('/public', (req, res) => {
         likeCount: likesArr.length,
         isLiked: likesArr.includes(viewerUid),
         authorUid: p.user_id,
-        empathyCounts: empathyCountsByPost[p.post_id] || null
+        empathyCounts: empathyCountsByPost[p.post_id] || null,
+        nutrientScores: nutrientScores
       };
     });
     res.json({ posts: mappedPosts, hasNext });
@@ -88,6 +91,8 @@ router.get('/my-posts/:uid', (req, res) => {
 
     const result = posts.map(p => {
       const parsed = parsePostScore(p.analysis);
+      let nutrientScores = null;
+      if (p.nutrition_scores) { try { nutrientScores = JSON.parse(p.nutrition_scores); } catch(e) {} }
       return {
         id: p.post_id, row: p.id,
         date: new Date(p.created_at + 'Z').toLocaleString('ja-JP', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Tokyo' }),
@@ -97,7 +102,8 @@ router.get('/my-posts/:uid', (req, res) => {
         imageUrl: p.image_url || '', category: p.category || '相談',
         chatCount: chatCounts[p.post_id] || 0,
         empathyCount: empathyCountsByPost[p.post_id] || 0,
-        authorUid: p.user_id
+        authorUid: p.user_id,
+        nutrientScores: nutrientScores
       };
     });
     res.json({ success: true, posts: result });
@@ -211,28 +217,26 @@ router.post('/food', async (req, res) => {
     } catch (e) { imageUrl = '(保存失敗)'; }
 
     // Gemini Vision で栄養分析
-    const nutSys = `あなたはベテラン食事アドバイザーです。国立長寿医療研究センター「栄養改善パック」（2020）に基づき、投稿された食事画像を分析してください。
+    const nutSys = `あなたはベテラン食事アドバイザーです。国立長寿医療研究センター「栄養改善パック」（2020）に基づき、投稿された食事画像を簡潔に分析してください。
 
-【分析の観点】
-- 主菜: たんぱく質源の有無と推定量（目標: 1.0g/kg体重/日、毎食均等が理想）
-- 副菜: 野菜量の推定（目標: 1日350g、緑黄色:淡色=1:2）
-- 主食・主菜・副菜の3品構成になっているか
-- ビタミン・ミネラル源（特にビタミンD）の有無
-- 1日3食のうちこの食事の位置づけ
-- CANフレームワーク（Convenient・Attractive・Normative）の観点で改善提案があれば簡潔に
-- ★★★マークダウン記法（**太字**や###見出し等）は絶対に使わない。強調したい語句は【】で囲むこと★★★
+【回答ルール】
+- 推定カロリーを冒頭に記載（例: 約650kcal）
+- 良い点1つ、改善ポイント1つを簡潔に（各1〜2行）
+- 栄養バランスの詳細はレーダーチャートで表示するため、文章では繰り返さない
+- 全体で100〜150字程度に収める
+- ★★★マークダウン記法は使わない。強調は【】で囲む★★★
 
-【重要】テキスト分析の最後に、以下のJSON形式で推定栄養スコアを必ず出力してください。
+【重要】テキストの最後に以下のJSON形式で推定栄養スコアを必ず出力。
 ///NUTRIENTS///
 {"protein":X,"fat":X,"carbs":X,"vitamin":X,"mineral":X,"salt":X}
 
-各値は1食の目標摂取量に対する達成度を1〜5で評価（1=不足/過剰、3=適量、5=理想的）。
-- protein: たんぱく質（目標: 1食20g程度）
-- fat: 脂質（目標: エネルギー比20-30%）
-- carbs: 炭水化物（目標: エネルギー比50-65%）
+各値は1食の目標に対する達成度1〜5（1=不足/過剰、3=適量、5=理想的）。
+- protein: たんぱく質（1食20g目標）
+- fat: 脂質（エネルギー比20-30%）
+- carbs: 炭水化物（エネルギー比50-65%）
 - vitamin: ビタミン類（緑黄色野菜・果物の充実度）
-- mineral: ミネラル（カルシウム・鉄分源の充実度）
-- salt: 塩分コントロール（目標: 1食2.5g未満。少ないほど高スコア）`;
+- mineral: ミネラル（カルシウム・鉄分の充実度）
+- salt: 塩分（1食2.5g未満が理想。少ないほど高スコア）`;
     let nutResRaw = await callGeminiVision(nutSys, imageBase64, mimeType);
     if (!nutResRaw || nutResRaw === '通信エラー') nutResRaw = '解析できませんでした。';
 
@@ -246,11 +250,9 @@ router.post('/food', async (req, res) => {
     }
 
     // Groq でヘルスアドバイザーコメント
-    const nurseSys = `あなたはエビデンスに基づく健康支援を行うAIヘルスアドバイザーです。相手:${dName}。つぶやき:「${comment}」食事分析:「${nutRes}」。
-栄養改善パック（2020）の基準に照らし、良い点を具体的に褒め、改善点があれば1つだけスモールステップで提案してください。
-行動変容技法「モニタリング&フィードバック」として、食事記録の継続を励ましてください。エビデンスのない助言はしないこと。
-★★★マークダウン記法（**太字**や###見出し等）は絶対に使わない。強調したい語句は【】で囲むこと★★★
-★★★回答の最後に必ず「📚 出典:」として根拠となるガイドライン名を明記すること★★★`;
+    const nurseSys = `あなたはAIヘルスアドバイザーです。相手:${dName}。つぶやき:「${comment}」食事分析:「${nutRes}」。
+良い点を1つ褒め、改善があれば1つだけ具体的に提案。食事記録の継続を一言で励ます。
+全体で80〜120字程度。マークダウン不可。強調は【】。最後に「📚 出典:」でガイドライン名を明記。`;
     let nurseRes = await callAIWithFallback(nurseSys, '声かけ');
     if (!nurseRes) nurseRes = `${dName}さん、食事の投稿ありがとうございます！`;
 

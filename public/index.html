@@ -2420,8 +2420,9 @@ function openPostDetail(row) {
     '<div id="post-detail-footer" style="padding:12px 18px;">' +
       '<button id="post-detail-close-btn" style="width:60%;padding:10px;background:linear-gradient(135deg,#6c5ce7,#a29bfe);color:white;border:none;border-radius:12px;font-weight:700;font-size:0.82rem;cursor:pointer;display:block;margin:0 auto;box-shadow:0 2px 8px rgba(108,92,231,0.2);">閉じる</button>' +
     '</div>';
-  if (detailNutrientScores) {
-    setTimeout(function() { renderNutrientRadar('post-detail-radar', detailNutrientScores); }, 50);
+  var radarScores = detailNutrientScores || p.nutrientScores || null;
+  if (radarScores) {
+    setTimeout(function() { renderNutrientRadar('post-detail-radar', radarScores); }, 50);
   }
   document.getElementById('post-detail-modal').classList.add('active');
   lockScroll();
@@ -2791,8 +2792,9 @@ function openMyPostDetail(postId, authorUid) {
         '<button id="post-detail-close-btn" style="width:60%;padding:10px;background:linear-gradient(135deg,#6c5ce7,#a29bfe);color:white;border:none;border-radius:12px;font-weight:700;font-size:0.82rem;cursor:pointer;display:block;margin:0 auto;">閉じる</button>' +
       '</div>';
     sheet.innerHTML = html;
-    if (myNutrientScores) {
-      setTimeout(function() { renderNutrientRadar('my-post-detail-radar', myNutrientScores); }, 50);
+    var myRadarScores = myNutrientScores || p.nutrientScores || null;
+    if (myRadarScores) {
+      setTimeout(function() { renderNutrientRadar('my-post-detail-radar', myRadarScores); }, 50);
     }
 
     // 推進メンバーチャット読み込み（既読化も実行）
@@ -3007,16 +3009,17 @@ function showFoodResponse(text) {
 }
 
 
-// ====== 栄養素レーダーチャート（SVG） ======
+// ====== 栄養素レーダーチャート（5軸）+ 塩分バー ======
 function renderNutrientRadar(containerId, scores) {
   var el = document.getElementById(containerId);
   if (!el || !scores) return;
 
-  var labels = ['たんぱく質', '脂質', '炭水化物', 'ビタミン', 'ミネラル', '塩分'];
-  var keys = ['protein', 'fat', 'carbs', 'vitamin', 'mineral', 'salt'];
+  // 五大栄養素（5軸レーダー）
+  var labels = ['たんぱく質', '脂質', '炭水化物', 'ビタミン', 'ミネラル'];
+  var keys = ['protein', 'fat', 'carbs', 'vitamin', 'mineral'];
   var values = keys.map(function(k) { return Math.max(1, Math.min(5, scores[k] || 1)); });
   var n = labels.length;
-  var cx = 130, cy = 120, maxR = 85;
+  var cx = 130, cy = 110, maxR = 80;
   var angleStep = (2 * Math.PI) / n;
   var startAngle = -Math.PI / 2;
 
@@ -3025,7 +3028,7 @@ function renderNutrientRadar(containerId, scores) {
     return { x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) };
   }
 
-  var svg = '<svg width="260" height="270" viewBox="0 0 260 270" xmlns="http://www.w3.org/2000/svg">';
+  var svg = '<svg width="260" height="235" viewBox="0 0 260 235" xmlns="http://www.w3.org/2000/svg">';
 
   // 背景グリッド
   for (var lv = 1; lv <= 5; lv++) {
@@ -3064,12 +3067,27 @@ function renderNutrientRadar(containerId, scores) {
   }
 
   // 凡例
-  svg += '<text x="' + cx + '" y="260" text-anchor="middle" font-size="9" fill="#aaa">破線=適量ライン(3) 🟢4以上 🟡3 🔴2以下</text>';
+  svg += '<text x="' + cx + '" y="228" text-anchor="middle" font-size="9" fill="#aaa">破線=適量ライン(3) 🟢4以上 🟡3 🔴2以下</text>';
   svg += '</svg>';
 
-  el.innerHTML = '<div style="text-align:center; margin-bottom:12px;">' +
-    '<div style="font-weight:800; font-size:0.85rem; color:#20c997; margin-bottom:4px;">📊 栄養バランスチャート</div>' +
-    svg + '</div>';
+  // 塩分バー（別表示）
+  var saltVal = Math.max(1, Math.min(5, scores.salt || 1));
+  var saltPct = (saltVal / 5) * 100;
+  var saltColor = saltVal >= 4 ? '#20c997' : saltVal >= 3 ? '#f59e0b' : '#ef4444';
+  var saltLabel = saltVal >= 4 ? '良好' : saltVal >= 3 ? '適量' : '注意';
+  var saltBar = '<div style="margin:4px 20px 8px;padding:8px 14px;background:#f8f9fa;border-radius:10px;">' +
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">' +
+      '<span style="font-size:0.75rem;font-weight:700;color:#555;">🧂 塩分コントロール</span>' +
+      '<span style="font-size:0.7rem;font-weight:700;color:' + saltColor + ';">' + saltLabel + ' ' + saltVal + '/5</span>' +
+    '</div>' +
+    '<div style="height:8px;background:#e9ecef;border-radius:4px;overflow:hidden;">' +
+      '<div style="width:' + saltPct + '%;height:100%;background:linear-gradient(90deg,' + saltColor + ',' + saltColor + 'cc);border-radius:4px;transition:width 0.6s;"></div>' +
+    '</div>' +
+  '</div>';
+
+  el.innerHTML = '<div style="text-align:center; margin-bottom:4px;">' +
+    '<div style="font-weight:800; font-size:0.85rem; color:#20c997; margin-bottom:2px;">📊 栄養バランスチャート</div>' +
+    svg + '</div>' + saltBar;
 }
 
 // ====== ローディング ======

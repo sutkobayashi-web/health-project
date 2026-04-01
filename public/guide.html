@@ -659,7 +659,7 @@ body {
       <thead><tr><th>ボタン</th><th>内容</th></tr></thead>
       <tbody>
         <tr><td><strong>🗨 みんなに相談・提案</strong></td><td>バディーが誘導→カテゴリ選択→入力→匿名で投稿。AIがコメント</td></tr>
-        <tr><td><strong>🍽 食事診断・投稿</strong></td><td>バディーが誘導→写真撮影→プレビュー→AI栄養アドバイザーが分析→<strong>5軸レーダーチャート</strong>（たんぱく質・脂質・炭水化物・ビタミン・ミネラル）＋<strong>塩分バー</strong>（少ない〜適量〜多い）で視覚表示</td></tr>
+        <tr><td><strong>🍽 食事診断・投稿</strong></td><td>バディーが誘導→写真撮影→プレビュー→AI食事アドバイザーが簡潔に分析（推定カロリー＋良い点＋改善点）→<strong>5軸レーダーチャート</strong>（たんぱく質・脂質・炭水化物・ビタミン・ミネラル）＋<strong>塩分バー</strong>（良好/適量/注意）で視覚表示。投稿一覧の詳細画面でもチャート再表示</td></tr>
         <tr><td><strong>🛡 推進メンバーに相談・提案</strong></td><td>バディーが誘導→入力→推進メンバーに直接送信（非公開）</td></tr>
         <tr><td><strong>🔥 チャレンジに挑戦する</strong></td><td>バディーがチャレンジ一覧を紹介→選択→詳細画面へ遷移</td></tr>
         <tr><td><strong>📋 みんなの投稿を見る</strong></td><td>メニュータブの統合投稿一覧へ遷移（すべて/相談/食事フィルター）</td></tr>
@@ -1583,7 +1583,7 @@ body {
       <tbody>
         <tr><td><strong>AIヘルスアドバイザー（チャット）</strong></td><td>Gemini 2.5 Flash</td><td>エビデンスに基づく健康相談チャット。コーチング重視、ティーチングより質問で気づきを促す</td></tr>
         <tr><td><strong>初回あいさつ生成</strong></td><td>Gemini 2.5 Flash</td><td>新規チャット開始時の自己紹介と健康に関するオープンな質問</td></tr>
-        <tr><td><strong>画像分析（食事・健診）</strong></td><td>Gemini Vision + 2.5 Flash</td><td>食事写真の五大栄養素分析（たんぱく質/脂質/炭水化物/ビタミン/ミネラル）＋推定塩分量(g)＋推定カロリー＋改善提案＋<strong>5軸レーダーチャート</strong>（SVG描画）＋<strong>塩分横バー</strong>（少ない〜適量〜多いのグラデーション表示）。健診結果の数値解説</td></tr>
+        <tr><td><strong>画像分析（食事・健診）</strong></td><td>Gemini Vision + 2.5 Flash</td><td>食事写真の五大栄養素分析＋推定カロリー＋改善提案を簡潔テキスト（100〜150字）で出力。<strong>5軸レーダーチャート</strong>（SVG）＋<strong>塩分横バー</strong>（良好/適量/注意）で栄養バランスを視覚補完。チャートがあるため文章は要点のみに絞る設計。健診結果の数値解説にも対応</td></tr>
         <tr><td><strong>投稿ケアコメント生成</strong></td><td>Gemini 2.5 Flash</td><td>健康相談投稿に対するAIからの温かいケアコメント + 7軸自動評価スコア</td></tr>
         <tr><td><strong>健康ナレッジBot</strong></td><td>Gemini 2.5 Flash</td><td>健康経営の専門知識を平易な言葉で解説。ナッジ/EAST/CAN等のフレームワークも教育</td></tr>
       </tbody>

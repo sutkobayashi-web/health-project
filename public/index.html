@@ -536,8 +536,9 @@
             <span id="mypage-dept" style="font-size:0.6rem;font-weight:700;color:#667eea;background:#eef0ff;padding:1px 7px;border-radius:10px;"></span>
             <span id="mypage-rank" style="font-size:0.6rem;"></span>
           </div>
-          <div style="display:flex;align-items:center;gap:8px;margin-top:5px;">
-            <span id="mypage-posts" style="flex:1;font-size:0.65rem;font-weight:700;color:#555;background:#f0f0f0;padding:4px 10px;border-radius:10px;text-align:center;"><i class="fas fa-pen" style="font-size:0.55rem;"></i> 投稿 0</span>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:5px;">
+            <span id="mypage-coin" style="flex:1;font-size:0.65rem;font-weight:700;color:#f57f17;background:linear-gradient(135deg,#fffde7,#fff9c4);padding:4px 10px;border-radius:10px;text-align:center;border:1px solid #ffe082;cursor:pointer;" onclick="showRanking()"><i class="fas fa-coins" style="font-size:0.55rem;"></i> CoWellコイン 0pt</span>
+            <span id="mypage-coin-badge" style="font-size:0.65rem;font-weight:700;color:#667eea;background:#f0f4ff;padding:4px 8px;border-radius:10px;">🌱</span>
           </div>
         </div>
       </div>
@@ -2184,82 +2185,15 @@ function showRanking() {
 
     var mariganRankList = (mgRank && mgRank.ranking) ? mgRank.ranking : [];
     content.innerHTML = mariganHtml
-      + renderRankList('CoWellコインランキング TOP10', 'trophy', mariganRankList, 'marigan_total')
-      + renderRankList('投稿数ランキング TOP5', 'pen', res.postRanking, 'count');
+      + renderRankList('CoWellコインランキング TOP10', 'trophy', mariganRankList, 'marigan_total');
   }).catch(function() {
     content.innerHTML = '<p style="color:#999;">通信エラー</p>';
   });
 }
 
 function showProfileBadgeInfo() {
-  var popup = document.getElementById('badge-info-popup');
-  var content = document.getElementById('badge-info-content');
-  if (!popup || !content) return;
-
-  var rankDescs = {
-    'Beginner': { icon:'🌱', desc:'投稿を始めたばかり。まずは5回投稿を目指そう！' },
-    'Bronze':   { icon:'🥉', desc:'投稿5回達成！健康意識が芽生えています' },
-    'Silver':   { icon:'🥈', desc:'投稿10回達成！継続は力なり' },
-    'Gold':     { icon:'🥇', desc:'投稿30回達成！健康マスターへの道' },
-    'Platinum': { icon:'👑', desc:'投稿50回達成！みんなのお手本です' },
-    'Black':    { icon:'💎', desc:'投稿80回達成！健康の伝道師！' }
-  };
-
-  var postCount = 0;
-  try { postCount = parseInt(document.getElementById('profile-posts').innerText.match(/\d+/)[0]) || 0; } catch(e) {}
-  var rankEl = document.getElementById('profile-rank');
-  var currentRank = 'Beginner';
-  if (rankEl) {
-    var titleSpan = rankEl.querySelector('[title]');
-    if (titleSpan) currentRank = titleSpan.getAttribute('title');
-    else if (rankEl.querySelector('span')) currentRank = rankEl.querySelector('span').getAttribute('title') || 'Beginner';
-  }
-  var rd = rankDescs[currentRank] || rankDescs['Beginner'];
-
-  var nextRanks = [
-    { name:'Bronze', need:5 }, { name:'Silver', need:10 }, { name:'Gold', need:30 },
-    { name:'Platinum', need:50 }, { name:'Black', need:80 }
-  ];
-  var nextRank = nextRanks.find(function(r) { return postCount < r.need; });
-  var progressHtml = '';
-  if (nextRank) {
-    var pct = Math.round(postCount / nextRank.need * 100);
-    progressHtml = '<div style="margin-top:8px; font-size:0.72rem; color:#888;">次のランク <strong>' + nextRank.name + '</strong> まであと <strong>' + (nextRank.need - postCount) + '</strong> 投稿</div>' +
-      '<div style="height:6px; background:#f0f0f0; border-radius:3px; margin-top:4px; overflow:hidden;"><div style="height:100%; width:' + pct + '%; background:linear-gradient(90deg,#667eea,#764ba2); border-radius:3px;"></div></div>';
-  } else {
-    progressHtml = '<div style="margin-top:8px; font-size:0.72rem; color:#ffd700; font-weight:700;">最高ランク達成！</div>';
-  }
-
-  var html = '';
-  html += '<div style="display:flex; align-items:center; gap:10px; padding:10px; background:#f8f9fa; border-radius:10px; margin-bottom:10px;">';
-  html += '<span style="font-size:1.5rem;">' + rd.icon + '</span>';
-  html += '<div><div style="font-weight:700; font-size:0.85rem;">' + currentRank + '</div><div style="font-size:0.72rem; color:#888;">' + rd.desc + '</div></div>';
-  html += '</div>';
-  html += progressHtml;
-
-  html += '<div style="margin-top:12px; font-size:0.75rem; color:#555;">';
-  html += '<div style="font-weight:700; margin-bottom:6px;">ランク一覧</div>';
-  var allRanks = [
-    { name:'Beginner', icon:'🌱', need:'0〜', color:'#bdbdbd' },
-    { name:'Bronze', icon:'🥉', need:'5回〜', color:'#d7a86e' },
-    { name:'Silver', icon:'🥈', need:'10回〜', color:'#c0c0c0' },
-    { name:'Gold', icon:'🥇', need:'30回〜', color:'#ffd700' },
-    { name:'Platinum', icon:'👑', need:'50回〜', color:'#8e9aaf' },
-    { name:'Black', icon:'💎', need:'80回〜', color:'#333' }
-  ];
-  allRanks.forEach(function(r) {
-    var isCurrent = r.name === currentRank;
-    html += '<div style="display:flex; align-items:center; gap:8px; padding:4px 0;' + (isCurrent ? ' font-weight:700; color:#667eea;' : '') + '">';
-    html += '<span style="font-size:1rem;">' + r.icon + '</span>';
-    html += '<span style="flex:1;">' + r.name + '</span>';
-    html += '<span style="font-size:0.68rem; color:#999;">投稿' + r.need + '</span>';
-    if (isCurrent) html += '<span style="font-size:0.6rem; background:#667eea; color:white; padding:1px 6px; border-radius:8px;">現在</span>';
-    html += '</div>';
-  });
-  html += '</div>';
-
-  content.innerHTML = html;
-  popup.style.display = 'block';
+  // CoWellコイン詳細をshowRanking()で表示
+  showRanking();
 }
 
 function updateHeaderStats() {
@@ -2715,12 +2649,21 @@ function openMyPosts() {
     }
     var deptEl = document.getElementById('mypage-dept');
     if (deptEl) deptEl.innerHTML = currentUser.department ? '<i class="fas fa-building"></i> ' + currentUser.department : '';
-    var rankEl = document.getElementById('mypage-rank');
-    var srcRank = document.getElementById('profile-rank');
-    if (rankEl && srcRank) rankEl.innerHTML = srcRank.innerHTML;
-    var postsEl = document.getElementById('mypage-posts');
-    var srcPosts = document.getElementById('profile-posts');
-    if (postsEl && srcPosts) postsEl.innerHTML = srcPosts.innerHTML;
+    // CoWellコイン情報をマイページに反映
+    if (currentUser.uid) {
+      fetch('/api/auth/marigan/' + currentUser.uid).then(function(r){return r.json();}).then(function(mg) {
+        var coinEl = document.getElementById('mypage-coin');
+        var badgeEl = document.getElementById('mypage-coin-badge');
+        var rankEl = document.getElementById('mypage-rank');
+        if (coinEl && mg.total !== undefined) coinEl.innerHTML = '<i class="fas fa-coins" style="font-size:0.55rem;"></i> CoWellコイン ' + (mg.total || 0) + 'pt';
+        var badgeIcons = { bronze:'🥉', silver:'🥈', gold:'🥇', platinum:'👑' };
+        var badgeNames = { bronze:'ブロンズ', silver:'シルバー', gold:'ゴールド', platinum:'プラチナ' };
+        var bIcon = badgeIcons[mg.badge] || '🌱';
+        var bName = badgeNames[mg.badge] || 'ビギナー';
+        if (badgeEl) badgeEl.innerHTML = bIcon + ' ' + bName;
+        if (rankEl) rankEl.innerHTML = '<span style="font-size:0.6rem;">' + bIcon + ' ' + bName + '</span>';
+      }).catch(function(){});
+    }
   }
   loadMyMemos();
   var list = document.getElementById('my-posts-list');
@@ -5414,7 +5357,7 @@ var HELP_TOPICS = {
   },
   mypage: {
     label: '👤 マイページ',
-    answer: 'マイページでは自分の情報を確認・変更できるよ！\n\n📊 投稿数・ランクの確認\n🎨 バディーのカスタマイズ\n😀 アバターの変更\n📋 自分の投稿一覧\n\n下のタブの「マイページ」アイコンからアクセスしてね！'
+    answer: 'マイページでは自分の情報を確認・変更できるよ！\n\n🪙 CoWellコインの残高・バッジ確認\n🏆 コインランキング\n🎨 バディーのカスタマイズ\n😀 アバターの変更\n📋 自分の投稿一覧\n📝 バディーメモ\n\n下のタブの「マイページ」アイコンからアクセスしてね！'
   },
   cowell_coin: {
     label: '🪙 CoWellコイン',

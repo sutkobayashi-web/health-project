@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>キャッシュリセット</title></head>
+<body style="font-family:sans-serif;text-align:center;padding:40px 20px;">
+<h2>キャッシュをリセット中...</h2>
+<p id="status">Service Worker を解除しています...</p>
+<script>
+(async function(){
+  var s=document.getElementById('status');
+  try{
+    if('serviceWorker' in navigator){
+      var regs=await navigator.serviceWorker.getRegistrations();
+      for(var r of regs) await r.unregister();
+      s.textContent='SW解除完了 ('+regs.length+'件)';
+    }
+    if('caches' in window){
+      var keys=await caches.keys();
+      for(var k of keys) await caches.delete(k);
+      s.textContent+=' / キャッシュ削除完了 ('+keys.length+'件)';
+    }
+    localStorage.clear();
+    s.textContent+=' / localStorage クリア完了';
+    s.style.color='green';
+    s.textContent+='\n\n3秒後にトップページへ移動します...';
+    setTimeout(function(){window.location.href='/';},3000);
+  }catch(e){
+    s.textContent='エラー: '+e.message;
+    s.style.color='red';
+  }
+})();
+</script>
+</body></html>

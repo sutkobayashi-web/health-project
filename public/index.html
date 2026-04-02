@@ -13,8 +13,30 @@
 <link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/img/favicon-16.png">
 <script>
-// キャッシュ破棄: バージョンが古い場合は強制リロード
-(function(){var v='20260403a';if(localStorage.getItem('app_version')!==v){localStorage.setItem('app_version',v);if(!window.location.search.includes('_r=')){var p=new URLSearchParams(window.location.search);p.set('_r',Date.now());window.location.replace(window.location.pathname+'?'+p.toString());}}}());
+// SW+キャッシュ完全クリア→強制リロード
+(function(){
+  var v='20260403b';
+  if(localStorage.getItem('app_version')!==v){
+    localStorage.setItem('app_version',v);
+    // Service Worker全解除+キャッシュ全削除
+    if('serviceWorker' in navigator){
+      navigator.serviceWorker.getRegistrations().then(function(regs){
+        regs.forEach(function(r){r.unregister();});
+      });
+    }
+    if('caches' in window){
+      caches.keys().then(function(keys){
+        keys.forEach(function(k){caches.delete(k);});
+      });
+    }
+    // リロード
+    if(!window.location.search.includes('_r=')){
+      var p=new URLSearchParams(window.location.search);
+      p.set('_r',Date.now());
+      setTimeout(function(){window.location.replace(window.location.pathname+'?'+p.toString());},500);
+    }
+  }
+}());
 </script>
 <script>
 // ログイン情報保存済みの場合、ログイン画面を直接表示（メニュー選択をスキップ）

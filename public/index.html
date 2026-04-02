@@ -986,11 +986,17 @@ var avatarList = [
 
 // ====== カスタムアバター描画（外部ファイル） ======
 </script>
-<script src="/js/avatar-render.js?v=20260322b"></script>
+<script src="/js/avatar-render.js?v=20260403"></script>
 <script>
 var _AVATAR_RENDER_LOADED = true; // 外部ファイルから読み込み済み
 
-// getAvatarHtml は avatar-render.js 側で定義済み
+// getAvatarHtml のフォールバック（avatar-render.js読み込み前の安全対策）
+if (typeof getAvatarHtml !== 'function') {
+  window.getAvatarHtml = function(av, size) {
+    if (av && av.startsWith && av.startsWith('custom:')) return '<span style="font-size:' + (size||30) + 'px;">😀</span>';
+    return '<span style="font-size:' + (size||30) + 'px;">' + (av || '😀') + '</span>';
+  };
+}
 
 // ====== アバタービルダー状態 ======
 var abState = { skin: 2, hair: 1, hairColor: 0, eye: 0, mouth: 0, accessories: [0], bg: 0, faceSize: 0, eyebrow: 0, nose: 0, beard: 0, cheek: 0, faceShape: 0, eyeColor: 0, posEye: 0, posMouth: 0, posNose: 0, posBrow: 0, eyeSpacing: 0, sizeEye: 0, sizeNose: 0, sizeMouth: 0, posHair: 0, sizeHair: 0, widthHair: 0, sizeFace: 0, ear: 0, posEar: 0, sizeEar: 0, earSpacing: 0, lipColor: 0, eyeshadow: 0, lash: 0, cheekColor: 0, posAcc: 0, sizeAcc: 0, sizeBrow: 0, posBeard: 0, sizeBeard: 0, posCheek: 0, sizeCheek: 0, posLip: 0, sizeLip: 0, cheekSpacing: 0 };

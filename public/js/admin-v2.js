@@ -73,41 +73,21 @@ function runCheckupAnalysis() {
     html += '</div></div>';
     html += '</div>';
 
-    // 営業所別内訳
-    var br = data.branches || [];
-    if (br.length > 0) {
-      html += '<div style="margin-bottom:12px;">';
-      html += '<div style="font-size:0.72rem; font-weight:700; color:#555; margin-bottom:6px;"><i class="fas fa-building me-1"></i>営業所別内訳</div>';
-      html += '<div style="overflow-x:auto;">';
-      html += '<table style="width:100%; border-collapse:collapse; font-size:0.7rem; text-align:center;">';
-      html += '<thead><tr style="background:#1a1a2e; color:white;"><th style="padding:5px 8px; text-align:left;">営業所</th><th style="padding:5px 8px;">人数</th><th style="padding:5px 8px;">平均年齢</th><th style="padding:5px 8px;">🔴</th><th style="padding:5px 8px;">🟡</th><th style="padding:5px 8px;">BMI25↑</th>';
-      cats.forEach(function(c) { html += '<th style="padding:5px 8px;">' + c + '</th>'; });
-      html += '</tr></thead><tbody>';
-      br.forEach(function(b, idx) {
-        var bg = idx % 2 === 0 ? '#fff' : '#f8f9ff';
-        html += '<tr style="background:' + bg + ';">';
-        html += '<td style="padding:5px 8px; text-align:left; font-weight:700; white-space:nowrap;">' + escapeHtml(b.name) + '</td>';
-        html += '<td style="padding:5px 8px;">' + b.summary.total + '</td>';
-        html += '<td style="padding:5px 8px;">' + b.summary.averageAge + '</td>';
-        html += '<td style="padding:5px 8px; color:#dc2626; font-weight:700;">' + (b.summary.redTotal || 0) + '</td>';
-        html += '<td style="padding:5px 8px; color:#d97706; font-weight:700;">' + (b.summary.yellow || 0) + '</td>';
-        html += '<td style="padding:5px 8px;">' + b.summary.bmiOver25Pct + '%</td>';
-        cats.forEach(function(c) { html += '<td style="padding:5px 8px;">' + (b.summary.rates[c] || 0) + '%</td>'; });
-        html += '</tr>';
-      });
-      if (br.length > 1) {
-        html += '<tr style="background:#f0f4ff; font-weight:800; border-top:2px solid #667eea;">';
-        html += '<td style="padding:5px 8px; text-align:left;">合計</td>';
-        html += '<td style="padding:5px 8px;">' + s.total + '</td>';
-        html += '<td style="padding:5px 8px;">' + s.averageAge + '</td>';
-        html += '<td style="padding:5px 8px; color:#dc2626;">' + (s.redTotal || 0) + '</td>';
-        html += '<td style="padding:5px 8px; color:#d97706;">' + (s.yellow || 0) + '</td>';
-        html += '<td style="padding:5px 8px;">' + s.bmiOver25Pct + '%</td>';
-        cats.forEach(function(c) { html += '<td style="padding:5px 8px;">' + (s.rates[c] || 0) + '%</td>'; });
-        html += '</tr>';
-      }
-      html += '</tbody></table></div></div>';
-    }
+    // 全社サマリーテーブル（合計のみ）
+    html += '<div style="margin-bottom:12px;">';
+    html += '<div style="font-size:0.72rem; font-weight:700; color:#555; margin-bottom:6px;"><i class="fas fa-chart-bar me-1"></i>項目別異常率</div>';
+    html += '<div style="display:flex; flex-wrap:wrap; gap:6px;">';
+    cats.forEach(function(c) {
+      var rate = s.rates[c] || 0;
+      var color = rate >= 30 ? '#dc2626' : rate >= 15 ? '#d97706' : '#43a047';
+      html += '<div style="background:#f8f9fa; border:1px solid #eee; border-radius:8px; padding:6px 10px; min-width:80px; text-align:center;">';
+      html += '<div style="font-size:0.65rem; color:#888;">' + c + '</div>';
+      html += '<div style="font-size:1rem; font-weight:800; color:' + color + ';">' + rate + '<span style="font-size:0.6rem;">%</span></div>';
+      html += '</div>';
+    });
+    html += '</div>';
+    html += '<div style="margin-top:6px; font-size:0.65rem; color:#999;">BMI25以上: ' + s.bmiOver25Pct + '%（' + s.bmiOver25 + '名/' + s.total + '名）</div>';
+    html += '</div>';
 
     // 経年推移テーブル（2年度以上）
     if (tl.length >= 2) {

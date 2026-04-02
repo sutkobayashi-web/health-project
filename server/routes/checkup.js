@@ -387,30 +387,20 @@ router.get('/company-analysis', authAdmin, async (req, res) => {
     var xlsmFiles = await findCheckupFiles(token, latestFolder.id, 0);
     if (xlsmFiles.length === 0) return res.json({ success: false, msg: '健診ファイルが見つかりません' });
 
-    // 全ファイルからデータ取得（営業所別）
+    // 全ファイルからデータ取得（合計のみ）
     var allData = [];
-    var branchDataMap = {}; // { 営業所名: [rows] }
     for (var f of xlsmFiles) {
       try {
         var buffer = await boxDownloadFile(token, f.id);
         var rows = extractAllCheckupData(buffer);
         allData = allData.concat(rows);
-        // ファイル名から営業所名を抽出（拡張子除去）
-        var branchName = f.name.replace(/\.(xlsm|xlsx|xls)$/i, '').trim();
-        if (!branchDataMap[branchName]) branchDataMap[branchName] = [];
-        branchDataMap[branchName] = branchDataMap[branchName].concat(rows);
       } catch (e) { console.log('健診ファイル読込エラー:', f.name, e.message); }
     }
 
     var summary = aggregateCheckupData(allData);
     if (!summary) return res.json({ success: false, msg: 'データの集計に失敗しました' });
 
-    // 営業所別集計
     var branches = [];
-    Object.keys(branchDataMap).sort().forEach(function(name) {
-      var bs = aggregateCheckupData(branchDataMap[name]);
-      if (bs) branches.push({ name: name, summary: bs });
-    });
 
     // キャッシュ保存（参考資料として）
     try {

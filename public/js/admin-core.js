@@ -1038,3 +1038,13 @@ function toggleShowRealName(table, id, value) {
         if (res.success) loadMemberManagement();
     });
 }
+
+// 推進メンバー使い方ガイドパネル
+function toggleAdminHelp() {
+    var panel = document.getElementById('admin-help-panel');
+    var backdrop = document.getElementById('admin-help-backdrop');
+    if (!panel) return;
+    var isOpen = panel.style.display !== 'none';
+    panel.style.display = isOpen ? 'none' : 'block';
+    if (backdrop) backdrop.style.display = isOpen ? 'none' : 'block';
+}

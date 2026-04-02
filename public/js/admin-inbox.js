@@ -204,28 +204,34 @@ function renderReportList(data) {
         var thumbTag = displayUrl ? '<img src="'+displayUrl+'" class="post-thumb" onclick="event.stopPropagation();" onerror="this.style.display=\'none\'">' : '';
         var imgTag = displayUrl ? '<img src="'+displayUrl+'" class="post-img" loading="lazy" onclick="event.stopPropagation(); window.open(\''+displayUrl+'\', \'_blank\');">' : '';
         var aiHtml = (analysisText && analysisText.trim().length > 0) ? '<div class="ai-reply"><i class="fas fa-robot text-primary me-1"></i> '+analysisText.replace(/\n/g,'<br>')+'</div>' : '';
-        // ポイント箇条書き（黄色ボックス）: 【】で囲まれたキーワードを抽出
+        // ポイント箇条書き: AI分析からセクションを抽出
         var pointsHtml = '';
-        if (analysisText && analysisText.indexOf('【') !== -1) {
-            var pointIcons = ['🔥','✅','⚠️','💡','🧂'];
-            var sectionMatches = analysisText.match(/\d+\.\s*【([^】]+)】[^]*?(?=\d+\.\s*【|【AI|\/\/\/|$)/g);
-            if (sectionMatches && sectionMatches.length > 0) {
-                var points = [];
-                sectionMatches.forEach(function(sec, idx) {
-                    var titleMatch = sec.match(/【([^】]+)】/);
-                    var title = titleMatch ? titleMatch[1] : '';
-                    var body = sec.replace(/^\d+\.\s*【[^】]+】\s*/, '').replace(/\n/g,' ').trim();
-                    // 最初の1文を抽出（句点で区切り）
-                    var firstSentence = body.split(/[。！]/).filter(function(s){return s.trim();})[0] || body;
-                    if (firstSentence.length > 50) firstSentence = firstSentence.substring(0, 50) + '…';
-                    var icon = pointIcons[idx] || '📌';
-                    points.push('<div style="display:flex; align-items:flex-start; gap:6px; margin-bottom:3px;"><span style="flex-shrink:0;">' + icon + '</span><span><strong style="color:#795548;">' + escapeHtml(title) + '</strong> ' + escapeHtml(firstSentence) + '</span></div>');
-                });
-                if (points.length > 0) {
-                    pointsHtml = '<div style="flex:1; min-width:0; background:linear-gradient(135deg,#fffde7,#fff9c4); border:1px solid #ffe082; border-radius:10px; padding:8px 10px;">' +
-                        '<div style="font-size:0.65rem; font-weight:700; color:#f57f17; margin-bottom:3px;"><i class="fas fa-lightbulb me-1"></i>ポイント</div>' +
-                        '<div style="font-size:0.72rem; line-height:1.4; color:#555;">' + points.join('') + '</div></div>';
-                }
+        if (analysisText && analysisText.length > 20) {
+            var iconMap = { 'カロリー':'🔥', '推定':'🔥', '良い':'✅', '不足':'⚠️', '改善':'⚠️', 'ちょい足し':'💡', '提案':'💡', '塩分':'🧂', 'たんぱく':'🥩', '主菜':'🍖', '主食':'🍚', '副菜':'🥬', '構成':'📊' };
+            // 【セクション名】で区切られたブロックを抽出（番号有無問わず）
+            var fullText = analysisText.split('【AIヘルスアドバイザー】')[0]; // ヘルスアドバイザー部分は除外
+            var sectionRegex = /(?:^\d+\.\s*)?【([^】]+)】([^【]*)/gm;
+            var points = [];
+            var m;
+            while ((m = sectionRegex.exec(fullText)) !== null) {
+                var title = m[1].trim();
+                if (title === 'AI食事アドバイザー' || title === 'AIヘルスアドバイザー') continue;
+                var body = m[2].replace(/\n/g,' ').trim();
+                var firstSentence = body.split(/[。！]/).filter(function(s){return s.trim();})[0] || body;
+                if (firstSentence.length > 60) firstSentence = firstSentence.substring(0, 60) + '…';
+                var icon = '📌';
+                for (var k in iconMap) { if (title.indexOf(k) !== -1) { icon = iconMap[k]; break; } }
+                points.push('<div style="display:flex; align-items:flex-start; gap:5px; margin-bottom:2px;"><span style="flex-shrink:0; font-size:0.75rem;">' + icon + '</span><div><strong style="color:#795548; font-size:0.72rem;">' + escapeHtml(title) + '</strong> <span style="font-size:0.72rem;">' + escapeHtml(firstSentence) + '</span></div></div>');
+            }
+            // 【】セクションが無い場合、冒頭の数値（カロリー等）を抽出
+            if (points.length === 0 && fullText.match(/約\d+kcal/)) {
+                var calMatch = fullText.match(/(約\d+kcal[^。]*。?)/);
+                if (calMatch) points.push('<div style="display:flex; align-items:flex-start; gap:5px; margin-bottom:2px;"><span style="flex-shrink:0; font-size:0.75rem;">🔥</span><div style="font-size:0.72rem;">' + escapeHtml(calMatch[1]) + '</div></div>');
+            }
+            if (points.length > 0) {
+                pointsHtml = '<div style="background:linear-gradient(135deg,#fffde7,#fff9c4); border:1px solid #ffe082; border-radius:10px; padding:8px 10px;">' +
+                    '<div style="font-size:0.65rem; font-weight:700; color:#f57f17; margin-bottom:3px;"><i class="fas fa-lightbulb me-1"></i>ポイント</div>' +
+                    '<div style="line-height:1.4; color:#555;">' + points.join('') + '</div></div>';
             }
         }
         var isHidden = (currentInboxCatFilter !== 'all' && currentInboxCatFilter !== cardCat);
@@ -254,9 +260,8 @@ function renderReportList(data) {
                 ' '+empathyBadge+' '+commentBadge+' '+chatBadge+' '+chatUnreadBadge+'</div>' +
                 '<div style="display:flex; gap:8px; align-items:flex-start;">' +
                     (thumbTag ? thumbTag : '') +
-                    (pointsHtml ? pointsHtml : '<div style="flex:1; min-width:0; font-size:0.85rem; line-height:1.5; color:#444; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">'+escapeHtml(rawContent)+'</div>') +
+                    '<div style="flex:1; min-width:0; font-size:0.85rem; line-height:1.5; color:#444; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">'+escapeHtml(rawContent)+'</div>' +
                 '</div>' +
-                (pointsHtml ? '<div style="font-size:0.8rem; line-height:1.5; color:#666; margin-top:4px; display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden;">'+escapeHtml(rawContent)+'</div>' : '') +
                 // 共感サマリー（開くボタンの上）
                 '<div id="empathy-mini-'+pid+'" style="margin-top:6px; max-height:150px; overflow-y:auto;"></div>' +
                 // 操作ボタン行
@@ -272,7 +277,10 @@ function renderReportList(data) {
                     '<div style="flex:1; padding:12px; overflow-y:auto; max-height:450px; border-right:1px solid #eee;">' +
                         '<div style="font-size:0.7rem; font-weight:700; color:#667eea; margin-bottom:6px;"><i class="fas fa-file-alt me-1"></i>投稿内容</div>' +
                         '<div style="font-size:0.85rem; line-height:1.7; color:#333; white-space:pre-wrap; margin-bottom:10px;">'+escapeHtml(rawContent)+'</div>' +
-                        (displayUrl ? '<img src="'+displayUrl+'" style="width:220px; height:220px; object-fit:cover; border-radius:12px; border:1px solid #eee; margin-bottom:10px; cursor:pointer;" onclick="event.stopPropagation(); window.open(\''+displayUrl+'\',\'_blank\');" onerror="this.style.display=\'none\'">' : '') +
+                        (displayUrl || pointsHtml ? '<div style="display:flex; gap:10px; align-items:flex-start; margin-bottom:10px;">' +
+                            (displayUrl ? '<img src="'+displayUrl+'" style="width:180px; height:180px; object-fit:cover; border-radius:12px; border:1px solid #eee; flex-shrink:0; cursor:pointer;" onclick="event.stopPropagation(); window.open(\''+displayUrl+'\',\'_blank\');" onerror="this.style.display=\'none\'">' : '') +
+                            (pointsHtml ? '<div style="flex:1; min-width:0;">'+pointsHtml+'</div>' : '') +
+                        '</div>' : '') +
                         (aiHtml ? '<div style="margin-top:8px;">'+aiHtml+'</div>' : '') +
                         // AI自動7軸評価
                         '<div style="margin-top:10px; padding-top:8px; border-top:1px solid #eee;">' +

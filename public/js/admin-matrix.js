@@ -430,16 +430,12 @@ window.submitPrioEval = function() {
     });
 };
 
-// チャット欄を開く＋AI招集
+// チャット欄を開く（AI評議会はプランレベルに移行済み。投稿レベルはメンバー議論のみ）
 window.openChatAndStartAI = function() {
     var chatWrapper = document.getElementById('chat-wrapper');
     if(chatWrapper) chatWrapper.style.display = 'flex';
     var startBtn = document.getElementById('btn-open-chat');
     if(startBtn) startBtn.style.display = 'none';
-    var tl = document.getElementById('deep-dive-timeline');
-    if(!tl.innerHTML || tl.innerHTML.trim() === '') {
-        forceStartAISimulation();
-    }
 };
 
 window.forceStartAISimulation = function() {

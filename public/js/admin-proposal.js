@@ -18,6 +18,7 @@ function loadCandidates() {
                 var actionBtns = '';
                 if(isReview) {
                     actionBtns =
+                        '<div id="council-result-'+p.id+'" style="display:none; margin-bottom:8px;"></div>' +
                         '<div id="endorse-area-'+p.id+'" class="mb-2"></div>' +
                         '<div class="d-flex gap-2">' +
                             '<button type="button" class="btn btn-sm btn-outline-danger w-33" onclick="event.stopPropagation(); remandPlan(\''+p.id+'\')"><i class="fas fa-undo"></i> 差戻</button>' +
@@ -25,6 +26,8 @@ function loadCandidates() {
                         '</div>';
                 } else {
                     actionBtns =
+                        '<button type="button" class="btn btn-sm btn-outline-primary w-100 mb-2 fw-bold" onclick="event.stopPropagation(); runPlanCouncil(\''+p.id+'\')"><i class="fas fa-users-cog me-1"></i>AI評議会で論点整理</button>' +
+                        '<div id="council-result-'+p.id+'" style="display:none; margin-bottom:8px;"></div>' +
                         '<div class="d-flex gap-2">' +
                             '<button type="button" class="btn btn-sm btn-outline-danger w-33" onclick="event.stopPropagation(); remandPlan(\''+p.id+'\')"><i class="fas fa-undo"></i> 差戻</button>' +
                             '<button type="button" class="btn btn-sm btn-outline-info w-34 fw-bold" onclick="event.stopPropagation(); submitToReview(\''+p.id+'\')"><i class="fas fa-users me-1"></i>メンバー検討</button>' +
@@ -446,6 +449,43 @@ function castEndorsementWithComment(planId, vote) {
     var myName = (currentAdminProfile && currentAdminProfile.name) || 'Admin';
     endorsePlan(planId, myEmail, myName, vote, reason).then(function(res) {
         if(res.success) loadCandidates();
+    });
+}
+
+// AI評議会をプラン候補に対して実行
+function runPlanCouncil(planId) {
+    var plan = currentPlanList.find(function(p) { return String(p.id) === String(planId); });
+    if (!plan) return;
+    var area = document.getElementById('council-result-' + planId);
+    if (!area) return;
+    area.style.display = 'block';
+    area.innerHTML = '<div class="text-center py-2"><div class="spinner-border spinner-border-sm text-primary"></div><div class="small text-muted mt-1">AI評議会 開催中...</div></div>';
+    simulatePlanningMeeting(planId, plan).then(function(res) {
+        if (!res.success) {
+            area.innerHTML = '<div class="alert alert-danger py-1 small">' + escapeHtml(res.msg || 'エラー') + '</div>';
+            return;
+        }
+        var html = '<div style="background:#f0f4ff; border:1.5px solid #667eea; border-radius:10px; padding:10px; max-height:300px; overflow-y:auto;">';
+        html += '<div style="font-size:0.7rem; font-weight:800; color:#667eea; margin-bottom:6px;"><i class="fas fa-users-cog me-1"></i>AI評議会 論点整理</div>';
+        res.discussion.forEach(function(d) {
+            var avatar = d.avatar || '🤖';
+            if (avatar.length > 4) avatar = '🤖';
+            // 結論を抽出（賛成/条件付き/要検討）
+            var verdict = '';
+            if (d.message.indexOf('賛成') !== -1 && d.message.indexOf('条件') === -1) verdict = '<span style="color:#43a047; font-weight:700;">✅賛成</span> ';
+            else if (d.message.indexOf('条件付き') !== -1) verdict = '<span style="color:#f57f17; font-weight:700;">⚠️条件付き</span> ';
+            else if (d.message.indexOf('要検討') !== -1) verdict = '<span style="color:#e53935; font-weight:700;">🔍要検討</span> ';
+            html += '<div style="display:flex; gap:8px; margin-bottom:6px; padding:6px; background:white; border-radius:8px;">';
+            html += '<div style="font-size:1.2rem; flex-shrink:0;">' + avatar + '</div>';
+            html += '<div style="flex:1; min-width:0;">';
+            html += '<div style="font-size:0.7rem; font-weight:700; color:#555;">' + escapeHtml(d.role) + ' ' + verdict + '</div>';
+            html += '<div style="font-size:0.75rem; line-height:1.4; color:#333;">' + escapeHtml(d.message) + '</div>';
+            html += '</div></div>';
+        });
+        html += '</div>';
+        area.innerHTML = html;
+    }).catch(function(e) {
+        area.innerHTML = '<div class="alert alert-danger py-1 small">通信エラー</div>';
     });
 }
 

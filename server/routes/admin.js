@@ -576,7 +576,7 @@ router.get('/members-status', (req, res) => {
       if (avatar.length > 4 || (avatar.match && avatar.match(/\d{4}/))) avatar = '🛡️';
       const onlineData = onlineMembers[m.email];
       return {
-        id: m.id, name: m.name, email: m.email, avatar,
+        id: m.id, name: m.show_real_name === 1 ? m.name : null, email: m.email, avatar,
         dept: m.dept || '', universityOrg: m.university_org || '',
         isUniversity: m.is_university === 1,
         showRealName: m.show_real_name === 1,
@@ -682,7 +682,11 @@ router.get('/members-all', (req, res) => {
   try {
     const db = getDb();
     const members = db.prepare('SELECT id, name, dept, email, phone, avatar, role, is_exec, is_university, university_org, status, show_real_name FROM core_members ORDER BY id').all();
-    res.json(members);
+    res.json(members.map(m => ({
+      ...m,
+      name: m.show_real_name ? m.name : null,
+      phone: m.show_real_name ? m.phone : null
+    })));
   } catch (e) { res.json([]); }
 });
 
@@ -694,7 +698,12 @@ router.get('/users-all', (req, res) => {
     const postCounts = {};
     db.prepare('SELECT user_id, COUNT(*) as cnt FROM posts GROUP BY user_id').all()
       .forEach(r => { postCounts[r.user_id] = r.cnt; });
-    res.json(users.map(u => ({ ...u, post_count: postCounts[u.id] || 0 })));
+    res.json(users.map(u => ({
+      ...u,
+      real_name: u.show_real_name ? u.real_name : null,
+      birth_date: u.show_real_name ? u.birth_date : null,
+      post_count: postCounts[u.id] || 0
+    })));
   } catch (e) { res.json([]); }
 });
 
@@ -720,8 +729,14 @@ router.post('/member-update', (req, res) => {
     const { id, name, email, dept, phone, avatar, role, is_exec, is_university, university_org, password, show_real_name } = req.body;
     if (!id) return res.json({ success: false, msg: 'IDが必要です' });
     const db = getDb();
-    let sql = 'UPDATE core_members SET name=?, dept=?, email=?, phone=?, avatar=?, role=?, is_exec=?, is_university=?, university_org=?, show_real_name=?';
-    const params = [name || '', dept || '', (email || '').trim().toLowerCase(), phone || '', avatar || '🛡️', role || 'member', is_exec ? 1 : 0, is_university ? 1 : 0, university_org || '', show_real_name ? 1 : 0];
+    // name/phoneがnullの場合は既存値を維持（実名非公開時の保護）
+    const setClauses = [];
+    const params = [];
+    if (name != null) { setClauses.push('name=?'); params.push(name); }
+    if (phone != null) { setClauses.push('phone=?'); params.push(phone); }
+    setClauses.push('dept=?', 'email=?', 'avatar=?', 'role=?', 'is_exec=?', 'is_university=?', 'university_org=?', 'show_real_name=?');
+    params.push(dept || '', (email || '').trim().toLowerCase(), avatar || '🛡️', role || 'member', is_exec ? 1 : 0, is_university ? 1 : 0, university_org || '', show_real_name ? 1 : 0);
+    let sql = 'UPDATE core_members SET ' + setClauses.join(', ');
     if (password) {
       const crypto = require('crypto');
       sql += ', password_hash=?';
@@ -768,8 +783,12 @@ router.post('/user-update', (req, res) => {
     const { id, nickname, avatar, department, real_name, birth_date, password } = req.body;
     if (!id) return res.json({ success: false, msg: 'IDが必要です' });
     const db = getDb();
-    let sql = 'UPDATE users SET nickname=?, avatar=?, department=?, real_name=?, birth_date=?';
-    const params = [nickname || '', avatar || '😀', department || '', real_name || '', birth_date || ''];
+    // real_name/birth_dateがnullの場合は既存値を維持（実名非公開時の保護）
+    const setClauses = ['nickname=?', 'avatar=?', 'department=?'];
+    const params = [nickname || '', avatar || '😀', department || ''];
+    if (real_name != null) { setClauses.push('real_name=?'); params.push(real_name); }
+    if (birth_date != null) { setClauses.push('birth_date=?'); params.push(birth_date); }
+    let sql = 'UPDATE users SET ' + setClauses.join(', ');
     if (password) {
       const crypto = require('crypto');
       sql += ', password_hash=?';

@@ -459,7 +459,7 @@ function renderCoreMembers(members, onlineMap) {
             var onlineDot = '<div style="position:absolute;bottom:0;right:0;width:10px;height:10px;border-radius:50%;border:2px solid white;background:' + (isOnline ? '#4caf50' : '#ccc') + ';"></div>';
             var roleLabel = m.is_exec ? '<span class="badge bg-danger">Exec</span>' : (m.is_university ? '<span class="badge bg-info">大学</span>' : '<span class="badge bg-secondary">Member</span>');
             var showName = m.show_real_name === 1;
-            var displayName = showName ? escapeHtml(m.name) : '<span style="color:#999;">●●●●</span>';
+            var displayName = (showName && m.name) ? escapeHtml(m.name) : '<span style="color:#999;">●●●●</span>';
             var toggleIcon = showName ? 'fa-eye' : 'fa-eye-slash';
             var toggleColor = showName ? '#4caf50' : '#ccc';
             return '<tr>' +
@@ -470,7 +470,7 @@ function renderCoreMembers(members, onlineMap) {
                 '<td>' + roleLabel + '</td>' +
                 '<td class="text-center"><button class="btn btn-sm" style="font-size:0.75rem; color:' + toggleColor + ';" onclick="toggleShowRealName(\'core_members\',' + m.id + ',' + (showName ? 0 : 1) + ')" title="' + (showName ? '実名非表示にする' : '実名表示にする') + '"><i class="fas ' + toggleIcon + '"></i></button></td>' +
                 '<td><button class="btn btn-outline-primary btn-sm me-1" style="font-size:0.7rem;" onclick=\'openEditCoreMemberModal(' + JSON.stringify(m).replace(/'/g, "&#39;") + ')\'><i class="fas fa-edit"></i></button>' +
-                '<button class="btn btn-outline-danger btn-sm" style="font-size:0.7rem;" onclick="handleDeleteCoreMember(' + m.id + ',\'' + escapeHtml(m.name) + '\')"><i class="fas fa-trash"></i></button></td>' +
+                '<button class="btn btn-outline-danger btn-sm" style="font-size:0.7rem;" onclick="handleDeleteCoreMember(' + m.id + ',\'' + escapeHtml(m.name || m.email) + '\')"><i class="fas fa-trash"></i></button></td>' +
                 '</tr>';
         }).join('') + '</tbody></table>';
     area.innerHTML = html;

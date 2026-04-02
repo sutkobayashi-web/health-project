@@ -1459,6 +1459,8 @@ function doUserLogout() {
   // 自動ログインを無効化（次回はログインボタンをタップ必要）
   localStorage.setItem('co_heart_no_autologin', '1');
   localStorage.removeItem('co_heart_user_data');
+  localStorage.removeItem('co_heart_buddy');
+  localStorage.removeItem('co_heart_buddy_setup_hidden');
   currentUser = null;
   // AI相談チャットをリセット
   nurseInited = false; nurseHistory = []; nurseReady = true;
@@ -4011,9 +4013,8 @@ function initBuddy() {
   var mainContent = document.querySelector('.main-content');
   if (mainContent) mainContent.style.display = 'none';
 
-  // バディーデータ読み込み（サーバー優先→localStorage→デフォルト）
-  var localBuddy = null;
-  try { localBuddy = JSON.parse(localStorage.getItem('co_heart_buddy')); } catch(e) {}
+  // バディーデータ読み込み（サーバーのみを信頼源とする）
+  localStorage.removeItem('co_heart_buddy');
 
   fetch('/api/auth/get-buddy/' + currentUser.uid, {
     headers: { 'Authorization': 'Bearer ' + getToken() }
@@ -4022,17 +4023,14 @@ function initBuddy() {
       // サーバーにあった → localStorageに同期してチャット開始
       localStorage.setItem('co_heart_buddy', JSON.stringify(data.buddyData));
       startBuddyChat(data.buddyData);
-    } else if (localBuddy) {
-      // サーバーにない、localStorageにある → localStorageを使用
-      startBuddyChat(localBuddy);
     } else {
-      // どちらにもない → デフォルトバディーで開始
+      // サーバーにない → デフォルトバディーで開始
       localStorage.setItem('co_heart_buddy', JSON.stringify(DEFAULT_BUDDY));
       startBuddyChat(DEFAULT_BUDDY);
     }
   }).catch(function() {
-    // 通信エラー → localStorageかデフォルトで開始
-    startBuddyChat(localBuddy || DEFAULT_BUDDY);
+    // 通信エラー → デフォルトで開始
+    startBuddyChat(DEFAULT_BUDDY);
   });
 }
 

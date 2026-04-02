@@ -410,6 +410,7 @@
         <div style="font-size:0.8rem; color:#888;">健康推進チームへの参加登録</div>
       </div>
       <div class="form-group"><label><i class="fas fa-user" style="color:#3478f6; margin-right:4px;"></i> 氏名</label><input type="text" id="admin-reg-name" placeholder="例: 山田 花子"></div>
+      <div class="form-group"><label><i class="fas fa-smile" style="color:#ff9800; margin-right:4px;"></i> ニックネーム <span style="font-size:0.7rem; color:#999;">（ユーザー画面で使用）</span></label><input type="text" id="admin-reg-nickname" placeholder="例: やまちゃん（匿名で表示されます）"></div>
       <div class="form-group"><label><i class="fas fa-envelope" style="color:#20c997; margin-right:4px;"></i> メールアドレス</label><input type="email" id="admin-reg-email" placeholder="メールアドレス"></div>
       <div class="form-group"><label><i class="fas fa-lock" style="color:#e74c3c; margin-right:4px;"></i> パスワード</label><input type="password" id="admin-reg-pass" placeholder="パスワード"></div>
       <div class="form-group"><label><i class="fas fa-building" style="color:#f39c12; margin-right:4px;"></i> 所属</label><input type="text" id="admin-reg-dept" placeholder="例: 管理部、○○大学 など"></div>
@@ -1838,17 +1839,19 @@ function toggleUniversityOrg() {
 
 function doAdminRegister() {
   var name = document.getElementById('admin-reg-name').value.trim();
+  var nickname = document.getElementById('admin-reg-nickname').value.trim();
   var email = document.getElementById('admin-reg-email').value.trim();
   var pass = document.getElementById('admin-reg-pass').value.trim();
   var dept = document.getElementById('admin-reg-dept').value.trim();
   var isUniversity = document.getElementById('admin-reg-university').checked;
   var universityOrg = document.getElementById('admin-reg-univ-org').value.trim();
   if (!name) return alert("氏名を入力してください");
+  if (!nickname) return alert("ニックネームを入力してください");
   if (!email) return alert("メールアドレスを入力してください");
   if (!pass) return alert("パスワードを入力してください");
   if (isUniversity && !universityOrg) return alert("大学名・学部を入力してください");
   showLoading("登録中...");
-  registerAdmin({ name: name, email: email, password: pass, dept: dept, isUniversity: isUniversity, universityOrg: universityOrg }).then(function(res) {
+  registerAdmin({ name: name, nickname: nickname, email: email, password: pass, dept: dept, isUniversity: isUniversity, universityOrg: universityOrg }).then(function(res) {
     hideLoading();
     if (res.success) {
       if (res.pending) {

@@ -125,19 +125,33 @@ router.post('/login', loginLimiter, (req, res) => {
 // 管理者（大学関係者含む）新規登録
 router.post('/admin-register', loginLimiter, (req, res) => {
   try {
-    const { name, email, password, dept, isUniversity, universityOrg } = req.body;
+    const { name, nickname, email, password, dept, isUniversity, universityOrg } = req.body;
     if (!name || !email || !password) return res.json({ success: false, msg: '氏名・メール・パスワードを入力してください' });
+    if (!nickname) return res.json({ success: false, msg: 'ニックネームを入力してください' });
     if (typeof password !== 'string' || password.length < 6) return res.json({ success: false, msg: 'パスワードは6文字以上で入力してください' });
 
     const db = getDb();
     const existing = db.prepare('SELECT id FROM core_members WHERE email = ?').get(email.trim().toLowerCase());
     if (existing) return res.json({ success: false, msg: '既に登録されているメールアドレスです' });
+
+    // ニックネーム重複チェック
+    const nickExisting = db.prepare('SELECT id FROM users WHERE nickname = ?').get(nickname.trim());
+    if (nickExisting) return res.json({ success: false, msg: 'このニックネームは既に使われています' });
+
     const passwordHash = hashPasswordBcrypt(password.trim());
     const role = isUniversity ? 'observer' : 'member';
+
+    // core_membersに登録
     db.prepare(`INSERT INTO core_members (name, dept, email, password_hash, avatar, role, is_exec, is_university, university_org, status)
       VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?, 'pending')`).run(name.trim(), dept || '', email.trim().toLowerCase(), passwordHash, '🛡️', role, isUniversity ? 1 : 0, universityOrg || '');
+
+    // usersテーブルにも同時登録（ユーザー画面でも使えるように）
+    const uid = uuidv4();
+    db.prepare(`INSERT INTO users (id, nickname, password_hash, avatar, department, real_name) VALUES (?, ?, ?, ?, ?, ?)`)
+      .run(uid, nickname.trim(), passwordHash, '😀', dept || '', name.trim());
+
     res.json({
-      success: true, msg: '登録申請を受け付けました。推進メンバーの承認をお待ちください。',
+      success: true, msg: '登録申請を受け付けました。推進メンバーの承認をお待ちください。\nユーザー画面にはニックネーム「' + nickname.trim() + '」でログインできます。',
       pending: true
     });
   } catch (e) {

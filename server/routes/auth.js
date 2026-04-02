@@ -361,7 +361,7 @@ router.get('/ranking', (req, res) => {
   }
 });
 
-// マリガン情報取得
+// CoWellコイン情報取得
 router.get('/marigan/:uid', (req, res) => {
   try {
     const info = getMariganInfo(req.params.uid);
@@ -369,7 +369,7 @@ router.get('/marigan/:uid', (req, res) => {
   } catch (e) { res.json({ success: false, msg: e.message }); }
 });
 
-// マリガンランキング
+// CoWellコインランキング
 router.get('/marigan-ranking', (req, res) => {
   try {
     const ranking = getMariganRanking(10);

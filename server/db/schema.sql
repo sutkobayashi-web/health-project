@@ -357,7 +357,7 @@ CREATE TABLE IF NOT EXISTS auto_evaluations (
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- マリガン（ポイント）ログ
+-- CoWellコイン（ポイント）ログ
 CREATE TABLE IF NOT EXISTS marigan_log (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id TEXT NOT NULL,

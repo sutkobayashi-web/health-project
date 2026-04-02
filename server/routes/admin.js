@@ -829,7 +829,7 @@ router.post('/toggle-show-real-name', (req, res) => {
   } catch (e) { res.json({ success: false, msg: e.message }); }
 });
 
-// マリガンランキング（管理画面用）
+// CoWellコインランキング（管理画面用）
 router.get('/marigan-ranking', (req, res) => {
   try {
     const ranking = getMariganRanking(20);

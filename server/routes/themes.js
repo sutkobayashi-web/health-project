@@ -745,7 +745,7 @@ router.post('/record', (req, res) => {
       VALUES (?, ?, ?, ?, ?) ON CONFLICT(challenge_id, user_id, record_date) DO UPDATE SET answers=excluded.answers, comment=excluded.comment`)
       .run(challengeId, userId, today, JSON.stringify(answers), comment || '');
 
-    // マリガン付与（KPI記録 2pt）
+    // CoWellコイン付与（KPI記録 2pt）
     awardMarigan(userId, 'kpi_record', challengeId + '_' + today);
 
     // バッジチェック

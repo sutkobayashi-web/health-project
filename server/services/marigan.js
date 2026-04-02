@@ -1,5 +1,5 @@
 /**
- * マリガン（ポイント）システム
+ * CoWellコイン（ポイント）システム
  * 投稿・共感・書き込み等のアクションでポイントを付与し褒賞につなげる
  */
 const { getDb } = require('./db');
@@ -22,7 +22,7 @@ const BADGE_TIERS = [
 ];
 
 /**
- * マリガンを付与
+ * CoWellコインを付与
  * @param {string} userId - ユーザーID
  * @param {string} action - アクション種別 (post, food_photo, empathy, comment, kpi_record)
  * @param {string} [refId] - 参照ID（post_id等、重複防止用）
@@ -66,7 +66,7 @@ function awardMarigan(userId, action, refId) {
 }
 
 /**
- * ユーザーのマリガン情報取得
+ * ユーザーのCoWellコイン情報取得
  */
 function getMariganInfo(userId) {
   const db = getDb();

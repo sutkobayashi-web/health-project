@@ -164,7 +164,7 @@ function loadData() {
     // オンラインユーザーヒート表示
     loadOnlineHeat();
     setInterval(loadOnlineHeat, 30000);
-    // マリガンランキング
+    // CoWellコインランキング
     loadMariganRanking();
     // チャット新着通知ポーリング開始
     if (typeof startChatNotifyPolling === 'function') startChatNotifyPolling();
@@ -995,7 +995,7 @@ function toggleOnlineHeatDetail() {
     loadOnlineHeat();
 }
 
-// マリガンランキング読み込み
+// CoWellコインランキング読み込み
 function loadMariganRanking() {
     var area = document.getElementById('marigan-ranking-area');
     if (!area) return;
@@ -1004,7 +1004,7 @@ function loadMariganRanking() {
         headers: { 'Authorization': 'Bearer ' + localStorage.getItem('co_heart_admin_token') }
     }).then(function(r) { return r.json(); }).then(function(data) {
         if (!data.success || !data.ranking || data.ranking.length === 0) {
-            area.innerHTML = '<div class="text-muted text-center p-3" style="font-size:0.8rem;">まだポイントを獲得したユーザーはいません</div>';
+            area.innerHTML = '<div class="text-muted text-center p-3" style="font-size:0.8rem;">まだCoWellコインを獲得したユーザーはいません</div>';
             return;
         }
         var medals = ['🥇','🥈','🥉'];

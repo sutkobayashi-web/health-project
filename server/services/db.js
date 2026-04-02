@@ -228,7 +228,7 @@ function getDb() {
     )`);
   } catch(e) {}
 
-  // マリガン（ポイント）テーブル
+  // CoWellコイン（ポイント）テーブル
   try {
     db.exec(`CREATE TABLE IF NOT EXISTS marigan_log (
       id INTEGER PRIMARY KEY AUTOINCREMENT,

@@ -2156,7 +2156,7 @@ function showRanking() {
       html += '</div>';
       return html;
     }
-    // マリガン情報
+    // CoWellコイン情報
     var mariganHtml = '<div style="margin-bottom:16px;">';
     var total = mg.total || 0;
     var badgeIcons = { bronze:'🥉', silver:'🥈', gold:'🥇', platinum:'👑' };
@@ -2164,7 +2164,7 @@ function showRanking() {
     var curBadge = mg.badge || '';
     var curIcon = badgeIcons[curBadge] || '🌱';
     var curName = badgeNames[curBadge] || 'ビギナー';
-    mariganHtml += '<div style="font-weight:800; font-size:0.9rem; color:#2c3e50; margin-bottom:8px; display:flex; align-items:center; gap:6px;"><i class="fas fa-coins" style="color:#f59e0b;"></i> マリガン（ポイント）</div>';
+    mariganHtml += '<div style="font-weight:800; font-size:0.9rem; color:#2c3e50; margin-bottom:8px; display:flex; align-items:center; gap:6px;"><i class="fas fa-coins" style="color:#f59e0b;"></i> CoWellコイン</div>';
     mariganHtml += '<div style="display:flex; align-items:center; gap:12px; padding:12px; background:linear-gradient(135deg,#fffde7,#fff9c4); border:1.5px solid #ffe082; border-radius:12px;">';
     mariganHtml += '<span style="font-size:1.6rem;">' + curIcon + '</span>';
     mariganHtml += '<div style="flex:1;"><div style="font-weight:800; font-size:0.85rem; color:#333;">' + curName + '</div>';
@@ -2184,7 +2184,7 @@ function showRanking() {
 
     var mariganRankList = (mgRank && mgRank.ranking) ? mgRank.ranking : [];
     content.innerHTML = mariganHtml
-      + renderRankList('マリガンランキング TOP10', 'trophy', mariganRankList, 'marigan_total')
+      + renderRankList('CoWellコインランキング TOP10', 'trophy', mariganRankList, 'marigan_total')
       + renderRankList('投稿数ランキング TOP5', 'pen', res.postRanking, 'count');
   }).catch(function() {
     content.innerHTML = '<p style="color:#999;">通信エラー</p>';

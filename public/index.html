@@ -4130,7 +4130,9 @@ function startBuddyChatFresh(buddyData) {
     }
     // 初回のみ仕組み説明（挨拶→説明→体調チェックの流れ）
     var introKey = 'co_heart_buddy_intro_' + (currentUser ? currentUser.uid : '');
-    if (!localStorage.getItem(introKey)) {
+    // 旧キーとの後方互換: 既にカスタマイズ済みなら初回扱いしない
+    var alreadyIntro = localStorage.getItem(introKey) || localStorage.getItem('co_heart_buddy_intro') || localStorage.getItem('co_heart_buddy_customized');
+    if (!alreadyIntro) {
       localStorage.setItem(introKey, '1');
       addBuddyMessage('ai', msg);
       setTimeout(function() {

@@ -15,7 +15,7 @@
 <script>
 // SW+キャッシュ完全クリア→強制リロード
 (function(){
-  var v='20260403e';
+  var v='20260403f';
   if(localStorage.getItem('app_version')!==v){
     localStorage.setItem('app_version',v);
     // Service Worker全解除+キャッシュ全削除
@@ -2709,7 +2709,7 @@ function openMyPosts() {
       var catName = isFood ? '食事チェック' : '相談・共有';
       var chatBadge = p.chatCount > 0 ? '<span style="font-size:0.65rem;background:#d32f2f;color:white;padding:1px 7px;border-radius:8px;font-weight:700;"><i class="fas fa-comments"></i> メンバーから ' + p.chatCount + '件</span>' : '';
       var empathyBadge = p.empathyCount > 0 ? '<span style="font-size:0.65rem;background:#667eea;color:white;padding:1px 7px;border-radius:8px;font-weight:700;">❤️ 共感 ' + p.empathyCount + '</span>' : '';
-      var thumbHtml = (p.imageUrl && p.imageUrl.length > 1) ? '<img src="' + p.imageUrl + '" style="width:44px;height:44px;object-fit:cover;border-radius:8px;flex-shrink:0;" onerror="this.style.display=\'none\'">' : '';
+      var thumbHtml = (p.imageUrl && p.imageUrl.length > 1) ? '<img src="' + p.imageUrl + '" style="width:44px;height:44px;object-fit:cover;border-radius:8px;flex-shrink:0;" loading="eager" crossorigin="anonymous" onerror="this.style.display=\'none\'">' : '';
       return '<div class="my-post-card" data-postid="' + p.id + '" onclick="openMyPostDetail(\'' + p.id + '\',\'' + p.authorUid + '\')" style="background:white;border-radius:12px;margin-bottom:10px;box-shadow:0 2px 8px rgba(0,0,0,0.04);overflow:hidden;cursor:pointer;border:1px solid #f0f0f0;">' +
         '<div class="post-header-bar ' + headerClass + '" style="padding:6px 12px;font-size:0.75rem;"><span><i class="' + icon + '"></i> ' + catName + '</span><span>' + p.date + '</span></div>' +
         '<div style="padding:10px 12px;">' +
@@ -2741,7 +2741,7 @@ function openMyPostDetail(postId, authorUid) {
     if (!p) { sheet.innerHTML = '<div style="padding:20px;color:red;">投稿が見つかりません</div>'; return; }
 
     var detailAvHtml = getAvatarHtml(p.avatar, 40);
-    var imgHtml = (p.imageUrl && p.imageUrl.length > 1) ? '<img src="' + p.imageUrl + '" style="width:100%;border-radius:12px;margin-bottom:12px;" onerror="this.style.display=\'none\'">' : '';
+    var imgHtml = (p.imageUrl && p.imageUrl.length > 1) ? '<img src="' + p.imageUrl + '" style="width:100%;border-radius:12px;margin-bottom:12px;" loading="eager" crossorigin="anonymous" onerror="this.style.display=\'none\'">' : '';
     // ///NUTRIENTS///と///SCORE///をパース・除去
     var myAnalysisText = (p.analysis || '').replace(/【AI栄養士】/g, '【AI食事アドバイザー】').replace(/【AI保健師】/g, '【AIヘルスアドバイザー】').replace(/【AI産業医】/g, '【AIメディカルアドバイザー】');
     var myNutrientScores = null;

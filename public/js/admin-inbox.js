@@ -203,36 +203,30 @@ function renderReportList(data) {
         var imgUrl = r[INBOX_COLS.IMG]; var displayUrl = getPostImageUrl(imgUrl);
         var thumbTag = displayUrl ? '<img src="'+displayUrl+'" class="post-thumb" onclick="event.stopPropagation();" onerror="this.style.display=\'none\'">' : '';
         var imgTag = displayUrl ? '<img src="'+displayUrl+'" class="post-img" loading="lazy" onclick="event.stopPropagation(); window.open(\''+displayUrl+'\', \'_blank\');">' : '';
-        var aiHtml = '';
-        if (analysisText && analysisText.trim().length > 0) {
-            // セクション別色分け表示
-            var colorMap = {
-                '推定カロリー': { bg:'#fff8e1', border:'#ffb300', icon:'🔥' },
-                '良い点': { bg:'#e8f5e9', border:'#4caf50', icon:'✅' },
-                '不足': { bg:'#fce4ec', border:'#e91e63', icon:'⚠️' },
-                '改善': { bg:'#fce4ec', border:'#e91e63', icon:'⚠️' },
-                'ちょい足し': { bg:'#e3f2fd', border:'#2196f3', icon:'💡' },
-                '提案': { bg:'#e3f2fd', border:'#2196f3', icon:'💡' },
-                '塩分': { bg:'#f3e5f5', border:'#9c27b0', icon:'🧂' },
-                'ヘルスアドバイザー': { bg:'#ede7f6', border:'#673ab7', icon:'💜' }
-            };
-            var sections = analysisText.split(/(?=\d+\.\s*【)/);
-            var coloredHtml = '';
-            sections.forEach(function(sec) {
-                var matched = false;
-                for (var key in colorMap) {
-                    if (sec.indexOf(key) !== -1) {
-                        var cm = colorMap[key];
-                        coloredHtml += '<div style="background:'+cm.bg+'; border-left:3px solid '+cm.border+'; border-radius:6px; padding:6px 10px; margin-bottom:4px; font-size:0.8rem; line-height:1.5;">'+cm.icon+' '+sec.replace(/\n/g,'<br>')+'</div>';
-                        matched = true;
-                        break;
-                    }
+        var aiHtml = (analysisText && analysisText.trim().length > 0) ? '<div class="ai-reply"><i class="fas fa-robot text-primary me-1"></i> '+analysisText.replace(/\n/g,'<br>')+'</div>' : '';
+        // ポイント箇条書き（黄色ボックス）: 【】で囲まれたキーワードを抽出
+        var pointsHtml = '';
+        if (analysisText && analysisText.indexOf('【') !== -1) {
+            var pointIcons = ['🔥','✅','⚠️','💡','🧂'];
+            var sectionMatches = analysisText.match(/\d+\.\s*【([^】]+)】[^]*?(?=\d+\.\s*【|【AI|\/\/\/|$)/g);
+            if (sectionMatches && sectionMatches.length > 0) {
+                var points = [];
+                sectionMatches.forEach(function(sec, idx) {
+                    var titleMatch = sec.match(/【([^】]+)】/);
+                    var title = titleMatch ? titleMatch[1] : '';
+                    var body = sec.replace(/^\d+\.\s*【[^】]+】\s*/, '').replace(/\n/g,' ').trim();
+                    // 最初の1文を抽出（句点で区切り）
+                    var firstSentence = body.split(/[。！]/).filter(function(s){return s.trim();})[0] || body;
+                    if (firstSentence.length > 50) firstSentence = firstSentence.substring(0, 50) + '…';
+                    var icon = pointIcons[idx] || '📌';
+                    points.push('<div style="display:flex; align-items:flex-start; gap:6px; margin-bottom:3px;"><span style="flex-shrink:0;">' + icon + '</span><span><strong style="color:#795548;">' + escapeHtml(title) + '</strong> ' + escapeHtml(firstSentence) + '</span></div>');
+                });
+                if (points.length > 0) {
+                    pointsHtml = '<div style="background:linear-gradient(135deg,#fffde7,#fff9c4); border:1px solid #ffe082; border-radius:10px; padding:10px 12px; margin-top:6px;">' +
+                        '<div style="font-size:0.68rem; font-weight:700; color:#f57f17; margin-bottom:4px;"><i class="fas fa-lightbulb me-1"></i>ポイント</div>' +
+                        '<div style="font-size:0.78rem; line-height:1.5; color:#555;">' + points.join('') + '</div></div>';
                 }
-                if (!matched && sec.trim()) {
-                    coloredHtml += '<div style="font-size:0.8rem; line-height:1.5; margin-bottom:4px;">'+sec.replace(/\n/g,'<br>')+'</div>';
-                }
-            });
-            aiHtml = '<div class="ai-reply"><div style="font-size:0.7rem; font-weight:700; color:#667eea; margin-bottom:6px;"><i class="fas fa-robot me-1"></i>AI分析</div>'+coloredHtml+'</div>';
+            }
         }
         // 栄養バーチャート
         var nutBarHtml = '';
@@ -290,6 +284,7 @@ function renderReportList(data) {
                     (nutBarHtml ? nutBarHtml : '') +
                     '<div style="flex:1; min-width:0; font-size:0.85rem; line-height:1.5; color:#444; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">'+escapeHtml(rawContent)+'</div>' +
                 '</div>' +
+                pointsHtml +
                 // 共感サマリー（開くボタンの上）
                 '<div id="empathy-mini-'+pid+'" style="margin-top:6px; max-height:150px; overflow-y:auto;"></div>' +
                 // 操作ボタン行

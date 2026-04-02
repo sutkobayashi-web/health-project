@@ -523,7 +523,8 @@ function showMemberModal(title, fields, onSave) {
         } else if (f.type === 'checkbox') {
             html += '<div class="mb-2 form-check"><input type="checkbox" class="form-check-input" id="mm-' + f.key + '"' + (f.value ? ' checked' : '') + '><label class="form-check-label small fw-bold text-muted">' + f.label + '</label></div>';
         } else {
-            html += '<div class="mb-2"><label class="small fw-bold text-muted">' + f.label + '</label><input type="' + (f.type || 'text') + '" id="mm-' + f.key + '" class="form-control form-control-sm" value="' + escapeHtml(f.value || '') + '" placeholder="' + (f.placeholder || '') + '"></div>';
+            var readonlyAttr = f.readonly ? ' readonly tabindex="-1" style="background:#f0f0f0; color:#999; cursor:not-allowed;"' : '';
+            html += '<div class="mb-2"><label class="small fw-bold text-muted">' + f.label + '</label><input type="' + (f.type || 'text') + '" id="mm-' + f.key + '" class="form-control form-control-sm"' + readonlyAttr + ' value="' + escapeHtml(f.value || '') + '" placeholder="' + (f.placeholder || '') + '"></div>';
         }
     });
     html += '<div class="d-flex gap-2 mt-3"><button class="btn btn-primary flex-grow-1 fw-bold" id="mm-save-btn">保存</button>' +
@@ -565,11 +566,12 @@ function openAddCoreMemberModal() {
 }
 
 function openEditCoreMemberModal(m) {
+    var nameVisible = m.show_real_name === 1;
     showMemberModal('<i class="fas fa-edit text-primary me-2"></i>コアメンバー編集', [
-        { key: 'name', label: '氏名', value: m.name },
+        { key: 'name', label: '氏名' + (nameVisible ? '' : '（非公開）'), value: nameVisible ? m.name : '●●●●', readonly: !nameVisible },
         { key: 'email', label: 'メールアドレス', type: 'email', value: m.email },
         { key: 'dept', label: '部署', value: m.dept },
-        { key: 'phone', label: '電話番号', value: m.phone },
+        { key: 'phone', label: '電話番号', value: nameVisible ? (m.phone || '') : '●●●●', readonly: !nameVisible },
         { key: 'avatar', label: 'アバター絵文字', value: m.avatar || '🛡️' },
         { key: 'password', label: 'パスワード（変更時のみ）', type: 'password', placeholder: '未入力なら変更なし' },
         { key: 'role', label: '役割', type: 'select', value: m.is_exec ? 'exec' : (m.role || 'member'), options: [{ value: 'member', label: 'メンバー' }, { value: 'exec', label: '役員(Exec)' }, { value: 'observer', label: 'オブザーバー' }] },
@@ -578,10 +580,10 @@ function openEditCoreMemberModal(m) {
     ], function() {
         var data = {
             id: m.id,
-            name: document.getElementById('mm-name').value.trim(),
+            name: nameVisible ? document.getElementById('mm-name').value.trim() : m.name,
             email: document.getElementById('mm-email').value.trim(),
             dept: document.getElementById('mm-dept').value.trim(),
-            phone: document.getElementById('mm-phone').value.trim(),
+            phone: nameVisible ? document.getElementById('mm-phone').value.trim() : (m.phone || ''),
             avatar: document.getElementById('mm-avatar').value.trim() || '🛡️',
             password: document.getElementById('mm-password').value || undefined,
             role: document.getElementById('mm-role').value,
@@ -646,22 +648,23 @@ function openAddUserModal() {
 }
 
 function openEditUserModal(u) {
+    var nameVisible = u.show_real_name === 1;
     showMemberModal('<i class="fas fa-user-edit text-success me-2"></i>一般ユーザー編集', [
         { key: 'nickname', label: 'ニックネーム', value: u.nickname },
         { key: 'password', label: 'パスワード（変更時のみ）', type: 'password', placeholder: '未入力なら変更なし' },
         { key: 'avatar', label: 'アバター絵文字', value: u.avatar || '😀' },
-        { key: 'real_name', label: '本名', value: u.real_name || '' },
+        { key: 'real_name', label: '本名' + (nameVisible ? '' : '（非公開）'), value: nameVisible ? (u.real_name || '') : (u.real_name ? '●●●●' : ''), readonly: !nameVisible && !!u.real_name },
         { key: 'department', label: '部署', type: 'select', value: u.department || 'その他', options: [{ value: '管理者', label: '管理者' }, { value: '事務スタッフ', label: '事務スタッフ' }, { value: '配送スタッフ', label: '配送スタッフ' }, { value: '製造スタッフ', label: '製造スタッフ' }, { value: '倉庫スタッフ', label: '倉庫スタッフ' }, { value: 'その他', label: 'その他' }] },
-        { key: 'birth_date', label: '生年月日', type: 'date', value: u.birth_date || '' }
+        { key: 'birth_date', label: '生年月日', type: 'date', value: nameVisible ? (u.birth_date || '') : '', readonly: !nameVisible && !!u.birth_date }
     ], function() {
         var data = {
             id: u.id,
             nickname: document.getElementById('mm-nickname').value.trim(),
             password: document.getElementById('mm-password').value || undefined,
             avatar: document.getElementById('mm-avatar').value.trim() || '😀',
-            real_name: document.getElementById('mm-real_name').value.trim(),
+            real_name: nameVisible ? document.getElementById('mm-real_name').value.trim() : (u.real_name || ''),
             department: document.getElementById('mm-department').value,
-            birth_date: document.getElementById('mm-birth_date').value
+            birth_date: nameVisible ? document.getElementById('mm-birth_date').value : (u.birth_date || '')
         };
         updateGeneralUser(data).then(function(res) {
             alert(res.msg);

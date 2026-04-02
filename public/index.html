@@ -1460,7 +1460,7 @@ function doUserLogout() {
   localStorage.setItem('co_heart_no_autologin', '1');
   localStorage.removeItem('co_heart_user_data');
   localStorage.removeItem('co_heart_buddy');
-  localStorage.removeItem('co_heart_buddy_setup_hidden');
+  // co_heart_buddy_intro, co_heart_buddy_setup_hidden はユーザー体験に関わるため維持
   currentUser = null;
   // AI相談チャットをリセット
   nurseInited = false; nurseHistory = []; nurseReady = true;
@@ -4027,12 +4027,22 @@ function initBuddy() {
       localStorage.setItem('co_heart_buddy', JSON.stringify(data.buddyData));
       startBuddyChat(data.buddyData);
     } else {
-      // サーバーにない → デフォルトバディーで開始
-      localStorage.setItem('co_heart_buddy', JSON.stringify(DEFAULT_BUDDY));
-      startBuddyChat(DEFAULT_BUDDY);
+      // サーバーにない → セットアップ画面を表示（初回のみ）
+      var setupKey = 'co_heart_buddy_default_shown_' + currentUser.uid;
+      if (!localStorage.getItem(setupKey)) {
+        localStorage.setItem(setupKey, '1');
+        localStorage.setItem('co_heart_buddy', JSON.stringify(DEFAULT_BUDDY));
+        // まずデフォルトでチャット開始し、すぐセットアップ案内
+        startBuddyChat(DEFAULT_BUDDY);
+      } else {
+        // 2回目以降はデフォルトで開始
+        localStorage.setItem('co_heart_buddy', JSON.stringify(DEFAULT_BUDDY));
+        startBuddyChat(DEFAULT_BUDDY);
+      }
     }
   }).catch(function() {
     // 通信エラー → デフォルトで開始
+    localStorage.setItem('co_heart_buddy', JSON.stringify(DEFAULT_BUDDY));
     startBuddyChat(DEFAULT_BUDDY);
   });
 }
@@ -4076,7 +4086,7 @@ function startBuddyChat(buddyData) {
           addBuddyMessage('ai', 'さっきの続きだね！何か聞きたいことがあればいつでもどうぞ😊');
           window._buddyRestoring = false;
           // カスタマイズ案内（非表示設定されていなければ）
-          if (!localStorage.getItem('co_heart_buddy_setup_hidden')) {
+          if (!localStorage.getItem(getBuddySetupKey())) {
             setTimeout(function() {
               window._buddyRestoring = true;
               addBuddyMessage('ai', '🎨 そういえば、バディーの名前・見た目・性格をカスタマイズできるよ！');
@@ -4119,8 +4129,9 @@ function startBuddyChatFresh(buddyData) {
       if (data.healthTip) msg += '\n💡 ' + data.healthTip;
     }
     // 初回のみ仕組み説明（挨拶→説明→体調チェックの流れ）
-    if (!localStorage.getItem('co_heart_buddy_intro')) {
-      localStorage.setItem('co_heart_buddy_intro', '1');
+    var introKey = 'co_heart_buddy_intro_' + (currentUser ? currentUser.uid : '');
+    if (!localStorage.getItem(introKey)) {
+      localStorage.setItem(introKey, '1');
       addBuddyMessage('ai', msg);
       setTimeout(function() {
         addBuddyMessage('ai', 'はじめに少しだけ、このアプリの仕組みを紹介させてね！\n\n🤖 私（バディー）は「あなた個人」の健康アドバイスが得意だよ。体調相談、食事、睡眠、なんでも聞いてね！\n\n🛡️ でも「職場の環境を変えたい」時は推進メンバーの出番！チャットの中で「推進メンバーに相談」を選ぶと、あなたの声が届くよ。\n\n📢→🗳️→💪 届いた声はテーマ候補になって、みんなの投票でチャレンジに変わるんだ！\n\nあなたの一言が、職場を変える力になるよ✨');
@@ -4140,7 +4151,7 @@ function startBuddyChatFresh(buddyData) {
     msg += '\n\nさて、今日の調子はいかがですか？';
     addBuddyMessage('ai', msg);
     // カスタマイズ案内（「表示しない」を選ぶまで毎回表示）
-    if (!localStorage.getItem('co_heart_buddy_setup_hidden')) {
+    if (!localStorage.getItem(getBuddySetupKey())) {
       setTimeout(function() {
         addBuddyMessage('ai', '🎨 そういえば、バディーの名前・見た目・性格をカスタマイズできるよ！');
         showBuddySetupPromptWithDismiss();
@@ -4395,13 +4406,16 @@ function showBuddySetupPromptWithDismiss() {
   msgs.scrollTop = msgs.scrollHeight;
 }
 
+function getBuddySetupKey() {
+  return 'co_heart_buddy_setup_hidden_' + (currentUser ? currentUser.uid : '');
+}
 function dismissBuddySetupPrompt(checkbox) {
   var statusSpan = checkbox.parentElement.querySelector('.dismiss-status');
   if (checkbox.checked) {
-    localStorage.setItem('co_heart_buddy_setup_hidden', '1');
+    localStorage.setItem(getBuddySetupKey(), '1');
     if (statusSpan) statusSpan.textContent = '✔ 次回から表示しません';
   } else {
-    localStorage.removeItem('co_heart_buddy_setup_hidden');
+    localStorage.removeItem(getBuddySetupKey());
     if (statusSpan) statusSpan.textContent = '次回から表示しない';
   }
 }

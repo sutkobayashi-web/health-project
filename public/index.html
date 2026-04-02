@@ -3974,16 +3974,17 @@ function saveBuddySetup() {
   var buddy = { avatar: avatar, name: name, personality: _selectedPersonality };
   localStorage.setItem('co_heart_buddy', JSON.stringify(buddy));
   localStorage.setItem('co_heart_buddy_customized', '1');
-  // サーバーにも保存（端末間同期）
+  // サーバーに保存してからバディー初期化
+  document.getElementById('buddy-setup-screen').style.display = 'none';
   if (currentUser && currentUser.uid) {
     fetch('/api/auth/save-buddy', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
       body: JSON.stringify({ uid: currentUser.uid, buddyData: buddy })
-    }).catch(function(){});
+    }).then(function() { initBuddy(); }).catch(function() { initBuddy(); });
+  } else {
+    initBuddy();
   }
-  document.getElementById('buddy-setup-screen').style.display = 'none';
-  initBuddy();
 }
 
 function openBuddySetup() {
@@ -4016,8 +4017,9 @@ function initBuddy() {
   var mainContent = document.querySelector('.main-content');
   if (mainContent) mainContent.style.display = 'none';
 
-  // バディーデータ読み込み（サーバーのみを信頼源とする）
-  localStorage.removeItem('co_heart_buddy');
+  // バディーデータ読み込み（サーバー優先、localStorageフォールバック）
+  var localBuddy = null;
+  try { localBuddy = JSON.parse(localStorage.getItem('co_heart_buddy')); } catch(e) {}
 
   fetch('/api/auth/get-buddy/' + currentUser.uid, {
     headers: { 'Authorization': 'Bearer ' + getToken() }
@@ -4026,24 +4028,22 @@ function initBuddy() {
       // サーバーにあった → localStorageに同期してチャット開始
       localStorage.setItem('co_heart_buddy', JSON.stringify(data.buddyData));
       startBuddyChat(data.buddyData);
+    } else if (localBuddy && localBuddy.avatar !== DEFAULT_BUDDY.avatar) {
+      // サーバーにないがlocalStorageにカスタマイズ済みがある → サーバーに同期
+      fetch('/api/auth/save-buddy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
+        body: JSON.stringify({ uid: currentUser.uid, buddyData: localBuddy })
+      }).catch(function(){});
+      startBuddyChat(localBuddy);
     } else {
-      // サーバーにない → セットアップ画面を表示（初回のみ）
-      var setupKey = 'co_heart_buddy_default_shown_' + currentUser.uid;
-      if (!localStorage.getItem(setupKey)) {
-        localStorage.setItem(setupKey, '1');
-        localStorage.setItem('co_heart_buddy', JSON.stringify(DEFAULT_BUDDY));
-        // まずデフォルトでチャット開始し、すぐセットアップ案内
-        startBuddyChat(DEFAULT_BUDDY);
-      } else {
-        // 2回目以降はデフォルトで開始
-        localStorage.setItem('co_heart_buddy', JSON.stringify(DEFAULT_BUDDY));
-        startBuddyChat(DEFAULT_BUDDY);
-      }
+      // どちらにもない → デフォルトで開始
+      localStorage.setItem('co_heart_buddy', JSON.stringify(DEFAULT_BUDDY));
+      startBuddyChat(DEFAULT_BUDDY);
     }
   }).catch(function() {
-    // 通信エラー → デフォルトで開始
-    localStorage.setItem('co_heart_buddy', JSON.stringify(DEFAULT_BUDDY));
-    startBuddyChat(DEFAULT_BUDDY);
+    // 通信エラー → localStorageかデフォルトで開始
+    startBuddyChat(localBuddy || DEFAULT_BUDDY);
   });
 }
 

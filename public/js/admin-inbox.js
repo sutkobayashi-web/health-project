@@ -283,52 +283,49 @@ function renderReportList(data) {
                     '<button id="inbox-toggle-btn-'+pid+'" class="btn btn-sm btn-outline-primary" style="font-size:0.68rem; padding:3px 12px;" onclick="event.stopPropagation(); toggleInboxDetail(\''+pid+'\')"><i class="fas fa-chevron-down" style="font-size:0.6rem;margin-right:3px;"></i>開く</button>' +
                 '</div>' +
             '</div>' +
-            // 詳細パネル（左右分割モーダル）
-            '<div id="inbox-detail-'+pid+'" style="display:none; border-top:2px solid #667eea;">' +
-                // 左右分割エリア（スマホでは縦並び）
+            // 詳細パネル
+            '<div id="inbox-detail-'+pid+'" style="display:none; border-top:1px solid #e0e0e0;">' +
                 '<div class="inbox-detail-split" style="display:flex; min-height:300px;">' +
-                    // 左: 投稿内容
-                    '<div style="flex:1; padding:12px; overflow-y:auto; max-height:450px; border-right:1px solid #eee;">' +
-                        '<div style="font-size:0.7rem; font-weight:700; color:#667eea; margin-bottom:6px;"><i class="fas fa-file-alt me-1"></i>投稿内容</div>' +
-                        '<div style="font-size:0.85rem; line-height:1.7; color:#333; white-space:pre-wrap; margin-bottom:10px;">'+escapeHtml(rawContent)+'</div>' +
-                        (displayUrl || pointsHtml ? '<div style="display:flex; gap:10px; align-items:flex-start; margin-bottom:10px;">' +
-                            (displayUrl ? '<img src="'+displayUrl+'" style="width:180px; height:180px; object-fit:cover; border-radius:12px; border:1px solid #eee; flex-shrink:0; cursor:pointer;" onclick="event.stopPropagation(); window.open(\''+displayUrl+'\',\'_blank\');" onerror="this.style.display=\'none\'">' : '') +
+                    // 左: 投稿内容+AI分析
+                    '<div style="flex:1; padding:14px; overflow-y:auto; max-height:450px; border-right:1px solid #f0f0f0;">' +
+                        // 投稿本文
+                        '<div style="font-size:0.85rem; line-height:1.8; color:#444; white-space:pre-wrap; margin-bottom:12px; padding:10px; background:#fafafa; border-radius:10px;">'+escapeHtml(rawContent)+'</div>' +
+                        // 写真+ポイント
+                        (displayUrl || pointsHtml ? '<div style="display:flex; gap:10px; align-items:flex-start; margin-bottom:12px;">' +
+                            (displayUrl ? '<img src="'+displayUrl+'" style="width:160px; height:160px; object-fit:cover; border-radius:12px; border:1px solid #eee; flex-shrink:0; cursor:pointer;" onclick="event.stopPropagation(); window.open(\''+displayUrl+'\',\'_blank\');" onerror="this.style.display=\'none\'">' : '') +
                             (pointsHtml ? '<div style="flex:1; min-width:0;">'+pointsHtml+'</div>' : '') +
                         '</div>' : '') +
-                        (aiHtml ? '<div style="margin-top:8px;">'+aiHtml+'</div>' : '') +
-                        // AI自動7軸評価
-                        '<div style="margin-top:10px; padding-top:8px; border-top:1px solid #eee;">' +
-                            '<div style="font-size:0.7rem; font-weight:700; color:#1565c0; margin-bottom:4px;"><i class="fas fa-robot me-1"></i>AI自動7軸評価</div>' +
-                            '<div id="auto-eval-'+pid+'" style="font-size:0.78rem;"></div>' +
-                            '<button class="btn btn-sm btn-outline-primary fw-bold mt-1" style="font-size:0.68rem;" onclick="doAutoEvaluate(\''+pid+'\')"><i class="fas fa-magic me-1"></i>AI評価を実行</button>' +
-                        '</div>' +
-                        // 推進メンバーからの返事
-                        '<div style="margin-top:10px; padding-top:8px; border-top:1px solid #eee;">' +
-                            '<div style="font-size:0.7rem; font-weight:700; color:#d63384; margin-bottom:4px;"><i class="fas fa-reply me-1"></i>投稿者への返事</div>' +
+                        // AI分析
+                        (aiHtml ? '<div style="background:#f8f9ff; border-radius:10px; padding:10px; margin-bottom:12px;">'+aiHtml+'</div>' : '') +
+                        // AI 7軸評価（表示のみ）
+                        '<div id="auto-eval-'+pid+'" style="font-size:0.78rem; margin-bottom:12px;"></div>' +
+                        // 投稿者への返事
+                        '<div style="background:#fdf2f8; border-radius:10px; padding:10px;">' +
+                            '<div style="font-size:0.72rem; font-weight:700; color:#be185d; margin-bottom:6px;"><i class="fas fa-reply me-1"></i>投稿者への返事</div>' +
                             '<div id="reply-sent-'+pid+'" style="display:none; font-size:0.78rem; color:#2e7d32; background:#e8f5e9; padding:6px 10px; border-radius:8px; margin-bottom:6px;"><i class="fas fa-check-circle me-1"></i>送信済み</div>' +
-                            '<textarea id="reply-text-'+pid+'" rows="2" placeholder="投稿者に返事を送る..." style="width:100%; border:1.5px solid #e0c0d0; border-radius:8px; padding:8px; font-size:0.8rem; resize:none; outline:none; box-sizing:border-box;" onfocus="this.style.borderColor=\'#d63384\'" onblur="this.style.borderColor=\'#e0c0d0\'"></textarea>' +
-                            '<div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:4px;">' +
-                                '<button class="btn btn-sm fw-bold" style="font-size:0.68rem; background:linear-gradient(135deg,#d63384,#b0003a); color:white; border:none; border-radius:6px; padding:4px 14px;" onclick="sendReplyToUser(\''+pid+'\',\''+escapeHtml(r[INBOX_COLS.UID]||'')+'\',\''+escapeHtml(r[INBOX_COLS.USER_NAME]||'')+'\')"><i class="fas fa-paper-plane me-1"></i>お知らせで届ける</button>' +
-                                '<button class="btn btn-sm fw-bold" style="font-size:0.68rem; background:linear-gradient(135deg,#0ea5e9,#0284c7); color:white; border:none; border-radius:6px; padding:4px 14px;" onclick="sendReplyViaBuddy(\''+pid+'\',\''+escapeHtml(r[INBOX_COLS.UID]||'')+'\',\''+escapeHtml(r[INBOX_COLS.USER_NAME]||'')+'\')"><i class="fas fa-robot me-1"></i>バディー経由</button>' +
+                            '<textarea id="reply-text-'+pid+'" rows="2" placeholder="投稿者に返事を送る..." style="width:100%; border:1px solid #f0d0e0; border-radius:8px; padding:8px; font-size:0.8rem; resize:none; outline:none; box-sizing:border-box; background:white;" onfocus="this.style.borderColor=\'#d63384\'" onblur="this.style.borderColor=\'#f0d0e0\'"></textarea>' +
+                            '<div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:6px;">' +
+                                '<button class="btn btn-sm fw-bold" style="font-size:0.7rem; background:linear-gradient(135deg,#ec4899,#be185d); color:white; border:none; border-radius:8px; padding:5px 14px;" onclick="sendReplyToUser(\''+pid+'\',\''+escapeHtml(r[INBOX_COLS.UID]||'')+'\',\''+escapeHtml(r[INBOX_COLS.USER_NAME]||'')+'\')"><i class="fas fa-paper-plane me-1"></i>お知らせ</button>' +
+                                '<button class="btn btn-sm fw-bold" style="font-size:0.7rem; background:linear-gradient(135deg,#38bdf8,#0284c7); color:white; border:none; border-radius:8px; padding:5px 14px;" onclick="sendReplyViaBuddy(\''+pid+'\',\''+escapeHtml(r[INBOX_COLS.UID]||'')+'\',\''+escapeHtml(r[INBOX_COLS.USER_NAME]||'')+'\')"><i class="fas fa-robot me-1"></i>バディー経由</button>' +
                             '</div>' +
                         '</div>' +
                     '</div>' +
-                    // 右: 回答一覧+チャット
-                    '<div style="flex:1; display:flex; flex-direction:column; max-height:450px; background:linear-gradient(180deg, #f5f0ff 0%, #f0f4ff 100%);">' +
-                        // 上部: 回答傾向+回答一覧
-                        '<div style="flex-shrink:0; padding:8px 12px; overflow-y:auto; max-height:220px;">' +
-                            '<div style="font-size:0.7rem; font-weight:700; color:#667eea; margin-bottom:4px;"><i class="fas fa-heart me-1"></i>共感 <span id="empathy-count-'+pid+'" style="color:#999;"></span></div>' +
+                    // 右: 共感+議論
+                    '<div style="flex:1; display:flex; flex-direction:column; max-height:450px;">' +
+                        // 共感セクション
+                        '<div style="flex-shrink:0; padding:10px 14px; overflow-y:auto; max-height:220px; background:linear-gradient(180deg,#faf5ff,#f0f4ff);">' +
+                            '<div style="font-size:0.72rem; font-weight:700; color:#7c3aed; margin-bottom:6px;"><i class="fas fa-heart me-1"></i>共感 <span id="empathy-count-'+pid+'" style="color:#a78bfa;"></span></div>' +
                             '<div id="empathy-summary-'+pid+'"></div>' +
-                            '<div style="margin-top:6px; font-size:0.68rem; font-weight:700; color:#333; margin-bottom:2px;"><i class="fas fa-list me-1"></i>回答一覧</div>' +
+                            '<div style="margin-top:8px; font-size:0.7rem; font-weight:700; color:#555; margin-bottom:4px;"><i class="fas fa-list me-1"></i>回答一覧</div>' +
                             '<div id="empathy-members-'+pid+'" style="max-height:120px; overflow-y:auto;"></div>' +
                         '</div>' +
-                        // 下部: 推進メンバー議論チャット
-                        '<div style="flex:1; display:flex; flex-direction:column; border-top:2px solid #d32f2f; background:linear-gradient(180deg, #fff5f5 0%, #fff0f0 100%); padding:8px 12px; min-height:0;">' +
-                            '<div style="font-size:0.7rem; font-weight:700; color:#d32f2f; margin-bottom:4px;"><i class="fas fa-comments me-1"></i>推進メンバー議論</div>' +
-                            '<div id="empathy-member-chats-'+pid+'" style="flex:1; overflow-y:auto; font-size:0.78rem; background:white; border-radius:8px; padding:6px; min-height:80px; max-height:180px; word-break:break-word; border:1px solid #f0e0e0;"></div>' +
-                            '<div style="display:flex; gap:4px; margin-top:4px; flex-shrink:0;">' +
-                                '<textarea id="empathy-chat-input-'+pid+'" placeholder="議論...（Ctrl+Enterで送信）" rows="2" style="flex:1; border:1px solid #ddd; border-radius:8px; padding:5px 8px; font-size:0.75rem; outline:none; resize:none; line-height:1.4;" onkeydown="if(event.key===\'Enter\'&&(event.ctrlKey||event.metaKey)){event.preventDefault();doPostEmpathyChat(\''+pid+'\');}"></textarea>' +
-                                '<button class="btn btn-sm btn-danger" style="font-size:0.68rem; padding:3px 8px; align-self:flex-end;" onclick="doPostEmpathyChat(\''+pid+'\')"><i class="fas fa-paper-plane"></i></button>' +
+                        // メンバー議論チャット
+                        '<div style="flex:1; display:flex; flex-direction:column; border-top:1px solid #e5e7eb; background:#fff; padding:10px 14px; min-height:0;">' +
+                            '<div style="font-size:0.72rem; font-weight:700; color:#667eea; margin-bottom:6px;"><i class="fas fa-comments me-1"></i>推進メンバー議論</div>' +
+                            '<div id="empathy-member-chats-'+pid+'" style="flex:1; overflow-y:auto; font-size:0.78rem; background:#f9fafb; border-radius:8px; padding:8px; min-height:80px; max-height:180px; word-break:break-word; border:1px solid #e5e7eb;"></div>' +
+                            '<div style="display:flex; gap:4px; margin-top:6px; flex-shrink:0;">' +
+                                '<textarea id="empathy-chat-input-'+pid+'" placeholder="コメントを入力...（Ctrl+Enterで送信）" rows="2" style="flex:1; border:1px solid #e5e7eb; border-radius:8px; padding:6px 10px; font-size:0.78rem; outline:none; resize:none; line-height:1.5; background:#f9fafb;" onfocus="this.style.borderColor=\'#667eea\';this.style.background=\'white\'" onblur="this.style.borderColor=\'#e5e7eb\';this.style.background=\'#f9fafb\'" onkeydown="if(event.key===\'Enter\'&&(event.ctrlKey||event.metaKey)){event.preventDefault();doPostEmpathyChat(\''+pid+'\');}"></textarea>' +
+                                '<button class="btn btn-sm" style="font-size:0.72rem; padding:4px 10px; align-self:flex-end; background:#667eea; color:white; border:none; border-radius:8px;" onclick="doPostEmpathyChat(\''+pid+'\')"><i class="fas fa-paper-plane"></i></button>' +
                             '</div>' +
                         '</div>' +
                     '</div>' +

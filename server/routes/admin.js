@@ -569,7 +569,7 @@ router.post('/heartbeat', (req, res) => {
 router.get('/members-status', (req, res) => {
   try {
     const db = getDb();
-    const allMembers = db.prepare('SELECT id, name, email, avatar, is_university, university_org, dept, status FROM core_members').all();
+    const allMembers = db.prepare('SELECT id, name, email, avatar, is_university, university_org, dept, status, show_real_name FROM core_members').all();
     const now = Date.now();
     const result = allMembers.map(m => {
       let avatar = m.avatar || '🛡️';
@@ -579,6 +579,7 @@ router.get('/members-status', (req, res) => {
         id: m.id, name: m.name, email: m.email, avatar,
         dept: m.dept || '', universityOrg: m.university_org || '',
         isUniversity: m.is_university === 1,
+        showRealName: m.show_real_name === 1,
         status: m.status || 'approved',
         online: onlineData ? (now - onlineData.lastSeen) < 5 * 60 * 1000 : false
       };
@@ -680,7 +681,7 @@ router.post('/inbox-comment-delete', (req, res) => {
 router.get('/members-all', (req, res) => {
   try {
     const db = getDb();
-    const members = db.prepare('SELECT id, name, dept, email, phone, avatar, role, is_exec, is_university, university_org, status FROM core_members ORDER BY id').all();
+    const members = db.prepare('SELECT id, name, dept, email, phone, avatar, role, is_exec, is_university, university_org, status, show_real_name FROM core_members ORDER BY id').all();
     res.json(members);
   } catch (e) { res.json([]); }
 });
@@ -689,7 +690,7 @@ router.get('/members-all', (req, res) => {
 router.get('/users-all', (req, res) => {
   try {
     const db = getDb();
-    const users = db.prepare('SELECT id, nickname, avatar, department, real_name, birth_date, created_at FROM users ORDER BY created_at DESC').all();
+    const users = db.prepare('SELECT id, nickname, avatar, department, real_name, birth_date, created_at, show_real_name FROM users ORDER BY created_at DESC').all();
     const postCounts = {};
     db.prepare('SELECT user_id, COUNT(*) as cnt FROM posts GROUP BY user_id').all()
       .forEach(r => { postCounts[r.user_id] = r.cnt; });
@@ -700,15 +701,15 @@ router.get('/users-all', (req, res) => {
 // コアメンバー追加
 router.post('/member-add', (req, res) => {
   try {
-    const { name, email, dept, phone, avatar, role, is_exec, is_university, university_org, password } = req.body;
+    const { name, email, dept, phone, avatar, role, is_exec, is_university, university_org, password, show_real_name } = req.body;
     if (!name || !email) return res.json({ success: false, msg: '氏名とメールアドレスは必須です' });
     const db = getDb();
     const existing = db.prepare('SELECT id FROM core_members WHERE email = ?').get(email.trim().toLowerCase());
     if (existing) return res.json({ success: false, msg: '既に登録済みのメールアドレスです' });
     const crypto = require('crypto');
     const passwordHash = password ? crypto.createHash('sha256').update(password.trim()).digest('hex') : '';
-    db.prepare(`INSERT INTO core_members (name, dept, email, password_hash, phone, avatar, role, is_exec, is_university, university_org, status) VALUES (?,?,?,?,?,?,?,?,?,?,'approved')`)
-      .run(name.trim(), dept || '', email.trim().toLowerCase(), passwordHash, phone || '', avatar || '🛡️', role || 'member', is_exec ? 1 : 0, is_university ? 1 : 0, university_org || '');
+    db.prepare(`INSERT INTO core_members (name, dept, email, password_hash, phone, avatar, role, is_exec, is_university, university_org, status, show_real_name) VALUES (?,?,?,?,?,?,?,?,?,?,'approved',?)`)
+      .run(name.trim(), dept || '', email.trim().toLowerCase(), passwordHash, phone || '', avatar || '🛡️', role || 'member', is_exec ? 1 : 0, is_university ? 1 : 0, university_org || '', show_real_name ? 1 : 0);
     res.json({ success: true, msg: name.trim() + 'さんを追加しました' });
   } catch (e) { res.json({ success: false, msg: e.message }); }
 });
@@ -716,11 +717,11 @@ router.post('/member-add', (req, res) => {
 // コアメンバー更新
 router.post('/member-update', (req, res) => {
   try {
-    const { id, name, email, dept, phone, avatar, role, is_exec, is_university, university_org, password } = req.body;
+    const { id, name, email, dept, phone, avatar, role, is_exec, is_university, university_org, password, show_real_name } = req.body;
     if (!id) return res.json({ success: false, msg: 'IDが必要です' });
     const db = getDb();
-    let sql = 'UPDATE core_members SET name=?, dept=?, email=?, phone=?, avatar=?, role=?, is_exec=?, is_university=?, university_org=?';
-    const params = [name || '', dept || '', (email || '').trim().toLowerCase(), phone || '', avatar || '🛡️', role || 'member', is_exec ? 1 : 0, is_university ? 1 : 0, university_org || ''];
+    let sql = 'UPDATE core_members SET name=?, dept=?, email=?, phone=?, avatar=?, role=?, is_exec=?, is_university=?, university_org=?, show_real_name=?';
+    const params = [name || '', dept || '', (email || '').trim().toLowerCase(), phone || '', avatar || '🛡️', role || 'member', is_exec ? 1 : 0, is_university ? 1 : 0, university_org || '', show_real_name ? 1 : 0];
     if (password) {
       const crypto = require('crypto');
       sql += ', password_hash=?';
@@ -789,6 +790,22 @@ router.post('/user-delete', (req, res) => {
     const user = db.prepare('SELECT nickname FROM users WHERE id = ?').get(id);
     db.prepare('DELETE FROM users WHERE id = ?').run(id);
     res.json({ success: true, msg: (user ? user.nickname : '') + 'さんを削除しました' });
+  } catch (e) { res.json({ success: false, msg: e.message }); }
+});
+
+// 実名表示フラグ切替（コアメンバー/一般ユーザー共用）
+router.post('/toggle-show-real-name', (req, res) => {
+  try {
+    const { id, table, value } = req.body;
+    const db = getDb();
+    if (table === 'core_members') {
+      db.prepare('UPDATE core_members SET show_real_name = ? WHERE id = ?').run(value ? 1 : 0, id);
+    } else if (table === 'users') {
+      db.prepare('UPDATE users SET show_real_name = ? WHERE id = ?').run(value ? 1 : 0, id);
+    } else {
+      return res.json({ success: false, msg: '不正なテーブル指定' });
+    }
+    res.json({ success: true });
   } catch (e) { res.json({ success: false, msg: e.message }); }
 });
 

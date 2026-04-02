@@ -228,6 +228,12 @@ function getDb() {
     )`);
   } catch(e) {}
 
+  // マイグレーション: 個人情報保護フラグ（show_real_name）
+  try { db.exec("ALTER TABLE core_members ADD COLUMN show_real_name INTEGER DEFAULT 0"); } catch(e) {}
+  try { db.exec("ALTER TABLE users ADD COLUMN show_real_name INTEGER DEFAULT 0"); } catch(e) {}
+  // 既存の大学関係者・Exec（取締役/NPO/管理部責任者）は自動で実名表示ON
+  try { db.exec("UPDATE core_members SET show_real_name = 1 WHERE (is_exec = 1 OR is_university = 1) AND show_real_name = 0"); } catch(e) {}
+
   return db;
 }
 

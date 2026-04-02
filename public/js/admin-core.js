@@ -342,7 +342,7 @@ function renderMembersPopup() {
             html += '<div style="display:flex; align-items:center; gap:8px; padding:8px; background:white; border-radius:8px; margin-bottom:6px; border:1px solid #ffe0b2;">' +
                 '<div style="width:36px; height:36px; border-radius:50%; background:#fff3e0; display:flex; justify-content:center; align-items:center; font-size:1.1rem; flex-shrink:0;">' + avatar + '</div>' +
                 '<div style="flex:1; min-width:0;">' +
-                    '<div style="font-weight:700; font-size:0.82rem; color:#333;">' + escapeHtml(m.name) + (m.isUniversity ? ' <span style="font-size:0.55rem; background:#6c5ce7; color:white; padding:1px 5px; border-radius:6px;">大学</span>' : '') + '</div>' +
+                    '<div style="font-weight:700; font-size:0.82rem; color:#333;">' + (m.showRealName ? escapeHtml(m.name) : '●●●●') + (m.isUniversity ? ' <span style="font-size:0.55rem; background:#6c5ce7; color:white; padding:1px 5px; border-radius:6px;">大学</span>' : '') + '</div>' +
                     '<div style="font-size:0.65rem; color:#999;">' + escapeHtml(m.dept || m.universityOrg || m.email) + '</div>' +
                 '</div>' +
                 '<div style="display:flex; gap:4px; flex-shrink:0;">' +
@@ -363,7 +363,7 @@ function renderMembersPopup() {
                 '<div style="position:absolute; bottom:0; right:0; width:12px; height:12px; border-radius:50%; border:2px solid white; background:' + (online ? '#4caf50' : '#bbb') + ';' + (online ? ' animation:heartbeat 1.5s ease-in-out infinite;' : '') + '"></div>' +
             '</div>' +
             '<div style="flex:1; min-width:0;">' +
-                '<div style="font-weight:700; font-size:0.82rem; color:#333;">' + escapeHtml(m.name) + (m.isUniversity ? ' <span style="font-size:0.55rem; background:#6c5ce7; color:white; padding:1px 5px; border-radius:6px;">大学</span>' : '') + '</div>' +
+                '<div style="font-weight:700; font-size:0.82rem; color:#333;">' + (m.showRealName ? escapeHtml(m.name) : '●●●●') + (m.isUniversity ? ' <span style="font-size:0.55rem; background:#6c5ce7; color:white; padding:1px 5px; border-radius:6px;">大学</span>' : '') + '</div>' +
                 '<div style="font-size:0.65rem; color:#999; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">' + escapeHtml(m.email) + '</div>' +
             '</div>' +
             '<div style="font-size:0.6rem; font-weight:700; color:' + (online ? '#4caf50' : '#ccc') + ';">' + (online ? '●' : '○') + '</div>' +
@@ -435,10 +435,12 @@ function renderCoreMembers(members, onlineMap) {
             '<div style="font-size:0.8rem; font-weight:800; color:#e65100; margin-bottom:10px;"><i class="fas fa-exclamation-circle me-1"></i>承認待ち（' + pending.length + '件）</div>';
         pending.forEach(function(m) {
             var avatarHtml = _renderMemberAvatar(m.avatar, '🛡️', 32);
+            var pendingShowName = m.show_real_name === 1;
+            var pendingDisplayName = pendingShowName ? escapeHtml(m.name) : '●●●●';
             html += '<div style="display:flex; align-items:center; gap:10px; padding:10px; background:white; border-radius:8px; margin-bottom:6px; border:1px solid #ffe0b2;">' +
                 '<div style="width:32px;height:32px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;">' + avatarHtml + '</div>' +
                 '<div style="flex:1; min-width:0;">' +
-                    '<div class="fw-bold" style="font-size:0.85rem;">' + escapeHtml(m.name) + (m.is_university ? ' <span class="badge bg-info" style="font-size:0.55rem;">大学</span>' : '') + '</div>' +
+                    '<div class="fw-bold" style="font-size:0.85rem;">' + pendingDisplayName + (m.is_university ? ' <span class="badge bg-info" style="font-size:0.55rem;">大学</span>' : '') + '</div>' +
                     '<div class="text-muted" style="font-size:0.7rem;">' + escapeHtml(m.email) + ' / ' + escapeHtml(m.dept || m.university_org || '') + '</div>' +
                 '</div>' +
                 '<button class="btn btn-sm btn-success fw-bold" style="font-size:0.7rem;" onclick="handleApproveMemberFromTab(' + m.id + ')"><i class="fas fa-check me-1"></i>承認</button>' +
@@ -450,18 +452,23 @@ function renderCoreMembers(members, onlineMap) {
 
     // 承認済みメンバーテーブル
     html += '<table class="table table-hover mb-0" style="font-size:0.85rem;">' +
-        '<thead style="background:#f8f9fa;"><tr><th style="width:50px;"></th><th>氏名</th><th>部署</th><th>メール</th><th>役割</th><th style="width:100px;">操作</th></tr></thead>' +
+        '<thead style="background:#f8f9fa;"><tr><th style="width:50px;"></th><th>氏名</th><th>部署</th><th>メール</th><th>役割</th><th>実名</th><th style="width:100px;">操作</th></tr></thead>' +
         '<tbody>' + approved.map(function(m) {
             var avatarHtml = _renderMemberAvatar(m.avatar, '🛡️', 32);
             var isOnline = onlineMap && onlineMap[m.email];
             var onlineDot = '<div style="position:absolute;bottom:0;right:0;width:10px;height:10px;border-radius:50%;border:2px solid white;background:' + (isOnline ? '#4caf50' : '#ccc') + ';"></div>';
             var roleLabel = m.is_exec ? '<span class="badge bg-danger">Exec</span>' : (m.is_university ? '<span class="badge bg-info">大学</span>' : '<span class="badge bg-secondary">Member</span>');
+            var showName = m.show_real_name === 1;
+            var displayName = showName ? escapeHtml(m.name) : '<span style="color:#999;">●●●●</span>';
+            var toggleIcon = showName ? 'fa-eye' : 'fa-eye-slash';
+            var toggleColor = showName ? '#4caf50' : '#ccc';
             return '<tr>' +
                 '<td class="text-center"><div style="position:relative;width:32px;height:32px;display:inline-block;"><div style="width:32px;height:32px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:1.3rem;">' + avatarHtml + '</div>' + onlineDot + '</div></td>' +
-                '<td class="fw-bold">' + escapeHtml(m.name) + '</td>' +
+                '<td class="fw-bold">' + displayName + '</td>' +
                 '<td>' + escapeHtml(m.dept || m.university_org || '') + '</td>' +
                 '<td class="text-muted small">' + escapeHtml(m.email) + '</td>' +
                 '<td>' + roleLabel + '</td>' +
+                '<td class="text-center"><button class="btn btn-sm" style="font-size:0.75rem; color:' + toggleColor + ';" onclick="toggleShowRealName(\'core_members\',' + m.id + ',' + (showName ? 0 : 1) + ')" title="' + (showName ? '実名非表示にする' : '実名表示にする') + '"><i class="fas ' + toggleIcon + '"></i></button></td>' +
                 '<td><button class="btn btn-outline-primary btn-sm me-1" style="font-size:0.7rem;" onclick=\'openEditCoreMemberModal(' + JSON.stringify(m).replace(/'/g, "&#39;") + ')\'><i class="fas fa-edit"></i></button>' +
                 '<button class="btn btn-outline-danger btn-sm" style="font-size:0.7rem;" onclick="handleDeleteCoreMember(' + m.id + ',\'' + escapeHtml(m.name) + '\')"><i class="fas fa-trash"></i></button></td>' +
                 '</tr>';
@@ -477,19 +484,24 @@ function renderGeneralUsers(users, onlineMap) {
         return;
     }
     area.innerHTML = '<table class="table table-hover mb-0" style="font-size:0.85rem;">' +
-        '<thead style="background:#f8f9fa;"><tr><th style="width:50px;"></th><th>ニックネーム</th><th>本名</th><th>部署</th><th>投稿数</th><th>登録日</th><th style="width:160px;">操作</th></tr></thead>' +
+        '<thead style="background:#f8f9fa;"><tr><th style="width:50px;"></th><th>ニックネーム</th><th>本名</th><th>部署</th><th>投稿数</th><th>登録日</th><th>実名</th><th style="width:160px;">操作</th></tr></thead>' +
         '<tbody>' + users.map(function(u) {
             var avatarHtml = _renderMemberAvatar(u.avatar, '😀', 32);
             var isOnline = onlineMap && onlineMap[u.id];
             var onlineDot = '<div style="position:absolute;bottom:0;right:0;width:10px;height:10px;border-radius:50%;border:2px solid white;background:' + (isOnline ? '#4caf50' : '#ccc') + ';"></div>';
             var dateStr = u.created_at ? new Date(u.created_at + 'Z').toLocaleDateString('ja-JP', { timeZone: 'Asia/Tokyo' }) : '';
+            var showName = u.show_real_name === 1;
+            var displayRealName = showName ? escapeHtml(u.real_name || '') : (u.real_name ? '<span style="color:#999;">●●●●</span>' : '');
+            var toggleIcon = showName ? 'fa-eye' : 'fa-eye-slash';
+            var toggleColor = showName ? '#4caf50' : '#ccc';
             return '<tr>' +
                 '<td class="text-center"><div style="position:relative;width:32px;height:32px;display:inline-block;"><div style="width:32px;height:32px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:1.3rem;">' + avatarHtml + '</div>' + onlineDot + '</div></td>' +
                 '<td class="fw-bold">' + escapeHtml(u.nickname) + '</td>' +
-                '<td>' + escapeHtml(u.real_name || '') + '</td>' +
+                '<td>' + displayRealName + '</td>' +
                 '<td>' + escapeHtml(u.department || '') + '</td>' +
                 '<td class="text-center"><span class="badge bg-primary rounded-pill">' + (u.post_count || 0) + '</span></td>' +
                 '<td class="text-muted small">' + dateStr + '</td>' +
+                '<td class="text-center"><button class="btn btn-sm" style="font-size:0.75rem; color:' + toggleColor + ';" onclick="toggleShowRealName(\'users\',\'' + u.id + '\',' + (showName ? 0 : 1) + ')" title="' + (showName ? '実名非表示にする' : '実名表示にする') + '"><i class="fas ' + toggleIcon + '"></i></button></td>' +
                 '<td><button class="btn btn-outline-success btn-sm me-1" style="font-size:0.7rem;" onclick="sendPersonalMessage(\'' + u.id + '\',\'' + escapeHtml(u.nickname) + '\')" title="お知らせ"><i class="fas fa-envelope"></i></button>' +
                 '<button class="btn btn-outline-info btn-sm me-1" style="font-size:0.7rem;" onclick="sendBuddyMessage(\'' + u.id + '\',\'' + escapeHtml(u.nickname) + '\')" title="バディーチャット"><i class="fas fa-comment-dots"></i></button>' +
                 '<button class="btn btn-outline-primary btn-sm me-1" style="font-size:0.7rem;" onclick=\'openEditUserModal(' + JSON.stringify(u).replace(/'/g, "&#39;") + ')\'><i class="fas fa-edit"></i></button>' +
@@ -529,7 +541,8 @@ function openAddCoreMemberModal() {
         { key: 'avatar', label: 'アバター絵文字', placeholder: '🛡️', value: '🛡️' },
         { key: 'password', label: 'パスワード', type: 'password', placeholder: '初期パスワード' },
         { key: 'role', label: '役割', type: 'select', value: 'member', options: [{ value: 'member', label: 'メンバー' }, { value: 'exec', label: '役員(Exec)' }, { value: 'observer', label: 'オブザーバー' }] },
-        { key: 'is_university', label: '大学関係者', type: 'checkbox', value: false }
+        { key: 'is_university', label: '大学関係者', type: 'checkbox', value: false },
+        { key: 'show_real_name', label: '実名表示を許可（大学/NPO/取締役/管理部）', type: 'checkbox', value: false }
     ], function() {
         var data = {
             name: document.getElementById('mm-name').value.trim(),
@@ -540,7 +553,8 @@ function openAddCoreMemberModal() {
             password: document.getElementById('mm-password').value,
             role: document.getElementById('mm-role').value,
             is_exec: document.getElementById('mm-role').value === 'exec',
-            is_university: document.getElementById('mm-is_university').checked
+            is_university: document.getElementById('mm-is_university').checked,
+            show_real_name: document.getElementById('mm-show_real_name').checked
         };
         if (!data.name || !data.email) { alert('氏名とメールアドレスは必須です'); return; }
         addCoreMember(data).then(function(res) {
@@ -559,7 +573,8 @@ function openEditCoreMemberModal(m) {
         { key: 'avatar', label: 'アバター絵文字', value: m.avatar || '🛡️' },
         { key: 'password', label: 'パスワード（変更時のみ）', type: 'password', placeholder: '未入力なら変更なし' },
         { key: 'role', label: '役割', type: 'select', value: m.is_exec ? 'exec' : (m.role || 'member'), options: [{ value: 'member', label: 'メンバー' }, { value: 'exec', label: '役員(Exec)' }, { value: 'observer', label: 'オブザーバー' }] },
-        { key: 'is_university', label: '大学関係者', type: 'checkbox', value: m.is_university === 1 }
+        { key: 'is_university', label: '大学関係者', type: 'checkbox', value: m.is_university === 1 },
+        { key: 'show_real_name', label: '実名表示を許可（大学/NPO/取締役/管理部）', type: 'checkbox', value: m.show_real_name === 1 }
     ], function() {
         var data = {
             id: m.id,
@@ -571,7 +586,8 @@ function openEditCoreMemberModal(m) {
             password: document.getElementById('mm-password').value || undefined,
             role: document.getElementById('mm-role').value,
             is_exec: document.getElementById('mm-role').value === 'exec',
-            is_university: document.getElementById('mm-is_university').checked
+            is_university: document.getElementById('mm-is_university').checked,
+            show_real_name: document.getElementById('mm-show_real_name').checked
         };
         updateCoreMember(data).then(function(res) {
             alert(res.msg);
@@ -889,7 +905,7 @@ function renderOnlineHeat(coreMembers, onlineUsers) {
 
     // 全オンラインメンバーリスト統合
     var allOnline = [];
-    onlineCore.forEach(function(m) { allOnline.push({ name: m.name, avatar: m.avatar || '🛡️', type: 'core', dept: m.dept || '' }); });
+    onlineCore.forEach(function(m) { allOnline.push({ name: m.show_real_name ? m.name : (m.dept || '推進メンバー'), avatar: m.avatar || '🛡️', type: 'core', dept: m.dept || '' }); });
     onlineUsers.forEach(function(u) { allOnline.push({ name: u.nickname, avatar: u.avatar || '😀', type: 'user', dept: u.department || '' }); });
 
     var glowClass = level >= 3 ? ' dash-card-glow' : '';
@@ -972,4 +988,15 @@ function renderOnlineHeat(coreMembers, onlineUsers) {
 function toggleOnlineHeatDetail() {
     _onlineHeatExpanded = !_onlineHeatExpanded;
     loadOnlineHeat();
+}
+
+// 実名表示フラグ切替
+function toggleShowRealName(table, id, value) {
+    fetch('/admin/toggle-show-real-name', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem('co_heart_admin_token') },
+        body: JSON.stringify({ table: table, id: id, value: value })
+    }).then(function(r) { return r.json(); }).then(function(res) {
+        if (res.success) loadMemberManagement();
+    });
 }

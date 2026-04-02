@@ -14,7 +14,8 @@ CREATE TABLE IF NOT EXISTS users (
   real_name TEXT,
   department TEXT,
   birth_date TEXT,
-  session_token TEXT
+  session_token TEXT,
+  show_real_name INTEGER DEFAULT 0
 );
 
 -- CoreMembers シート → core_members テーブル
@@ -30,7 +31,8 @@ CREATE TABLE IF NOT EXISTS core_members (
   is_exec INTEGER DEFAULT 0,
   is_university INTEGER DEFAULT 0,
   university_org TEXT DEFAULT '',
-  status TEXT DEFAULT 'approved'
+  status TEXT DEFAULT 'approved',
+  show_real_name INTEGER DEFAULT 0
 );
 
 -- Posts シート → posts テーブル

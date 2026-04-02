@@ -204,33 +204,47 @@ function renderReportList(data) {
         var thumbTag = displayUrl ? '<img src="'+displayUrl+'" class="post-thumb" onclick="event.stopPropagation();" onerror="this.style.display=\'none\'">' : '';
         var imgTag = displayUrl ? '<img src="'+displayUrl+'" class="post-img" loading="lazy" onclick="event.stopPropagation(); window.open(\''+displayUrl+'\', \'_blank\');">' : '';
         var aiHtml = (analysisText && analysisText.trim().length > 0) ? '<div class="ai-reply"><i class="fas fa-robot text-primary me-1"></i> '+analysisText.replace(/\n/g,'<br>')+'</div>' : '';
-        // ポイント箇条書き: AI分析からセクションを抽出
+        // ポイント箇条書き: AI分析からセクション見出しを抽出
         var pointsHtml = '';
         if (analysisText && analysisText.length > 20) {
-            var iconMap = { 'カロリー':'🔥', '推定':'🔥', '良い':'✅', '不足':'⚠️', '改善':'⚠️', 'ちょい足し':'💡', '提案':'💡', '塩分':'🧂', 'たんぱく':'🥩', '主菜':'🍖', '主食':'🍚', '副菜':'🥬', '構成':'📊' };
-            // 【セクション名】で区切られたブロックを抽出（番号有無問わず）
-            var fullText = analysisText.split('【AIヘルスアドバイザー】')[0]; // ヘルスアドバイザー部分は除外
-            var sectionRegex = /(?:^\d+\.\s*)?【([^】]+)】([^【]*)/gm;
+            var iconMap = { 'カロリー':'🔥', '推定':'🔥', '良い':'✅', '不足':'⚠️', '改善':'⚠️', 'ちょい足し':'💡', '提案':'💡', '塩分':'🧂', '主菜':'🍖', '主食':'🍚', '副菜':'🥬', '構成':'📊' };
+            var fullText = analysisText.split('【AIヘルスアドバイザー】')[0];
+            // 行頭の【】のみセクション見出しとして抽出（インライン強調の【生卵】等は除外）
+            var lines = fullText.split('\n');
+            var sections = [];
+            var currentTitle = '', currentBody = '';
+            lines.forEach(function(line) {
+                var headerMatch = line.match(/^(?:\d+\.\s*)?【([^】]{3,})】\s*(.*)/);
+                if (headerMatch) {
+                    var t = headerMatch[1].trim();
+                    if (t !== 'AI食事アドバイザー' && t !== 'AIヘルスアドバイザー' && t !== 'AI栄養アドバイザー') {
+                        if (currentTitle) sections.push({ title: currentTitle, body: currentBody.trim() });
+                        currentTitle = t;
+                        currentBody = headerMatch[2] || '';
+                    }
+                } else if (currentTitle) {
+                    currentBody += ' ' + line;
+                }
+            });
+            if (currentTitle) sections.push({ title: currentTitle, body: currentBody.trim() });
             var points = [];
-            var m;
-            while ((m = sectionRegex.exec(fullText)) !== null) {
-                var title = m[1].trim();
-                if (title === 'AI食事アドバイザー' || title === 'AIヘルスアドバイザー') continue;
-                var body = m[2].replace(/\n/g,' ').trim();
+            sections.forEach(function(sec) {
+                var body = sec.body.replace(/【[^】]+】/g, ''); // インライン強調を除去
                 var firstSentence = body.split(/[。！]/).filter(function(s){return s.trim();})[0] || body;
                 if (firstSentence.length > 60) firstSentence = firstSentence.substring(0, 60) + '…';
+                if (!firstSentence) return;
                 var icon = '📌';
-                for (var k in iconMap) { if (title.indexOf(k) !== -1) { icon = iconMap[k]; break; } }
-                points.push('<div style="display:flex; align-items:flex-start; gap:5px; margin-bottom:2px;"><span style="flex-shrink:0; font-size:0.75rem;">' + icon + '</span><div><strong style="color:#795548; font-size:0.72rem;">' + escapeHtml(title) + '</strong> <span style="font-size:0.72rem;">' + escapeHtml(firstSentence) + '</span></div></div>');
-            }
-            // 【】セクションが無い場合、冒頭の数値（カロリー等）を抽出
+                for (var k in iconMap) { if (sec.title.indexOf(k) !== -1) { icon = iconMap[k]; break; } }
+                points.push('<div style="display:flex; align-items:flex-start; gap:5px; margin-bottom:3px;"><span style="flex-shrink:0; font-size:0.8rem;">' + icon + '</span><div><strong style="color:#795548; font-size:0.73rem;">' + escapeHtml(sec.title) + '</strong><br><span style="font-size:0.73rem;">' + escapeHtml(firstSentence) + '</span></div></div>');
+            });
+            // セクションが無い場合、カロリー情報をフォールバック抽出
             if (points.length === 0 && fullText.match(/約\d+kcal/)) {
                 var calMatch = fullText.match(/(約\d+kcal[^。]*。?)/);
-                if (calMatch) points.push('<div style="display:flex; align-items:flex-start; gap:5px; margin-bottom:2px;"><span style="flex-shrink:0; font-size:0.75rem;">🔥</span><div style="font-size:0.72rem;">' + escapeHtml(calMatch[1]) + '</div></div>');
+                if (calMatch) points.push('<div style="display:flex; align-items:flex-start; gap:5px; margin-bottom:3px;"><span style="flex-shrink:0; font-size:0.8rem;">🔥</span><div style="font-size:0.73rem;">' + escapeHtml(calMatch[1]) + '</div></div>');
             }
             if (points.length > 0) {
                 pointsHtml = '<div style="background:linear-gradient(135deg,#fffde7,#fff9c4); border:1px solid #ffe082; border-radius:10px; padding:8px 10px;">' +
-                    '<div style="font-size:0.65rem; font-weight:700; color:#f57f17; margin-bottom:3px;"><i class="fas fa-lightbulb me-1"></i>ポイント</div>' +
+                    '<div style="font-size:0.65rem; font-weight:700; color:#f57f17; margin-bottom:4px;"><i class="fas fa-lightbulb me-1"></i>ポイント</div>' +
                     '<div style="line-height:1.4; color:#555;">' + points.join('') + '</div></div>';
             }
         }

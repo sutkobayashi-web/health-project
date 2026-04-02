@@ -356,3 +356,13 @@ CREATE TABLE IF NOT EXISTS auto_evaluations (
   source_data TEXT,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+
+-- マリガン（ポイント）ログ
+CREATE TABLE IF NOT EXISTS marigan_log (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id TEXT NOT NULL,
+  action TEXT NOT NULL,
+  points INTEGER NOT NULL,
+  ref_id TEXT,
+  created_at TEXT DEFAULT (datetime('now'))
+);

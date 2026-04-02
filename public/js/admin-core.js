@@ -164,6 +164,8 @@ function loadData() {
     // オンラインユーザーヒート表示
     loadOnlineHeat();
     setInterval(loadOnlineHeat, 30000);
+    // マリガンランキング
+    loadMariganRanking();
     // チャット新着通知ポーリング開始
     if (typeof startChatNotifyPolling === 'function') startChatNotifyPolling();
 }
@@ -991,6 +993,39 @@ function renderOnlineHeat(coreMembers, onlineUsers) {
 function toggleOnlineHeatDetail() {
     _onlineHeatExpanded = !_onlineHeatExpanded;
     loadOnlineHeat();
+}
+
+// マリガンランキング読み込み
+function loadMariganRanking() {
+    var area = document.getElementById('marigan-ranking-area');
+    if (!area) return;
+    area.innerHTML = '<div class="text-center py-3"><div class="spinner-border spinner-border-sm text-warning"></div></div>';
+    fetch('/admin/marigan-ranking', {
+        headers: { 'Authorization': 'Bearer ' + localStorage.getItem('co_heart_admin_token') }
+    }).then(function(r) { return r.json(); }).then(function(data) {
+        if (!data.success || !data.ranking || data.ranking.length === 0) {
+            area.innerHTML = '<div class="text-muted text-center p-3" style="font-size:0.8rem;">まだポイントを獲得したユーザーはいません</div>';
+            return;
+        }
+        var medals = ['🥇','🥈','🥉'];
+        var badgeIcons = { bronze:'🥉', silver:'🥈', gold:'🥇', platinum:'👑' };
+        var html = '<div style="padding:10px;">';
+        data.ranking.forEach(function(u, i) {
+            var medal = i < 3 ? '<span style="font-size:1rem;">' + medals[i] + '</span>' : '<span style="font-size:0.7rem; font-weight:800; color:#999; width:20px; text-align:center; display:inline-block;">' + (i+1) + '</span>';
+            var bIcon = badgeIcons[u.marigan_badge] || '';
+            var rewardTag = u.reward_tier && u.reward_tier.reward ? ' <span style="font-size:0.55rem; background:#fef3c7; color:#92400e; padding:1px 5px; border-radius:4px;">🎁' + u.reward_tier.reward + '</span>' : '';
+            html += '<div style="display:flex; align-items:center; gap:8px; padding:6px 8px; border-radius:10px; margin-bottom:3px; background:' + (i < 3 ? 'linear-gradient(135deg,#fffde7,#fff9c4)' : '#f8f9fa') + ';">';
+            html += medal;
+            html += '<div style="width:28px;height:28px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:0.9rem;background:#f0f0f0;flex-shrink:0;">' + (typeof _renderMemberAvatar === 'function' ? _renderMemberAvatar(u.avatar, '😀', 28) : (u.avatar || '😀')) + '</div>';
+            html += '<div style="flex:1; min-width:0; font-size:0.78rem; font-weight:700; color:#333; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">' + escapeHtml(u.nickname) + ' ' + bIcon + rewardTag + '</div>';
+            html += '<div style="font-size:0.9rem; font-weight:900; color:#f57f17;">' + (u.marigan_total || 0) + '<span style="font-size:0.6rem; color:#999;">pt</span></div>';
+            html += '</div>';
+        });
+        html += '</div>';
+        area.innerHTML = html;
+    }).catch(function() {
+        area.innerHTML = '<div class="text-muted text-center p-3" style="font-size:0.8rem;">読み込みエラー</div>';
+    });
 }
 
 // 実名表示フラグ切替

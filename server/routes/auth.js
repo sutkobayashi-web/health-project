@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const { v4: uuidv4 } = require('uuid');
 const { getDb } = require('../services/db');
 const { generateToken, authUser, authAdmin } = require('../middleware/auth');
+const { getMariganInfo, getMariganRanking } = require('../services/marigan');
 const rateLimit = require('express-rate-limit');
 
 const router = express.Router();
@@ -358,6 +359,22 @@ router.get('/ranking', (req, res) => {
   } catch (e) {
     res.json({ success: false, error: e.toString() });
   }
+});
+
+// マリガン情報取得
+router.get('/marigan/:uid', (req, res) => {
+  try {
+    const info = getMariganInfo(req.params.uid);
+    res.json({ success: true, ...info });
+  } catch (e) { res.json({ success: false, msg: e.message }); }
+});
+
+// マリガンランキング
+router.get('/marigan-ranking', (req, res) => {
+  try {
+    const ranking = getMariganRanking(10);
+    res.json({ success: true, ranking });
+  } catch (e) { res.json({ success: false, msg: e.message }); }
 });
 
 // バディータイプ変更

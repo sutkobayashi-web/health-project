@@ -3,6 +3,7 @@ const { v4: uuidv4 } = require('uuid');
 const { getDb } = require('../services/db');
 const { callGroqApi, callAIWithFallback, parsePostScore, evaluateVoiceByAI } = require('../services/ai');
 const { authAdmin } = require('../middleware/auth');
+const { getMariganRanking, BADGE_TIERS } = require('../services/marigan');
 
 const router = express.Router();
 
@@ -825,6 +826,19 @@ router.post('/toggle-show-real-name', (req, res) => {
       return res.json({ success: false, msg: '不正なテーブル指定' });
     }
     res.json({ success: true });
+  } catch (e) { res.json({ success: false, msg: e.message }); }
+});
+
+// マリガンランキング（管理画面用）
+router.get('/marigan-ranking', (req, res) => {
+  try {
+    const ranking = getMariganRanking(20);
+    const badgeNames = { bronze:'ブロンズ', silver:'シルバー', gold:'ゴールド', platinum:'プラチナ' };
+    res.json({ success: true, ranking: ranking.map(u => ({
+      ...u,
+      badge_name: badgeNames[u.marigan_badge] || '',
+      reward_tier: BADGE_TIERS.find(t => t.badge === u.marigan_badge) || null
+    }))});
   } catch (e) { res.json({ success: false, msg: e.message }); }
 });
 

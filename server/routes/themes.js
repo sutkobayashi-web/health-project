@@ -2,6 +2,7 @@ const express = require('express');
 const { v4: uuidv4 } = require('uuid');
 const { getDb } = require('../services/db');
 const { callGroqApi, callAIWithFallback, EVIDENCE_BASE } = require('../services/ai');
+const { awardMarigan } = require('../services/marigan');
 const router = express.Router();
 
 // ============================================================
@@ -743,6 +744,9 @@ router.post('/record', (req, res) => {
     db.prepare(`INSERT INTO kpi_records (challenge_id, user_id, record_date, answers, comment)
       VALUES (?, ?, ?, ?, ?) ON CONFLICT(challenge_id, user_id, record_date) DO UPDATE SET answers=excluded.answers, comment=excluded.comment`)
       .run(challengeId, userId, today, JSON.stringify(answers), comment || '');
+
+    // マリガン付与（KPI記録 2pt）
+    awardMarigan(userId, 'kpi_record', challengeId + '_' + today);
 
     // バッジチェック
     checkAndAwardBadges(db, challengeId, userId);

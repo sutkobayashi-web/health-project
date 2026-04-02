@@ -228,6 +228,20 @@ function getDb() {
     )`);
   } catch(e) {}
 
+  // マリガン（ポイント）テーブル
+  try {
+    db.exec(`CREATE TABLE IF NOT EXISTS marigan_log (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id TEXT NOT NULL,
+      action TEXT NOT NULL,
+      points INTEGER NOT NULL,
+      ref_id TEXT,
+      created_at TEXT DEFAULT (datetime('now'))
+    )`);
+  } catch(e) {}
+  try { db.exec("ALTER TABLE users ADD COLUMN marigan_total INTEGER DEFAULT 0"); } catch(e) {}
+  try { db.exec("ALTER TABLE users ADD COLUMN marigan_badge TEXT DEFAULT ''"); } catch(e) {}
+
   // マイグレーション: 個人情報保護フラグ（show_real_name）
   try { db.exec("ALTER TABLE core_members ADD COLUMN show_real_name INTEGER DEFAULT 0"); } catch(e) {}
   try { db.exec("ALTER TABLE users ADD COLUMN show_real_name INTEGER DEFAULT 0"); } catch(e) {}

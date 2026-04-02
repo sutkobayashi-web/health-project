@@ -536,9 +536,9 @@
             <span id="mypage-dept" style="font-size:0.6rem;font-weight:700;color:#667eea;background:#eef0ff;padding:1px 7px;border-radius:10px;"></span>
             <span id="mypage-rank" style="font-size:0.6rem;"></span>
           </div>
-          <div style="display:flex;align-items:center;gap:6px;margin-top:5px;">
-            <span id="mypage-coin" style="flex:1;font-size:0.65rem;font-weight:700;color:#f57f17;background:linear-gradient(135deg,#fffde7,#fff9c4);padding:4px 10px;border-radius:10px;text-align:center;border:1px solid #ffe082;cursor:pointer;" onclick="showRanking()"><i class="fas fa-coins" style="font-size:0.55rem;"></i> CoWellコイン 0pt</span>
-            <span id="mypage-coin-badge" style="font-size:0.65rem;font-weight:700;color:#667eea;background:#f0f4ff;padding:4px 8px;border-radius:10px;">🌱</span>
+          <div style="display:flex;align-items:center;gap:4px;margin-top:5px;flex-wrap:wrap;">
+            <span id="mypage-coin" style="font-size:0.62rem;font-weight:700;color:#f57f17;background:linear-gradient(135deg,#fffde7,#fff9c4);padding:3px 8px;border-radius:8px;border:1px solid #ffe082;cursor:pointer;white-space:nowrap;" onclick="showRanking()"><i class="fas fa-coins" style="font-size:0.5rem;"></i> 0pt</span>
+            <span id="mypage-coin-badge" style="font-size:0.6rem;font-weight:700;color:#667eea;background:#f0f4ff;padding:3px 6px;border-radius:8px;white-space:nowrap;">🌱</span>
           </div>
         </div>
       </div>
@@ -2655,7 +2655,7 @@ function openMyPosts() {
         var coinEl = document.getElementById('mypage-coin');
         var badgeEl = document.getElementById('mypage-coin-badge');
         var rankEl = document.getElementById('mypage-rank');
-        if (coinEl && mg.total !== undefined) coinEl.innerHTML = '<i class="fas fa-coins" style="font-size:0.55rem;"></i> CoWellコイン ' + (mg.total || 0) + 'pt';
+        if (coinEl && mg.total !== undefined) coinEl.innerHTML = '<i class="fas fa-coins" style="font-size:0.5rem;"></i> ' + (mg.total || 0) + 'pt';
         var badgeIcons = { bronze:'🥉', silver:'🥈', gold:'🥇', platinum:'👑' };
         var badgeNames = { bronze:'ブロンズ', silver:'シルバー', gold:'ゴールド', platinum:'プラチナ' };
         var bIcon = badgeIcons[mg.badge] || '🌱';

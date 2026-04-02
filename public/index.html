@@ -4067,14 +4067,17 @@ function startBuddyChat(buddyData) {
         // バディー経由メッセージも読み込む
         loadBuddyNotices();
         // 履歴復元後は「続きから」メッセージ（最後の発言がこのメッセージ自体なら追加しない）
-        var lastMsg = data.messages[data.messages.length - 1];
-        var alreadyContinued = lastMsg && lastMsg.role === 'assistant' && lastMsg.content && lastMsg.content.indexOf('さっきの続きだね') !== -1;
+        // 「続きから」メッセージはUI表示のみ（サーバー保存しない）
         setTimeout(function() {
-          if (!alreadyContinued) addBuddyMessage('ai', 'さっきの続きだね！何か聞きたいことがあればいつでもどうぞ😊');
+          window._buddyRestoring = true;
+          addBuddyMessage('ai', 'さっきの続きだね！何か聞きたいことがあればいつでもどうぞ😊');
+          window._buddyRestoring = false;
           // カスタマイズ案内（非表示設定されていなければ）
           if (!localStorage.getItem('co_heart_buddy_setup_hidden')) {
             setTimeout(function() {
+              window._buddyRestoring = true;
               addBuddyMessage('ai', '🎨 そういえば、バディーの名前・見た目・性格をカスタマイズできるよ！');
+              window._buddyRestoring = false;
               showBuddySetupPromptWithDismiss();
             }, 1000);
           }

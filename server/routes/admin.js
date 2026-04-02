@@ -45,7 +45,7 @@ router.get('/inbox', (req, res) => {
       const demotesArr = r.demotes ? r.demotes.split(',').filter(x => x) : [];
       const dateStr = new Date(r.created_at + 'Z').toLocaleString('ja-JP', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Tokyo' });
       const latestAvatar = userAvatars[r.user_id] || r.avatar;
-      return [r.id, r.post_id, r.content, r.analysis, r.nickname, latestAvatar, likesArr.length, r.post_id, r.category, r.status, r.user_id, r.image_url, nurse, nutri, dateStr, chatCounts[r.post_id] || 0, isTarget, isPlanned, demotesArr.length, r.admin_read_at || null];
+      return [r.id, r.post_id, r.content, r.analysis, r.nickname, latestAvatar, likesArr.length, r.post_id, r.category, r.status, r.user_id, r.image_url, nurse, nutri, dateStr, chatCounts[r.post_id] || 0, isTarget, isPlanned, demotesArr.length, r.admin_read_at || null, r.nutrition_scores || null];
     });
     res.json(result);
   } catch (e) { res.json([]); }

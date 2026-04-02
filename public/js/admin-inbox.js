@@ -44,7 +44,7 @@
 `; document.head.appendChild(s);})();
 
 /* ── Constants ── */
-var INBOX_COLS = { ROW_ID:1, CONTENT:2, ANALYSIS:3, USER_NAME:4, AVATAR:5, LIKE_COUNT:6, PID:7, CAT:8, STATUS:9, UID:10, IMG:11, DATE:14, CHAT_COUNT:15, ADMIN_READ:19 };
+var INBOX_COLS = { ROW_ID:1, CONTENT:2, ANALYSIS:3, USER_NAME:4, AVATAR:5, LIKE_COUNT:6, PID:7, CAT:8, STATUS:9, UID:10, IMG:11, DATE:14, CHAT_COUNT:15, ADMIN_READ:19, NUTRITION:20 };
 var currentInboxCatFilter = 'all';
 var INBOX_AVATAR_MAP = { "メディカル":"🩺","医":"🩺","ヘルス":"💉","看護":"💉","食事":"🥗","管理":"📝","課長":"📝","事務":"📝","専務":"👨‍⚖️","経営":"👨‍⚖️","佐藤":"💁‍♀️","山本":"👨‍💼","高橋":"👩‍💼","中村":"👨‍💻","伊藤":"👦","林":"👩‍🍳" };
 
@@ -203,7 +203,64 @@ function renderReportList(data) {
         var imgUrl = r[INBOX_COLS.IMG]; var displayUrl = getPostImageUrl(imgUrl);
         var thumbTag = displayUrl ? '<img src="'+displayUrl+'" class="post-thumb" onclick="event.stopPropagation();" onerror="this.style.display=\'none\'">' : '';
         var imgTag = displayUrl ? '<img src="'+displayUrl+'" class="post-img" loading="lazy" onclick="event.stopPropagation(); window.open(\''+displayUrl+'\', \'_blank\');">' : '';
-        var aiHtml = (analysisText && analysisText.trim().length > 0) ? '<div class="ai-reply"><i class="fas fa-robot text-primary me-1"></i> '+analysisText.replace(/\n/g,'<br>')+'</div>' : '';
+        var aiHtml = '';
+        if (analysisText && analysisText.trim().length > 0) {
+            // セクション別色分け表示
+            var colorMap = {
+                '推定カロリー': { bg:'#fff8e1', border:'#ffb300', icon:'🔥' },
+                '良い点': { bg:'#e8f5e9', border:'#4caf50', icon:'✅' },
+                '不足': { bg:'#fce4ec', border:'#e91e63', icon:'⚠️' },
+                '改善': { bg:'#fce4ec', border:'#e91e63', icon:'⚠️' },
+                'ちょい足し': { bg:'#e3f2fd', border:'#2196f3', icon:'💡' },
+                '提案': { bg:'#e3f2fd', border:'#2196f3', icon:'💡' },
+                '塩分': { bg:'#f3e5f5', border:'#9c27b0', icon:'🧂' },
+                'ヘルスアドバイザー': { bg:'#ede7f6', border:'#673ab7', icon:'💜' }
+            };
+            var sections = analysisText.split(/(?=\d+\.\s*【)/);
+            var coloredHtml = '';
+            sections.forEach(function(sec) {
+                var matched = false;
+                for (var key in colorMap) {
+                    if (sec.indexOf(key) !== -1) {
+                        var cm = colorMap[key];
+                        coloredHtml += '<div style="background:'+cm.bg+'; border-left:3px solid '+cm.border+'; border-radius:6px; padding:6px 10px; margin-bottom:4px; font-size:0.8rem; line-height:1.5;">'+cm.icon+' '+sec.replace(/\n/g,'<br>')+'</div>';
+                        matched = true;
+                        break;
+                    }
+                }
+                if (!matched && sec.trim()) {
+                    coloredHtml += '<div style="font-size:0.8rem; line-height:1.5; margin-bottom:4px;">'+sec.replace(/\n/g,'<br>')+'</div>';
+                }
+            });
+            aiHtml = '<div class="ai-reply"><div style="font-size:0.7rem; font-weight:700; color:#667eea; margin-bottom:6px;"><i class="fas fa-robot me-1"></i>AI分析</div>'+coloredHtml+'</div>';
+        }
+        // 栄養バーチャート
+        var nutBarHtml = '';
+        var nutRaw = r[INBOX_COLS.NUTRITION];
+        if (nutRaw) {
+            try {
+                var ns = typeof nutRaw === 'string' ? JSON.parse(nutRaw) : nutRaw;
+                var nutItems = [
+                    { key:'protein', label:'たんぱく', color:'#e74c3c' },
+                    { key:'fat', label:'脂質', color:'#f39c12' },
+                    { key:'carbs', label:'炭水化物', color:'#3498db' },
+                    { key:'vitamin', label:'ビタミン', color:'#2ecc71' },
+                    { key:'mineral', label:'ミネラル', color:'#9b59b6' },
+                    { key:'salt', label:'塩分', color:'#e67e22' }
+                ];
+                nutBarHtml = '<div style="display:grid; grid-template-columns:1fr 1fr; gap:3px 10px; min-width:180px; max-width:240px;">';
+                nutItems.forEach(function(ni) {
+                    var v = parseInt(ns[ni.key]) || 0;
+                    var pct = Math.min(v * 20, 100);
+                    nutBarHtml += '<div style="display:flex; align-items:center; gap:4px;">' +
+                        '<span style="font-size:0.6rem; width:42px; text-align:right; color:#666; flex-shrink:0;">' + ni.label + '</span>' +
+                        '<div style="flex:1; height:8px; background:#f0f0f0; border-radius:4px; overflow:hidden;">' +
+                        '<div style="width:'+pct+'%; height:100%; background:'+ni.color+'; border-radius:4px;"></div></div>' +
+                        '<span style="font-size:0.6rem; width:12px; color:#999;">'+v+'</span></div>';
+                });
+                nutBarHtml += '</div>';
+            } catch(e) {}
+        }
         var isHidden = (currentInboxCatFilter !== 'all' && currentInboxCatFilter !== cardCat);
         if(!isHidden) visibleCount++;
         var sheetRow = parseInt(r[0]) + 1;
@@ -230,6 +287,7 @@ function renderReportList(data) {
                 ' '+empathyBadge+' '+commentBadge+' '+chatBadge+' '+chatUnreadBadge+'</div>' +
                 '<div style="display:flex; gap:8px; align-items:flex-start;">' +
                     (thumbTag ? thumbTag : '') +
+                    (nutBarHtml ? nutBarHtml : '') +
                     '<div style="flex:1; min-width:0; font-size:0.85rem; line-height:1.5; color:#444; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">'+escapeHtml(rawContent)+'</div>' +
                 '</div>' +
                 // 共感サマリー（開くボタンの上）
@@ -248,6 +306,7 @@ function renderReportList(data) {
                         '<div style="font-size:0.7rem; font-weight:700; color:#667eea; margin-bottom:6px;"><i class="fas fa-file-alt me-1"></i>投稿内容</div>' +
                         '<div style="font-size:0.85rem; line-height:1.7; color:#333; white-space:pre-wrap; margin-bottom:10px;">'+escapeHtml(rawContent)+'</div>' +
                         (displayUrl ? '<img src="'+displayUrl+'" style="width:220px; height:220px; object-fit:cover; border-radius:12px; border:1px solid #eee; margin-bottom:10px; cursor:pointer;" onclick="event.stopPropagation(); window.open(\''+displayUrl+'\',\'_blank\');" onerror="this.style.display=\'none\'">' : '') +
+                        (nutBarHtml ? '<div style="margin:8px 0; padding:10px; background:#f8f9fa; border-radius:10px; border:1px solid #eee;"><div style="font-size:0.7rem; font-weight:700; color:#20c997; margin-bottom:6px;"><i class="fas fa-chart-bar me-1"></i>栄養バランス</div>'+nutBarHtml+'</div>' : '') +
                         (aiHtml ? '<div style="margin-top:8px;">'+aiHtml+'</div>' : '') +
                         // AI自動7軸評価
                         '<div style="margin-top:10px; padding-top:8px; border-top:1px solid #eee;">' +

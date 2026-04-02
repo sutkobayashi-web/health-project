@@ -229,7 +229,7 @@ function renderReportList(data) {
             if (currentTitle) sections.push({ title: currentTitle, body: currentBody.trim() });
             var points = [];
             sections.forEach(function(sec) {
-                var body = sec.body.replace(/【[^】]+】/g, ''); // インライン強調を除去
+                var body = sec.body.replace(/【([^】]+)】/g, '$1'); // インライン強調の括弧だけ外す
                 var firstSentence = body.split(/[。！]/).filter(function(s){return s.trim();})[0] || body;
                 if (firstSentence.length > 60) firstSentence = firstSentence.substring(0, 60) + '…';
                 if (!firstSentence) return;

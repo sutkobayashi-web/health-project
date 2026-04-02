@@ -15,7 +15,7 @@
 <script>
 // SW+キャッシュ完全クリア→強制リロード
 (function(){
-  var v='20260403d';
+  var v='20260403e';
   if(localStorage.getItem('app_version')!==v){
     localStorage.setItem('app_version',v);
     // Service Worker全解除+キャッシュ全削除
@@ -3087,7 +3087,7 @@ function hideLoading() { document.getElementById('loading-overlay').style.displa
   position: fixed; bottom: 0; left: 0; right: 0; z-index: 2500;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-top: none;
   display: flex; justify-content: space-around; align-items: center;
-  padding: 4px 0 calc(4px + env(safe-area-inset-bottom, 0px));
+  padding: 4px 0 calc(8px + env(safe-area-inset-bottom, 8px));
   box-shadow: 0 -2px 12px rgba(0,0,0,0.08);
 }
 .bnav-item {

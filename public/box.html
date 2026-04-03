@@ -110,12 +110,14 @@ body{display:flex;flex-direction:column;}
 <div class="tab-nav" id="tabNav" style="display:none;">
   <div class="tab-btn active" onclick="showTab('files')"><i class="fas fa-folder"></i> ファイル</div>
   <div class="tab-btn" onclick="showTab('users')"><i class="fas fa-users"></i> ユーザー</div>
+  <div class="tab-btn" onclick="showTab('monitor')"><i class="fas fa-satellite-dish"></i> モニター</div>
   <div class="tab-btn" onclick="showTab('logs')"><i class="fas fa-history"></i> ログ</div>
 </div>
 
 <div class="main-area" id="mainArea" style="display:none;">
   <div id="tabFiles"></div>
   <div id="tabUsers" style="display:none;"></div>
+  <div id="tabMonitor" style="display:none;"></div>
   <div id="tabLogs" style="display:none;"></div>
 </div>
 
@@ -215,13 +217,111 @@ function api(url, opts) {
 }
 
 // Tabs
+var monitorTimer = null;
 function showTab(tab) {
-  document.querySelectorAll('.tab-btn').forEach(function(b, i) { b.classList.toggle('active', ['files','users','logs'][i] === tab); });
-  document.getElementById('tabFiles').style.display = tab === 'files' ? 'block' : 'none';
-  document.getElementById('tabUsers').style.display = tab === 'users' ? 'block' : 'none';
-  document.getElementById('tabLogs').style.display = tab === 'logs' ? 'block' : 'none';
+  var tabs = ['files','users','monitor','logs'];
+  document.querySelectorAll('.tab-btn').forEach(function(b, i) { b.classList.toggle('active', tabs[i] === tab); });
+  tabs.forEach(function(t) { var el = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1)); if (el) el.style.display = t === tab ? 'block' : 'none'; });
+  if (monitorTimer) { clearInterval(monitorTimer); monitorTimer = null; }
   if (tab === 'users') loadUsers();
   if (tab === 'logs') loadLogs();
+  if (tab === 'monitor') { loadMonitor(); monitorTimer = setInterval(loadMonitor, 15000); }
+}
+
+// Monitor - リアルタイムモニタリング
+var lastMonitorEvents = [];
+async function loadMonitor() {
+  var el = document.getElementById('tabMonitor');
+  if (!lastMonitorEvents.length) el.innerHTML = '<div class="empty"><div class="spinner"></div> リアルタイム監視中...</div>';
+  var after = new Date(Date.now() - 60*60*1000).toISOString(); // 直近1時間
+  var res = await api('/api/box/logs?after=' + encodeURIComponent(after));
+  if (!res.success) return;
+  var events = res.events || [];
+  // 新着検出
+  var isNew = events.length !== lastMonitorEvents.length || (events[0] && lastMonitorEvents[0] && events[0].date !== lastMonitorEvents[0].date);
+  lastMonitorEvents = events;
+
+  // ユーザー別にアクティブ状態を集計
+  var activeUsers = {};
+  events.forEach(function(e) {
+    if (!activeUsers[e.user]) activeUsers[e.user] = { events: [], files: new Set(), types: new Set(), lastSeen: '' };
+    var u = activeUsers[e.user];
+    u.events.push(e);
+    if (e.file) u.files.add(e.file);
+    u.types.add(e.type);
+    if (!u.lastSeen || e.date > u.lastSeen) u.lastSeen = e.date;
+  });
+
+  var now = new Date();
+  var html = '<div style="padding:10px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #eee;background:#fff;">';
+  html += '<div style="width:10px;height:10px;border-radius:50%;background:#4caf50;animation:pulse 1.5s infinite;"></div>';
+  html += '<span style="font-size:0.78rem;font-weight:700;color:#333;">リアルタイム監視中</span>';
+  html += '<span style="font-size:0.65rem;color:#999;margin-left:auto;">15秒ごと更新 · 直近1時間 · ' + events.length + '件</span>';
+  html += '</div>';
+  html += '<style>@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}</style>';
+
+  // アクティブユーザーカード
+  var sortedUsers = Object.keys(activeUsers).sort(function(a,b) { return new Date(activeUsers[b].lastSeen) - new Date(activeUsers[a].lastSeen); });
+  if (sortedUsers.length === 0) {
+    html += '<div class="empty"><i class="fas fa-moon" style="font-size:2rem;display:block;margin-bottom:8px;color:#ccc;"></i>直近1時間のアクティビティはありません</div>';
+  } else {
+    html += '<div style="padding:10px 12px;">';
+    sortedUsers.forEach(function(name) {
+      var u = activeUsers[name];
+      var lastDate = new Date(u.lastSeen);
+      var diffMin = Math.round((now - lastDate) / 60000);
+      var isOnline = diffMin < 5;
+      var statusColor = isOnline ? '#4caf50' : diffMin < 15 ? '#ff9800' : '#999';
+      var statusText = isOnline ? 'アクティブ' : diffMin + '分前';
+      var typeIcons = [];
+      if (u.types.has('LOGIN')) typeIcons.push('<span style="background:#e3f2fd;color:#1565c0;padding:1px 5px;border-radius:4px;font-size:0.6rem;font-weight:700;">LOGIN</span>');
+      if (u.types.has('EDIT') || u.types.has('UPLOAD')) typeIcons.push('<span style="background:#fff3e0;color:#e65100;padding:1px 5px;border-radius:4px;font-size:0.6rem;font-weight:700;">編集</span>');
+      if (u.types.has('DOWNLOAD')) typeIcons.push('<span style="background:#e8f5e9;color:#2e7d32;padding:1px 5px;border-radius:4px;font-size:0.6rem;font-weight:700;">DL</span>');
+      if (u.types.has('PREVIEW') || u.types.has('CONTENT_ACCESS')) typeIcons.push('<span style="background:#f3e5f5;color:#7b1fa2;padding:1px 5px;border-radius:4px;font-size:0.6rem;font-weight:700;">閲覧</span>');
+
+      html += '<div style="background:#fff;border-radius:12px;padding:12px;margin-bottom:8px;box-shadow:0 1px 4px rgba(0,0,0,0.04);">';
+      // ヘッダー
+      html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">';
+      html += '<div style="width:10px;height:10px;border-radius:50%;background:' + statusColor + ';flex-shrink:0;' + (isOnline ? 'animation:pulse 1.5s infinite;' : '') + '"></div>';
+      html += '<span style="font-weight:800;font-size:0.85rem;color:#333;">' + esc(name) + '</span>';
+      html += '<span style="font-size:0.65rem;color:' + statusColor + ';font-weight:700;">' + statusText + '</span>';
+      html += '<span style="margin-left:auto;font-size:0.65rem;color:#999;">' + u.events.length + '件</span>';
+      html += '</div>';
+      // アクションタグ
+      html += '<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px;">' + typeIcons.join('') + '</div>';
+      // 最近アクセスしたファイル（最新5件）
+      var recentFiles = u.events.filter(function(e) { return e.file; }).slice(0, 5);
+      if (recentFiles.length > 0) {
+        html += '<div style="font-size:0.68rem;color:#888;margin-bottom:3px;">アクセス中のファイル:</div>';
+        recentFiles.forEach(function(e) {
+          var ft = new Date(e.date).toLocaleString('ja-JP', { timeZone:'Asia/Tokyo', hour:'2-digit', minute:'2-digit' });
+          var typeColor = e.type === 'EDIT' || e.type === 'UPLOAD' ? '#e65100' : e.type === 'DOWNLOAD' ? '#2e7d32' : '#555';
+          html += '<div style="display:flex;align-items:center;gap:6px;padding:3px 0;font-size:0.7rem;border-bottom:1px solid #fafafa;">';
+          html += '<span style="color:#bbb;width:36px;flex-shrink:0;">' + ft + '</span>';
+          html += '<span style="color:' + typeColor + ';font-weight:700;width:55px;flex-shrink:0;font-size:0.6rem;">' + e.type + '</span>';
+          html += '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#444;">' + esc(e.file) + '</span>';
+          html += '</div>';
+        });
+      }
+      html += '</div>';
+    });
+    html += '</div>';
+  }
+
+  // リアルタイムストリーム（全イベント時系列、最新20件）
+  html += '<div style="padding:8px 14px;font-weight:700;font-size:0.78rem;color:#555;border-top:1px solid #eee;background:#fff;"><i class="fas fa-stream" style="color:#0061d5;"></i> イベントストリーム</div>';
+  events.slice(0, 30).forEach(function(e) {
+    var dt = e.date ? new Date(e.date).toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo', hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '';
+    var typeColor = { LOGIN:'#0061d5', DOWNLOAD:'#2e7d32', UPLOAD:'#7b1fa2', EDIT:'#e65100', PREVIEW:'#555', DELETE:'#e53935', CONTENT_ACCESS:'#888' }[e.type] || '#333';
+    html += '<div style="display:flex;gap:6px;padding:5px 14px;border-bottom:1px solid #f8f8f8;font-size:0.7rem;align-items:center;">';
+    html += '<span style="color:#bbb;width:55px;flex-shrink:0;">' + dt + '</span>';
+    html += '<span style="color:' + typeColor + ';font-weight:700;width:70px;flex-shrink:0;font-size:0.6rem;">' + e.type + '</span>';
+    html += '<span style="color:#0061d5;font-weight:600;width:70px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(e.user) + '</span>';
+    html += '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#444;">' + esc(e.file) + '</span>';
+    html += '</div>';
+  });
+
+  el.innerHTML = html;
 }
 
 // Files

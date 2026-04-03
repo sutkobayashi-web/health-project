@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260330c">
+<html data-app-version="20260403_1318">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -48,6 +48,8 @@
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; }
   html, body { background: #f0f0f5; overflow: hidden; overscroll-behavior: none; position: fixed; width: 100%; height: 100%; margin: 0; }
   #main-app, #auth-modal { touch-action: manipulation; }
+  #buddy-action-bar { touch-action: pan-x !important; -webkit-overflow-scrolling: touch; scroll-behavior: smooth; }
+  #buddy-action-bar::-webkit-scrollbar { display: none; }
   #buddy-messages, #my-posts-list, #my-memos-list, .main-content { touch-action: pan-y; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
   /* フォントサイズ切替 */
   html.font-large { font-size: 120%; }
@@ -710,7 +712,7 @@
       <div id="buddy-messages" style="height:100%;overflow-y:auto;overscroll-behavior:contain;padding:12px;display:flex;flex-direction:column;gap:8px;"></div>
     </div>
     <!-- インラインアクションバー -->
-    <div id="buddy-action-bar" style="flex-shrink:0;background:#f0f9ff;border-top:1px solid #e0e8f0;padding:6px 10px;display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;">
+    <div id="buddy-action-bar" style="flex-shrink:0;background:#f0f9ff;border-top:1px solid #e0e8f0;padding:6px 10px;display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;touch-action:pan-x;-ms-touch-action:pan-x;">
       <button onclick="inlineConsult()" class="buddy-action-btn" style="display:flex;align-items:center;gap:5px;padding:8px 14px;background:linear-gradient(135deg,#ec407a,#f48fb1);color:white;border:none;border-radius:20px;font-size:0.75rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;box-shadow:0 2px 8px rgba(236,64,122,0.25);font-family:inherit;">
         <i class="far fa-comment-dots"></i> みんなに相談・提案
       </button>

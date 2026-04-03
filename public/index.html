@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260403_1325">
+<html data-app-version="20260403_1330">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -13,12 +13,13 @@
 <link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/img/favicon-16.png">
 <script>
-// SW+キャッシュ完全クリア→強制リロード
+// 自動キャッシュクリア: サーバーのバージョンと比較→不一致なら全クリア+リロード
 (function(){
-  var v='20260403f';
-  if(localStorage.getItem('app_version')!==v){
-    localStorage.setItem('app_version',v);
-    // Service Worker全解除+キャッシュ全削除
+  var htmlVer = document.documentElement.getAttribute('data-app-version') || '';
+  var localVer = localStorage.getItem('app_version') || '';
+  // HTMLのバージョンとlocalStorageが違えば即クリア+リロード
+  if(htmlVer && localVer !== htmlVer){
+    localStorage.setItem('app_version', htmlVer);
     if('serviceWorker' in navigator){
       navigator.serviceWorker.getRegistrations().then(function(regs){
         regs.forEach(function(r){r.unregister();});
@@ -29,13 +30,32 @@
         keys.forEach(function(k){caches.delete(k);});
       });
     }
-    // リロード
     if(!window.location.search.includes('_r=')){
       var p=new URLSearchParams(window.location.search);
       p.set('_r',Date.now());
       setTimeout(function(){window.location.replace(window.location.pathname+'?'+p.toString());},500);
+      return;
     }
   }
+  // バックグラウンド定期チェック(60秒ごと): サーバーのバージョンと比較
+  setInterval(function(){
+    fetch('/api/version',{cache:'no-store'}).then(function(r){return r.json();}).then(function(d){
+      if(d.version && d.version !== localStorage.getItem('app_version')){
+        localStorage.setItem('app_version', d.version);
+        if('serviceWorker' in navigator){
+          navigator.serviceWorker.getRegistrations().then(function(regs){
+            regs.forEach(function(r){r.unregister();});
+          });
+        }
+        if('caches' in window){
+          caches.keys().then(function(keys){
+            keys.forEach(function(k){caches.delete(k);});
+          });
+        }
+        window.location.reload();
+      }
+    }).catch(function(){});
+  }, 60000);
 }());
 </script>
 <script>

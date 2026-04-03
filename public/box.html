@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Box Manager - ファイル管理</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;font-family:'Noto Sans JP',sans-serif;background:#f0f2f5;color:#333;}
+body{display:flex;flex-direction:column;}
+
+/* Login */
+#loginWrap{position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,#0061d5,#003d88);display:flex;align-items:center;justify-content:center;padding:20px;}
+#loginWrap.hidden{display:none;}
+.login-card{background:#fff;border-radius:16px;padding:28px 24px;max-width:360px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,0.2);text-align:center;}
+.login-card h1{font-size:1.1rem;color:#0061d5;margin:12px 0 4px;}
+.login-card p{font-size:0.75rem;color:#888;margin-bottom:16px;}
+.login-card input{width:100%;padding:11px 14px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:14px;margin-bottom:10px;outline:none;}
+.login-card input:focus{border-color:#0061d5;}
+.login-card button{width:100%;padding:12px;background:#0061d5;color:#fff;border:none;border-radius:10px;font-weight:700;font-size:0.95rem;cursor:pointer;}
+.login-error{color:#e53935;font-size:0.78rem;min-height:20px;margin-bottom:6px;}
+
+/* Header */
+.app-header{height:50px;flex-shrink:0;background:#0061d5;display:flex;align-items:center;padding:0 16px;color:#fff;font-weight:700;font-size:0.88rem;gap:10px;}
+.app-header .spacer{flex:1;}
+.app-header button{background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);color:#fff;padding:4px 10px;border-radius:6px;font-size:0.7rem;cursor:pointer;}
+
+/* Breadcrumb */
+.breadcrumb{padding:8px 14px;font-size:0.72rem;color:#666;background:#fff;border-bottom:1px solid #eee;display:flex;align-items:center;gap:4px;flex-wrap:wrap;flex-shrink:0;}
+.breadcrumb span{cursor:pointer;color:#0061d5;font-weight:600;}
+.breadcrumb span:hover{text-decoration:underline;}
+
+/* Tab nav */
+.tab-nav{display:flex;border-bottom:2px solid #e0e0e0;background:#fff;flex-shrink:0;}
+.tab-btn{flex:1;padding:10px;text-align:center;font-size:0.78rem;font-weight:700;color:#888;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 0.2s;}
+.tab-btn.active{color:#0061d5;border-bottom-color:#0061d5;}
+
+/* Main */
+.main-area{flex:1;overflow-y:auto;overscroll-behavior:contain;}
+
+/* File list */
+.file-item{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid #f0f0f0;cursor:pointer;background:#fff;transition:background 0.15s;}
+.file-item:active{background:#e8f0fe;}
+.file-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;}
+.file-icon.folder{background:#e3f2fd;color:#1565c0;}
+.file-icon.file{background:#f3e5f5;color:#7b1fa2;}
+.file-info{flex:1;min-width:0;}
+.file-name{font-weight:700;font-size:0.82rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.file-meta{font-size:0.65rem;color:#999;}
+.file-share{font-size:0.6rem;padding:2px 6px;border-radius:4px;font-weight:700;}
+.file-share.shared{background:#e8f5e9;color:#2e7d32;}
+.file-share.locked{background:#fff3e0;color:#e65100;}
+
+/* Share modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:5000;display:none;align-items:center;justify-content:center;padding:16px;}
+.modal-overlay.active{display:flex;}
+.modal-box{background:#fff;border-radius:14px;padding:20px;max-width:420px;width:100%;max-height:80vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.2);}
+.modal-title{font-weight:900;font-size:0.95rem;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.modal-close{background:none;border:none;font-size:1.1rem;color:#999;cursor:pointer;margin-left:auto;}
+.form-group{margin-bottom:10px;}
+.form-label{font-size:0.72rem;font-weight:700;color:#555;margin-bottom:4px;display:block;}
+.form-input{width:100%;padding:10px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:0.85rem;outline:none;}
+.form-input:focus{border-color:#0061d5;}
+.form-select{width:100%;padding:10px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:0.85rem;outline:none;background:#fff;}
+.btn-primary{padding:10px 20px;background:#0061d5;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:0.85rem;cursor:pointer;width:100%;}
+.btn-danger{padding:8px 14px;background:#e53935;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:0.78rem;cursor:pointer;}
+.btn-sm{padding:5px 10px;font-size:0.7rem;border-radius:6px;font-weight:700;cursor:pointer;border:none;}
+
+/* Collab list */
+.collab-item{display:flex;align-items:center;gap:8px;padding:8px;background:#f8f9fa;border-radius:8px;margin-bottom:4px;font-size:0.78rem;}
+.collab-role{font-size:0.65rem;padding:2px 6px;border-radius:4px;font-weight:700;background:#e3f2fd;color:#1565c0;}
+
+/* Log list */
+.log-item{padding:6px 14px;border-bottom:1px solid #f5f5f5;font-size:0.72rem;display:flex;gap:8px;align-items:flex-start;}
+.log-date{color:#999;flex-shrink:0;width:110px;}
+.log-type{font-weight:700;width:80px;flex-shrink:0;}
+.log-type.LOGIN{color:#0061d5;} .log-type.DOWNLOAD{color:#2e7d32;} .log-type.UPLOAD{color:#7b1fa2;} .log-type.EDIT{color:#e65100;} .log-type.PREVIEW{color:#555;} .log-type.DELETE{color:#e53935;}
+
+.empty{text-align:center;padding:40px;color:#999;font-size:0.85rem;}
+.spinner{display:inline-block;width:20px;height:20px;border:2px solid #e0e0e0;border-top-color:#0061d5;border-radius:50%;animation:spin .6s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+</style>
+</head>
+<body>
+
+<div id="loginWrap">
+  <div class="login-card">
+    <i class="fas fa-box-open" style="font-size:2.5rem;color:#0061d5;"></i>
+    <h1>Box Manager</h1>
+    <p>Boxアカウントでログイン</p>
+    <div id="loginError" class="login-error"></div>
+    <input type="email" id="loginEmail" placeholder="メールアドレス">
+    <input type="password" id="loginPass" placeholder="パスワード">
+    <button onclick="doLogin()"><i class="fas fa-sign-in-alt"></i> ログイン</button>
+  </div>
+</div>
+
+<header class="app-header" id="appHeader" style="display:none;">
+  <i class="fas fa-box-open"></i> Box Manager
+  <span id="headerUser" style="font-size:0.7rem;font-weight:400;opacity:0.8;"></span>
+  <div class="spacer"></div>
+  <button onclick="showTab('logs')"><i class="fas fa-history"></i> ログ</button>
+  <button onclick="doLogout()"><i class="fas fa-sign-out-alt"></i></button>
+</header>
+
+<div class="breadcrumb" id="breadcrumb" style="display:none;"></div>
+
+<div class="tab-nav" id="tabNav" style="display:none;">
+  <div class="tab-btn active" onclick="showTab('files')"><i class="fas fa-folder"></i> ファイル</div>
+  <div class="tab-btn" onclick="showTab('users')"><i class="fas fa-users"></i> ユーザー</div>
+  <div class="tab-btn" onclick="showTab('logs')"><i class="fas fa-history"></i> ログ</div>
+</div>
+
+<div class="main-area" id="mainArea" style="display:none;">
+  <div id="tabFiles"></div>
+  <div id="tabUsers" style="display:none;"></div>
+  <div id="tabLogs" style="display:none;"></div>
+</div>
+
+<!-- Share Modal -->
+<div class="modal-overlay" id="shareModal">
+  <div class="modal-box">
+    <div class="modal-title"><i class="fas fa-share-alt" style="color:#0061d5;"></i> 共有設定 <button class="modal-close" onclick="closeModal('shareModal')"><i class="fas fa-times"></i></button></div>
+    <div id="shareTarget" style="font-size:0.8rem;font-weight:700;color:#333;margin-bottom:12px;"></div>
+    <div class="form-group">
+      <label class="form-label">アクセス範囲</label>
+      <select class="form-select" id="shareAccess">
+        <option value="company">社内のみ</option>
+        <option value="collaborators">コラボレーターのみ</option>
+        <option value="open">リンクを知っている全員</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">パスワード（任意）</label>
+      <input type="text" class="form-input" id="sharePassword" placeholder="パスワードを設定...">
+    </div>
+    <div class="form-group">
+      <label style="font-size:0.78rem;display:flex;align-items:center;gap:6px;"><input type="checkbox" id="shareDownload" checked style="width:16px;height:16px;"> ダウンロード許可</label>
+    </div>
+    <button class="btn-primary" onclick="saveShare()"><i class="fas fa-save"></i> 保存</button>
+    <button class="btn-danger" style="width:100%;margin-top:8px;" onclick="removeShare()"><i class="fas fa-unlink"></i> 共有を解除</button>
+    <div style="margin-top:14px;border-top:1px solid #eee;padding-top:12px;">
+      <div style="font-weight:700;font-size:0.8rem;margin-bottom:8px;"><i class="fas fa-users"></i> コラボレーター</div>
+      <div id="collabList"></div>
+      <div style="display:flex;gap:4px;margin-top:8px;">
+        <input type="email" class="form-input" id="collabEmail" placeholder="メールアドレス" style="flex:1;">
+        <select class="form-select" id="collabRole" style="width:100px;">
+          <option value="viewer">閲覧者</option>
+          <option value="editor">編集者</option>
+          <option value="co-owner">共同所有者</option>
+        </select>
+        <button class="btn-sm" style="background:#0061d5;color:#fff;" onclick="addCollab()"><i class="fas fa-plus"></i></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+var session = '';
+var currentUser = null;
+var currentFolder = '0';
+var folderStack = [{ id: '0', name: 'ルート' }];
+var shareItem = null;
+
+// Login
+document.getElementById('loginPass').addEventListener('keydown', function(e) { if (e.key === 'Enter') doLogin(); });
+
+async function doLogin() {
+  var email = document.getElementById('loginEmail').value.trim();
+  var pass = document.getElementById('loginPass').value;
+  var err = document.getElementById('loginError');
+  err.textContent = '';
+  if (!email || !pass) { err.textContent = '全て入力してください'; return; }
+  try {
+    var res = await fetch('/api/box/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email, password: pass }) });
+    var data = await res.json();
+    if (!data.success) { err.textContent = data.msg; return; }
+    session = data.session;
+    currentUser = data.user;
+    localStorage.setItem('boxSession', session);
+    localStorage.setItem('boxUser', JSON.stringify(currentUser));
+    showApp();
+  } catch(e) { err.textContent = '通信エラー'; }
+}
+
+function showApp() {
+  document.getElementById('loginWrap').classList.add('hidden');
+  document.getElementById('appHeader').style.display = 'flex';
+  document.getElementById('breadcrumb').style.display = 'flex';
+  document.getElementById('tabNav').style.display = 'flex';
+  document.getElementById('mainArea').style.display = 'block';
+  document.getElementById('headerUser').textContent = currentUser.name;
+  loadFolder('0');
+}
+
+function doLogout() {
+  localStorage.removeItem('boxSession'); localStorage.removeItem('boxUser');
+  location.reload();
+}
+
+// Auto login
+(function() {
+  var s = localStorage.getItem('boxSession');
+  var u = localStorage.getItem('boxUser');
+  if (s && u) { session = s; currentUser = JSON.parse(u); showApp(); }
+})();
+
+function api(url, opts) {
+  opts = opts || {};
+  opts.headers = opts.headers || {};
+  opts.headers['x-box-session'] = session;
+  return fetch(url, opts).then(function(r) { return r.json(); });
+}
+
+// Tabs
+function showTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(function(b, i) { b.classList.toggle('active', ['files','users','logs'][i] === tab); });
+  document.getElementById('tabFiles').style.display = tab === 'files' ? 'block' : 'none';
+  document.getElementById('tabUsers').style.display = tab === 'users' ? 'block' : 'none';
+  document.getElementById('tabLogs').style.display = tab === 'logs' ? 'block' : 'none';
+  if (tab === 'users') loadUsers();
+  if (tab === 'logs') loadLogs();
+}
+
+// Files
+async function loadFolder(folderId) {
+  currentFolder = folderId;
+  var el = document.getElementById('tabFiles');
+  el.innerHTML = '<div class="empty"><div class="spinner"></div></div>';
+  var data = await api('/api/box/folder/' + folderId);
+  if (!data.success) { el.innerHTML = '<div class="empty">' + (data.msg || 'エラー') + '</div>'; return; }
+
+  // Update stack
+  if (folderId === '0') { folderStack = [{ id: '0', name: 'すべてのファイル' }]; }
+  renderBreadcrumb();
+
+  var items = data.items || [];
+  if (!items.length) { el.innerHTML = '<div class="empty"><i class="fas fa-folder-open" style="font-size:2rem;display:block;margin-bottom:8px;color:#ccc;"></i>ファイルがありません</div>'; return; }
+  el.innerHTML = items.map(function(item) {
+    var isFolder = item.type === 'folder';
+    var icon = isFolder ? 'fa-folder' : getFileIcon(item.name);
+    var iconCls = isFolder ? 'folder' : 'file';
+    var size = item.size ? formatSize(item.size) : '';
+    var date = item.modified_at ? new Date(item.modified_at).toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '';
+    var shareTag = item.shared_link ? (item.shared_link.is_password_enabled ? '<span class="file-share locked"><i class="fas fa-lock"></i> PW付</span>' : '<span class="file-share shared"><i class="fas fa-link"></i> 共有中</span>') : '';
+    return '<div class="file-item" onclick="' + (isFolder ? 'enterFolder(\'' + item.id + '\',\'' + esc(item.name) + '\')' : '') + '">' +
+      '<div class="file-icon ' + iconCls + '"><i class="fas ' + icon + '"></i></div>' +
+      '<div class="file-info"><div class="file-name">' + esc(item.name) + '</div><div class="file-meta">' + size + (size && date ? ' · ' : '') + date + '</div></div>' +
+      shareTag +
+      '<button class="btn-sm" style="background:#e3f2fd;color:#0061d5;" onclick="event.stopPropagation();openShare(\'' + item.id + '\',\'' + item.type + '\',\'' + esc(item.name) + '\')"><i class="fas fa-share-alt"></i></button>' +
+    '</div>';
+  }).join('');
+}
+
+function enterFolder(id, name) {
+  folderStack.push({ id: id, name: name });
+  loadFolder(id);
+}
+
+function goToFolder(index) {
+  folderStack = folderStack.slice(0, index + 1);
+  loadFolder(folderStack[index].id);
+}
+
+function renderBreadcrumb() {
+  var bc = document.getElementById('breadcrumb');
+  bc.innerHTML = folderStack.map(function(f, i) {
+    var sep = i > 0 ? ' <i class="fas fa-chevron-right" style="font-size:0.5rem;color:#ccc;"></i> ' : '';
+    return sep + '<span onclick="goToFolder(' + i + ')">' + esc(f.name) + '</span>';
+  }).join('');
+}
+
+// Share
+function openShare(id, type, name) {
+  shareItem = { id: id, type: type, name: name };
+  document.getElementById('shareTarget').innerHTML = '<i class="fas fa-' + (type === 'folder' ? 'folder' : 'file') + '" style="color:#0061d5;"></i> ' + esc(name);
+  document.getElementById('sharePassword').value = '';
+  document.getElementById('shareAccess').value = 'company';
+  document.getElementById('shareDownload').checked = true;
+  loadCollabs();
+  document.getElementById('shareModal').classList.add('active');
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+async function saveShare() {
+  var data = {
+    itemId: shareItem.id, itemType: shareItem.type,
+    access: document.getElementById('shareAccess').value,
+    password: document.getElementById('sharePassword').value || undefined,
+    canDownload: document.getElementById('shareDownload').checked
+  };
+  var res = await api('/api/box/share', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+  if (res.success) {
+    alert('共有設定を保存しました' + (res.shared_link && res.shared_link.url ? '\nURL: ' + res.shared_link.url : ''));
+    closeModal('shareModal');
+    loadFolder(currentFolder);
+  } else { alert('エラー: ' + (res.msg || '')); }
+}
+
+async function removeShare() {
+  if (!confirm('共有を解除しますか？')) return;
+  var res = await api('/api/box/share', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ itemId: shareItem.id, itemType: shareItem.type, access: 'remove' }) });
+  if (res.success) { alert('共有を解除しました'); closeModal('shareModal'); loadFolder(currentFolder); }
+}
+
+async function loadCollabs() {
+  var el = document.getElementById('collabList');
+  el.innerHTML = '<div class="spinner"></div>';
+  var res = await api('/api/box/collaborations/' + shareItem.type + '/' + shareItem.id);
+  if (!res.success || !res.collaborations.length) { el.innerHTML = '<div style="font-size:0.75rem;color:#999;">コラボレーターなし</div>'; return; }
+  el.innerHTML = res.collaborations.map(function(c) {
+    var name = c.accessible_by ? c.accessible_by.name || c.accessible_by.login : '?';
+    return '<div class="collab-item"><i class="fas fa-user" style="color:#0061d5;"></i> <span style="flex:1;">' + esc(name) + '</span><span class="collab-role">' + c.role + '</span><button class="btn-sm" style="background:#fce4ec;color:#e53935;" onclick="removeCollab(\'' + c.id + '\')"><i class="fas fa-times"></i></button></div>';
+  }).join('');
+}
+
+async function addCollab() {
+  var email = document.getElementById('collabEmail').value.trim();
+  var role = document.getElementById('collabRole').value;
+  if (!email) return;
+  var res = await api('/api/box/collaboration', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ itemId: shareItem.id, itemType: shareItem.type, userEmail: email, role: role }) });
+  if (res.success) { document.getElementById('collabEmail').value = ''; loadCollabs(); }
+  else { alert('エラー: ' + (res.msg || '')); }
+}
+
+async function removeCollab(id) {
+  if (!confirm('このコラボレーターを削除しますか？')) return;
+  await api('/api/box/collaboration/' + id, { method: 'DELETE' });
+  loadCollabs();
+}
+
+// Users
+async function loadUsers() {
+  var el = document.getElementById('tabUsers');
+  el.innerHTML = '<div class="empty"><div class="spinner"></div></div>';
+  var res = await api('/api/box/users');
+  if (!res.success) { el.innerHTML = '<div class="empty">エラー</div>'; return; }
+  el.innerHTML = res.users.map(function(u) {
+    var statusColor = u.status === 'active' ? '#2e7d32' : '#999';
+    return '<div class="file-item" style="cursor:default;"><div class="file-icon folder" style="background:#e8eaf6;color:#3f51b5;"><i class="fas fa-user"></i></div><div class="file-info"><div class="file-name">' + esc(u.name) + '</div><div class="file-meta">' + esc(u.login) + '</div></div><span style="font-size:0.65rem;color:' + statusColor + ';font-weight:700;">' + u.status + '</span></div>';
+  }).join('');
+}
+
+// Logs
+async function loadLogs() {
+  var el = document.getElementById('tabLogs');
+  el.innerHTML = '<div class="empty"><div class="spinner"></div></div>';
+  var res = await api('/api/box/logs');
+  if (!res.success) { el.innerHTML = '<div class="empty">エラー</div>'; return; }
+  el.innerHTML = '<div style="padding:8px 14px;font-size:0.72rem;color:#888;">直近7日間のアクセスログ（最新200件）</div>' +
+    res.events.map(function(e) {
+      var dt = e.date ? new Date(e.date).toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '';
+      return '<div class="log-item"><span class="log-date">' + dt + '</span><span class="log-type ' + e.type + '">' + e.type + '</span><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(e.user) + ' · ' + esc(e.file) + '</span></div>';
+    }).join('');
+}
+
+// Utils
+function esc(s) { return s ? s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/'/g,'&#39;').replace(/"/g,'&quot;') : ''; }
+function formatSize(b) { if (b < 1024) return b + 'B'; if (b < 1048576) return Math.round(b/1024) + 'KB'; return (b/1048576).toFixed(1) + 'MB'; }
+function getFileIcon(name) {
+  if (!name) return 'fa-file';
+  var ext = name.split('.').pop().toLowerCase();
+  if (['xlsx','xls','csv'].includes(ext)) return 'fa-file-excel';
+  if (['docx','doc'].includes(ext)) return 'fa-file-word';
+  if (['pdf'].includes(ext)) return 'fa-file-pdf';
+  if (['pptx','ppt'].includes(ext)) return 'fa-file-powerpoint';
+  if (['jpg','jpeg','png','gif','svg'].includes(ext)) return 'fa-file-image';
+  if (['zip','rar','7z'].includes(ext)) return 'fa-file-archive';
+  return 'fa-file';
+}
+</script>
+</body>
+</html>

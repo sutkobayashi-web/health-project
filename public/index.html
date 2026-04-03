@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260403_1330">
+<html data-app-version="20260403_1338">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -7317,7 +7317,10 @@ document.body.addEventListener('touchmove', function(e) {
   var el = e.target;
   while (el && el !== document.body) {
     var s = window.getComputedStyle(el);
+    // 縦スクロール可能な要素内なら許可
     if ((s.overflowY === 'auto' || s.overflowY === 'scroll') && el.scrollHeight > el.clientHeight) return;
+    // 横スクロール可能な要素内なら許可
+    if ((s.overflowX === 'auto' || s.overflowX === 'scroll') && el.scrollWidth > el.clientWidth) return;
     el = el.parentElement;
   }
   e.preventDefault();

@@ -6,6 +6,7 @@
  *   node server/services/backup.js          # 手動実行
  *   スケジューラーから自動実行（server/index.jsに組込み）
  */
+try { require('dotenv').config({ path: require('path').join(__dirname, '..', '..', '.env') }); } catch(e) {}
 const fs = require('fs');
 const path = require('path');
 const fetch = require('node-fetch');
@@ -23,13 +24,11 @@ async function getBoxToken() {
   const res = await fetch('https://api.box.com/oauth2/token', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      client_id: process.env.BOX_CLIENT_ID,
-      client_secret: process.env.BOX_CLIENT_SECRET,
-      grant_type: 'client_credentials',
-      box_subject_type: 'enterprise',
-      box_subject_id: process.env.BOX_ENTERPRISE_ID || '0'
-    })
+    body: 'client_id=' + process.env.BOX_CLIENT_ID +
+      '&client_secret=' + process.env.BOX_CLIENT_SECRET +
+      '&grant_type=client_credentials' +
+      '&box_subject_type=enterprise' +
+      '&box_subject_id=' + (process.env.BOX_ENTERPRISE_ID || '0')
   });
   const json = await res.json();
   if (json.access_token) return json.access_token;

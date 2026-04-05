@@ -69,8 +69,8 @@ var EMPATHY_CONFIG = {
   },
   food: {
     types: [
-      { key: 'oishii',  emoji: '🤤', label: '食いてぇ！' },
-      { key: 'sankou',  emoji: '👍', label: 'うまそう！' },
+      { key: 'oishii',  emoji: '🤤', label: '食べたい！' },
+      { key: 'sankou',  emoji: '👍', label: 'おいしそう！' },
       { key: 'onaji',   emoji: '🙌', label: '真似する！' }
     ],
     questions: {

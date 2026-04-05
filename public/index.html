@@ -809,7 +809,7 @@
         <i class="far fa-comment-dots"></i> みんなに聞いてみる
       </button>
       <button onclick="inlineFoodCheck()" class="buddy-action-btn" style="display:flex;align-items:center;gap:5px;padding:8px 14px;background:linear-gradient(135deg,#20c997,#38d9a9);color:white;border:none;border-radius:20px;font-size:0.75rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;box-shadow:0 2px 8px rgba(32,201,151,0.25);font-family:inherit;">
-        <i class="fas fa-utensils"></i> 今日のメシ見せる
+        <i class="fas fa-utensils"></i> 今日のごはん見せる
       </button>
       <button onclick="inlineMemberConsult()" class="buddy-action-btn" style="display:flex;align-items:center;gap:5px;padding:8px 14px;background:linear-gradient(135deg,#f39c12,#f1c40f);color:white;border:none;border-radius:20px;font-size:0.75rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;box-shadow:0 2px 8px rgba(243,156,18,0.25);font-family:inherit;">
         <i class="fas fa-shield-alt"></i> 推進メンバーに相談
@@ -891,12 +891,12 @@
           <div id="atm-rate-bar" style="height:100%;background:linear-gradient(90deg,#34d399,#059669);border-radius:4px;width:0%;transition:width 1s ease;"></div>
         </div>
       </div>
-      <!-- 飯テロ王 -->
+      <!-- ごはん番長 -->
       <div id="atm-food-king" style="display:none;background:white;border-radius:12px;padding:10px 12px;border:1.5px solid #fbbf24;">
         <div style="display:flex;align-items:center;gap:8px;">
           <div style="font-size:1.3rem;">👑</div>
           <div style="flex:1;">
-            <div style="font-size:0.72rem;font-weight:800;color:#92400e;">今週の飯テロ王</div>
+            <div style="font-size:0.72rem;font-weight:800;color:#92400e;">今週のごはん番長</div>
             <div style="display:flex;align-items:center;gap:6px;margin-top:3px;">
               <div id="atm-king-avatar" style="width:28px;height:28px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:0.9rem;background:#f5f5f5;"></div>
               <span id="atm-king-name" style="font-weight:700;font-size:0.82rem;color:#333;"></span>
@@ -908,7 +908,7 @@
       <!-- 今週の人気メシ TOP3 -->
       <div id="atm-top-food" style="display:none;margin-top:8px;">
         <div style="font-size:0.72rem;font-weight:800;color:#065f46;margin-bottom:6px;">🍽️ 今週の人気メシ</div>
-        <div id="atm-top-food-list" style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;"></div>
+        <div id="atm-top-food-list" style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;"></div>
       </div>
     </div>
 
@@ -966,7 +966,7 @@
       <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="toggleAccordion('food-body','food-chevron')">
         <div style="display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#f1f8e9,#dcedc8);flex-shrink:0;"><i class="fas fa-apple-whole" style="font-size:22px;color:#4caf50;"></i></div>
         <div style="flex:1; min-width:0;">
-          <div class="section-title" style="margin-bottom:2px; padding-bottom:3px; border-bottom:2px solid rgba(32,201,151,0.2);"><i class="fas fa-utensils"></i> 今日のメシ見せて！</div>
+          <div class="section-title" style="margin-bottom:2px; padding-bottom:3px; border-bottom:2px solid rgba(32,201,151,0.2);"><i class="fas fa-utensils"></i> 今日のごはん見せて！</div>
           <div class="food-section section-sub">写真撮るだけ。みんなに見せよう</div>
         </div>
       </div>
@@ -2450,7 +2450,7 @@ var _postCache = {};
 function renderPost(p) {
   _postCache[p.row] = p;
   var headerClass = "header-consult"; var icon = "far fa-comment-dots"; var catName = "相談・共有";
-  if (p.category === '🍱 食事・栄養' || p.imageUrl) { headerClass = "header-food"; icon = "fas fa-utensils"; catName = "今日のメシ"; }
+  if (p.category === '🍱 食事・栄養' || p.imageUrl) { headerClass = "header-food"; icon = "fas fa-utensils"; catName = "今日のごはん"; }
   var likeId = 'like-' + p.row;
   var liked = p.isLiked;
   var isOwn = currentUser && p.authorUid === currentUser.uid;
@@ -2916,7 +2916,7 @@ function openMyPosts() {
       var isFood = p.category === '🍱 食事・栄養' || !!p.imageUrl;
       var headerClass = isFood ? 'header-food' : 'header-consult';
       var icon = isFood ? 'fas fa-utensils' : 'far fa-comment-dots';
-      var catName = isFood ? '今日のメシ' : '相談・共有';
+      var catName = isFood ? '今日のごはん' : '相談・共有';
       var chatBadge = p.chatCount > 0 ? '<span style="font-size:0.65rem;background:#d32f2f;color:white;padding:1px 7px;border-radius:8px;font-weight:700;"><i class="fas fa-comments"></i> メンバーから ' + p.chatCount + '件</span>' : '';
       var empathyBadge = p.empathyCount > 0 ? '<span style="font-size:0.65rem;background:#667eea;color:white;padding:1px 7px;border-radius:8px;font-weight:700;">❤️ 共感 ' + p.empathyCount + '</span>' : '';
       var thumbHtml = (p.imageUrl && p.imageUrl.length > 1) ? '<img src="' + p.imageUrl + '" style="width:44px;height:44px;object-fit:cover;border-radius:8px;flex-shrink:0;" loading="eager" crossorigin="anonymous" onerror="this.style.display=\'none\'">' : '';
@@ -3108,7 +3108,7 @@ function loadAtmosphere() {
     if (rateEl) rateEl.textContent = t.participationRate + '%';
     if (rateBar) setTimeout(function(){ rateBar.style.width = Math.min(100, t.participationRate) + '%'; }, 100);
 
-    // 飯テロ王
+    // ごはん番長
     var kingCard = document.getElementById('atm-food-king');
     if (kingCard && w.foodKing) {
       kingCard.style.display = 'block';
@@ -3127,7 +3127,7 @@ function loadAtmosphere() {
       topFood.style.display = 'block';
       topList.innerHTML = w.topFoodPosts.map(function(p, i) {
         var medal = i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉';
-        var imgHtml = p.image_url ? '<img src="' + p.image_url + '" style="width:80px;height:80px;object-fit:cover;border-radius:10px;" loading="lazy" onerror="this.style.display=\'none\'">' : '<div style="width:80px;height:80px;background:#f5f5f5;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;">🍽️</div>';
+        var imgHtml = p.image_url ? '<img src="' + p.image_url + '" style="width:80px;height:80px;object-fit:cover;border-radius:10px;display:block;" onerror="this.outerHTML=\'<div style=\\\'width:80px;height:80px;background:#f0fdf4;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;\\\'>🍽️</div>\'">' : '<div style="width:80px;height:80px;background:#f0fdf4;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;">🍽️</div>';
         return '<div style="flex-shrink:0;width:100px;text-align:center;">' +
           imgHtml +
           '<div style="font-size:0.65rem;font-weight:700;margin-top:4px;color:#333;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + medal + ' ' + (p.nickname || '') + '</div>' +
@@ -3354,7 +3354,7 @@ function submitFoodPost() {
   if (isSubmitting) return;
   isSubmitting = true;
   var comment = document.getElementById('food-comment').value;
-  showLoading("メシチェック中...");
+  showLoading("ごはんチェック中...");
   handleFoodPost({ uid: currentUser.uid, nickname: currentUser.nickname, avatar: currentUser.avatar, imageBase64: selectedFoodData, mimeType: selectedFoodMime, userComment: comment, department: currentUser.department, birthDate: currentUser.birthDate, isPublic: true }).then(function(res) {
     hideLoading(); isSubmitting = false;
     document.getElementById('food-comment').value = ""; document.getElementById('file-input').value = "";
@@ -3392,7 +3392,7 @@ function showFoodResponse(text) {
   box.innerHTML =
     '<div style="text-align:center; margin-bottom:16px;">' +
       '<div style="font-size:2.5rem; margin-bottom:8px;">🥗</div>' +
-      '<div style="font-weight:800; font-size:1.1rem; color:#20c997;">今日のメシ、見たよ！</div>' +
+      '<div style="font-weight:800; font-size:1.1rem; color:#20c997;">今日のごはん、見たよ！</div>' +
       '<div style="font-size:0.75rem; color:#aaa; margin-top:4px;">食事の相棒からのひとこと</div>' +
     '</div>' +
     '<div id="food-radar-chart-area"></div>' +
@@ -5233,7 +5233,7 @@ function buddyWrapUp(action) {
   } else if (action === 'food') {
     addBuddyMessage('user', '🍱 食事を記録する');
     setTimeout(function() {
-      addBuddyMessage('ai', 'メシ見せてくれるの？📸 メニュータブに行くね！');
+      addBuddyMessage('ai', 'ごはん見せてくれるの？📸 メニュータブに行くね！');
       setTimeout(function() { switchAppTab('menu'); }, 800);
     }, 500);
   } else if (action === 'member') {
@@ -5710,7 +5710,7 @@ var _inlineFoodDataUrl = null;
 
 function inlineFoodCheck() {
   hideActionBar();
-  addBuddyMessage('ai', '今日のメシ見せて！🍽️\n写真撮るだけでOKだよ📸');
+  addBuddyMessage('ai', '今日のごはん見せて！🍽️\n写真撮るだけでOKだよ📸');
   setTimeout(function() {
     addBuddyInlineQuick(
       '<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;padding:4px 0;">' +

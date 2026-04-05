@@ -744,7 +744,7 @@ router.get('/atmosphere', (req, res) => {
     // 今週の共感総数
     const weekEmpathy = db.prepare("SELECT COUNT(*) as cnt FROM empathy_responses WHERE date(created_at) >= ?").get(weekAgo);
 
-    // 今週の飯テロ王（食事投稿で最も共感をもらった人）
+    // 今週のごはん番長（食事投稿で最も共感をもらった人）
     const foodKing = db.prepare(`
       SELECT p.user_id, p.nickname, p.avatar, COUNT(e.id) as reaction_count
       FROM posts p

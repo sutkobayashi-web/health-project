@@ -172,7 +172,6 @@ function buildAdminNutritionBar(sc) {
             '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:1px;">' +
                 '<span style="font-size:0.72rem;font-weight:700;color:#444;">' + item.icon + ' ' + item.label + '</span>' +
                 '<span style="font-size:0.68rem;font-weight:700;color:' + color + ';">' + dispVal + item.unit +
-                    ' / ' + (item.range ? item.min+'-'+item.max : (item.reverse ? item.target+'未満' : item.target)) + item.unit +
                     ' <span style="font-size:0.58rem;padding:1px 5px;border-radius:5px;background:'+color+'22;color:'+color+';">'+status+'</span></span>' +
             '</div>' +
             '<div style="position:relative;height:7px;background:#e9ecef;border-radius:3px;overflow:visible;margin-bottom:14px;">' +

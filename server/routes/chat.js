@@ -546,7 +546,7 @@ router.post('/delete-memo', (req, res) => {
 // ========================================
 // Google Cloud Text-to-Speech（音声ファイルとして直接配信）
 // ========================================
-router.post('/tts', authUser, async (req, res) => {
+router.post('/tts', async (req, res) => {
   try {
     const { text } = req.body;
     if (!text || text.trim().length === 0) return res.status(400).json({ error: 'テキストが空です' });

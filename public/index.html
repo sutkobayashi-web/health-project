@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260405_1600">
+<html data-app-version="20260405_1630">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -868,6 +868,9 @@
         <div class="food-upload-area" onclick="document.getElementById('file-input').click()">
           <i class="fas fa-camera"></i>
           <div style="margin-top:8px; font-size:0.88rem; color:#666; font-weight:600;">タップして食事写真を撮影・選択</div>
+          <div style="margin-top:6px; font-size:0.72rem; color:#20c997; line-height:1.5; background:rgba(32,201,151,0.08); padding:6px 10px; border-radius:8px;">
+            <i class="fas fa-lightbulb" style="margin-right:3px;"></i>コンビニ・お総菜は<strong>成分表示ラベル</strong>を撮ると正確に分析できます
+          </div>
         </div>
         <input type="file" id="file-input" accept="image/*" capture="environment" style="display:none;" onchange="handleFileSelect(this)">
         <div id="food-preview-area">

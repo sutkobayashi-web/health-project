@@ -89,7 +89,7 @@ async function generateUserFoodReport(uid, userData, weekLabel, weekStart) {
       var parts = p.analysis.split('///SCORE///');
       aiComment = (parts[0] || '').substring(0, 150);
       // ///NUTRIENTS/// からスコアを抽出（DB未保存の過去投稿対応）
-      var nutMatch = p.analysis.match(/\/\/\/NUTRIENTS\/\/\/\s*(\{[\s\S]*?\})/);
+      var nutMatch = p.analysis.match(/\/\/\/NUTRIENTS\/\/\/\s*(\{[\s\S]*\})/);
       if (nutMatch) { try { mealScores.push(JSON.parse(nutMatch[1])); } catch(e) {} }
     }
     // nutrition_scoresカラムから取得（新しい投稿）

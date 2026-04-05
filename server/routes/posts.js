@@ -299,9 +299,12 @@ router.post('/food', async (req, res) => {
     // 栄養スコアJSONを抽出
     let nutrientScores = null;
     let nutRes = nutResRaw;
-    const nutMatch = nutResRaw.match(/\/\/\/NUTRIENTS\/\/\/\s*(\{[\s\S]*?\})/);
+    const nutMatch = nutResRaw.match(/\/\/\/NUTRIENTS\/\/\/\s*(\{[\s\S]*\})/);
     if (nutMatch) {
-      try { nutrientScores = JSON.parse(nutMatch[1]); } catch(e) {}
+      try { nutrientScores = JSON.parse(nutMatch[1]); } catch(e) {
+        // カンマ区切り数値を修正して再パース（例: 1,050 → 1050）
+        try { nutrientScores = JSON.parse(nutMatch[1].replace(/"value"\s*:\s*(\d{1,3}),(\d{3})/g, '"value":$1$2')); } catch(e2) {}
+      }
       nutRes = nutResRaw.replace(/\/\/\/NUTRIENTS\/\/\/[\s\S]*$/, '').trim();
     }
 

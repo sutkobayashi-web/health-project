@@ -4711,6 +4711,7 @@ function startBuddyPoll() {
   }, 30000);
 }
 
+var _buddyNoticeShown = {};
 function loadBuddyNotices() {
   if (!currentUser) return;
   startBuddyPoll();
@@ -4718,24 +4719,27 @@ function loadBuddyNotices() {
     .then(function(r) { return r.json(); })
     .then(function(buddyNotices) {
       if (!buddyNotices || buddyNotices.length === 0) return;
+      // 未表示の通知だけフィルタ
+      var newNotices = buddyNotices.filter(function(n) { return !_buddyNoticeShown[n.id]; });
+      if (newNotices.length === 0) return;
+      // 先に表示済みマーク（重複防止）
       var readIds = [];
+      newNotices.forEach(function(n) { _buddyNoticeShown[n.id] = true; readIds.push(n.id); });
+      // 即座に既読マーク送信（再取得を防ぐ）
+      fetch('/api/notices/buddy-read', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ noticeIds: readIds })
+      }).catch(function() {});
+      // 表示は遅延演出
       setTimeout(function() {
-        buddyNotices.forEach(function(n, i) {
+        newNotices.forEach(function(n, i) {
           setTimeout(function() {
             var content = n.message.replace('【BUDDY】', '').trim();
             var header = n.isPersonal
               ? '💌 ' + (n.sender || '推進メンバー') + 'さんからのメッセージ'
               : '🛡️ 推進メンバーからのお知らせ';
             addBuddyMessage('ai', header + '\n━━━━━━━━━━━━\n' + content);
-            readIds.push(n.id);
-            // 全件表示後にまとめて既読マーク
-            if (readIds.length === buddyNotices.length) {
-              fetch('/api/notices/buddy-read', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ noticeIds: readIds })
-              }).catch(function() {});
-            }
           }, i * 1200);
         });
       }, 1500);

@@ -417,14 +417,15 @@ ${tone}
 }
 
 // ヘルスバディー初回挨拶
-async function getBuddyGreeting(userName, buddyType) {
+async function getBuddyGreeting(userName, buddyType, department) {
   try {
     const tone = getBuddyTone(buddyType);
     const buddyName = getBuddyName(buddyType);
     const hour = new Date().getHours();
     const timeContext = hour < 11 ? '朝' : hour < 17 ? '昼' : '夜';
+    const deptContext = department && department !== 'その他' ? `\nユーザーの職種は「${department}」です。職種に合わせた気遣い（配送→安全運転・腰痛、倉庫→体力・腰、製造→ケガ・立ち仕事、事務→目・肩こり、管理者→多忙さ）を自然にひとこと入れてください。` : '';
     const sys = `あなたはユーザーの健康パートナー「ヘルスバディー」（${buddyName}）です。
-ユーザー「${userName || 'さん'}」がアプリを開きました。現在は${timeContext}の時間帯です。
+ユーザー「${userName || 'さん'}」がアプリを開きました。現在は${timeContext}の時間帯です。${deptContext}
 
 以下を含む挨拶を2〜3文で返してください：
 - 「来てくれた」ことへの嬉しさ（「おっ、来てくれた！」「よっ！」等、友達に会った感じで）

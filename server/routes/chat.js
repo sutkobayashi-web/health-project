@@ -20,8 +20,8 @@ router.post('/message', authUser, async (req, res) => {
 
 // ヘルスバディー初回挨拶
 router.post('/greeting', authUser, async (req, res) => {
-  const { userName, buddyType } = req.body;
-  const result = await getBuddyGreeting(userName, buddyType || 'gentle');
+  const { userName, buddyType, department } = req.body;
+  const result = await getBuddyGreeting(userName, buddyType || 'gentle', department);
   res.json(result);
 });
 

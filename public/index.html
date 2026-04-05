@@ -4599,6 +4599,40 @@ function startBuddyChat(buddyData) {
   }
 }
 
+function getDeptGreeting(dept, hour) {
+  var greetings = {
+    '配送スタッフ': {
+      morning: '今日も安全運転でいこうね🚛',
+      afternoon: '運転の合間にひと息ついてね🚛',
+      evening: '今日もお疲れ！長距離だった？🚛'
+    },
+    '倉庫スタッフ': {
+      morning: '今日も体に気をつけてね📦',
+      afternoon: '重いもの持ちすぎてない？📦',
+      evening: '今日もお疲れ！体は大丈夫？📦'
+    },
+    '製造スタッフ': {
+      morning: '今日もケガなくいこうね🔧',
+      afternoon: '立ち仕事、疲れてない？🔧',
+      evening: '今日もお疲れ！体きつくなかった？🔧'
+    },
+    '事務スタッフ': {
+      morning: '今日もデスクワーク頑張ろう💻',
+      afternoon: '目、疲れてない？たまには遠くを見てね💻',
+      evening: '今日もお疲れ！肩こってない？💻'
+    },
+    '管理者': {
+      morning: '今日もよろしくお願いします👔',
+      afternoon: '忙しい中、ありがとうございます👔',
+      evening: '今日もお疲れ様でした👔'
+    }
+  };
+  var deptMsg = greetings[dept];
+  if (!deptMsg) return '';
+  var timeKey = hour < 11 ? 'morning' : hour < 17 ? 'afternoon' : 'evening';
+  return deptMsg[timeKey];
+}
+
 function startBuddyChatFresh(buddyData) {
   // 時間帯に応じた挨拶
   var hour = new Date().getHours();
@@ -4645,6 +4679,8 @@ function startBuddyChatFresh(buddyData) {
       return;
     }
 
+    var deptMsg = getDeptGreeting(currentUser.department, hour);
+    if (deptMsg) msg += '\n\n' + deptMsg;
     msg += '\n\nまず、今の調子はどう？';
     addBuddyMessage('ai', msg);
     // カスタマイズ案内（「表示しない」を選ぶまで毎回表示）

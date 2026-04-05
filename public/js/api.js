@@ -319,8 +319,8 @@ function getPersonalNoticesAdmin() {
 function chatWithBuddy(userMessage, history, userName, buddyType) {
   return api('/chat/message', { userMessage, history, userName, buddyType });
 }
-function getBuddyGreeting(userName, buddyType) {
-  return api('/chat/greeting', { userName, buddyType });
+function getBuddyGreeting(userName, buddyType, department) {
+  return api('/chat/greeting', { userName, buddyType, department });
 }
 function chatWithBuddyImage(userMessage, imageBase64, mimeType, history, userName, buddyType) {
   return api('/chat/image-message', { userMessage, imageBase64, mimeType, history, userName, buddyType });

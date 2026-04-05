@@ -97,7 +97,7 @@ async function generateUserFoodReport(uid, userData, weekLabel, weekStart) {
       try { mealScores.push(JSON.parse(p.nutrition_scores)); } catch(e) {}
     }
     var date = p.created_at ? p.created_at.substring(5, 10) : '';
-    return '[' + date + '] ' + content + (aiComment ? ' → AI: ' + aiComment.substring(0, 80) : '');
+    return '[' + date + '] ' + content + (aiComment ? ' → AI: ' + aiComment.substring(0, 200) : '');
   }).join('\n');
 
   // 実データから平均栄養値を計算（新形式: {key:{value,unit}} / 旧形式: {key:number} 両対応）
@@ -125,25 +125,65 @@ async function generateUserFoodReport(uid, userData, weekLabel, weekStart) {
     console.log('[food-weekly] ' + userData.nickname + ': ' + mealScores.length + '食分の実データから平均算出');
   }
 
+  // 前週レポートを取得（前週との比較用）
+  var prevWeekInfo = '';
+  try {
+    var prevReport = db.prepare(
+      "SELECT report_text, nutrition_scores FROM food_weekly_reports WHERE user_id = ? AND week_start < ? ORDER BY week_start DESC LIMIT 1"
+    ).get(uid, weekStart);
+    if (prevReport) {
+      prevWeekInfo = '\n\n【前週のレポート要約】\n' + (prevReport.report_text || '').substring(0, 300);
+      if (prevReport.nutrition_scores) {
+        try {
+          var prevSc = JSON.parse(prevReport.nutrition_scores);
+          var prevItems = [];
+          ['calories','protein','fat','carbs','vitamin','mineral','salt'].forEach(function(k) {
+            var v = prevSc[k];
+            if (v) { var num = (typeof v === 'object') ? v.value : v; prevItems.push(k + ':' + num); }
+          });
+          if (prevItems.length > 0) prevWeekInfo += '\n前週平均: ' + prevItems.join(', ');
+        } catch(e) {}
+      }
+    }
+  } catch(e) {}
+
+  // 今週の実データ平均をプロンプト用テキストに
+  var avgInfo = '';
+  if (avgScores) {
+    var avgItems = [];
+    var tgts = {calories:{t:550,u:'kcal'},protein:{t:20,u:'g'},fat:{t:25,u:'%'},carbs:{t:57.5,u:'%'},vitamin:{t:120,u:'g'},mineral:{t:227,u:'mg'},salt:{t:2.5,u:'g'}};
+    Object.keys(avgScores).forEach(function(k) {
+      var tgt = tgts[k];
+      if (tgt) avgItems.push(k + ': ' + avgScores[k].value + tgt.u + '（目標' + tgt.t + tgt.u + '）');
+    });
+    if (avgItems.length > 0) avgInfo = '\n\n【今週の実データ平均（1食あたり）】\n' + avgItems.join('\n');
+  }
+
   var prompt = EVIDENCE_BASE + '\n\n' +
     'あなたはAI栄養アドバイザーです。以下は' + userData.nickname + 'さんの1週間(' + weekLabel + ')の食事記録です。\n\n' +
-    '【食事記録(' + userData.posts.length + '食分)】\n' + mealSummary + '\n\n' +
+    '【食事記録(' + userData.posts.length + '食分)】\n' + mealSummary +
+    avgInfo + prevWeekInfo + '\n\n' +
     '以下の形式で週間栄養分析レポートを作成してください。\n' +
     '★★★マークダウン記法（**太字**や###見出し等）は絶対に使わない★★★\n\n' +
     '【出力形式】\n' +
-    '1. 今週の食事傾向（2〜3文で全体の傾向を述べる）\n' +
-    '2. 五大栄養素バランス評価\n' +
-    '   - たんぱく質（推定摂取状況と過不足）\n' +
-    '   - 脂質（揚げ物・油脂の頻度）\n' +
-    '   - 炭水化物（主食の偏り）\n' +
-    '   - ビタミン（緑黄色野菜・果物の摂取頻度）\n' +
-    '   - ミネラル（カルシウム・鉄分の摂取状況）\n' +
+    '1. 今週の食事傾向（2〜3文で全体の傾向を述べる' + (prevWeekInfo ? '。前週との変化があれば言及' : '') + '）\n' +
+    '2. 七大栄養項目の評価（実データ平均に基づく）\n' +
+    '   - カロリー（目標450-650kcal/食）\n' +
+    '   - たんぱく質（目標20g/食）\n' +
+    '   - 脂質（目標20-30%）\n' +
+    '   - 炭水化物（目標50-65%）\n' +
+    '   - 野菜量（目標120g/食）\n' +
+    '   - カルシウム（目標227mg/食）\n' +
+    '   各項目で実データ平均値と目標値を比較し、過不足を具体的に指摘\n' +
     '3. 🧂 塩分分析（重要）\n' +
-    '   - 1週間の推定塩分摂取傾向（多い/適正/少ない）\n' +
+    '   - 今週の平均塩分と目標値の比較（目標: 1食2.5g未満、1日7.5g未満）\n' +
     '   - 塩分が多い原因の特定（味噌汁、漬物、加工食品、惣菜、ラーメン等）\n' +
-    '   - 目標: 1日7.5g未満（男性）、1食2.5g未満\n' +
+    '   - 具体的な減塩アクション\n' +
     '4. 良かった点（具体的に1〜2つ褒める）\n' +
-    '5. 来週の心がけ（減塩のコツを含む。具体的で実践しやすいアドバイスを2〜3つ。スモールステップで）\n' +
+    '5. 来週の具体的アクション3つ\n' +
+    '   - 不足栄養素を補う【献立名】の提案\n' +
+    '   - コンビニ・スーパーでの【商品選び】のコツ\n' +
+    '   - 今の食事への【ちょい足し】提案\n' +
     '6. 📚 出典: 根拠となるガイドライン名\n\n' +
     '温かく励ましつつ、エビデンスに基づいた具体的なアドバイスをお願いします。特に塩分については運輸業のドライバーはコンビニ弁当・惣菜中心の食生活が多いため、具体的な減塩提案を重視してください。\n\n' +
     '★★★重要: レポート本文の最後に、必ず以下の形式で1食あたりの推定平均栄養データを出力すること★★★\n' +

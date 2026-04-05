@@ -585,6 +585,7 @@ router.post('/heartbeat', (req, res) => {
 router.get('/members-status', (req, res) => {
   try {
     const db = getDb();
+    const canSeeRealNames = !!(req.admin && (req.admin.isExec || req.admin.isUniversity));
     const allMembers = db.prepare('SELECT id, name, email, avatar, is_university, university_org, dept, status, show_real_name FROM core_members').all();
     const now = Date.now();
     const result = allMembers.map(m => {
@@ -592,7 +593,7 @@ router.get('/members-status', (req, res) => {
       if (avatar.length > 4 || (avatar.match && avatar.match(/\d{4}/))) avatar = '🛡️';
       const onlineData = onlineMembers[m.email];
       return {
-        id: m.id, name: m.show_real_name === 1 ? m.name : null, email: m.email, avatar,
+        id: m.id, name: (canSeeRealNames || m.show_real_name === 1) ? m.name : null, email: m.email, avatar,
         dept: m.dept || '', universityOrg: m.university_org || '',
         isUniversity: m.is_university === 1,
         showRealName: m.show_real_name === 1,
@@ -697,11 +698,13 @@ router.post('/inbox-comment-delete', (req, res) => {
 router.get('/members-all', (req, res) => {
   try {
     const db = getDb();
+    // exec / 大学・NPO関係者は全員の実名を閲覧可能
+    const canSeeRealNames = !!(req.admin && (req.admin.isExec || req.admin.isUniversity));
     const members = db.prepare('SELECT id, name, dept, email, phone, avatar, role, is_exec, is_university, university_org, status, show_real_name FROM core_members ORDER BY id').all();
     res.json(members.map(m => ({
       ...m,
-      name: m.show_real_name ? m.name : null,
-      phone: m.show_real_name ? m.phone : null
+      name: (canSeeRealNames || m.show_real_name) ? m.name : null,
+      phone: (canSeeRealNames || m.show_real_name) ? m.phone : null
     })));
   } catch (e) { res.json([]); }
 });
@@ -710,14 +713,16 @@ router.get('/members-all', (req, res) => {
 router.get('/users-all', (req, res) => {
   try {
     const db = getDb();
+    // exec / 大学・NPO関係者は全員の実名を閲覧可能
+    const canSeeRealNames = !!(req.admin && (req.admin.isExec || req.admin.isUniversity));
     const users = db.prepare('SELECT id, nickname, avatar, department, real_name, birth_date, created_at, show_real_name FROM users ORDER BY created_at DESC').all();
     const postCounts = {};
     db.prepare('SELECT user_id, COUNT(*) as cnt FROM posts GROUP BY user_id').all()
       .forEach(r => { postCounts[r.user_id] = r.cnt; });
     res.json(users.map(u => ({
       ...u,
-      real_name: u.show_real_name ? u.real_name : null,
-      birth_date: u.show_real_name ? u.birth_date : null,
+      real_name: (canSeeRealNames || u.show_real_name) ? u.real_name : null,
+      birth_date: (canSeeRealNames || u.show_real_name) ? u.birth_date : null,
       post_count: postCounts[u.id] || 0
     })));
   } catch (e) { res.json([]); }

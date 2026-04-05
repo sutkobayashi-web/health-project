@@ -100,25 +100,29 @@ async function generateUserFoodReport(uid, userData, weekLabel, weekStart) {
     return '[' + date + '] ' + content + (aiComment ? ' → AI: ' + aiComment.substring(0, 80) : '');
   }).join('\n');
 
-  // 実データから平均スコアを計算
+  // 実データから平均栄養値を計算（新形式: {key:{value,unit}} / 旧形式: {key:number} 両対応）
   var avgScores = null;
   if (mealScores.length > 0) {
-    var keys = ['protein','fat','carb','carbs','vitamin','mineral','salt'];
+    var allKeys = ['calories','protein','fat','carbs','vitamin','mineral','salt'];
     var sums = {}; var counts = {};
-    keys.forEach(function(k) { sums[k] = 0; counts[k] = 0; });
+    allKeys.forEach(function(k) { sums[k] = 0; counts[k] = 0; });
     mealScores.forEach(function(s) {
-      keys.forEach(function(k) {
-        if (s[k] !== undefined && s[k] !== null) { sums[k] += Number(s[k]); counts[k]++; }
+      allKeys.forEach(function(k) {
+        var v = s[k];
+        if (v === undefined || v === null) return;
+        // 新形式: {value:X, unit:"..."} / 旧形式: 数値そのまま
+        var num = (typeof v === 'object' && v.value !== undefined) ? Number(v.value) : Number(v);
+        if (!isNaN(num)) { sums[k] += num; counts[k]++; }
       });
     });
-    // carbs → carb に正規化
-    if (counts.carbs > 0 && counts.carb === 0) { sums.carb = sums.carbs; counts.carb = counts.carbs; }
-    var outKeys = ['protein','fat','carb','vitamin','mineral','salt'];
     avgScores = {};
-    outKeys.forEach(function(k) {
-      avgScores[k] = counts[k] > 0 ? Math.round(sums[k] / counts[k]) : 3;
+    var unitMap = {calories:'kcal',protein:'g',fat:'%',carbs:'%',vitamin:'g',mineral:'mg',salt:'g'};
+    allKeys.forEach(function(k) {
+      if (counts[k] > 0) {
+        avgScores[k] = { value: Math.round(sums[k] / counts[k] * 10) / 10, unit: unitMap[k] };
+      }
     });
-    console.log('[food-weekly] ' + userData.nickname + ': ' + mealScores.length + '食分の実スコアから平均算出');
+    console.log('[food-weekly] ' + userData.nickname + ': ' + mealScores.length + '食分の実データから平均算出');
   }
 
   var prompt = EVIDENCE_BASE + '\n\n' +
@@ -142,11 +146,17 @@ async function generateUserFoodReport(uid, userData, weekLabel, weekStart) {
     '5. 来週の心がけ（減塩のコツを含む。具体的で実践しやすいアドバイスを2〜3つ。スモールステップで）\n' +
     '6. 📚 出典: 根拠となるガイドライン名\n\n' +
     '温かく励ましつつ、エビデンスに基づいた具体的なアドバイスをお願いします。特に塩分については運輸業のドライバーはコンビニ弁当・惣菜中心の食生活が多いため、具体的な減塩提案を重視してください。\n\n' +
-    '★★★重要: レポート本文の最後に、必ず以下の形式で栄養スコアを出力すること★★★\n' +
-    '///WEEKLY_SCORE///{"protein":数値,"fat":数値,"carb":数値,"vitamin":数値,"mineral":数値,"salt":数値}\n' +
-    '各数値は1〜5の整数。5=理想的、4=良好、3=適量、2=やや過不足、1=要改善。\n' +
-    '塩分(salt)は逆スコア: 5=少なく理想的、1=過剰摂取。\n' +
-    '食事記録の内容から総合的に判断して1週間の平均的なスコアを算出すること。';
+    '★★★重要: レポート本文の最後に、必ず以下の形式で1食あたりの推定平均栄養データを出力すること★★★\n' +
+    '///WEEKLY_SCORE///{"calories":{"value":数値,"unit":"kcal"},"protein":{"value":数値,"unit":"g"},"fat":{"value":数値,"unit":"%"},"carbs":{"value":数値,"unit":"%"},"vitamin":{"value":数値,"unit":"g"},"mineral":{"value":数値,"unit":"mg"},"salt":{"value":数値,"unit":"g"}}\n' +
+    '各valueは1食あたりの推定平均実数値（小数点1桁）:\n' +
+    '- calories: 推定カロリー(kcal) 目標450-650\n' +
+    '- protein: たんぱく質(g) 目標20\n' +
+    '- fat: 脂質エネルギー比(%) 目標20-30\n' +
+    '- carbs: 炭水化物エネルギー比(%) 目標50-65\n' +
+    '- vitamin: 野菜量(g) 目標120\n' +
+    '- mineral: カルシウム(mg) 目標227\n' +
+    '- salt: 塩分(g) 目標2.5未満\n' +
+    '食事記録の内容から総合的に推定すること。';
 
   var aiResult = await callAIWithFallback('AI栄養アドバイザーとして週間食事分析レポートを作成してください。', prompt);
   if (!aiResult) throw new Error('AI分析失敗');

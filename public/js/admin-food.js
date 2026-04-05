@@ -49,6 +49,13 @@ function loadFoodWeeklyReports() {
                 // レポート本文（折りたたみ）
                 html += '<div id="food-rpt-body-' + r.report_id + '" style="display:none;">';
                 html += '<div style="background:#f8faf9; padding:14px; border-radius:10px; font-size:0.85rem; line-height:1.8; color:#333; white-space:pre-wrap; border-left:3px solid #38d9a9; margin-bottom:10px;">' + escapeHtml(r.report_text) + '</div>';
+                // 栄養バーチャート
+                if (r.nutrition_scores) {
+                    try {
+                        var ns = typeof r.nutrition_scores === 'string' ? JSON.parse(r.nutrition_scores) : r.nutrition_scores;
+                        html += buildAdminNutritionBar(ns);
+                    } catch(e) {}
+                }
                 // 議論エリア
                 html += '<div id="food-rpt-chats-' + r.report_id + '" style="margin-bottom:8px;"></div>';
                 html += '<div style="display:flex; gap:6px;">';
@@ -112,6 +119,70 @@ function sendFoodReportComment(reportId) {
             alert('送信エラー');
         }
     });
+}
+
+// 栄養エビデンス対比バーチャート（Admin用）
+function buildAdminNutritionBar(sc) {
+    if (!sc) return '';
+    // 旧形式検出
+    var isLegacy = (typeof sc.protein === 'number' && sc.protein <= 5 && !sc.calories);
+    if (isLegacy) {
+        sc = {
+            calories:{value:300+(sc.protein||3)*70,unit:'kcal'}, protein:{value:(sc.protein||3)*5,unit:'g'},
+            fat:{value:15+(sc.fat||3)*3,unit:'%'}, carbs:{value:35+(sc.carbs||sc.carb||3)*6,unit:'%'},
+            vitamin:{value:(sc.vitamin||3)*30,unit:'g'}, mineral:{value:(sc.mineral||3)*55,unit:'mg'},
+            salt:{value:4.0-(sc.salt||3)*0.5,unit:'g'}
+        };
+    }
+    var items = [
+        {key:'calories',icon:'🔥',label:'カロリー',unit:'kcal',target:550,min:450,max:650,range:true},
+        {key:'protein',icon:'🍖',label:'たんぱく質',unit:'g',target:20},
+        {key:'fat',icon:'🫒',label:'脂質',unit:'%',target:25,min:20,max:30,range:true},
+        {key:'carbs',icon:'🍚',label:'炭水化物',unit:'%',target:57.5,min:50,max:65,range:true},
+        {key:'vitamin',icon:'🥬',label:'野菜量',unit:'g',target:120},
+        {key:'mineral',icon:'🦴',label:'カルシウム',unit:'mg',target:227},
+        {key:'salt',icon:'🧂',label:'塩分',unit:'g',target:2.5,reverse:true}
+    ];
+    var html = '<div style="margin:10px 0;padding:12px;background:#f8faf9;border-radius:10px;border:1px solid #e0f0e8;">';
+    html += '<div style="font-size:0.78rem;font-weight:800;color:#1a3c34;margin-bottom:8px;">📊 栄養バランス（エビデンス対比）</div>';
+    items.forEach(function(item) {
+        var raw = sc[item.key]; var val = 0;
+        if (raw && typeof raw === 'object' && raw.value !== undefined) val = Number(raw.value);
+        else if (typeof raw === 'number') val = raw;
+        var barMax = item.target * 1.5;
+        var pct = Math.min(100, (val / barMax) * 100);
+        var status, color;
+        if (item.reverse) {
+            if (val <= item.target * 0.8) { status='良好'; color='#20c997'; }
+            else if (val <= item.target) { status='適量'; color='#f59e0b'; }
+            else { status='超過'; color='#ef4444'; }
+        } else if (item.range) {
+            if (val >= item.min && val <= item.max) { status='適量'; color='#20c997'; }
+            else if (val < item.min) { status='不足'; color='#f59e0b'; }
+            else { status='超過'; color='#ef4444'; }
+        } else {
+            var ratio = val / item.target;
+            if (ratio >= 0.8 && ratio <= 1.3) { status='適量'; color='#20c997'; }
+            else if (ratio < 0.8) { status='不足'; color='#f59e0b'; }
+            else { status='超過'; color='#ef4444'; }
+        }
+        var targetPct = Math.min(100, (item.target / barMax) * 100);
+        var dispVal = val % 1 === 0 ? val : val.toFixed(1);
+        html += '<div style="margin-bottom:5px;">' +
+            '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:1px;">' +
+                '<span style="font-size:0.72rem;font-weight:700;color:#444;">' + item.icon + ' ' + item.label + '</span>' +
+                '<span style="font-size:0.68rem;font-weight:700;color:' + color + ';">' + dispVal + item.unit +
+                    ' / ' + (item.range ? item.min+'-'+item.max : (item.reverse ? item.target+'未満' : item.target)) + item.unit +
+                    ' <span style="font-size:0.58rem;padding:1px 5px;border-radius:5px;background:'+color+'22;color:'+color+';">'+status+'</span></span>' +
+            '</div>' +
+            '<div style="position:relative;height:7px;background:#e9ecef;border-radius:3px;overflow:visible;">' +
+                '<div style="width:'+pct+'%;height:100%;background:'+color+';border-radius:3px;"></div>' +
+                '<div style="position:absolute;top:-2px;left:'+targetPct+'%;width:1.5px;height:11px;background:#333;border-radius:1px;opacity:0.4;"></div>' +
+            '</div></div>';
+    });
+    html += '<div style="text-align:right;font-size:0.55rem;color:#aaa;margin-top:2px;">▮ 目標ライン｜食事摂取基準2025・スマートミール基準</div>';
+    html += '</div>';
+    return html;
 }
 
 function runFoodWeeklyManual() {

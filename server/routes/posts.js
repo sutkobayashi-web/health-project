@@ -230,17 +230,18 @@ router.post('/food', async (req, res) => {
 - 全体で100〜150字程度に収める
 - ★★★マークダウン記法は使わない。強調は【】で囲む★★★
 
-【重要】テキストの最後に以下のJSON形式で推定栄養スコアを必ず出力。
+【重要】テキストの最後に以下のJSON形式で推定栄養データを必ず出力。
 ///NUTRIENTS///
-{"protein":X,"fat":X,"carbs":X,"vitamin":X,"mineral":X,"salt":X}
+{"calories":{"value":数値,"unit":"kcal"},"protein":{"value":数値,"unit":"g"},"fat":{"value":数値,"unit":"%"},"carbs":{"value":数値,"unit":"%"},"vitamin":{"value":数値,"unit":"g"},"mineral":{"value":数値,"unit":"mg"},"salt":{"value":数値,"unit":"g"}}
 
-各値は1食の目標に対する達成度1〜5（1=不足/過剰、3=適量、5=理想的）。
-- protein: たんぱく質（1食20g目標）
-- fat: 脂質（エネルギー比20-30%）
-- carbs: 炭水化物（エネルギー比50-65%）
-- vitamin: ビタミン類（緑黄色野菜・果物の充実度）
-- mineral: ミネラル（カルシウム・鉄分の充実度）
-- salt: 塩分（1食2.5g未満が理想。少ないほど高スコア）`;
+各項目のvalueは推定実数値（小数点1桁まで）:
+- calories: 推定カロリー（kcal）。目標: 450-650kcal/食
+- protein: 推定たんぱく質量（g）。目標: 20g/食
+- fat: 推定脂質エネルギー比（%）。目標: 20-30%
+- carbs: 推定炭水化物エネルギー比（%）。目標: 50-65%
+- vitamin: 推定野菜量（g）。目標: 120g/食（1日350g）
+- mineral: 推定カルシウム量（mg）。目標: 227mg/食（1日680mg）
+- salt: 推定塩分量（g）。目標: 2.5g未満/食（1日7.5g未満）`;
     let nutResRaw = await callGeminiVision(nutSys, imageBase64, mimeType);
     if (!nutResRaw || nutResRaw === '通信エラー') nutResRaw = '解析できませんでした。';
 

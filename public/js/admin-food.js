@@ -175,12 +175,13 @@ function buildAdminNutritionBar(sc) {
                     ' / ' + (item.range ? item.min+'-'+item.max : (item.reverse ? item.target+'未満' : item.target)) + item.unit +
                     ' <span style="font-size:0.58rem;padding:1px 5px;border-radius:5px;background:'+color+'22;color:'+color+';">'+status+'</span></span>' +
             '</div>' +
-            '<div style="position:relative;height:7px;background:#e9ecef;border-radius:3px;overflow:visible;">' +
+            '<div style="position:relative;height:7px;background:#e9ecef;border-radius:3px;overflow:visible;margin-bottom:2px;">' +
                 '<div style="width:'+pct+'%;height:100%;background:'+color+';border-radius:3px;"></div>' +
                 '<div style="position:absolute;top:-2px;left:'+targetPct+'%;width:1.5px;height:11px;background:#333;border-radius:1px;opacity:0.4;"></div>' +
+                '<div style="position:absolute;top:9px;left:'+targetPct+'%;transform:translateX(-50%);font-size:0.5rem;color:#888;white-space:nowrap;">'+item.target+'</div>' +
             '</div></div>';
     });
-    html += '<div style="text-align:right;font-size:0.55rem;color:#aaa;margin-top:2px;">▮ 目標ライン｜食事摂取基準2025・スマートミール基準</div>';
+    html += '<div style="text-align:right;font-size:0.55rem;color:#aaa;margin-top:6px;">▮ 基準値｜食事摂取基準2025・スマートミール基準</div>';
     html += '</div>';
     return html;
 }

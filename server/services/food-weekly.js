@@ -115,12 +115,14 @@ async function generateUserFoodReport(uid, userData, weekLabel, weekStart) {
           carbs:    { value: 35 + (s.carbs || s.carb || 3) * 6, unit: '%' },
           vitamin:  { value: (s.vitamin || 3) * 30, unit: 'g' },
           mineral:  { value: (s.mineral || 3) * 55, unit: 'mg' },
-          salt:     { value: 4.0 - (s.salt || 3) * 0.5, unit: 'g' }
+          fiber:    { value: (s.vitamin || 3) * 1.5, unit: 'g' },
+          salt:     { value: 4.0 - (s.salt || 3) * 0.5, unit: 'g' },
+          alcohol:  { value: 0, unit: 'g' }
         };
       }
       return s;
     });
-    var allKeys = ['calories','protein','fat','carbs','vitamin','mineral','salt'];
+    var allKeys = ['calories','protein','fat','carbs','vitamin','mineral','fiber','salt','alcohol'];
     var sums = {}; var counts = {};
     allKeys.forEach(function(k) { sums[k] = 0; counts[k] = 0; });
     normalizedScores.forEach(function(s) {

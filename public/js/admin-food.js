@@ -131,7 +131,8 @@ function buildAdminNutritionBar(sc) {
             calories:{value:300+(sc.protein||3)*70,unit:'kcal'}, protein:{value:(sc.protein||3)*5,unit:'g'},
             fat:{value:15+(sc.fat||3)*3,unit:'%'}, carbs:{value:35+(sc.carbs||sc.carb||3)*6,unit:'%'},
             vitamin:{value:(sc.vitamin||3)*30,unit:'g'}, mineral:{value:(sc.mineral||3)*55,unit:'mg'},
-            salt:{value:4.0-(sc.salt||3)*0.5,unit:'g'}
+            fiber:{value:(sc.vitamin||3)*1.5,unit:'g'}, salt:{value:4.0-(sc.salt||3)*0.5,unit:'g'},
+            alcohol:{value:0,unit:'g'}
         };
     }
     var items = [
@@ -141,7 +142,9 @@ function buildAdminNutritionBar(sc) {
         {key:'carbs',icon:'🍚',label:'炭水化物',unit:'%',target:57.5,min:50,max:65,range:true},
         {key:'vitamin',icon:'🥬',label:'野菜量',unit:'g',target:120},
         {key:'mineral',icon:'🦴',label:'カルシウム',unit:'mg',target:227},
-        {key:'salt',icon:'🧂',label:'塩分',unit:'g',target:2.5,reverse:true}
+        {key:'fiber',icon:'🌾',label:'食物繊維',unit:'g',target:7},
+        {key:'salt',icon:'🧂',label:'塩分',unit:'g',target:2.5,reverse:true},
+        {key:'alcohol',icon:'🍺',label:'アルコール',unit:'g',target:20,reverse:true,optional:true}
     ];
     var html = '<div style="margin:10px 0;padding:12px;background:#f8faf9;border-radius:10px;border:1px solid #e0f0e8;">';
     html += '<div style="font-size:0.78rem;font-weight:800;color:#1a3c34;margin-bottom:8px;">📊 栄養バランス（エビデンス対比）</div>';
@@ -149,6 +152,7 @@ function buildAdminNutritionBar(sc) {
         var raw = sc[item.key]; var val = 0;
         if (raw && typeof raw === 'object' && raw.value !== undefined) val = Number(raw.value);
         else if (typeof raw === 'number') val = raw;
+        if (item.optional && val === 0) return;
         var barMax = item.target * 1.5;
         var pct = Math.min(100, (val / barMax) * 100);
         var status, color;

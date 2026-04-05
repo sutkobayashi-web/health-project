@@ -245,7 +245,8 @@ router.post('/food', async (req, res) => {
                 calories:{value:300+(sc.protein||3)*70}, protein:{value:(sc.protein||3)*5},
                 fat:{value:15+(sc.fat||3)*3}, carbs:{value:35+(sc.carbs||sc.carb||3)*6},
                 vitamin:{value:(sc.vitamin||3)*30}, mineral:{value:(sc.mineral||3)*55},
-                salt:{value:4.0-(sc.salt||3)*0.5}
+                fiber:{value:(sc.vitamin||3)*1.5}, salt:{value:4.0-(sc.salt||3)*0.5},
+                alcohol:{value:0}
               };
             }
             keys.forEach(k => {
@@ -319,7 +320,7 @@ router.post('/food', async (req, res) => {
 
 ★★★絶対必須★★★ テキストの最後に以下のJSON形式で栄養データを必ず出力。数値にカンマを入れないこと。
 ///NUTRIENTS///
-{"calories":{"value":数値,"unit":"kcal"},"protein":{"value":数値,"unit":"g"},"fat":{"value":数値,"unit":"%"},"carbs":{"value":数値,"unit":"%"},"vitamin":{"value":数値,"unit":"g"},"mineral":{"value":数値,"unit":"mg"},"salt":{"value":数値,"unit":"g"}}
+{"calories":{"value":数値,"unit":"kcal"},"protein":{"value":数値,"unit":"g"},"fat":{"value":数値,"unit":"%"},"carbs":{"value":数値,"unit":"%"},"vitamin":{"value":数値,"unit":"g"},"mineral":{"value":数値,"unit":"mg"},"salt":{"value":数値,"unit":"g"},"fiber":{"value":数値,"unit":"g"},"alcohol":{"value":数値,"unit":"g"},"has_alcohol":true/false}
 
 各項目のvalueは実数値または推定実数値（小数点1桁まで、カンマ禁止）:
 - calories: カロリー（kcal）。目標: 450-650kcal/食
@@ -328,7 +329,11 @@ router.post('/food', async (req, res) => {
 - carbs: 炭水化物エネルギー比（%）。ラベル読取時はg数から%を算出。目標: 50-65%
 - vitamin: 野菜量（g）。目標: 120g/食
 - mineral: カルシウム量（mg）。目標: 227mg/食
-- salt: 食塩相当量（g）。目標: 2.5g未満/食`;
+- salt: 食塩相当量（g）。目標: 2.5g未満/食
+- fiber: 食物繊維（g）。ラベル記載あればそのまま、なければ野菜・海藻・きのこ・穀物から推定。目標: 7g/食（1日21g以上）
+- alcohol: 写真に写っている酒類から推定する純アルコール量（g）。酒が無ければ0。ビール350ml=14g、日本酒1合=22g、焼酎ロック1杯=20g、ワイン1杯=12g、ハイボール1杯=7g、チューハイ350ml=14g
+- has_alcohol: 画像にアルコール飲料が写っているか（true/false）。缶ビール、日本酒、焼酎、ワイン、グラス等を検出
+※ラベルに糖質・飽和脂肪酸・コレステロール等が記載されていればそれらも読み取り、テキスト分析に含めること`;
     let nutResRaw = await callGeminiVision(nutSys, imageBase64, mimeType);
     if (!nutResRaw || nutResRaw === '通信エラー') nutResRaw = '解析できませんでした。';
 
@@ -373,8 +378,29 @@ router.post('/food', async (req, res) => {
     // CoWellコイン付与（食事写真 8pt）
     const mariganResult = awardMarigan(uid, 'food_photo', pid);
 
-    res.json({ success: true, analysis: { nutrition: nutRes, nurse: nurseRes, nutrientScores }, imageUrl, marigan: mariganResult });
+    res.json({ success: true, pid, analysis: { nutrition: nutRes, nurse: nurseRes, nutrientScores }, imageUrl, marigan: mariganResult });
   } catch (e) {
+    res.json({ success: false, msg: e.toString() });
+  }
+});
+
+// 晩酌記録（アルコール量更新）
+router.post('/alcohol-log', (req, res) => {
+  try {
+    const { pid, alcoholGrams } = req.body;
+    if (!pid) return res.json({ success: false, msg: 'pidが必要です' });
+    const db = getDb();
+    const post = db.prepare('SELECT nutrition_scores FROM posts WHERE post_id = ?').get(pid);
+    if (!post) return res.json({ success: false, msg: '投稿が見つかりません' });
+    let scores = {};
+    if (post.nutrition_scores) {
+      try { scores = JSON.parse(post.nutrition_scores); } catch(e) {}
+    }
+    scores.alcohol = { value: Number(alcoholGrams) || 0, unit: 'g' };
+    scores.has_alcohol = true;
+    db.prepare('UPDATE posts SET nutrition_scores = ? WHERE post_id = ?').run(JSON.stringify(scores), pid);
+    res.json({ success: true, alcohol: scores.alcohol });
+  } catch(e) {
     res.json({ success: false, msg: e.toString() });
   }
 });

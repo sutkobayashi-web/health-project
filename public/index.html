@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260405_1630">
+<html data-app-version="20260405_1700">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -3008,6 +3008,11 @@ function submitFoodPost() {
       showFoodResponse(msg || '食事の投稿を受け付けました。');
       if (res.analysis && res.analysis.nutrientScores) {
         setTimeout(function() { renderNutrientRadar('food-radar-chart-area', res.analysis.nutrientScores); }, 100);
+        // アルコール検出時に晩酌記録パネルを表示
+        var ns = res.analysis.nutrientScores;
+        if (ns.has_alcohol === true || (ns.alcohol && ns.alcohol.value > 0)) {
+          setTimeout(function() { showAlcoholLogPanel('food-radar-chart-area', res.pid); }, 200);
+        }
       }
     } else {
       alert("投稿エラー: " + (res ? res.msg : "不明なエラー"));
@@ -3053,7 +3058,9 @@ function renderNutrientRadar(containerId, scores) {
     { key:'carbs',    icon:'🍚', label:'炭水化物',  unit:'%',   target:57.5, min:50, max:65, range:true },
     { key:'vitamin',  icon:'🥬', label:'野菜量',   unit:'g',    target:120 },
     { key:'mineral',  icon:'🦴', label:'カルシウム', unit:'mg',  target:227 },
-    { key:'salt',     icon:'🧂', label:'塩分',     unit:'g',    target:2.5, reverse:true }
+    { key:'fiber',    icon:'🌾', label:'食物繊維',  unit:'g',    target:7 },
+    { key:'salt',     icon:'🧂', label:'塩分',     unit:'g',    target:2.5, reverse:true },
+    { key:'alcohol',  icon:'🍺', label:'アルコール', unit:'g',    target:20, reverse:true, optional:true }
   ];
 
   var html = '<div style="font-weight:800;font-size:0.85rem;color:#20c997;margin-bottom:8px;text-align:center;">📊 栄養バランス（エビデンス対比）</div>';
@@ -3064,6 +3071,9 @@ function renderNutrientRadar(containerId, scores) {
     var val = 0;
     if (raw && typeof raw === 'object' && raw.value !== undefined) val = Number(raw.value);
     else if (typeof raw === 'number') val = raw;
+
+    // optional項目で値が0なら非表示
+    if (item.optional && val === 0) return;
 
     // バー計算（目標の150%を上限）
     var barMax = item.target * 1.5;
@@ -3114,6 +3124,89 @@ function renderNutrientRadar(containerId, scores) {
   el.innerHTML = html;
 }
 
+// ====== 晩酌記録パネル ======
+function showAlcoholLogPanel(afterElementId, pid) {
+  var container = document.getElementById(afterElementId);
+  if (!container || document.getElementById('alcohol-log-panel')) return;
+
+  var drinks = [
+    { id:'beer',     icon:'🍺', name:'ビール(350ml)',   grams:14 },
+    { id:'beer500',  icon:'🍺', name:'ビール(500ml)',   grams:20 },
+    { id:'sake',     icon:'🍶', name:'日本酒(1合)',     grams:22 },
+    { id:'shochu',   icon:'🥃', name:'焼酎ロック',      grams:20 },
+    { id:'wine',     icon:'🍷', name:'ワイン(1杯)',     grams:12 },
+    { id:'highball', icon:'🥃', name:'ハイボール',      grams:7 },
+    { id:'chuhai',   icon:'🍹', name:'チューハイ(350ml)', grams:14 }
+  ];
+
+  var html = '<div id="alcohol-log-panel" style="margin-top:10px;padding:14px;background:linear-gradient(135deg,#fff8e1,#fff3e0);border-radius:14px;border:2px solid #ffb74d;">';
+  html += '<div style="font-weight:800;font-size:0.85rem;color:#e65100;margin-bottom:8px;"><i class="fas fa-wine-glass-alt" style="margin-right:4px;"></i>晩酌記録</div>';
+  html += '<div style="font-size:0.72rem;color:#888;margin-bottom:10px;">写真撮影後に追加で飲んだ分も記録できます</div>';
+
+  drinks.forEach(function(d) {
+    html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">' +
+      '<span style="font-size:1.1rem;width:24px;text-align:center;">' + d.icon + '</span>' +
+      '<span style="flex:1;font-size:0.78rem;font-weight:600;color:#555;">' + d.name + '</span>' +
+      '<button onclick="adjustDrink(\'' + d.id + '\',-1)" style="width:28px;height:28px;border:1.5px solid #e65100;background:white;color:#e65100;border-radius:50%;font-size:0.9rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;">−</button>' +
+      '<span id="drink-' + d.id + '" style="width:20px;text-align:center;font-size:0.85rem;font-weight:700;color:#e65100;">0</span>' +
+      '<button onclick="adjustDrink(\'' + d.id + '\',1)" style="width:28px;height:28px;border:1.5px solid #e65100;background:#e65100;color:white;border-radius:50%;font-size:0.9rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;">+</button>' +
+    '</div>';
+  });
+
+  html += '<div style="margin-top:10px;padding:8px;background:white;border-radius:10px;text-align:center;">' +
+    '<span style="font-size:0.75rem;color:#888;">純アルコール量: </span>' +
+    '<span id="alcohol-total" style="font-size:1rem;font-weight:800;color:#e65100;">0g</span>' +
+    '<span style="font-size:0.65rem;color:#aaa;margin-left:6px;">/ 適正20g以下(厚労省)</span>' +
+  '</div>';
+
+  html += '<button onclick="submitAlcoholLog(\'' + pid + '\')" style="width:100%;margin-top:10px;padding:10px;background:linear-gradient(135deg,#e65100,#ff8a50);color:white;border:none;border-radius:10px;font-weight:700;font-size:0.85rem;cursor:pointer;"><i class="fas fa-check" style="margin-right:4px;"></i>晩酌を記録する</button>';
+  html += '</div>';
+
+  container.insertAdjacentHTML('afterend', html);
+
+  // ドリンクカウント管理
+  window._drinkCounts = {};
+  drinks.forEach(function(d) { window._drinkCounts[d.id] = 0; });
+  window._drinkGrams = {};
+  drinks.forEach(function(d) { window._drinkGrams[d.id] = d.grams; });
+}
+
+function adjustDrink(id, delta) {
+  if (!window._drinkCounts) return;
+  window._drinkCounts[id] = Math.max(0, (window._drinkCounts[id] || 0) + delta);
+  var el = document.getElementById('drink-' + id);
+  if (el) el.textContent = window._drinkCounts[id];
+  // 合計計算
+  var total = 0;
+  Object.keys(window._drinkCounts).forEach(function(k) {
+    total += window._drinkCounts[k] * (window._drinkGrams[k] || 0);
+  });
+  var totalEl = document.getElementById('alcohol-total');
+  if (totalEl) {
+    totalEl.textContent = total + 'g';
+    totalEl.style.color = total > 20 ? '#ef4444' : total > 0 ? '#e65100' : '#888';
+  }
+}
+
+function submitAlcoholLog(pid) {
+  var total = 0;
+  if (window._drinkCounts) {
+    Object.keys(window._drinkCounts).forEach(function(k) {
+      total += window._drinkCounts[k] * (window._drinkGrams[k] || 0);
+    });
+  }
+  fetch('/api/posts/alcohol-log', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
+    body: JSON.stringify({ pid: pid, alcoholGrams: total })
+  }).then(function(r) { return r.json(); }).then(function(res) {
+    if (res.success) {
+      var panel = document.getElementById('alcohol-log-panel');
+      if (panel) panel.innerHTML = '<div style="text-align:center;padding:12px;font-size:0.85rem;color:#2e7d32;font-weight:700;"><i class="fas fa-check-circle" style="margin-right:4px;"></i>晩酌を記録しました（純アルコール' + total + 'g）</div>';
+    }
+  }).catch(function() {});
+}
+
 // 旧形式スコア(1-5)→推定実数値への簡易変換
 function _convertLegacyScores(s) {
   return {
@@ -3123,7 +3216,9 @@ function _convertLegacyScores(s) {
     carbs:    { value: 35 + (s.carbs || s.carb || 3) * 6, unit: '%' },
     vitamin:  { value: (s.vitamin || 3) * 30, unit: 'g' },
     mineral:  { value: (s.mineral || 3) * 55, unit: 'mg' },
-    salt:     { value: 4.0 - (s.salt || 3) * 0.5, unit: 'g' }
+    fiber:    { value: (s.vitamin || 3) * 1.5, unit: 'g' },
+    salt:     { value: 4.0 - (s.salt || 3) * 0.5, unit: 'g' },
+    alcohol:  { value: 0, unit: 'g' }
   };
 }
 
@@ -6094,7 +6189,9 @@ function buildNutritionRadarSvg(sc) {
     { key:'carbs',    icon:'🍚', label:'炭水化物',  unit:'%',   target:57.5, min:50, max:65, range:true },
     { key:'vitamin',  icon:'🥬', label:'野菜量',   unit:'g',    target:120 },
     { key:'mineral',  icon:'🦴', label:'カルシウム', unit:'mg',  target:227 },
-    { key:'salt',     icon:'🧂', label:'塩分',     unit:'g',    target:2.5, reverse:true }
+    { key:'fiber',    icon:'🌾', label:'食物繊維',  unit:'g',    target:7 },
+    { key:'salt',     icon:'🧂', label:'塩分',     unit:'g',    target:2.5, reverse:true },
+    { key:'alcohol',  icon:'🍺', label:'アルコール', unit:'g',    target:20, reverse:true, optional:true }
   ];
 
   var html = '<div style="margin:12px 0;padding:12px;background:#f8faf9;border-radius:12px;">';
@@ -6105,6 +6202,8 @@ function buildNutritionRadarSvg(sc) {
     var val = 0;
     if (raw && typeof raw === 'object' && raw.value !== undefined) val = Number(raw.value);
     else if (typeof raw === 'number') val = raw;
+
+    if (item.optional && val === 0) return;
 
     var barMax = item.target * 1.5;
     var pct = Math.min(100, (val / barMax) * 100);

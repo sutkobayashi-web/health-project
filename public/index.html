@@ -6449,21 +6449,28 @@ function doSpeak(text, msgEl, onDone) {
     }
     ttsDebug('3. 音声データ取得OK (' + data.audioContent.length + 'bytes) → 再生開始');
 
-    // data URI方式で直接再生
-    var audio = new Audio('data:audio/mp3;base64,' + data.audioContent);
+    // Base64 → Blob → ObjectURL で再生（data URIより互換性高い）
+    var byteChars = atob(data.audioContent);
+    var byteArray = new Uint8Array(byteChars.length);
+    for (var i = 0; i < byteChars.length; i++) byteArray[i] = byteChars.charCodeAt(i);
+    var blob = new Blob([byteArray], { type: 'audio/mpeg' });
+    var url = URL.createObjectURL(blob);
+    var audio = new Audio(url);
     window._currentTtsAudio = audio;
 
     audio.onended = function() {
       ttsDebug('5. 再生完了');
       _isSpeaking = false;
       if (bubble) bubble.classList.remove('speaking');
+      URL.revokeObjectURL(url);
       window._currentTtsAudio = null;
       if (onDone) onDone();
     };
     audio.onerror = function(e) {
-      ttsDebug('5. 再生エラー: ' + (e.message || JSON.stringify(e)));
+      ttsDebug('5. 再生エラー: ' + (e.type || e.message || 'unknown'));
       _isSpeaking = false;
       if (bubble) bubble.classList.remove('speaking');
+      URL.revokeObjectURL(url);
       window._currentTtsAudio = null;
       if (onDone) onDone();
     };

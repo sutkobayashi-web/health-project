@@ -319,6 +319,11 @@ function renderReportList(data) {
                                 '<button class="btn btn-sm fw-bold" style="font-size:0.7rem; background:linear-gradient(135deg,#ec4899,#be185d); color:white; border:none; border-radius:8px; padding:5px 14px;" onclick="sendReplyToUser(\''+pid+'\',\''+escapeHtml(r[INBOX_COLS.UID]||'')+'\',\''+escapeHtml(r[INBOX_COLS.USER_NAME]||'')+'\')"><i class="fas fa-paper-plane me-1"></i>お知らせ</button>' +
                                 '<button class="btn btn-sm fw-bold" style="font-size:0.7rem; background:linear-gradient(135deg,#38bdf8,#0284c7); color:white; border:none; border-radius:8px; padding:5px 14px;" onclick="sendReplyViaBuddy(\''+pid+'\',\''+escapeHtml(r[INBOX_COLS.UID]||'')+'\',\''+escapeHtml(r[INBOX_COLS.USER_NAME]||'')+'\')"><i class="fas fa-robot me-1"></i>バディー経由</button>' +
                             '</div>' +
+                            '<div style="margin-top:8px; border-top:1px solid #f0d0e0; padding-top:8px;">' +
+                                '<div style="font-size:0.7rem; font-weight:700; color:#0284c7; margin-bottom:4px; cursor:pointer;" onclick="var el=document.getElementById(\'buddy-history-'+pid+'\'); if(el.style.display===\'none\'){el.style.display=\'block\'; loadInboxBuddyHistory(\''+pid+'\',\''+escapeHtml(r[INBOX_COLS.UID]||'')+'\'); this.querySelector(\'i.fa-chevron-right,i.fa-chevron-down\').className=this.querySelector(\'i\').className.replace(\'fa-chevron-right\',\'fa-chevron-down\');} else {el.style.display=\'none\'; this.querySelector(\'i.fa-chevron-down,i.fa-chevron-right\').className=this.querySelector(\'i\').className.replace(\'fa-chevron-down\',\'fa-chevron-right\');}">' +
+                                    '<i class="fas fa-chevron-right me-1" style="font-size:0.6rem;"></i><i class="fas fa-history me-1"></i>バディー送信履歴</div>' +
+                                '<div id="buddy-history-'+pid+'" style="display:none; max-height:180px; overflow-y:auto; font-size:0.75rem;"></div>' +
+                            '</div>' +
                         '</div>' +
                     '</div>' +
                     // 右: 共感+議論
@@ -909,6 +914,43 @@ function likePost(pid, rowId) {
     });
 }
 
+// アコーディオン内バディー送信履歴読み込み
+function loadInboxBuddyHistory(pid, targetUid) {
+    var area = document.getElementById('buddy-history-' + pid);
+    if (!area) return;
+    area.innerHTML = '<div style="text-align:center;padding:8px;"><div class="spinner-border spinner-border-sm"></div></div>';
+
+    fetch('/api/notices/buddy-sent-history', {
+        headers: { 'Authorization': 'Bearer ' + getAdminToken() }
+    }).then(function(r) { return r.json(); }).then(function(data) {
+        if (!data.success || !data.list || data.list.length === 0) {
+            area.innerHTML = '<div style="text-align:center;padding:10px;color:#aaa;">送信履歴はありません</div>';
+            return;
+        }
+        var list = data.list.filter(function(n) { return n.targetId === targetUid; });
+        if (list.length === 0) {
+            area.innerHTML = '<div style="text-align:center;padding:10px;color:#aaa;">この方への送信履歴はありません</div>';
+            return;
+        }
+        var html = '';
+        list.forEach(function(n) {
+            var statusIcon = n.status === 'buddy_read'
+                ? '<span style="color:#4caf50;" title="表示済み"><i class="fas fa-check-double"></i></span>'
+                : '<span style="color:#aaa;" title="未表示"><i class="fas fa-check"></i></span>';
+            html += '<div style="padding:6px 0;border-bottom:1px solid #f5f5f5;">' +
+                '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">' +
+                    '<span style="font-size:0.68rem;color:#999;">' + n.date + ' ' + statusIcon + '</span>' +
+                    '<span style="font-size:0.68rem;color:#0ea5e9;font-weight:600;">' + escapeHtml(n.sender) + '</span>' +
+                '</div>' +
+                '<div style="font-size:0.75rem;color:#333;line-height:1.4;background:#f0f9ff;border-radius:6px;padding:5px 8px;">' + escapeHtml(n.content) + '</div>' +
+            '</div>';
+        });
+        area.innerHTML = html;
+    }).catch(function() {
+        area.innerHTML = '<div style="text-align:center;padding:10px;color:#e74c3c;">履歴取得エラー</div>';
+    });
+}
+
 // 投稿者への返事（バディー経由で送信）
 function sendReplyViaBuddy(postId, targetUid, userName) {
     var textarea = document.getElementById('reply-text-' + postId);
@@ -936,6 +978,9 @@ function sendReplyViaBuddy(postId, targetUid, userName) {
             textarea.value = '';
             var sent = document.getElementById('reply-sent-' + postId);
             if (sent) { sent.style.display = 'block'; sent.innerHTML = '<i class="fas fa-robot me-1" style="color:#0ea5e9;"></i>バディー経由で' + userName + 'さんへ送信しました'; }
+            // 送信履歴が開いていれば自動リフレッシュ
+            var histEl = document.getElementById('buddy-history-' + postId);
+            if (histEl && histEl.style.display !== 'none') { loadInboxBuddyHistory(postId, targetUid); }
             alert(userName + 'さんのバディーにメッセージを送りました');
         } else {
             alert('送信失敗: ' + (data ? data.msg : ''));

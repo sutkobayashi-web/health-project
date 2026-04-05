@@ -711,4 +711,99 @@ router.post('/mark-read', (req, res) => {
   } catch (e) { res.json({ success: false }); }
 });
 
+// ========================================
+// 「今日の空気」ダッシュボード API
+// ========================================
+router.get('/atmosphere', (req, res) => {
+  try {
+    const db = getDb();
+    const today = new Date().toISOString().slice(0, 10);
+    const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10);
+
+    // 今日の投稿数
+    const todayPosts = db.prepare("SELECT COUNT(*) as cnt FROM posts WHERE date(created_at) = ?").get(today);
+
+    // 今日の食事投稿数
+    const todayFood = db.prepare("SELECT COUNT(*) as cnt FROM posts WHERE date(created_at) = ? AND category = '🍱 食事・栄養'").get(today);
+
+    // 今日の相談投稿数
+    const todayConsult = db.prepare("SELECT COUNT(*) as cnt FROM posts WHERE date(created_at) = ? AND category != '🍱 食事・栄養'").get(today);
+
+    // 今日のアクティブユーザー数（投稿 or 共感した人）
+    const todayActivePosters = db.prepare("SELECT COUNT(DISTINCT user_id) as cnt FROM posts WHERE date(created_at) = ?").get(today);
+    const todayActiveEmpathy = db.prepare("SELECT COUNT(DISTINCT user_id) as cnt FROM empathy_responses WHERE date(created_at) = ?").get(today);
+    const todayActive = Math.max((todayActivePosters ? todayActivePosters.cnt : 0), (todayActiveEmpathy ? todayActiveEmpathy.cnt : 0));
+
+    // 全ユーザー数
+    const totalUsers = db.prepare("SELECT COUNT(*) as cnt FROM users").get();
+
+    // 今日のバディー気分回答の集計（buddy_messagesから推定）
+    // 元気度は投稿率から簡易算出
+    const participationRate = totalUsers.cnt > 0 ? Math.round((todayActive / totalUsers.cnt) * 100) : 0;
+
+    // 今週の共感総数
+    const weekEmpathy = db.prepare("SELECT COUNT(*) as cnt FROM empathy_responses WHERE date(created_at) >= ?").get(weekAgo);
+
+    // 今週の飯テロ王（食事投稿で最も共感をもらった人）
+    const foodKing = db.prepare(`
+      SELECT p.user_id, p.nickname, p.avatar, COUNT(e.id) as reaction_count
+      FROM posts p
+      JOIN empathy_responses e ON e.post_id = p.post_id
+      WHERE p.category = '🍱 食事・栄養'
+        AND date(p.created_at) >= ?
+      GROUP BY p.user_id
+      ORDER BY reaction_count DESC
+      LIMIT 1
+    `).get(weekAgo);
+
+    // 今週の食事投稿トップ3（反応数順）
+    const topFoodPosts = db.prepare(`
+      SELECT p.post_id, p.nickname, p.avatar, p.image_url, p.content,
+        COUNT(e.id) as reaction_count
+      FROM posts p
+      LEFT JOIN empathy_responses e ON e.post_id = p.post_id
+      WHERE p.category = '🍱 食事・栄養'
+        AND date(p.created_at) >= ?
+        AND p.image_url IS NOT NULL AND p.image_url != ''
+      GROUP BY p.post_id
+      ORDER BY reaction_count DESC
+      LIMIT 3
+    `).all(weekAgo);
+
+    // 今日のストリーク継続者数
+    const streakUsers = db.prepare("SELECT COUNT(*) as cnt FROM users WHERE streak_count >= 3").get();
+
+    // チャレンジ参加者数
+    let challengeParticipants = 0;
+    try {
+      const cp = db.prepare("SELECT COUNT(DISTINCT user_id) as cnt FROM challenge_participants WHERE challenge_id IN (SELECT challenge_id FROM challenges WHERE status = 'active')").get();
+      challengeParticipants = cp ? cp.cnt : 0;
+    } catch(e) {}
+
+    res.json({
+      success: true,
+      today: {
+        posts: todayPosts ? todayPosts.cnt : 0,
+        food: todayFood ? todayFood.cnt : 0,
+        consult: todayConsult ? todayConsult.cnt : 0,
+        active: todayActive,
+        totalUsers: totalUsers ? totalUsers.cnt : 0,
+        participationRate: participationRate
+      },
+      week: {
+        empathyCount: weekEmpathy ? weekEmpathy.cnt : 0,
+        foodKing: foodKing || null,
+        topFoodPosts: topFoodPosts || []
+      },
+      community: {
+        streakUsers: streakUsers ? streakUsers.cnt : 0,
+        challengeParticipants: challengeParticipants
+      }
+    });
+  } catch (e) {
+    console.error('[atmosphere]', e.message);
+    res.json({ success: false, msg: e.message });
+  }
+});
+
 module.exports = router;

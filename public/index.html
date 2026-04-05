@@ -836,6 +836,62 @@
       </div>
     </div>
 
+    <!-- 今日の空気ダッシュボード -->
+    <div class="card-section" id="atmosphere-card" style="background:linear-gradient(135deg,#ecfdf5,#d1fae5); border:2px solid #34d399; box-shadow:0 4px 16px rgba(52,211,153,0.15);">
+      <div style="text-align:center;padding:4px 0 8px;">
+        <div style="font-weight:900;font-size:0.9rem;color:#065f46;">みんなの空気</div>
+        <div style="font-size:0.68rem;color:#6b7280;margin-top:2px;" id="atm-date">--</div>
+      </div>
+      <!-- 数字チップ -->
+      <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:10px;">
+        <div style="background:white;border-radius:12px;padding:6px 12px;text-align:center;min-width:60px;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+          <div style="font-size:1.1rem;font-weight:900;color:#059669;" id="atm-active">0</div>
+          <div style="font-size:0.6rem;color:#888;">人が参加</div>
+        </div>
+        <div style="background:white;border-radius:12px;padding:6px 12px;text-align:center;min-width:60px;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+          <div style="font-size:1.1rem;font-weight:900;color:#d97706;" id="atm-food">0</div>
+          <div style="font-size:0.6rem;color:#888;">食事投稿</div>
+        </div>
+        <div style="background:white;border-radius:12px;padding:6px 12px;text-align:center;min-width:60px;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+          <div style="font-size:1.1rem;font-weight:900;color:#7c3aed;" id="atm-empathy">0</div>
+          <div style="font-size:0.6rem;color:#888;">共感(今週)</div>
+        </div>
+        <div style="background:white;border-radius:12px;padding:6px 12px;text-align:center;min-width:60px;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+          <div style="font-size:1.1rem;font-weight:900;color:#dc2626;" id="atm-streak">0</div>
+          <div style="font-size:0.6rem;color:#888;">連続3日+</div>
+        </div>
+      </div>
+      <!-- 参加率バー -->
+      <div style="background:white;border-radius:10px;padding:8px 12px;margin-bottom:8px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+          <span style="font-size:0.7rem;font-weight:700;color:#374151;">今日の参加率</span>
+          <span style="font-size:0.75rem;font-weight:800;color:#059669;" id="atm-rate">0%</span>
+        </div>
+        <div style="height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+          <div id="atm-rate-bar" style="height:100%;background:linear-gradient(90deg,#34d399,#059669);border-radius:4px;width:0%;transition:width 1s ease;"></div>
+        </div>
+      </div>
+      <!-- 飯テロ王 -->
+      <div id="atm-food-king" style="display:none;background:white;border-radius:12px;padding:10px 12px;border:1.5px solid #fbbf24;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div style="font-size:1.3rem;">👑</div>
+          <div style="flex:1;">
+            <div style="font-size:0.72rem;font-weight:800;color:#92400e;">今週の飯テロ王</div>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:3px;">
+              <div id="atm-king-avatar" style="width:28px;height:28px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:0.9rem;background:#f5f5f5;"></div>
+              <span id="atm-king-name" style="font-weight:700;font-size:0.82rem;color:#333;"></span>
+              <span id="atm-king-count" style="font-size:0.65rem;font-weight:700;color:#d97706;background:#fffbeb;padding:2px 8px;border-radius:8px;"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- 今週の人気メシ TOP3 -->
+      <div id="atm-top-food" style="display:none;margin-top:8px;">
+        <div style="font-size:0.72rem;font-weight:800;color:#065f46;margin-bottom:6px;">🍽️ 今週の人気メシ</div>
+        <div id="atm-top-food-list" style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;"></div>
+      </div>
+    </div>
+
     <!-- テーマ投票 -->
     <div class="card-section" id="theme-vote-section" style="display:none; background:linear-gradient(135deg,#eef0fb,#e8eaf6); border:2px solid #667eea; box-shadow:0 4px 16px rgba(102,126,234,0.12);">
       <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="toggleAccordion('vote-body','vote-chevron')">
@@ -2374,7 +2430,7 @@ var _postCache = {};
 function renderPost(p) {
   _postCache[p.row] = p;
   var headerClass = "header-consult"; var icon = "far fa-comment-dots"; var catName = "相談・共有";
-  if (p.category === '🍱 食事・栄養' || p.imageUrl) { headerClass = "header-food"; icon = "fas fa-utensils"; catName = "食事チェック"; }
+  if (p.category === '🍱 食事・栄養' || p.imageUrl) { headerClass = "header-food"; icon = "fas fa-utensils"; catName = "今日のメシ"; }
   var likeId = 'like-' + p.row;
   var liked = p.isLiked;
   var isOwn = currentUser && p.authorUid === currentUser.uid;
@@ -2840,7 +2896,7 @@ function openMyPosts() {
       var isFood = p.category === '🍱 食事・栄養' || !!p.imageUrl;
       var headerClass = isFood ? 'header-food' : 'header-consult';
       var icon = isFood ? 'fas fa-utensils' : 'far fa-comment-dots';
-      var catName = isFood ? '食事チェック' : '相談・共有';
+      var catName = isFood ? '今日のメシ' : '相談・共有';
       var chatBadge = p.chatCount > 0 ? '<span style="font-size:0.65rem;background:#d32f2f;color:white;padding:1px 7px;border-radius:8px;font-weight:700;"><i class="fas fa-comments"></i> メンバーから ' + p.chatCount + '件</span>' : '';
       var empathyBadge = p.empathyCount > 0 ? '<span style="font-size:0.65rem;background:#667eea;color:white;padding:1px 7px;border-radius:8px;font-weight:700;">❤️ 共感 ' + p.empathyCount + '</span>' : '';
       var thumbHtml = (p.imageUrl && p.imageUrl.length > 1) ? '<img src="' + p.imageUrl + '" style="width:44px;height:44px;object-fit:cover;border-radius:8px;flex-shrink:0;" loading="eager" crossorigin="anonymous" onerror="this.style.display=\'none\'">' : '';
@@ -2878,6 +2934,67 @@ function renderTreeVisual(stage, color) {
     6: '<svg viewBox="0 0 60 70" width="60" height="70"><ellipse cx="30" cy="66" rx="28" ry="6" fill="#8B7355" opacity="0.3"/><rect x="22" y="22" width="16" height="42" rx="8" fill="#2D1F0E"/><line x1="8" y1="40" x2="22" y2="30" stroke="#2D1F0E" stroke-width="5" stroke-linecap="round"/><line x1="52" y1="38" x2="38" y2="28" stroke="#2D1F0E" stroke-width="5" stroke-linecap="round"/><line x1="14" y1="50" x2="22" y2="42" stroke="#2D1F0E" stroke-width="3" stroke-linecap="round"/><line x1="46" y1="48" x2="38" y2="40" stroke="#2D1F0E" stroke-width="3" stroke-linecap="round"/><ellipse cx="8" cy="20" rx="14" ry="12" fill="'+c+'"/><ellipse cx="52" cy="18" rx="14" ry="12" fill="'+c+'"/><ellipse cx="30" cy="12" rx="20" ry="16" fill="'+c+'"/><ellipse cx="20" cy="8" rx="10" ry="8" fill="'+c+'" opacity="0.8"/><ellipse cx="40" cy="6" rx="10" ry="8" fill="'+c+'" opacity="0.8"/><circle cx="16" cy="14" r="4" fill="#ef4444"/><circle cx="44" cy="12" r="4" fill="#ef4444"/><circle cx="30" cy="6" r="5" fill="#fbbf24"/><circle cx="8" cy="22" r="3" fill="#f59e0b"/><circle cx="52" cy="20" r="3" fill="#f59e0b"/><text x="5" y="36" font-size="7" opacity="0.6">🦋</text><text x="48" y="14" font-size="7" opacity="0.6">🐦</text></svg>'
   };
   container.innerHTML = svgs[stage] || svgs[0];
+}
+
+// ========================================
+// 「今日の空気」ダッシュボード
+// ========================================
+function loadAtmosphere() {
+  fetch('/api/posts/atmosphere').then(function(r){return r.json();}).then(function(data) {
+    if (!data.success) return;
+    var t = data.today;
+    var w = data.week;
+    var c = data.community;
+
+    // 日付
+    var d = new Date();
+    var dateEl = document.getElementById('atm-date');
+    if (dateEl) dateEl.textContent = (d.getMonth()+1) + '月' + d.getDate() + '日（' + ['日','月','火','水','木','金','土'][d.getDay()] + '）';
+
+    // 数字チップ
+    var activeEl = document.getElementById('atm-active');
+    if (activeEl) activeEl.textContent = t.active;
+    var foodEl = document.getElementById('atm-food');
+    if (foodEl) foodEl.textContent = t.food;
+    var empathyEl = document.getElementById('atm-empathy');
+    if (empathyEl) empathyEl.textContent = w.empathyCount;
+    var streakEl = document.getElementById('atm-streak');
+    if (streakEl) streakEl.textContent = c.streakUsers;
+
+    // 参加率バー
+    var rateEl = document.getElementById('atm-rate');
+    var rateBar = document.getElementById('atm-rate-bar');
+    if (rateEl) rateEl.textContent = t.participationRate + '%';
+    if (rateBar) setTimeout(function(){ rateBar.style.width = Math.min(100, t.participationRate) + '%'; }, 100);
+
+    // 飯テロ王
+    var kingCard = document.getElementById('atm-food-king');
+    if (kingCard && w.foodKing) {
+      kingCard.style.display = 'block';
+      var kingAv = document.getElementById('atm-king-avatar');
+      if (kingAv) kingAv.innerHTML = typeof getAvatarHtml === 'function' ? getAvatarHtml(w.foodKing.avatar, 28) : (w.foodKing.avatar || '😀');
+      var kingName = document.getElementById('atm-king-name');
+      if (kingName) kingName.textContent = w.foodKing.nickname || '???';
+      var kingCount = document.getElementById('atm-king-count');
+      if (kingCount) kingCount.textContent = '🤤 ' + w.foodKing.reaction_count + '件の反応';
+    }
+
+    // 今週の人気メシTOP3
+    var topFood = document.getElementById('atm-top-food');
+    var topList = document.getElementById('atm-top-food-list');
+    if (topFood && topList && w.topFoodPosts && w.topFoodPosts.length > 0) {
+      topFood.style.display = 'block';
+      topList.innerHTML = w.topFoodPosts.map(function(p, i) {
+        var medal = i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉';
+        var imgHtml = p.image_url ? '<img src="' + p.image_url + '" style="width:80px;height:80px;object-fit:cover;border-radius:10px;" loading="lazy" onerror="this.style.display=\'none\'">' : '<div style="width:80px;height:80px;background:#f5f5f5;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;">🍽️</div>';
+        return '<div style="flex-shrink:0;width:100px;text-align:center;">' +
+          imgHtml +
+          '<div style="font-size:0.65rem;font-weight:700;margin-top:4px;color:#333;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + medal + ' ' + (p.nickname || '') + '</div>' +
+          '<div style="font-size:0.6rem;color:#999;">🤤 ' + (p.reaction_count || 0) + '</div>' +
+        '</div>';
+      }).join('');
+    }
+  }).catch(function(e) { console.log('[atmosphere] error:', e.message); });
 }
 
 function openMyPostDetail(postId, authorUid) {
@@ -3736,7 +3853,8 @@ function switchAppTab(tab) {
   if (tab === 'buddy') {
     // バディーは常に表示
   } else if (tab === 'menu') {
-    // メニュー（旧ホーム）表示
+    // メニュー（旧ホー��）表示 — 空気ダッシュボードを読み込み
+    loadAtmosphere();
   } else if (tab === 'inbox') {
     lockScroll();
     loadInboxContent();
@@ -4970,7 +5088,7 @@ function buddyWrapUp(action) {
   } else if (action === 'food') {
     addBuddyMessage('user', '🍱 食事を記録する');
     setTimeout(function() {
-      addBuddyMessage('ai', '食事チェックに移動しますね！📸');
+      addBuddyMessage('ai', 'メシ見せてくれるの？📸 メニュータブに行くね！');
       setTimeout(function() { switchAppTab('menu'); }, 800);
     }, 500);
   } else if (action === 'member') {
@@ -5447,7 +5565,7 @@ var _inlineFoodDataUrl = null;
 
 function inlineFoodCheck() {
   hideActionBar();
-  addBuddyMessage('ai', '食事チェックだね！🍽️\nAI栄養アドバイザーがバランスを分析するよ📊\n\nまずは食事の写真を撮ってね📸');
+  addBuddyMessage('ai', '今日のメシ見せて！🍽️\n写真撮るだけでOKだよ📸');
   setTimeout(function() {
     addBuddyInlineQuick(
       '<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;padding:4px 0;">' +

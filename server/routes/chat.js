@@ -544,14 +544,13 @@ router.post('/delete-memo', (req, res) => {
 });
 
 // ========================================
-// Google Cloud Text-to-Speech
+// Google Cloud Text-to-Speech（音声ファイルとして直接配信）
 // ========================================
 router.post('/tts', authUser, async (req, res) => {
   try {
     const { text } = req.body;
     if (!text || text.trim().length === 0) return res.status(400).json({ error: 'テキストが空です' });
 
-    // テキストを5000文字以内に制限（API上限）
     const cleanText = text.substring(0, 5000);
 
     const apiKey = process.env.GOOGLE_TTS_API_KEY || process.env.GEMINI_API_KEY;
@@ -581,8 +580,14 @@ router.post('/tts', authUser, async (req, res) => {
       return res.status(500).json({ error: data.error.message });
     }
 
-    // Base64音声データを返す
-    res.json({ audioContent: data.audioContent });
+    // Base64 → バイナリに変換して音声ファイルとして直接配信
+    const audioBuffer = Buffer.from(data.audioContent, 'base64');
+    res.set({
+      'Content-Type': 'audio/mpeg',
+      'Content-Length': audioBuffer.length,
+      'Cache-Control': 'no-cache'
+    });
+    res.send(audioBuffer);
   } catch (e) {
     console.error('TTS error:', e.message);
     res.status(500).json({ error: e.message });

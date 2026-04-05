@@ -5002,18 +5002,16 @@ function selectMood(mood) {
   // 体調をDBに記録
   saveBuddyMood(mood);
 
-  // 体調に応じた返答 + 時間帯の問いかけ
-  var h = new Date().getHours();
-  var timeFollow = h < 11 ? '\n今日はどんな予定？' : h < 17 ? '\n今日はどんな感じ？' : '\n今日はどんな1日だった？';
+  // 体調に応じた返答
   setTimeout(function() {
     if (mood === 'great') {
-      addBuddyMessage('ai', 'いい感じですね！✨' + timeFollow);
+      addBuddyMessage('ai', 'いい感じですね！✨\nその調子！何か気になることある？');
       setTimeout(function() { showFollowUpTopics(); }, 1000);
     } else if (mood === 'normal') {
-      addBuddyMessage('ai', 'まずまずですね👍' + timeFollow);
-      setTimeout(function() { showConcernOptions(); }, 1000);
+      addBuddyMessage('ai', 'まずまずですね👍\n何か気になることはある？');
+      setTimeout(function() { showFollowUpTopics(); }, 1000);
     } else if (mood === 'tired') {
-      addBuddyMessage('ai', '少し疲れてるんですね。\n無理しないでね。何か気になることはありますか？');
+      addBuddyMessage('ai', '少し疲れてるんですね。\n無理しないでね。何か気になることはある？');
       setTimeout(function() { showConcernOptions(); }, 1000);
     } else {
       addBuddyMessage('ai', 'それは心配ですね😢\n無理しないでくださいね。\n何かつらいことがありますか？');

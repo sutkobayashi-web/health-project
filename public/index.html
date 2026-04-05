@@ -805,8 +805,14 @@
     </div>
     <!-- インラインアクションバー -->
     <div id="buddy-action-bar" style="flex-shrink:0;background:#f0f9ff;border-top:1px solid #e0e8f0;padding:6px 10px;display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;touch-action:pan-x;-ms-touch-action:pan-x;">
+      <button onclick="inlineBuddyTalk()" class="buddy-action-btn" style="display:flex;align-items:center;gap:5px;padding:8px 14px;background:linear-gradient(135deg,#0ea5e9,#38bdf8);color:white;border:none;border-radius:20px;font-size:0.75rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;box-shadow:0 2px 8px rgba(14,165,233,0.25);font-family:inherit;">
+        <i class="fas fa-comment-dots"></i> バディーに話す
+      </button>
       <button onclick="inlineFoodCheck()" class="buddy-action-btn" style="display:flex;align-items:center;gap:5px;padding:8px 14px;background:linear-gradient(135deg,#20c997,#38d9a9);color:white;border:none;border-radius:20px;font-size:0.75rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;box-shadow:0 2px 8px rgba(32,201,151,0.25);font-family:inherit;">
-        <i class="fas fa-utensils"></i> 今日のごはん見せる
+        <i class="fas fa-utensils"></i> ごはん見せる
+      </button>
+      <button onclick="inlineHealthConsult()" class="buddy-action-btn" style="display:flex;align-items:center;gap:5px;padding:8px 14px;background:linear-gradient(135deg,#e91e63,#f06292);color:white;border:none;border-radius:20px;font-size:0.75rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;box-shadow:0 2px 8px rgba(233,30,99,0.25);font-family:inherit;">
+        <i class="fas fa-heartbeat"></i> 体調相談
       </button>
       <button onclick="inlineMemberConsult()" class="buddy-action-btn" style="display:flex;align-items:center;gap:5px;padding:8px 14px;background:linear-gradient(135deg,#f39c12,#f1c40f);color:white;border:none;border-radius:20px;font-size:0.75rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;box-shadow:0 2px 8px rgba(243,156,18,0.25);font-family:inherit;">
         <i class="fas fa-shield-alt"></i> 推進メンバーに相談
@@ -815,7 +821,7 @@
         <i class="fas fa-fire"></i> チャレンジ参加！
       </button>
       <button onclick="inlineTimelineView()" class="buddy-action-btn" style="display:flex;align-items:center;gap:5px;padding:8px 14px;background:linear-gradient(135deg,#6c5ce7,#a29bfe);color:white;border:none;border-radius:20px;font-size:0.75rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;box-shadow:0 2px 8px rgba(108,92,231,0.25);font-family:inherit;">
-        <i class="fas fa-stream"></i> みんなの投稿を見る
+        <i class="fas fa-stream"></i> みんなの投稿
       </button>
       <button onclick="inlineHelp()" class="buddy-action-btn" style="display:flex;align-items:center;gap:5px;padding:8px 14px;background:linear-gradient(135deg,#78909c,#90a4ae);color:white;border:none;border-radius:20px;font-size:0.75rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;box-shadow:0 2px 8px rgba(120,144,156,0.25);font-family:inherit;">
         <i class="fas fa-question-circle"></i> 使い方
@@ -5146,8 +5152,7 @@ async function buddyAskAI(concern, userText) {
         setTimeout(function() { showVoiceSuggestButtons(); }, 1000);
         return; // wrapUpは出さない（吸い上げ提案が優先）
       }
-      // 1往復のアドバイス後に締めの選択肢を表示
-      setTimeout(function() { showBuddyWrapUp(); }, challengeMentioned ? 2000 : 1200);
+      // アクションバーで次のアクションを選べるので、WrapUpメニューは不要
     } else {
       addBuddyMessage('ai', 'あれ、うまく聞き取れなかった。もう一回教えてくれる？');
     }
@@ -5684,6 +5689,16 @@ function showCancelCapture() {
       '<div class="buddy-quick-btn" onclick="cancelCaptureMode()" style="border-color:#999;color:#999;">✕ やめる</div>' +
     '</div>'
   );
+}
+
+function inlineBuddyTalk() {
+  addBuddyMessage('ai', 'うんうん、何でも聞くよ！😊\nここでの会話はあなただけのものです🔒');
+  document.getElementById('buddy-input').focus();
+}
+
+function inlineHealthConsult() {
+  addBuddyMessage('ai', '体調のこと、聞かせてね。何か気になることはある？');
+  setTimeout(function() { showConcernOptions(); }, 800);
 }
 
 function inlineMemberConsult() {

@@ -39,7 +39,32 @@ async function runWeeklyVoiceInsight() {
       `).all(weekStart, weekEnd);
     } catch(e) { console.log('[voice-insight] buddy_messages取得エラー:', e.message); }
 
-    // ユーザーごとに会話をグループ化（匿名: user_Aなど）
+    // 全ユーザーのニックネーム一覧を取得（匿名化用）
+    var allNicknames = [];
+    try {
+      var users = db.prepare('SELECT nickname, real_name FROM users').all();
+      users.forEach(function(u) {
+        if (u.nickname) allNicknames.push(u.nickname);
+        if (u.real_name) allNicknames.push(u.real_name);
+      });
+      // 長い名前から先に置換（部分一致防止）
+      allNicknames.sort(function(a, b) { return b.length - a.length; });
+    } catch(e) {}
+
+    // テキストから実名・ニックネームを除去する関数
+    function anonymizeText(text) {
+      var result = text;
+      allNicknames.forEach(function(name) {
+        if (name && name.length >= 2) {
+          result = result.split(name).join('○○');
+        }
+      });
+      // 「○○さん」の重複を整理
+      result = result.replace(/○○さん/g, '○○さん');
+      return result;
+    }
+
+    // ユーザーごとに会話をグループ化（匿名: 社員A, 社員Bなど）
     var userConversations = {};
     var userIdMap = {};
     var userCounter = 0;
@@ -52,7 +77,7 @@ async function runWeeklyVoiceInsight() {
       if (!userConversations[anonId]) userConversations[anonId] = [];
       userConversations[anonId].push({
         role: m.role === 'assistant' ? 'バディー' : anonId,
-        content: m.content
+        content: anonymizeText(m.content)
       });
     });
 
@@ -132,10 +157,12 @@ async function runWeeklyVoiceInsight() {
       : '（今週のバディー会話データなし）';
 
     var postData = posts.length > 0
-      ? posts.map(function(p) { return p.content.substring(0, 100); }).join('\n')
+      ? posts.map(function(p) { return anonymizeText(p.content.substring(0, 100)); }).join('\n')
       : '（今週の相談投稿なし）';
 
     var prompt = `あなたは企業の健康経営コンサルタントです。以下は運輸会社（トラックドライバー中心、平均年齢50代）の健康アプリ「CoWell」の先週（${weekLabel}）のデータです。
+
+★★★最重要ルール: レポートに個人名・ニックネーム・ハンドルネームを絶対に含めないこと。「社員A」「ある社員」「複数の社員」等の匿名表現のみ使用すること★★★
 
 【バディーとの会話（匿名・要約）】
 ${voiceData}

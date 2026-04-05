@@ -220,6 +220,57 @@ router.post('/food', async (req, res) => {
       imageUrl = `/uploads/${fileName}`;
     } catch (e) { imageUrl = '(保存失敗)'; }
 
+    // ユーザーの過去食事履歴を取得（直近10食分）
+    let userFoodHistory = '';
+    let nutrientTrend = '';
+    try {
+      const pastPosts = db.prepare(
+        `SELECT nutrition_scores, content, created_at FROM posts
+         WHERE user_id = ? AND category LIKE '%食事%' AND nutrition_scores IS NOT NULL
+         ORDER BY created_at DESC LIMIT 10`
+      ).all(uid);
+      if (pastPosts.length >= 2) {
+        const keys = ['calories','protein','fat','carbs','vitamin','mineral','salt'];
+        const units = {calories:'kcal',protein:'g',fat:'%',carbs:'%',vitamin:'g',mineral:'mg',salt:'g'};
+        const targets = {calories:550,protein:20,fat:25,carbs:57.5,vitamin:120,mineral:227,salt:2.5};
+        const sums = {}; const counts = {};
+        keys.forEach(k => { sums[k] = 0; counts[k] = 0; });
+        pastPosts.forEach(p => {
+          try {
+            const sc = JSON.parse(p.nutrition_scores);
+            keys.forEach(k => {
+              const v = sc[k];
+              const num = (v && typeof v === 'object') ? Number(v.value) : Number(v);
+              if (!isNaN(num) && num > 0) { sums[k] += num; counts[k]++; }
+            });
+          } catch(e) {}
+        });
+        const trends = [];
+        keys.forEach(k => {
+          if (counts[k] > 0) {
+            const avg = Math.round(sums[k] / counts[k] * 10) / 10;
+            const tgt = targets[k];
+            const ratio = avg / tgt;
+            let status;
+            if (k === 'salt') {
+              status = avg <= tgt * 0.8 ? '良好' : avg <= tgt ? '適量' : '過剰傾向';
+            } else if (k === 'fat' || k === 'carbs' || k === 'calories') {
+              status = ratio >= 0.85 && ratio <= 1.15 ? '適量' : ratio < 0.85 ? '不足傾向' : '過剰傾向';
+            } else {
+              status = ratio >= 0.8 ? '適量' : '不足傾向';
+            }
+            trends.push(`${k}: 平均${avg}${units[k]}(目標${tgt}${units[k]}) → ${status}`);
+          }
+        });
+        nutrientTrend = trends.join('\n');
+        const recentMenus = pastPosts.slice(0, 5).map(p => {
+          const c = (p.content || '').replace(/^【写真】/, '').substring(0, 40);
+          return c || '(写真のみ)';
+        }).join('、');
+        userFoodHistory = `\n\n【この社員の食事傾向（直近${pastPosts.length}食の平均）】\n${nutrientTrend}\n最近の食事: ${recentMenus}`;
+      }
+    } catch(e) { /* 履歴取得失敗は無視 */ }
+
     // Gemini Vision で栄養分析
     const nutSys = `あなたはベテラン食事アドバイザーです。国立長寿医療研究センター「栄養改善パック」（2020）に基づき、投稿された食事画像を簡潔に分析してください。
 
@@ -254,10 +305,19 @@ router.post('/food', async (req, res) => {
       nutRes = nutResRaw.replace(/\/\/\/NUTRIENTS\/\/\/[\s\S]*$/, '').trim();
     }
 
-    // Groq でヘルスアドバイザーコメント
-    const nurseSys = `あなたはAIヘルスアドバイザーです。相手:${dName}。つぶやき:「${comment}」食事分析:「${nutRes}」。
-良い点を1つ褒め、改善があれば1つだけ具体的に提案。食事記録の継続を一言で励ます。
-全体で80〜120字程度。マークダウン不可。強調は【】。最後に「📚 出典:」でガイドライン名を明記。`;
+    // Groq でヘルスアドバイザーコメント（履歴ベースのパーソナライズ）
+    const nurseSys = `あなたはAIヘルスアドバイザーです。相手:${dName}さん。つぶやき:「${comment}」今回の食事分析:「${nutRes}」${userFoodHistory}
+
+【回答ルール】
+- 良い点を1つ褒める（具体的に何が良いか）
+- ${nutrientTrend ? '過去の食事傾向を踏まえて、この社員が特に不足/過剰な栄養素を改善する具体的な提案を1つ' : '改善ポイントを1つ具体的に提案'}
+- 【重要】提案は以下のいずれかの形式で具体的に:
+  ・不足栄養素を補う【具体的な献立メニュー名】（例: 「明日は【鮭の塩焼き定食】にするとたんぱく質とカルシウムが一度に摂れます」）
+  ・コンビニ/スーパーで買える商品の選び方（例: 「コンビニなら【サラダチキン+カット野菜+おにぎり】の組み合わせがおすすめ」）
+  ・今の食事に【ちょい足し】できるもの（例: 「味噌汁に【乾燥わかめ】を足すだけでミネラルアップ」）
+- 食事記録の継続を一言で励ます
+- 全体で120〜180字程度。マークダウン不可。強調は【】
+- 最後に「📚 出典:」でガイドライン名を明記`;
     let nurseRes = await callAIWithFallback(nurseSys, '声かけ');
     if (!nurseRes) nurseRes = `${dName}さん、食事の投稿ありがとうございます！`;
 

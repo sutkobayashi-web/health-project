@@ -6220,7 +6220,6 @@ function toggleVoiceMode() {
 
   if (_voiceModeActive) {
     // 音声モードON: テキスト入力を隠して音声パネル表示
-    unlockTtsAudio(); // モバイル自動再生対策: ユーザータップでAudioアンロック
     if (panel) panel.style.display = 'block';
     if (textBar) textBar.style.display = 'none';
     updateVoiceStatus('タップして話しかけてね');
@@ -6269,8 +6268,6 @@ function setMicState(state) {
 
 // --- タップで話す ---
 function tapToSpeak() {
-  // 毎回タップ時にAudioアンロック（モバイル自動再生対策）
-  unlockTtsAudio();
   // 読み上げ中なら停止
   if (_isSpeaking) { stopSpeaking(); setMicState('ready'); updateVoiceStatus('タップして話しかけてね'); return; }
   // 認識中なら停止
@@ -6402,30 +6399,10 @@ function cleanTextForSpeech(text) {
     .trim();
 }
 
-// 永続Audio要素（モバイル自動再生対策: ユーザータップで一度再生→以降は自由に再生可能）
-var _ttsAudio = new Audio();
-var _ttsAudioUnlocked = false;
-var _ttsQueue = null; // {blob, bubble, onDone}
-
-function unlockTtsAudio() {
-  if (_ttsAudioUnlocked) return;
-  // 無音データ(極小MP3)を再生してAudio要素をアンロック
-  _ttsAudio.src = 'data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAABhgC7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7//////////////////////////////////////////////////////////////////8AAAAATGF2YzU4LjEzAAAAAAAAAAAAAAAAJAAAAAAAAAAAAYYltkSeAAAAAAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAABhgC7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7//////////////////////////////////////////////////////////////////8AAAAATGF2YzU4LjEzAAAAAAAAAAAAAAAAJAAAAAAAAAAAAYYltkSeAAAAAAAAAAAAAAAAAAA=';
-  _ttsAudio.volume = 0.01;
-  var p = _ttsAudio.play();
-  if (p && p.then) {
-    p.then(function() {
-      _ttsAudioUnlocked = true;
-      _ttsAudio.pause();
-      _ttsAudio.volume = 1.0;
-    }).catch(function() {});
-  }
-}
-
+// TTS再生: data URI方式（モバイルPWA互換性最大化）
 function speakBuddyText(btnEl) {
   var text = btnEl.getAttribute('data-text');
   if (!text) return;
-  unlockTtsAudio();
   doSpeak(text, btnEl.closest('.buddy-msg'), null);
 }
 
@@ -6451,32 +6428,28 @@ function doSpeak(text, msgEl, onDone) {
       if (onDone) onDone();
       return;
     }
-    // Base64 → Blob → 永続Audio要素で再生
-    var audioBytes = atob(data.audioContent);
-    var arrayBuffer = new ArrayBuffer(audioBytes.length);
-    var view = new Uint8Array(arrayBuffer);
-    for (var i = 0; i < audioBytes.length; i++) view[i] = audioBytes.charCodeAt(i);
-    var blob = new Blob([arrayBuffer], { type: 'audio/mp3' });
-    var url = URL.createObjectURL(blob);
+    // data URI方式で直接再生（Blob URL よりモバイル互換性が高い）
+    var audio = new Audio('data:audio/mp3;base64,' + data.audioContent);
+    window._currentTtsAudio = audio;
 
-    _ttsAudio.onended = function() {
+    audio.onended = function() {
       _isSpeaking = false;
       if (bubble) bubble.classList.remove('speaking');
-      URL.revokeObjectURL(url);
+      window._currentTtsAudio = null;
       if (onDone) onDone();
     };
-    _ttsAudio.onerror = function() {
+    audio.onerror = function(e) {
+      console.warn('Audio error:', e);
       _isSpeaking = false;
       if (bubble) bubble.classList.remove('speaking');
-      URL.revokeObjectURL(url);
+      window._currentTtsAudio = null;
       if (onDone) onDone();
     };
-    _ttsAudio.src = url;
-    _ttsAudio.volume = 1.0;
-    _ttsAudio.play().catch(function(e) {
-      console.warn('Audio play error:', e);
+    audio.play().catch(function(e) {
+      console.warn('Audio play blocked:', e);
       _isSpeaking = false;
       if (bubble) bubble.classList.remove('speaking');
+      window._currentTtsAudio = null;
       if (onDone) onDone();
     });
   }).catch(function(e) {
@@ -6488,10 +6461,9 @@ function doSpeak(text, msgEl, onDone) {
 }
 
 function stopSpeaking() {
-  if (_ttsAudio) {
-    _ttsAudio.pause();
-    _ttsAudio.onended = null;
-    _ttsAudio.onerror = null;
+  if (window._currentTtsAudio) {
+    window._currentTtsAudio.pause();
+    window._currentTtsAudio = null;
   }
   _isSpeaking = false;
   document.querySelectorAll('.buddy-bubble.speaking').forEach(function(el) { el.classList.remove('speaking'); });

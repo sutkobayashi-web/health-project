@@ -543,4 +543,50 @@ router.post('/delete-memo', (req, res) => {
   }
 });
 
+// ========================================
+// Google Cloud Text-to-Speech
+// ========================================
+router.post('/tts', authUser, async (req, res) => {
+  try {
+    const { text } = req.body;
+    if (!text || text.trim().length === 0) return res.status(400).json({ error: 'テキストが空です' });
+
+    // テキストを5000文字以内に制限（API上限）
+    const cleanText = text.substring(0, 5000);
+
+    const apiKey = process.env.GOOGLE_TTS_API_KEY || process.env.GEMINI_API_KEY;
+    if (!apiKey) return res.status(500).json({ error: 'TTS API Keyが設定されていません' });
+
+    const fetch = require('node-fetch');
+    const ttsRes = await fetch('https://texttospeech.googleapis.com/v1/text:synthesize?key=' + apiKey, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        input: { text: cleanText },
+        voice: {
+          languageCode: 'ja-JP',
+          name: 'ja-JP-Neural2-B'
+        },
+        audioConfig: {
+          audioEncoding: 'MP3',
+          speakingRate: 1.05,
+          pitch: 1.0
+        }
+      })
+    });
+
+    const data = await ttsRes.json();
+    if (data.error) {
+      console.error('TTS API error:', data.error.message);
+      return res.status(500).json({ error: data.error.message });
+    }
+
+    // Base64音声データを返す
+    res.json({ audioContent: data.audioContent });
+  } catch (e) {
+    console.error('TTS error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 module.exports = router;

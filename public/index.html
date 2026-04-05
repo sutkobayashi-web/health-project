@@ -6399,6 +6399,8 @@ function cleanTextForSpeech(text) {
     .trim();
 }
 
+var _currentAudio = null;
+
 function speakBuddyText(btnEl) {
   var text = btnEl.getAttribute('data-text');
   if (!text) return;
@@ -6410,18 +6412,64 @@ function doSpeak(text, msgEl, onDone) {
   var cleanText = cleanTextForSpeech(text);
   if (!cleanText) { if (onDone) onDone(); return; }
 
-  var utterance = new SpeechSynthesisUtterance(cleanText);
-  utterance.lang = 'ja-JP';
-  utterance.rate = 1.05;
-  utterance.pitch = 1.1;
-
-  var voice = getJapaneseVoice();
-  if (voice) utterance.voice = voice;
-
   var bubble = msgEl ? msgEl.querySelector('.buddy-bubble') : null;
   if (bubble) bubble.classList.add('speaking');
   _isSpeaking = true;
 
+  // Google Cloud TTS API呼び出し
+  fetch('/api/chat/tts', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
+    body: JSON.stringify({ text: cleanText })
+  }).then(function(r) { return r.json(); }).then(function(data) {
+    if (data.error || !data.audioContent) {
+      console.warn('TTS API error, falling back to browser TTS:', data.error);
+      fallbackBrowserTTS(cleanText, bubble, onDone);
+      return;
+    }
+    // Base64 → Blob → Audio再生
+    var audioBytes = atob(data.audioContent);
+    var arrayBuffer = new ArrayBuffer(audioBytes.length);
+    var view = new Uint8Array(arrayBuffer);
+    for (var i = 0; i < audioBytes.length; i++) view[i] = audioBytes.charCodeAt(i);
+    var blob = new Blob([arrayBuffer], { type: 'audio/mp3' });
+    var url = URL.createObjectURL(blob);
+
+    _currentAudio = new Audio(url);
+    _currentAudio.onended = function() {
+      _isSpeaking = false;
+      if (bubble) bubble.classList.remove('speaking');
+      URL.revokeObjectURL(url);
+      _currentAudio = null;
+      if (onDone) onDone();
+    };
+    _currentAudio.onerror = function() {
+      _isSpeaking = false;
+      if (bubble) bubble.classList.remove('speaking');
+      URL.revokeObjectURL(url);
+      _currentAudio = null;
+      if (onDone) onDone();
+    };
+    _currentAudio.play().catch(function(e) {
+      console.warn('Audio play error:', e);
+      _isSpeaking = false;
+      if (bubble) bubble.classList.remove('speaking');
+      if (onDone) onDone();
+    });
+  }).catch(function(e) {
+    console.warn('TTS fetch error, falling back:', e);
+    fallbackBrowserTTS(cleanText, bubble, onDone);
+  });
+}
+
+// Google Cloud TTS失敗時のフォールバック（ブラウザ内蔵TTS）
+function fallbackBrowserTTS(cleanText, bubble, onDone) {
+  var utterance = new SpeechSynthesisUtterance(cleanText);
+  utterance.lang = 'ja-JP';
+  utterance.rate = 1.05;
+  utterance.pitch = 1.1;
+  var voice = getJapaneseVoice();
+  if (voice) utterance.voice = voice;
   utterance.onend = function() {
     _isSpeaking = false;
     if (bubble) bubble.classList.remove('speaking');
@@ -6432,12 +6480,18 @@ function doSpeak(text, msgEl, onDone) {
     if (bubble) bubble.classList.remove('speaking');
     if (onDone) onDone();
   };
-
   speechSynthesis.speak(utterance);
 }
 
 function stopSpeaking() {
-  if (speechSynthesis.speaking) speechSynthesis.cancel();
+  // Google Cloud TTS (Audio要素)
+  if (_currentAudio) {
+    _currentAudio.pause();
+    _currentAudio.currentTime = 0;
+    _currentAudio = null;
+  }
+  // ブラウザ内蔵TTS
+  if (typeof speechSynthesis !== 'undefined' && speechSynthesis.speaking) speechSynthesis.cancel();
   _isSpeaking = false;
   document.querySelectorAll('.buddy-bubble.speaking').forEach(function(el) { el.classList.remove('speaking'); });
 }

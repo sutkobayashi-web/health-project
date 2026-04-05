@@ -1,7 +1,7 @@
 {
-  "name": "CoWell Health Project 2.0",
-  "short_name": "CoWell Health",
-  "description": "みんなで健康を - AI健康経営支援プラットフォーム",
+  "name": "CoWell",
+  "short_name": "CoWell",
+  "description": "みんなの声で、職場をもっと元気に",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#667eea",

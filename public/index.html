@@ -805,9 +805,6 @@
     </div>
     <!-- インラインアクションバー -->
     <div id="buddy-action-bar" style="flex-shrink:0;background:#f0f9ff;border-top:1px solid #e0e8f0;padding:6px 10px;display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;touch-action:pan-x;-ms-touch-action:pan-x;">
-      <button onclick="inlineConsult()" class="buddy-action-btn" style="display:flex;align-items:center;gap:5px;padding:8px 14px;background:linear-gradient(135deg,#ec407a,#f48fb1);color:white;border:none;border-radius:20px;font-size:0.75rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;box-shadow:0 2px 8px rgba(236,64,122,0.25);font-family:inherit;">
-        <i class="far fa-comment-dots"></i> みんなに聞いてみる
-      </button>
       <button onclick="inlineFoodCheck()" class="buddy-action-btn" style="display:flex;align-items:center;gap:5px;padding:8px 14px;background:linear-gradient(135deg,#20c997,#38d9a9);color:white;border:none;border-radius:20px;font-size:0.75rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;box-shadow:0 2px 8px rgba(32,201,151,0.25);font-family:inherit;">
         <i class="fas fa-utensils"></i> 今日のごはん見せる
       </button>
@@ -946,20 +943,7 @@
       </div>
     </div>
 
-    <!-- 相談セクション -->
-    <div class="card-section honne-area" style="background:linear-gradient(135deg,#fce4ec,#f8bbd0); border:2px solid #d63384; box-shadow:0 4px 16px rgba(214,51,132,0.12);">
-      <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="toggleAccordion('honne-body','honne-chevron')">
-        <div style="display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#e0f7fa,#b2ebf2);flex-shrink:0;"><i class="fas fa-heartbeat" style="font-size:22px;color:#e91e63;"></i></div>
-        <div style="flex:1; min-width:0;">
-          <div class="section-title" style="margin-bottom:2px; padding-bottom:3px; border-bottom:2px solid rgba(214,51,132,0.2);"><i class="far fa-comment-dots"></i> みんなに聞いてみよう</div>
-          <div class="honne-area section-sub">気になること、困ってること、なんでもOK</div>
-        </div>
-      </div>
-      <div id="honne-body" style="display:none; margin-top:12px; padding-top:12px; border-top:1px solid rgba(214,51,132,0.2);">
-        <textarea id="honne-input" placeholder="最近どう？気になること、ちょっとした愚痴、なんでもどうぞ！"></textarea>
-        <button class="btn-submit" onclick="submitPost()"><i class="fas fa-paper-plane" style="margin-right:6px;"></i> みんなに投げかける</button>
-      </div>
-    </div>
+    <!-- 相談はバディーチャットから自然に吸い上げるため、投稿フォームは廃止 -->
 
     <!-- 食事セクション -->
     <div class="card-section food-section" style="background:linear-gradient(135deg,#e0f7ef,#c8e6c9); border:2px solid #20c997; box-shadow:0 4px 16px rgba(32,201,151,0.12);">
@@ -997,15 +981,15 @@
       <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="toggleAccordion('posts-view-body','posts-view-chevron')">
         <div style="display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#6c5ce7,#a29bfe);flex-shrink:0;"><i class="fas fa-stream" style="font-size:22px;color:#fff;"></i></div>
         <div style="flex:1;">
-          <div class="section-title" style="margin-bottom:2px; padding-bottom:3px; border-bottom:2px solid rgba(108,92,231,0.2);"><i class="fas fa-stream"></i> みんなの投稿を見る</div>
-          <div style="font-size:0.75rem; color:#999;">相談・食事投稿をまとめて閲覧</div>
+          <div class="section-title" style="margin-bottom:2px; padding-bottom:3px; border-bottom:2px solid rgba(108,92,231,0.2);"><i class="fas fa-stream"></i> みんなの声</div>
+          <div style="font-size:0.75rem; color:#999;">バディーとの会話から届いた声＆ごはん</div>
         </div>
       </div>
       <div id="posts-view-body" style="display:none; margin-top:12px; padding-top:12px; border-top:1px solid rgba(108,92,231,0.2);">
         <div style="display:flex;gap:6px;margin-bottom:12px;">
           <button id="pv-filter-all" onclick="loadPostsView('all')" style="flex:1;padding:8px;border-radius:20px;font-size:0.78rem;font-weight:700;cursor:pointer;border:2px solid #6c5ce7;background:#6c5ce7;color:white;font-family:inherit;">すべて</button>
-          <button id="pv-filter-consult" onclick="loadPostsView('consult')" style="flex:1;padding:8px;border-radius:20px;font-size:0.78rem;font-weight:700;cursor:pointer;border:2px solid #d63384;background:white;color:#d63384;font-family:inherit;">💬 相談</button>
-          <button id="pv-filter-food" onclick="loadPostsView('food')" style="flex:1;padding:8px;border-radius:20px;font-size:0.78rem;font-weight:700;cursor:pointer;border:2px solid #20c997;background:white;color:#20c997;font-family:inherit;">🍽️ 食事</button>
+          <button id="pv-filter-consult" onclick="loadPostsView('consult')" style="flex:1;padding:8px;border-radius:20px;font-size:0.78rem;font-weight:700;cursor:pointer;border:2px solid #d63384;background:white;color:#d63384;font-family:inherit;">💬 声</button>
+          <button id="pv-filter-food" onclick="loadPostsView('food')" style="flex:1;padding:8px;border-radius:20px;font-size:0.78rem;font-weight:700;cursor:pointer;border:2px solid #20c997;background:white;color:#20c997;font-family:inherit;">🍽️ ごはん</button>
         </div>
         <div id="posts-view-content"><div style="text-align:center;padding:20px;color:#bbb;">タブを選んで投稿を表示</div></div>
         <div style="display:flex; gap:8px; margin-top:8px;">

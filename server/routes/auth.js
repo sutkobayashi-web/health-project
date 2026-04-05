@@ -312,7 +312,7 @@ router.post('/change-password', (req, res) => {
   try {
     const { uid, birthDate, newPassword } = req.body;
     if (!uid || !birthDate) return res.json({ success: false, msg: '生年月日を入力してください' });
-    if (!newPassword || newPassword.length < 4) return res.json({ success: false, msg: 'パスワードは4文字以上で設定してください' });
+    if (!newPassword || newPassword.length < 6) return res.json({ success: false, msg: 'パスワードは6文字以上で設定してください' });
     const db = getDb();
     const user = db.prepare('SELECT birth_date FROM users WHERE id = ?').get(uid);
     if (!user) return res.json({ success: false, msg: 'ユーザーが見つかりません' });

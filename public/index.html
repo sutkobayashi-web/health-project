@@ -318,9 +318,22 @@
       <div class="auth-guide-text">はじめに選択してください</div>
       <button class="auth-menu-btn btn-new-user" onclick="showStep('register')"><i class="fas fa-user-plus"></i><div><span class="auth-menu-title">はじめての方</span><span class="auth-menu-desc">新規登録して参加する</span></div></button>
       <button class="auth-menu-btn btn-exist-user" onclick="showStep('login')"><i class="fas fa-sign-in-alt"></i><div><span class="auth-menu-title">登録済みの方</span><span class="auth-menu-desc">ログインして続ける</span></div></button>
-      <div style="text-align:center; margin-top:5px;">
-        <a class="admin-link-small" onclick="showStep('admin-login')" style="cursor:pointer;"><i class="fas fa-lock"></i> 管理者ログイン</a>
+      <button class="auth-menu-btn" onclick="showStep('member-menu')" style="background:linear-gradient(135deg,#fff0f6,#fce4ec); border:2px solid #f48fb1;"><i class="fas fa-shield-alt" style="color:#d63384;"></i><div><span class="auth-menu-title" style="color:#d63384;">推進メンバーの方</span><span class="auth-menu-desc">管理・登録はこちら</span></div></button>
+    </div>
+
+    <div id="auth-step-member-menu" style="display:none;">
+      <div style="text-align:center; margin-bottom:14px;">
+        <div style="font-size:2.5rem; animation: authHeroBounce 2.5s ease-in-out infinite;">🛡️</div>
+        <div class="modal-title" style="border:none; margin-bottom:4px; padding-bottom:0; color:#d63384;">推進メンバー</div>
+        <div style="font-size:0.8rem; color:#888;">健康推進チームの方はこちら</div>
       </div>
+      <button class="auth-menu-btn" onclick="showStep('admin-login')" style="background:linear-gradient(135deg,#fff5f5,#ffe8e8); border:2px solid #e74c3c;"><i class="fas fa-sign-in-alt" style="color:#e74c3c;"></i><div><span class="auth-menu-title" style="color:#e74c3c;">ログイン</span><span class="auth-menu-desc">メールアドレスでログイン</span></div></button>
+      <button class="auth-menu-btn" onclick="showStep('admin-register')" style="background:linear-gradient(135deg,#f5f0ff,#eee5ff); border:2px solid #6c5ce7;"><i class="fas fa-user-plus" style="color:#6c5ce7;"></i><div><span class="auth-menu-title" style="color:#6c5ce7;">新規メンバー登録</span><span class="auth-menu-desc">推進メンバーとして参加申請</span></div></button>
+      <div style="text-align:center; margin-top:8px; padding:10px; background:#f8f9fa; border-radius:10px; font-size:0.78rem; color:#888; line-height:1.6;">
+        <i class="fas fa-info-circle" style="color:#6c5ce7; margin-right:3px;"></i>
+        新規登録後、既存メンバーの承認が必要です
+      </div>
+      <div class="back-btn" onclick="showStep('menu')">← 戻る</div>
     </div>
 
     <div id="auth-step-register" style="display:none;">
@@ -341,7 +354,7 @@
         <div class="form-group" style="flex:1; margin-bottom:0;"><label><i class="fas fa-user" style="color:#3478f6; margin-right:4px;"></i> 氏名（実名）</label><input type="text" id="reg-realname" placeholder="例: 健康 太郎"></div>
         <div class="form-group" style="flex:1; margin-bottom:0;"><label><i class="fas fa-mask" style="color:#6c5ce7; margin-right:4px;"></i> ニックネーム</label><input type="text" id="reg-nickname" placeholder="匿名で表示"></div>
       </div>
-      <div class="form-group"><label><i class="fas fa-lock" style="color:#e74c3c; margin-right:4px;"></i> パスワード</label><input type="password" id="reg-password" placeholder="4文字以上"></div>
+      <div class="form-group"><label><i class="fas fa-lock" style="color:#e74c3c; margin-right:4px;"></i> パスワード</label><input type="password" id="reg-password" placeholder="6文字以上"></div>
       <div style="display:flex; gap:12px; margin-bottom:16px;">
         <div class="form-group" style="flex:1; margin-bottom:0;"><label><i class="fas fa-building" style="color:#20c997; margin-right:4px;"></i> 部署</label>
           <select id="reg-department"><option value="">選択してください</option><option>管理者</option><option>事務スタッフ</option><option>配送スタッフ</option><option>製造スタッフ</option><option>倉庫スタッフ</option><option>その他</option></select>
@@ -386,7 +399,7 @@
       </div>
       <div class="form-group"><label><i class="fas fa-mask" style="color:#6c5ce7; margin-right:4px;"></i> ニックネーム</label><input type="text" id="login-nickname" placeholder="登録したニックネーム" autocomplete="username"></div>
       <div class="form-group"><label><i class="fas fa-lock" style="color:#e74c3c; margin-right:4px;"></i> パスワード</label><input type="password" id="login-password" placeholder="パスワード" autocomplete="current-password"></div>
-      <div style="margin-bottom:15px;"><label style="font-weight:normal; display:flex; align-items:center; cursor:pointer; font-size:0.85rem; color:#555;"><input type="checkbox" id="user-remember" checked style="width:auto; margin-right:8px; transform:scale(1.3); accent-color:#20c997;"> ログイン情報を保存する</label></div>
+      <div style="margin-bottom:15px;"><label style="font-weight:normal; display:flex; align-items:center; cursor:pointer; font-size:0.85rem; color:#555;"><input type="checkbox" id="user-remember" checked style="width:auto; margin-right:8px; transform:scale(1.3); accent-color:#20c997;"> 次回から自動ログイン</label></div>
       <button class="auth-submit-btn" style="background:linear-gradient(135deg, #20c997, #38d9a9);" onclick="doLogin()"><i class="fas fa-sign-in-alt" style="margin-right:6px;"></i> ログイン</button>
       <div style="text-align:center; margin-top:12px;"><a style="font-size:0.82rem; color:#e74c3c; cursor:pointer; text-decoration:underline;" onclick="goToReset()"><i class="fas fa-key" style="margin-right:3px;"></i> パスワードを忘れた方はこちら</a></div>
       <div class="back-btn" onclick="showStep('menu')">← 戻る</div>
@@ -405,7 +418,7 @@
         </div>
         <div class="form-group" style="flex:1; margin-bottom:0;"><label><i class="fas fa-birthday-cake" style="color:#f39c12; margin-right:4px;"></i> 生年月日</label><input type="date" id="reset-birthdate" value="1980-01-01"></div>
       </div>
-      <div class="form-group"><label><i class="fas fa-lock" style="color:#e74c3c; margin-right:4px;"></i> 新しいパスワード</label><input type="password" id="reset-new-password" placeholder="4文字以上"></div>
+      <div class="form-group"><label><i class="fas fa-lock" style="color:#e74c3c; margin-right:4px;"></i> 新しいパスワード</label><input type="password" id="reset-new-password" placeholder="6文字以上"></div>
       <button class="auth-submit-btn" style="background:linear-gradient(135deg,#f39c12,#f1c40f); box-shadow:0 4px 14px rgba(243,156,18,0.3);" onclick="doResetPassword()"><i class="fas fa-redo" style="margin-right:6px;"></i> パスワードを再設定</button>
       <div class="back-btn" onclick="showStep('login')">← ログインに戻る</div>
     </div>
@@ -413,23 +426,22 @@
     <div id="auth-step-admin-login" style="display:none;">
       <div style="text-align:center; margin-bottom:14px;">
         <div style="font-size:2.5rem; animation: authHeroBounce 2.5s ease-in-out infinite;">🛡️</div>
-        <div class="modal-title" style="border:none; margin-bottom:4px; padding-bottom:0; color:#d63384;">健康推進チーム</div>
-        <div style="font-size:0.8rem; color:#888;">管理者専用エリアです</div>
+        <div class="modal-title" style="border:none; margin-bottom:4px; padding-bottom:0; color:#d63384;">推進メンバーログイン</div>
+        <div style="font-size:0.8rem; color:#888;">メールアドレスでログインしてください</div>
       </div>
-      <div class="form-group"><label><i class="fas fa-envelope" style="color:#3478f6; margin-right:4px;"></i> メールアドレス</label><input type="email" id="admin-email" placeholder="管理者メール"></div>
-      <div class="form-group"><label><i class="fas fa-lock" style="color:#e74c3c; margin-right:4px;"></i> パスワード</label><input type="password" id="admin-pass" placeholder="管理者パスワード"></div>
+      <div class="form-group"><label><i class="fas fa-envelope" style="color:#3478f6; margin-right:4px;"></i> メールアドレス</label><input type="email" id="admin-email" placeholder="登録したメールアドレス"></div>
+      <div class="form-group"><label><i class="fas fa-lock" style="color:#e74c3c; margin-right:4px;"></i> パスワード</label><input type="password" id="admin-pass" placeholder="パスワード"></div>
       <div style="margin-bottom:15px;"><label style="font-weight:normal; display:flex; align-items:center; cursor:pointer; font-size:0.85rem; color:#555;"><input type="checkbox" id="admin-remember" style="width:auto; margin-right:8px; transform:scale(1.3); accent-color:#d63384;"> ログイン情報を保存する</label></div>
-      <button class="auth-submit-btn" style="background:linear-gradient(135deg,#e74c3c,#ff6b6b); box-shadow:0 4px 14px rgba(231,76,60,0.3);" onclick="doAdminLogin()"><i class="fas fa-shield-alt" style="margin-right:6px;"></i> 管理画面へ</button>
+      <button class="auth-submit-btn" style="background:linear-gradient(135deg,#e74c3c,#ff6b6b); box-shadow:0 4px 14px rgba(231,76,60,0.3);" onclick="doAdminLogin()"><i class="fas fa-shield-alt" style="margin-right:6px;"></i> ログイン</button>
       <div style="text-align:center; margin-top:12px;"><a style="font-size:0.82rem; color:#e74c3c; cursor:pointer; text-decoration:underline;" onclick="goToAdminReset()"><i class="fas fa-key" style="margin-right:3px;"></i> パスワードを忘れた方はこちら</a></div>
-      <div style="text-align:center; margin-top:8px;"><a style="font-size:0.82rem; color:#6c5ce7; cursor:pointer; text-decoration:underline;" onclick="showStep('admin-register')"><i class="fas fa-user-plus" style="margin-right:3px;"></i> 新規メンバー登録</a></div>
-      <div class="back-btn" onclick="showStep('menu')">← 戻る</div>
+      <div class="back-btn" onclick="showStep('member-menu')">← 戻る</div>
     </div>
 
     <div id="auth-step-admin-register" style="display:none;">
       <div style="text-align:center; margin-bottom:14px;">
         <div style="font-size:2.5rem; animation: authHeroBounce 2.5s ease-in-out infinite;">📋</div>
-        <div class="modal-title" style="border:none; margin-bottom:4px; padding-bottom:0; color:#6c5ce7;">管理メンバー新規登録</div>
-        <div style="font-size:0.8rem; color:#888;">健康推進チームへの参加登録</div>
+        <div class="modal-title" style="border:none; margin-bottom:4px; padding-bottom:0; color:#6c5ce7;">推進メンバー新規登録</div>
+        <div style="font-size:0.8rem; color:#888;">健康推進チームへの参加申請</div>
       </div>
       <div class="form-group"><label><i class="fas fa-user" style="color:#3478f6; margin-right:4px;"></i> 氏名</label><input type="text" id="admin-reg-name" placeholder="例: 山田 花子"></div>
       <div class="form-group"><label><i class="fas fa-smile" style="color:#ff9800; margin-right:4px;"></i> ニックネーム <span style="font-size:0.7rem; color:#999;">（ユーザー画面で使用）</span></label><input type="text" id="admin-reg-nickname" placeholder="例: やまちゃん（匿名で表示されます）"></div>
@@ -445,21 +457,21 @@
           <input type="text" id="admin-reg-univ-org" placeholder="例: 〇〇大学 ＊＊＊学部（学科）" style="font-size:0.88rem;">
         </div>
       </div>
-      <button class="auth-submit-btn" style="background:linear-gradient(135deg,#6c5ce7,#a29bfe); box-shadow:0 4px 14px rgba(108,92,231,0.3);" onclick="doAdminRegister()"><i class="fas fa-user-plus" style="margin-right:6px;"></i> 登録する</button>
-      <div class="back-btn" onclick="showStep('admin-login')">← 管理者ログインに戻る</div>
+      <button class="auth-submit-btn" style="background:linear-gradient(135deg,#6c5ce7,#a29bfe); box-shadow:0 4px 14px rgba(108,92,231,0.3);" onclick="doAdminRegister()"><i class="fas fa-user-plus" style="margin-right:6px;"></i> 登録申請する</button>
+      <div class="back-btn" onclick="showStep('member-menu')">← 戻る</div>
     </div>
 
     <div id="auth-step-admin-reset" style="display:none;">
       <div style="text-align:center; margin-bottom:14px;">
         <div style="font-size:2.5rem; animation: authHeroBounce 2.5s ease-in-out infinite;">🔑</div>
-        <div class="modal-title" style="border:none; margin-bottom:4px; padding-bottom:0; color:#d63384;">管理者パスワード再設定</div>
+        <div class="modal-title" style="border:none; margin-bottom:4px; padding-bottom:0; color:#d63384;">推進メンバー パスワード再設定</div>
         <div style="font-size:0.8rem; color:#888;">登録メールアドレスと氏名で本人確認します</div>
       </div>
       <div class="form-group"><label><i class="fas fa-envelope" style="color:#3478f6; margin-right:4px;"></i> メールアドレス</label><input type="email" id="admin-reset-email" placeholder="登録したメールアドレス"></div>
       <div class="form-group"><label><i class="fas fa-user" style="color:#20c997; margin-right:4px;"></i> 氏名</label><input type="text" id="admin-reset-name" placeholder="登録した氏名"></div>
       <div class="form-group"><label><i class="fas fa-lock" style="color:#e74c3c; margin-right:4px;"></i> 新しいパスワード</label><input type="password" id="admin-reset-new-pass" placeholder="新しいパスワード"></div>
       <button class="auth-submit-btn" style="background:linear-gradient(135deg,#f39c12,#f1c40f); box-shadow:0 4px 14px rgba(243,156,18,0.3);" onclick="doAdminResetPassword()"><i class="fas fa-redo" style="margin-right:6px;"></i> パスワードを再設定</button>
-      <div class="back-btn" onclick="showStep('admin-login')">← 管理者ログインに戻る</div>
+      <div class="back-btn" onclick="showStep('admin-login')">← ログインに戻る</div>
     </div>
   </div>
 </div>
@@ -539,7 +551,7 @@
         <span style="font-size:0.75rem; color:#999;">日</span>
       </div>
       <div style="margin-bottom:8px;">
-        <input type="password" id="profile-edit-new-pw" placeholder="新しいパスワード（4文字以上）" style="width:100%; border:1.5px solid #ddd; border-radius:10px; padding:10px 12px; font-size:0.88rem; box-sizing:border-box;">
+        <input type="password" id="profile-edit-new-pw" placeholder="新しいパスワード（6文字以上）" style="width:100%; border:1.5px solid #ddd; border-radius:10px; padding:10px 12px; font-size:0.88rem; box-sizing:border-box;">
       </div>
       <button onclick="savePasswordChange()" style="width:100%; background:linear-gradient(135deg,#e53935,#ef5350); color:white; border:none; border-radius:10px; padding:10px; font-weight:700; font-size:0.85rem; cursor:pointer;"><i class="fas fa-key" style="margin-right:4px;"></i>パスワードを変更</button>
     </div>
@@ -592,7 +604,7 @@
     <!-- ボタン -->
     <div style="padding:6px 18px;display:flex;gap:6px;">
       <button onclick="openBuddySetup()" style="flex:1;padding:8px 4px;background:linear-gradient(135deg,#0ea5e9,#0284c7);color:white;border:none;border-radius:10px;font-size:0.7rem;font-weight:700;cursor:pointer;"><i class="fas fa-robot"></i> バディー</button>
-      <button onclick="openAdminFromUser()" style="flex:1;padding:8px 4px;background:white;color:#667eea;border:1.5px solid #667eea;border-radius:10px;font-size:0.7rem;font-weight:700;cursor:pointer;"><i class="fas fa-shield-alt"></i> 管理者</button>
+      <button onclick="openAdminFromUser()" style="flex:1;padding:8px 4px;background:white;color:#d63384;border:1.5px solid #d63384;border-radius:10px;font-size:0.7rem;font-weight:700;cursor:pointer;"><i class="fas fa-shield-alt"></i> 推進メンバー</button>
       <button onclick="closeMyPosts();openProfileEditModal();" style="flex:1;padding:8px 4px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;border-radius:10px;font-size:0.7rem;font-weight:700;cursor:pointer;"><i class="fas fa-edit"></i> 編集</button>
     </div>
     <!-- メモ一覧 -->
@@ -1448,34 +1460,36 @@ function abToggleAcc(idx, previewCanvasId) {
   selectedAvatar = abBuildString();
 }
 
-// ★ ページ読み込み時に保存済みログイン情報で自動ログイン
+// ★ ページ読み込み時に保存済みトークンで自動ログイン
 (function() {
+  // レガシー: 平文パスワードが残っていたら削除
+  localStorage.removeItem('co_heart_user_pass');
+  var savedToken = localStorage.getItem('co_heart_token');
+  var savedData = localStorage.getItem('co_heart_user_data');
   var savedNick = localStorage.getItem('co_heart_user_nick');
-  var savedPass = localStorage.getItem('co_heart_user_pass');
   // ログアウト後は自動ログインしない（ログインボタンで入る）
   if (localStorage.getItem('co_heart_no_autologin')) {
-    if (savedNick && savedPass) {
+    if (savedNick) {
       setTimeout(function() {
         var nickInput = document.getElementById('login-nickname');
-        var passInput = document.getElementById('login-password');
         if (nickInput) nickInput.value = savedNick;
-        if (passInput) passInput.value = savedPass;
       }, 100);
     }
     return;
   }
-  if (savedNick && savedPass) {
+  if (savedToken && savedData) {
     function autoLogin() {
-      var nickInput = document.getElementById('login-nickname');
-      var passInput = document.getElementById('login-password');
-      if (nickInput && passInput) {
-        nickInput.value = savedNick;
-        passInput.value = savedPass;
-        // 自動ログイン実行
-        window._isAutoLogin = true;
-        doLogin();
-      } else {
-        setTimeout(autoLogin, 50);
+      try {
+        var userData = JSON.parse(savedData);
+        if (userData && userData.uid && userData.nickname) {
+          setToken(savedToken);
+          currentUser = userData;
+          window._isAutoLogin = true;
+          onLoginSuccess();
+        }
+      } catch(e) {
+        // データ破損→通常ログイン画面へ
+        localStorage.removeItem('co_heart_user_data');
       }
     }
     if (document.readyState === 'loading') {
@@ -1483,19 +1497,19 @@ function abToggleAcc(idx, previewCanvasId) {
     } else {
       autoLogin();
     }
+  } else if (savedNick) {
+    // ニックネームだけプリセット
+    setTimeout(function() {
+      var nickInput = document.getElementById('login-nickname');
+      if (nickInput) nickInput.value = savedNick;
+    }, 100);
   }
 })();
 
-// ★ 管理者ログイン/登録への導線
+// ★ 推進メンバーログイン/登録への導線
 function openAdminFromUser() {
-  var choice = confirm('管理者としてログインしますか？\n\n【OK】管理者ログイン画面へ\n【キャンセル】新規メンバー登録画面へ');
-  if (choice) {
-    window.location.href = '/admin';
-  } else {
-    // 認証モーダルを表示して管理者新規登録画面を開く
-    document.getElementById('auth-modal').style.display = 'flex';
-    showStep('admin-register');
-  }
+  document.getElementById('auth-modal').style.display = 'flex';
+  showStep('member-menu');
 }
 
 // ★ ログアウト
@@ -1531,14 +1545,11 @@ function doUserLogout() {
   document.getElementById('main-app').style.display = 'none';
   document.getElementById('auth-modal').style.display = 'flex';
   var bn = document.getElementById('bottom-nav'); if (bn) bn.style.display = 'none';
-  // 保存済み情報をプリセットしてログイン画面を直接表示
+  // 保存済みニックネームをプリセットしてログイン画面を直接表示
   var savedNick = localStorage.getItem('co_heart_user_nick');
-  var savedPass = localStorage.getItem('co_heart_user_pass');
-  if (savedNick && savedPass) {
+  if (savedNick) {
     var nickInput = document.getElementById('login-nickname');
-    var passInput = document.getElementById('login-password');
     if (nickInput) nickInput.value = savedNick;
-    if (passInput) passInput.value = savedPass;
     showStep('login');
   } else {
     showStep('menu');
@@ -1547,6 +1558,7 @@ function doUserLogout() {
 
 function showStep(step) {
   document.getElementById('auth-step-menu').style.display = step === 'menu' ? 'block' : 'none';
+  document.getElementById('auth-step-member-menu').style.display = step === 'member-menu' ? 'block' : 'none';
   document.getElementById('auth-step-register').style.display = step === 'register' ? 'block' : 'none';
   document.getElementById('auth-step-login').style.display = step === 'login' ? 'block' : 'none';
   document.getElementById('auth-step-admin-login').style.display = step === 'admin-login' ? 'block' : 'none';
@@ -1556,10 +1568,10 @@ function showStep(step) {
   if (step === 'register') { initAvatarGrid(); initBirthdateSelectors(); }
   if (step === 'login') {
     var savedNick = localStorage.getItem('co_heart_user_nick');
-    var savedPass = localStorage.getItem('co_heart_user_pass');
-    if (savedNick) { document.getElementById('login-nickname').value = savedNick; }
-    if (savedPass) { document.getElementById('login-password').value = savedPass; }
-    if (savedNick && savedPass) { document.getElementById('user-remember').checked = true; }
+    if (savedNick) {
+      document.getElementById('login-nickname').value = savedNick;
+      document.getElementById('user-remember').checked = true;
+    }
   }
   if (step === 'admin-login') {
     var savedEmail = localStorage.getItem('co_heart_admin_email');
@@ -1753,7 +1765,7 @@ function doRegister() {
   var b = document.getElementById('reg-birthdate').value;
   if (!r) return alert("氏名を入力してください");
   if (!n) return alert("ニックネームを入力してください");
-  if (!p || p.length < 4) return alert("パスワードは4文字以上");
+  if (!p || p.length < 6) return alert("パスワードは6文字以上で入力してください");
   if (!d) return alert("部署を選択してください");
   showLoading("登録中...");
   registerUser(n, p, selectedAvatar, inviterId, r, d, b).then(function(res) {
@@ -1762,7 +1774,6 @@ function doRegister() {
       setToken(res.token);
       currentUser = { uid: res.uid, nickname: res.nickname, avatar: res.avatar, department: d, birthDate: b, realName: r };
       localStorage.setItem('co_heart_user_nick', n);
-      localStorage.setItem('co_heart_user_pass', p);
       localStorage.setItem('co_heart_user_data', JSON.stringify(currentUser));
       onLoginSuccess();
     }
@@ -1787,19 +1798,18 @@ function doLogin() {
       currentUser = { uid: res.uid, nickname: res.nickname, avatar: res.avatar, department: res.department, birthDate: res.birthDate, realName: res.realName || '' };
       if (remember) {
         localStorage.setItem('co_heart_user_nick', n);
-        localStorage.setItem('co_heart_user_pass', p);
         localStorage.setItem('co_heart_user_data', JSON.stringify(currentUser));
       } else {
         localStorage.removeItem('co_heart_user_nick');
-        localStorage.removeItem('co_heart_user_pass');
         localStorage.removeItem('co_heart_user_data');
       }
       onLoginSuccess();
     }
     else {
       if (window._isAutoLogin) {
-        // 自動ログイン失敗 → 保存パスワードをクリアしてログイン画面表示
-        localStorage.removeItem('co_heart_user_pass');
+        // 自動ログイン失敗 → 保存データをクリアしてログイン画面表示
+        localStorage.removeItem('co_heart_user_data');
+        localStorage.removeItem('co_heart_token');
         document.getElementById('login-password').value = '';
         showStep('login');
       } else {
@@ -1824,7 +1834,7 @@ function doResetPassword() {
   if (!n) return alert("ニックネームを入力してください");
   if (!d) return alert("部署を選択してください");
   if (!b) return alert("生年月日を入力してください");
-  if (!p || p.length < 4) return alert("新しいパスワードは4文字以上で入力してください");
+  if (!p || p.length < 6) return alert("新しいパスワードは6文字以上で入力してください");
   showLoading("確認中...");
   resetPassword(n, d, b, p).then(function(res) {
     hideLoading();
@@ -2116,7 +2126,7 @@ function savePasswordChange() {
   if (!y || !m || !d) { alert('生年月日を入力してください'); return; }
   var birthDate = y + '-' + String(m).padStart(2,'0') + '-' + String(d).padStart(2,'0');
   var newPw = document.getElementById('profile-edit-new-pw').value;
-  if (!newPw || newPw.length < 4) { alert('新しいパスワードは4文字以上で入力してください'); return; }
+  if (!newPw || newPw.length < 6) { alert('新しいパスワードは6文字以上で入力してください'); return; }
   api('/auth/change-password', { uid: currentUser.uid, birthDate: birthDate, newPassword: newPw }).then(function(res) {
     if (res && res.success) {
       alert('パスワードを変更しました');
@@ -2124,7 +2134,7 @@ function savePasswordChange() {
       document.getElementById('pw-bd-month').value = '';
       document.getElementById('pw-bd-day').value = '';
       document.getElementById('profile-edit-new-pw').value = '';
-      localStorage.setItem('co_heart_user_pass', newPw);
+      // パスワード変更成功（トークンは有効なまま）
     } else {
       alert('変更失敗: ' + (res.msg || '不明なエラー'));
     }

@@ -242,6 +242,13 @@ function getDb() {
   try { db.exec("ALTER TABLE users ADD COLUMN marigan_total INTEGER DEFAULT 0"); } catch(e) {}
   try { db.exec("ALTER TABLE users ADD COLUMN marigan_badge TEXT DEFAULT ''"); } catch(e) {}
 
+  // マイグレーション: ストリーク＋木の育成システム
+  try { db.exec("ALTER TABLE users ADD COLUMN streak_count INTEGER DEFAULT 0"); } catch(e) {}
+  try { db.exec("ALTER TABLE users ADD COLUMN streak_best INTEGER DEFAULT 0"); } catch(e) {}
+  try { db.exec("ALTER TABLE users ADD COLUMN last_post_date TEXT DEFAULT ''"); } catch(e) {}
+  try { db.exec("ALTER TABLE users ADD COLUMN tree_stage INTEGER DEFAULT 0"); } catch(e) {}
+  try { db.exec("ALTER TABLE users ADD COLUMN tree_type TEXT DEFAULT ''"); } catch(e) {}
+
   // マイグレーション: 個人情報保護フラグ（show_real_name）
   try { db.exec("ALTER TABLE core_members ADD COLUMN show_real_name INTEGER DEFAULT 0"); } catch(e) {}
   try { db.exec("ALTER TABLE users ADD COLUMN show_real_name INTEGER DEFAULT 0"); } catch(e) {}

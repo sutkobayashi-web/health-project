@@ -605,9 +605,35 @@
             <span id="mypage-rank" style="font-size:0.6rem;"></span>
           </div>
           <div style="display:flex;align-items:center;gap:4px;margin-top:5px;flex-wrap:wrap;">
+            <span id="mypage-streak" style="font-size:0.62rem;font-weight:700;color:#ef4444;background:linear-gradient(135deg,#fef2f2,#fecaca);padding:3px 8px;border-radius:8px;border:1px solid #fca5a5;white-space:nowrap;">🔥 0日</span>
             <span id="mypage-coin" style="font-size:0.62rem;font-weight:700;color:#f57f17;background:linear-gradient(135deg,#fffde7,#fff9c4);padding:3px 8px;border-radius:8px;border:1px solid #ffe082;cursor:pointer;white-space:nowrap;" onclick="showRanking()"><i class="fas fa-coins" style="font-size:0.5rem;"></i> 0pt</span>
             <span id="mypage-coin-badge" style="font-size:0.6rem;font-weight:700;color:#667eea;background:#f0f4ff;padding:3px 6px;border-radius:8px;white-space:nowrap;">🌱</span>
           </div>
+        </div>
+      </div>
+    </div>
+    <!-- 木の育成カード -->
+    <div id="mypage-tree-card" style="margin:8px 18px;padding:14px;background:linear-gradient(135deg,#f0fdf4,#dcfce7);border-radius:14px;border:1.5px solid #86efac;display:none;">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div id="mypage-tree-visual" style="width:60px;height:70px;display:flex;align-items:flex-end;justify-content:center;position:relative;">
+          <!-- SVG木のビジュアル（JSで生成） -->
+        </div>
+        <div style="flex:1;">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span id="mypage-tree-icon" style="font-size:1.3rem;">🌰</span>
+            <span id="mypage-tree-name" style="font-weight:800;font-size:0.88rem;color:#166534;">たね</span>
+            <span id="mypage-tree-type-badge" style="font-size:0.6rem;font-weight:700;padding:2px 8px;border-radius:10px;background:#dbeafe;color:#1e40af;"></span>
+          </div>
+          <div id="mypage-tree-progress" style="margin-top:6px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span style="font-size:0.68rem;color:#555;" id="mypage-tree-streak-text">連続 0日目</span>
+              <span style="font-size:0.65rem;color:#999;" id="mypage-tree-next">次: 🌱 めばえ (1日)</span>
+            </div>
+            <div style="margin-top:4px;height:6px;background:#e5e7eb;border-radius:3px;overflow:hidden;">
+              <div id="mypage-tree-bar" style="height:100%;background:linear-gradient(90deg,#22c55e,#16a34a);border-radius:3px;width:0%;transition:width 0.8s ease;"></div>
+            </div>
+          </div>
+          <div style="margin-top:4px;font-size:0.6rem;color:#888;" id="mypage-tree-best">自己ベスト: 0日</div>
         </div>
       </div>
     </div>
@@ -744,6 +770,10 @@
       <div style="flex:1;">
         <div id="buddy-header-name" style="font-weight:800;font-size:0.9rem;">ヘルスバディー</div>
         <div style="font-size:0.65rem;opacity:0.8;">いつもそばにいるよ</div>
+      </div>
+      <div id="buddy-header-streak" style="display:flex;align-items:center;gap:4px;background:rgba(255,255,255,0.2);padding:4px 10px;border-radius:12px;font-size:0.7rem;font-weight:700;">
+        <span id="buddy-streak-icon">🌰</span>
+        <span id="buddy-streak-text">0日</span>
       </div>
       <button onclick="clearBuddyChat()" style="background:rgba(255,255,255,0.2);border:none;color:white;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;flex-shrink:0;" title="チャット履歴クリア"><i class="fas fa-trash-alt"></i></button>
     </div>
@@ -2741,6 +2771,61 @@ function openMyPosts() {
         if (badgeEl) badgeEl.innerHTML = bIcon + ' ' + bName;
         if (rankEl) rankEl.innerHTML = '<span style="font-size:0.6rem;">' + bIcon + ' ' + bName + '</span>';
       }).catch(function(){});
+
+      // ストリーク＋木の育成情報を反映
+      fetch('/api/auth/streak/' + currentUser.uid).then(function(r){return r.json();}).then(function(sk) {
+        if (!sk.success) return;
+        // ストリークバッジ
+        var streakEl = document.getElementById('mypage-streak');
+        if (streakEl) {
+          var fireLevel = sk.streak >= 90 ? '🔥🔥🔥' : sk.streak >= 30 ? '🔥🔥' : sk.streak >= 7 ? '🔥' : sk.streak >= 1 ? '🔥' : '💤';
+          streakEl.innerHTML = fireLevel + ' ' + sk.streak + '日';
+          streakEl.style.color = sk.streak >= 7 ? '#dc2626' : sk.streak >= 1 ? '#ef4444' : '#999';
+          streakEl.style.background = sk.streak >= 7 ? 'linear-gradient(135deg,#fef2f2,#fecaca)' : sk.streak >= 1 ? 'linear-gradient(135deg,#fff7ed,#fed7aa)' : '#f5f5f5';
+          streakEl.style.borderColor = sk.streak >= 7 ? '#fca5a5' : sk.streak >= 1 ? '#fdba74' : '#ddd';
+        }
+        // 木の育成カード
+        var treeCard = document.getElementById('mypage-tree-card');
+        if (treeCard) {
+          treeCard.style.display = 'block';
+          document.getElementById('mypage-tree-icon').textContent = sk.treeStageIcon || '🌰';
+          document.getElementById('mypage-tree-name').textContent = sk.treeStageName || 'たね';
+          var typeBadge = document.getElementById('mypage-tree-type-badge');
+          if (sk.treeStage >= 4 && sk.treeTypeName) {
+            typeBadge.textContent = (sk.treeTypeIcon || '') + ' ' + sk.treeTypeName;
+            typeBadge.style.display = 'inline';
+          } else {
+            typeBadge.style.display = 'none';
+          }
+          document.getElementById('mypage-tree-streak-text').textContent = '連続 ' + sk.streak + '日目';
+          document.getElementById('mypage-tree-best').textContent = '自己ベスト: ' + sk.best + '日';
+          // 次のステージ情報
+          var nextEl = document.getElementById('mypage-tree-next');
+          if (sk.nextStage) {
+            nextEl.textContent = '次: ' + sk.nextStage.icon + ' ' + sk.nextStage.name + ' (' + sk.nextStage.daysNeeded + '日)';
+            nextEl.style.display = 'inline';
+          } else {
+            nextEl.textContent = '最大レベル！';
+          }
+          // プログレスバー
+          var barEl = document.getElementById('mypage-tree-bar');
+          if (barEl && sk.nextStage) {
+            var currentMin = 0;
+            var stages = sk.TREE_STAGES || [];
+            for (var si = 0; si < stages.length; si++) {
+              if (stages[si].stage === sk.treeStage) { currentMin = stages[si].minDays; break; }
+            }
+            var range = sk.nextStage.daysNeeded - currentMin;
+            var progress = range > 0 ? Math.min(100, ((sk.best - currentMin) / range) * 100) : 100;
+            barEl.style.width = progress + '%';
+            barEl.style.background = 'linear-gradient(90deg,' + (sk.treeColor || '#22c55e') + ',' + (sk.treeColor || '#16a34a') + ')';
+          } else if (barEl) {
+            barEl.style.width = '100%';
+          }
+          // 木のビジュアルSVG
+          renderTreeVisual(sk.treeStage, sk.treeColor || '#22c55e');
+        }
+      }).catch(function(){});
     }
   }
   loadMyMemos();
@@ -2776,6 +2861,23 @@ function openMyPosts() {
 function closeMyPosts() {
   document.getElementById('my-posts-modal').style.display = 'none';
   unlockScroll();
+}
+
+// 木の育成ビジュアルSVG生成
+function renderTreeVisual(stage, color) {
+  var container = document.getElementById('mypage-tree-visual');
+  if (!container) return;
+  var c = color || '#22c55e';
+  var svgs = {
+    0: '<svg viewBox="0 0 60 70" width="60" height="70"><ellipse cx="30" cy="58" rx="18" ry="6" fill="#8B7355" opacity="0.3"/><circle cx="30" cy="52" r="6" fill="#8B6914"/><circle cx="30" cy="50" r="4" fill="#A0855B"/></svg>',
+    1: '<svg viewBox="0 0 60 70" width="60" height="70"><ellipse cx="30" cy="60" rx="18" ry="6" fill="#8B7355" opacity="0.3"/><rect x="28" y="48" width="4" height="14" rx="2" fill="#8B6914"/><ellipse cx="30" cy="46" rx="8" ry="6" fill="'+c+'"/><ellipse cx="30" cy="44" rx="5" ry="4" fill="'+c+'" opacity="0.7"/></svg>',
+    2: '<svg viewBox="0 0 60 70" width="60" height="70"><ellipse cx="30" cy="62" rx="20" ry="6" fill="#8B7355" opacity="0.3"/><rect x="27" y="40" width="6" height="22" rx="3" fill="#6B5430"/><ellipse cx="22" cy="38" rx="10" ry="8" fill="'+c+'"/><ellipse cx="38" cy="36" rx="10" ry="8" fill="'+c+'"/><ellipse cx="30" cy="32" rx="12" ry="10" fill="'+c+'"/></svg>',
+    3: '<svg viewBox="0 0 60 70" width="60" height="70"><ellipse cx="30" cy="64" rx="22" ry="6" fill="#8B7355" opacity="0.3"/><rect x="26" y="35" width="8" height="28" rx="4" fill="#5D4429"/><line x1="20" y1="48" x2="26" y2="42" stroke="#5D4429" stroke-width="3" stroke-linecap="round"/><line x1="40" y1="46" x2="34" y2="40" stroke="#5D4429" stroke-width="3" stroke-linecap="round"/><ellipse cx="18" cy="32" rx="12" ry="10" fill="'+c+'"/><ellipse cx="42" cy="30" rx="12" ry="10" fill="'+c+'"/><ellipse cx="30" cy="24" rx="14" ry="12" fill="'+c+'"/></svg>',
+    4: '<svg viewBox="0 0 60 70" width="60" height="70"><ellipse cx="30" cy="64" rx="24" ry="6" fill="#8B7355" opacity="0.3"/><rect x="25" y="30" width="10" height="34" rx="5" fill="#4A3520"/><line x1="16" y1="45" x2="25" y2="38" stroke="#4A3520" stroke-width="3.5" stroke-linecap="round"/><line x1="44" y1="43" x2="35" y2="36" stroke="#4A3520" stroke-width="3.5" stroke-linecap="round"/><ellipse cx="16" cy="28" rx="13" ry="11" fill="'+c+'"/><ellipse cx="44" cy="26" rx="13" ry="11" fill="'+c+'"/><ellipse cx="30" cy="20" rx="16" ry="14" fill="'+c+'"/><circle cx="20" cy="22" r="3" fill="#fbbf24" opacity="0.9"/><circle cx="38" cy="20" r="3" fill="#fb923c" opacity="0.9"/><circle cx="30" cy="14" r="3.5" fill="#f472b6" opacity="0.9"/><circle cx="14" cy="30" r="2.5" fill="#c084fc" opacity="0.9"/><circle cx="44" cy="28" r="2.5" fill="#fbbf24" opacity="0.9"/></svg>',
+    5: '<svg viewBox="0 0 60 70" width="60" height="70"><ellipse cx="30" cy="66" rx="26" ry="6" fill="#8B7355" opacity="0.3"/><rect x="24" y="26" width="12" height="38" rx="6" fill="#3D2B14"/><line x1="12" y1="42" x2="24" y2="34" stroke="#3D2B14" stroke-width="4" stroke-linecap="round"/><line x1="48" y1="40" x2="36" y2="32" stroke="#3D2B14" stroke-width="4" stroke-linecap="round"/><ellipse cx="12" cy="24" rx="14" ry="12" fill="'+c+'"/><ellipse cx="48" cy="22" rx="14" ry="12" fill="'+c+'"/><ellipse cx="30" cy="16" rx="18" ry="15" fill="'+c+'"/><circle cx="18" cy="18" r="4" fill="#ef4444" opacity="0.85"/><circle cx="40" cy="16" r="4" fill="#ef4444" opacity="0.85"/><circle cx="30" cy="10" r="4.5" fill="#ef4444" opacity="0.85"/><circle cx="10" cy="26" r="3" fill="#f59e0b" opacity="0.85"/><circle cx="48" cy="24" r="3" fill="#f59e0b" opacity="0.85"/></svg>',
+    6: '<svg viewBox="0 0 60 70" width="60" height="70"><ellipse cx="30" cy="66" rx="28" ry="6" fill="#8B7355" opacity="0.3"/><rect x="22" y="22" width="16" height="42" rx="8" fill="#2D1F0E"/><line x1="8" y1="40" x2="22" y2="30" stroke="#2D1F0E" stroke-width="5" stroke-linecap="round"/><line x1="52" y1="38" x2="38" y2="28" stroke="#2D1F0E" stroke-width="5" stroke-linecap="round"/><line x1="14" y1="50" x2="22" y2="42" stroke="#2D1F0E" stroke-width="3" stroke-linecap="round"/><line x1="46" y1="48" x2="38" y2="40" stroke="#2D1F0E" stroke-width="3" stroke-linecap="round"/><ellipse cx="8" cy="20" rx="14" ry="12" fill="'+c+'"/><ellipse cx="52" cy="18" rx="14" ry="12" fill="'+c+'"/><ellipse cx="30" cy="12" rx="20" ry="16" fill="'+c+'"/><ellipse cx="20" cy="8" rx="10" ry="8" fill="'+c+'" opacity="0.8"/><ellipse cx="40" cy="6" rx="10" ry="8" fill="'+c+'" opacity="0.8"/><circle cx="16" cy="14" r="4" fill="#ef4444"/><circle cx="44" cy="12" r="4" fill="#ef4444"/><circle cx="30" cy="6" r="5" fill="#fbbf24"/><circle cx="8" cy="22" r="3" fill="#f59e0b"/><circle cx="52" cy="20" r="3" fill="#f59e0b"/><text x="5" y="36" font-size="7" opacity="0.6">🦋</text><text x="48" y="14" font-size="7" opacity="0.6">🐦</text></svg>'
+  };
+  container.innerHTML = svgs[stage] || svgs[0];
 }
 
 function openMyPostDetail(postId, authorUid) {
@@ -2919,14 +3021,15 @@ function submitPost() {
   if (!txt) return alert("内容を入力してください");
   if (isSubmitting) return;
   isSubmitting = true;
-  showLoading("AIヘルスアドバイザーが分析中...");
+  showLoading("相棒が読んでるよ...");
   processForm({ uid: currentUser.uid, nickname: currentUser.nickname, avatar: currentUser.avatar, honne: encodeURIComponent(txt), department: currentUser.department, birthDate: currentUser.birthDate }).then(function(res) {
     hideLoading(); isSubmitting = false;
     if (res && res.success) {
       document.getElementById('honne-input').value = "";
       updateHeaderStats();
+      updateBuddyHeaderStreak();
       // AI分析結果をポップアップ表示
-      showAIResponse(res.analysis || "投稿を受け付けました。健康推進メンバーが確認します。");
+      showAIResponse(res.analysis || "投稿を受け付けました。推進メンバーに届いたよ！");
     } else {
       alert("投稿エラー: " + (res ? res.error || res.msg : "不明なエラー"));
     }
@@ -2942,8 +3045,8 @@ function showAIResponse(text) {
   box.innerHTML =
     '<div style="text-align:center; margin-bottom:16px;">' +
       '<div style="font-size:2.5rem; margin-bottom:8px;">🩺</div>' +
-      '<div style="font-weight:800; font-size:1.1rem; color:#d63384;">AIヘルスアドバイザーからのコメント</div>' +
-      '<div style="font-size:0.75rem; color:#aaa; margin-top:4px;">投稿は健康推進メンバーに届きました</div>' +
+      '<div style="font-weight:800; font-size:1.1rem; color:#d63384;">相棒からのひとこと</div>' +
+      '<div style="font-size:0.75rem; color:#aaa; margin-top:4px;">推進メンバーにも届いたよ！</div>' +
     '</div>' +
     '<div style="background:linear-gradient(135deg,#fff5f7,#f0f4ff);padding:16px;border-radius:14px;font-size:0.9rem;line-height:1.8;color:#333;white-space:pre-wrap;border-left:4px solid #d63384;">' + escInbox(text) + '</div>' +
     '<button onclick="this.closest(\'div[style*=fixed]\').remove()" style="width:100%;margin-top:16px;padding:14px;background:linear-gradient(135deg,#d63384,#e91e8c);color:white;border:none;border-radius:14px;font-weight:700;font-size:0.95rem;cursor:pointer;box-shadow:0 4px 14px rgba(214,51,132,0.3);">閉じる</button>';
@@ -2993,7 +3096,7 @@ function submitFoodPost() {
   if (isSubmitting) return;
   isSubmitting = true;
   var comment = document.getElementById('food-comment').value;
-  showLoading("AI食事アドバイザーが分析中...");
+  showLoading("メシチェック中...");
   handleFoodPost({ uid: currentUser.uid, nickname: currentUser.nickname, avatar: currentUser.avatar, imageBase64: selectedFoodData, mimeType: selectedFoodMime, userComment: comment, department: currentUser.department, birthDate: currentUser.birthDate, isPublic: true }).then(function(res) {
     hideLoading(); isSubmitting = false;
     document.getElementById('food-comment').value = ""; document.getElementById('file-input').value = "";
@@ -3006,6 +3109,8 @@ function submitFoodPost() {
         if (res.analysis.nurse) msg += '【AIヘルスアドバイザー】\n' + res.analysis.nurse;
       }
       showFoodResponse(msg || '食事の投稿を受け付けました。');
+      // ストリーク表示を更新
+      updateBuddyHeaderStreak();
       if (res.analysis && res.analysis.nutrientScores) {
         setTimeout(function() { renderNutrientRadar('food-radar-chart-area', res.analysis.nutrientScores); }, 100);
         // アルコール検出時に晩酌記録パネルを表示
@@ -3029,8 +3134,8 @@ function showFoodResponse(text) {
   box.innerHTML =
     '<div style="text-align:center; margin-bottom:16px;">' +
       '<div style="font-size:2.5rem; margin-bottom:8px;">🥗</div>' +
-      '<div style="font-weight:800; font-size:1.1rem; color:#20c997;">食事分析レポート</div>' +
-      '<div style="font-size:0.75rem; color:#aaa; margin-top:4px;">AI食事アドバイザー × AIヘルスアドバイザー</div>' +
+      '<div style="font-weight:800; font-size:1.1rem; color:#20c997;">今日のメシ、見たよ！</div>' +
+      '<div style="font-size:0.75rem; color:#aaa; margin-top:4px;">食事の相棒からのひとこと</div>' +
     '</div>' +
     '<div id="food-radar-chart-area"></div>' +
     '<div style="background:linear-gradient(135deg,#f0faf4,#edf4ff);padding:16px;border-radius:14px;font-size:0.9rem;line-height:1.8;color:#333;white-space:pre-wrap;border-left:4px solid #20c997;">' + escInbox(text) + '</div>' +
@@ -4135,8 +4240,25 @@ var DEFAULT_BUDDY = {
   personality: 'gentle'
 };
 
+function updateBuddyHeaderStreak() {
+  if (!currentUser || !currentUser.uid) return;
+  fetch('/api/auth/streak/' + currentUser.uid).then(function(r){return r.json();}).then(function(sk) {
+    if (!sk.success) return;
+    var iconEl = document.getElementById('buddy-streak-icon');
+    var textEl = document.getElementById('buddy-streak-text');
+    if (iconEl) iconEl.textContent = sk.treeStageIcon || '🌰';
+    if (textEl) {
+      var fire = sk.streak >= 7 ? '🔥' : '';
+      textEl.textContent = fire + sk.streak + '日';
+    }
+  }).catch(function(){});
+}
+
 function initBuddy() {
   if (!currentUser) return;
+
+  // ストリーク情報をバディーヘッダーに反映
+  updateBuddyHeaderStreak();
 
   // バディー画面を表示状態にする
   var buddyScreen = document.getElementById('buddy-chat-screen');

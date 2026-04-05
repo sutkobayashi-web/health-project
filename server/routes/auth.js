@@ -4,7 +4,7 @@ const crypto = require('crypto');
 const { v4: uuidv4 } = require('uuid');
 const { getDb } = require('../services/db');
 const { generateToken, authUser, authAdmin } = require('../middleware/auth');
-const { getMariganInfo, getMariganRanking } = require('../services/marigan');
+const { getMariganInfo, getMariganRanking, getStreakInfo } = require('../services/marigan');
 const rateLimit = require('express-rate-limit');
 
 const router = express.Router();
@@ -388,6 +388,14 @@ router.get('/marigan-ranking', (req, res) => {
   try {
     const ranking = getMariganRanking(10);
     res.json({ success: true, ranking });
+  } catch (e) { res.json({ success: false, msg: e.message }); }
+});
+
+// ストリーク＋木の育成情報取得
+router.get('/streak/:uid', (req, res) => {
+  try {
+    const info = getStreakInfo(req.params.uid);
+    res.json({ success: true, ...info });
   } catch (e) { res.json({ success: false, msg: e.message }); }
 });
 

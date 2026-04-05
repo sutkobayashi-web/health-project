@@ -473,7 +473,7 @@ ${chatText}
 
     // AIヘルスアドバイザーのコメントも生成
     const { EVIDENCE_BASE } = require('../services/ai');
-    const careSys = `あなたは相棒です。以下の社員の声に対して、共感と労いの一言を返してください。
+    const careSys = `あなたはバディーです。以下の社員の声に対して、共感と労いの一言を返してください。
 - 2〜3文で短く
 - 「大変だったね」「わかるよ」から入る
 - 同じ悩みを持つ人がいることを伝える
@@ -482,7 +482,7 @@ ${chatText}
     let careComment = await callAIWithFallback(careSys, summary);
     if (!careComment) careComment = '声を届けてくれてありがとう。推進メンバーが確認するよ。';
 
-    const analysis = `【相棒からのひとこと】\n${careComment}\n///SCORE///\n{"is_target":true,"legal":1,"risk":2,"freq":2,"urgency":2,"safety":2,"value":3,"needs":3}`;
+    const analysis = `【バディーからのひとこと】\n${careComment}\n///SCORE///\n{"is_target":true,"legal":1,"risk":2,"freq":2,"urgency":2,"safety":2,"value":3,"needs":3}`;
 
     db.prepare(`INSERT INTO posts (post_id, user_id, content, analysis, nickname, avatar, status, category, department, birth_date)
       VALUES (?, ?, ?, ?, ?, ?, 'open', '💬 相談・提案', ?, ?)`).run(

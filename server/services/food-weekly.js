@@ -204,7 +204,7 @@ async function generateUserFoodReport(uid, userData, weekLabel, weekStart) {
     '   - コンビニ・スーパーでの【商品選び】のコツ\n' +
     '   - 今の食事への【ちょい足し】提案\n' +
     '6. 📚 出典: 根拠となるガイドライン名\n\n' +
-    '★★★トーン指示: 健康指導ではなく、友達が食事日記を見せてくれた感覚で書く。「すごいじゃん」「ここいいね」「これだけで全然違うよ」のような相棒口調で。堅い表現禁止。温かく、短く、テンポよく。★★★\n' +
+    '★★★トーン指示: 健康指導ではなく、友達が食事日記を見せてくれた感覚で書く。「すごいじゃん」「ここいいね」「これだけで全然違うよ」のようなバディー口調で。堅い表現禁止。温かく、短く、テンポよく。★★★\n' +
     '特に塩分については運輸業のドライバーはコンビニ弁当・惣菜中心の食生活が多いため、具体的な減塩提案を重視してください。\n\n' +
     '★★★重要: レポート本文の最後に、必ず以下の形式で1食あたりの推定平均栄養データを出力すること★★★\n' +
     '///WEEKLY_SCORE///{"calories":{"value":数値,"unit":"kcal"},"protein":{"value":数値,"unit":"g"},"fat":{"value":数値,"unit":"%"},"carbs":{"value":数値,"unit":"%"},"vitamin":{"value":数値,"unit":"g"},"mineral":{"value":数値,"unit":"mg"},"salt":{"value":数値,"unit":"g"}}\n' +
@@ -255,7 +255,7 @@ async function generateUserFoodReport(uid, userData, weekLabel, weekStart) {
   var noticeContent = '【週間食事レポート ' + weekLabel + '】\n\n' +
     userData.nickname + 'さんの今週の食事分析です（' + userData.posts.length + '食分）\n\n' + reportText + scoreTag;
   db.prepare(`INSERT INTO notices (notice_id, content, sender, target_id, status, created_at)
-    VALUES (?, ?, '🥗 食事の相棒', ?, 'unread', datetime('now'))`).run(noticeId, noticeContent, uid);
+    VALUES (?, ?, '🥗 食事のバディー', ?, 'unread', datetime('now'))`).run(noticeId, noticeContent, uid);
 
   // バディーチャットにお知らせメッセージを挿入
   try {

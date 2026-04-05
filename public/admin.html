@@ -813,7 +813,7 @@ if(localStorage.getItem('co_heart_admin_token') && localStorage.getItem('co_hear
         <span style="color:#e91e63; font-weight:700;">NEW</span> バッジが付いた投稿が未確認です<br><br>
         <strong>▼ 投稿カードの見方</strong><br>
         ・ヘッダー色：<span style="color:#d63384;">ピンク=相談</span> / <span style="color:#20c997;">緑=食事</span> / <span style="color:#fd7e14;">橙=重点案件</span><br>
-        ・食事投稿：写真の横に<span style="background:#fffde7; padding:1px 6px; border-radius:4px; font-size:0.75rem;">ポイント</span>箇条書きが表示されます<br>
+        ・食事投稿：写真の横にポイント箇条書き＋<span style="background:#e8f5e9; padding:1px 6px; border-radius:4px; font-size:0.75rem;">9項目栄養バーチャート</span>が表示されます<br>
         ・<strong>「開く」ボタン</strong>で詳細パネルが展開します<br><br>
         <strong>▼ 詳細パネルでできること</strong><br>
         ・左側：投稿内容・写真・AI分析・7軸評価の確認<br>
@@ -924,7 +924,7 @@ if(localStorage.getItem('co_heart_admin_token') && localStorage.getItem('co_hear
         <tr style="border-bottom:1px solid #f0f0f0;"><td style="padding:6px 0; font-weight:700;"><i class="fas fa-user-md" style="color:#9c27b0; width:20px;"></i> 専門家連携</td><td style="padding:6px 0;">専門家アドバイザーへの助言依頼</td></tr>
         <tr style="border-bottom:1px solid #f0f0f0;"><td style="padding:6px 0; font-weight:700;"><i class="fas fa-envelope-open-text" style="color:#667eea; width:20px;"></i> メール</td><td style="padding:6px 0;">個人宛お知らせ・全体配信</td></tr>
         <tr style="border-bottom:1px solid #f0f0f0;"><td style="padding:6px 0; font-weight:700;"><i class="fas fa-comments" style="color:#ff7043; width:20px;"></i> 話題共感</td><td style="padding:6px 0;">バディー経由の話題・共感管理</td></tr>
-        <tr style="border-bottom:1px solid #f0f0f0;"><td style="padding:6px 0; font-weight:700;"><i class="fas fa-utensils" style="color:#20c997; width:20px;"></i> 食事</td><td style="padding:6px 0;">食事投稿一覧・週間レポート管理</td></tr>
+        <tr style="border-bottom:1px solid #f0f0f0;"><td style="padding:6px 0; font-weight:700;"><i class="fas fa-utensils" style="color:#20c997; width:20px;"></i> 食事</td><td style="padding:6px 0;">週間レポート（9項目栄養バー付き）・食事傾向分析</td></tr>
         <tr style="border-bottom:1px solid #f0f0f0;"><td style="padding:6px 0; font-weight:700;"><i class="fas fa-users-cog" style="color:#4caf50; width:20px;"></i> メンバー管理</td><td style="padding:6px 0;">推進メンバー・ユーザーの管理</td></tr>
         <tr><td style="padding:6px 0; font-weight:700;"><i class="fas fa-database" style="color:#f59e0b; width:20px;"></i> バックアップ</td><td style="padding:6px 0;">データベースのバックアップ状態</td></tr>
       </table>
@@ -947,7 +947,15 @@ if(localStorage.getItem('co_heart_admin_token') && localStorage.getItem('co_hear
       </div>
       <div style="background:#f8f9fa; border-radius:8px; padding:10px; margin-bottom:8px;">
         <div style="font-weight:700; color:#333; margin-bottom:4px;">Q. 社員の実名は見える？</div>
-        <div>デフォルトで非公開（●●●●）です。大学関係者・NPO・取締役・管理部責任者のみ表示されます。</div>
+        <div>一般推進メンバーには非公開（●●●●）。exec・大学/NPO関係者のみ全員の実名���閲覧できます。</div>
+      </div>
+      <div style="background:#f8f9fa; border-radius:8px; padding:10px; margin-bottom:8px;">
+        <div style="font-weight:700; color:#333; margin-bottom:4px;">Q. 栄養バーチャートの見方は？</div>
+        <div>9項目（カロ��ー・たんぱく質・脂質・炭水化物・野菜量・カルシウム・食物繊維・塩分・アルコール）をエビ���ンス基準値と比較表示。バー上の▮が基準値、色で適量(緑)/不足(橙)/超過(赤)を判定します。</div>
+      </div>
+      <div style="background:#f8f9fa; border-radius:8px; padding:10px; margin-bottom:8px;">
+        <div style="font-weight:700; color:#333; margin-bottom:4px;">Q. 食事×健診の因果分析って���</div>
+        <div>社員が自分の健診結果画面から実行できます。直近3ヶ月の食事データ平均と健診数値をAIが突合し、塩分→血圧、アルコール→γ-GTP等の因果関係と改善アクション���提示します。</div>
       </div>
       <div style="background:#f8f9fa; border-radius:8px; padding:10px; margin-bottom:8px;">
         <div style="font-weight:700; color:#333; margin-bottom:4px;">Q. CoWellコインって何？</div>

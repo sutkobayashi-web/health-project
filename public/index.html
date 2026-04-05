@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260405_1700">
+<html data-app-version="20260405_1730">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -6328,11 +6328,13 @@ async function loadCheckupData() {
 
   // タブUI
   var html = '<div style="display:flex; gap:0; margin-bottom:14px; border-radius:25px; overflow:hidden; border:2px solid #e91e63;">';
-  html += '<button id="checkup-tab-yearly" onclick="showCheckupView(\'yearly\')" style="flex:1; padding:9px 0; font-size:0.85rem; font-weight:600; border:none; cursor:pointer; background:#e91e63; color:white;"><i class="fas fa-calendar-alt"></i> 年度別</button>';
-  html += '<button id="checkup-tab-trend" onclick="showCheckupView(\'trend\')" style="flex:1; padding:9px 0; font-size:0.85rem; font-weight:600; border:none; cursor:pointer; background:white; color:#e91e63;"><i class="fas fa-chart-line"></i> 経年推移</button>';
+  html += '<button id="checkup-tab-yearly" onclick="showCheckupView(\'yearly\')" style="flex:1; padding:9px 0; font-size:0.78rem; font-weight:600; border:none; cursor:pointer; background:#e91e63; color:white;"><i class="fas fa-calendar-alt"></i> 年度別</button>';
+  html += '<button id="checkup-tab-trend" onclick="showCheckupView(\'trend\')" style="flex:1; padding:9px 0; font-size:0.78rem; font-weight:600; border:none; cursor:pointer; background:white; color:#e91e63;"><i class="fas fa-chart-line"></i> 経年推移</button>';
+  html += '<button id="checkup-tab-food" onclick="showCheckupView(\'food\')" style="flex:1; padding:9px 0; font-size:0.78rem; font-weight:600; border:none; cursor:pointer; background:white; color:#e91e63;"><i class="fas fa-utensils"></i> 食事×健診</button>';
   html += '</div>';
   html += '<div id="checkup-yearly-view"></div>';
   html += '<div id="checkup-trend-view" style="display:none;"></div>';
+  html += '<div id="checkup-food-view" style="display:none;"></div>';
 
   content.innerHTML = html;
 
@@ -6348,17 +6350,78 @@ async function loadCheckupData() {
 function showCheckupView(mode) {
   var yearlyEl = document.getElementById('checkup-yearly-view');
   var trendEl = document.getElementById('checkup-trend-view');
+  var foodEl = document.getElementById('checkup-food-view');
   var tabY = document.getElementById('checkup-tab-yearly');
   var tabT = document.getElementById('checkup-tab-trend');
-  if (mode === 'yearly') {
-    yearlyEl.style.display = 'block'; trendEl.style.display = 'none';
-    tabY.style.background = '#e91e63'; tabY.style.color = 'white';
-    tabT.style.background = 'white'; tabT.style.color = '#e91e63';
-  } else {
-    yearlyEl.style.display = 'none'; trendEl.style.display = 'block';
-    tabT.style.background = '#e91e63'; tabT.style.color = 'white';
-    tabY.style.background = 'white'; tabY.style.color = '#e91e63';
+  var tabF = document.getElementById('checkup-tab-food');
+  var tabs = [tabY, tabT, tabF];
+  var views = [yearlyEl, trendEl, foodEl];
+  tabs.forEach(function(t) { if(t) { t.style.background = 'white'; t.style.color = '#e91e63'; } });
+  views.forEach(function(v) { if(v) v.style.display = 'none'; });
+  if (mode === 'yearly') { yearlyEl.style.display = 'block'; tabY.style.background = '#e91e63'; tabY.style.color = 'white'; }
+  else if (mode === 'trend') { trendEl.style.display = 'block'; tabT.style.background = '#e91e63'; tabT.style.color = 'white'; }
+  else if (mode === 'food') {
+    foodEl.style.display = 'block'; tabF.style.background = '#e91e63'; tabF.style.color = 'white';
+    if (!foodEl.innerHTML) renderFoodCorrelationView();
   }
+}
+
+function renderFoodCorrelationView() {
+  var el = document.getElementById('checkup-food-view');
+  if (!el) return;
+  el.innerHTML = '<div style="text-align:center;padding:24px;">' +
+    '<div style="font-size:2rem;margin-bottom:8px;">🔬</div>' +
+    '<div style="font-weight:800;font-size:0.95rem;color:#e91e63;margin-bottom:6px;">食事×健診 因果分析</div>' +
+    '<div style="font-size:0.78rem;color:#888;margin-bottom:16px;line-height:1.6;">あなたの食事データと健診結果をAIが突合し、<br>食事が健康にどう影響しているかを分析します</div>' +
+    '<button onclick="runFoodCorrelation()" id="food-correlation-btn" style="padding:12px 28px;background:linear-gradient(135deg,#e91e63,#ad1457);color:white;border:none;border-radius:12px;font-weight:700;font-size:0.9rem;cursor:pointer;box-shadow:0 4px 14px rgba(233,30,99,0.3);"><i class="fas fa-microscope" style="margin-right:6px;"></i>因果分析を実行</button>' +
+    '<div id="food-correlation-result" style="margin-top:16px;"></div>' +
+  '</div>';
+}
+
+function runFoodCorrelation() {
+  var btn = document.getElementById('food-correlation-btn');
+  var resultEl = document.getElementById('food-correlation-result');
+  if (!window._checkupResults || window._checkupResults.length === 0) {
+    resultEl.innerHTML = '<div style="color:#e74c3c;font-size:0.85rem;">健診データがありません。まず年度別タブで健診結果を確認してください。</div>';
+    return;
+  }
+  btn.disabled = true; btn.innerHTML = '<div class="spinner-border spinner-border-sm me-2"></div>分析中...';
+  resultEl.innerHTML = '<div style="font-size:0.78rem;color:#888;"><i class="fas fa-spinner fa-spin"></i> AIが食事データと健診結果を突合しています...</div>';
+
+  // 最新の健診データを整形
+  var latest = window._checkupResults[0];
+  var checkupForApi = window._checkupResults.map(function(r) {
+    var obj = { year: r.year || '' };
+    if (r.data) {
+      Object.keys(r.data).forEach(function(k) { obj[k] = r.data[k]; });
+    }
+    return obj;
+  });
+
+  api('/checkup/food-correlation', { checkupData: checkupForApi }, getToken()).then(function(res) {
+    btn.disabled = false; btn.innerHTML = '<i class="fas fa-microscope" style="margin-right:6px;"></i>再分析';
+    if (!res || !res.success) {
+      resultEl.innerHTML = '<div style="background:#fff3e0;padding:14px;border-radius:12px;color:#e65100;font-size:0.85rem;"><i class="fas fa-exclamation-circle me-2"></i>' + (res ? res.msg : '分析に失敗しました') + '</div>';
+      return;
+    }
+    var html = '<div style="text-align:left;background:linear-gradient(135deg,#fce4ec,#f3e5f5);padding:16px;border-radius:14px;margin-top:12px;">';
+    html += '<div style="font-weight:800;font-size:0.85rem;color:#880e4f;margin-bottom:6px;"><i class="fas fa-stethoscope me-1"></i>AI因果分析レポート</div>';
+    html += '<div style="font-size:0.72rem;color:#999;margin-bottom:10px;">健診: ' + (res.checkupYear || '') + '年度 × 食事: 直近' + (res.foodCount || 0) + '食分</div>';
+    // 食事平均のバーチャート
+    if (res.foodSummary) {
+      html += '<div style="margin-bottom:12px;"><div id="correlation-nutrition-bar"></div></div>';
+    }
+    html += '<div style="background:white;padding:14px;border-radius:12px;font-size:0.85rem;line-height:1.8;color:#333;white-space:pre-wrap;border-left:4px solid #e91e63;">' + escInbox(res.analysis) + '</div>';
+    html += '</div>';
+    resultEl.innerHTML = html;
+    // 栄養バーチャート描画
+    if (res.foodSummary) {
+      setTimeout(function() { renderNutrientRadar('correlation-nutrition-bar', res.foodSummary); }, 100);
+    }
+  }).catch(function(e) {
+    btn.disabled = false; btn.innerHTML = '<i class="fas fa-microscope" style="margin-right:6px;"></i>再分析';
+    resultEl.innerHTML = '<div style="color:#e74c3c;font-size:0.85rem;">通信エラー: ' + e.message + '</div>';
+  });
 }
 
 function fmtJudgeGlobal(v) {

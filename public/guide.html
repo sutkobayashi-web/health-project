@@ -3,2166 +3,259 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>CoWell Health Project 2.0 システムガイド</title>
+<title>3分でわかる CoWell</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-html { background: #f0f2f5; }
 body {
   font-family: 'Noto Sans JP', sans-serif;
   background: linear-gradient(160deg, #f5f0ff 0%, #eef6ff 40%, #f0faf5 100%);
-  margin: 0; padding: 0; min-height: 100vh;
-  padding-bottom: 100px;
-  color: #333;
+  margin: 0; padding: 0; min-height: 100vh; color: #333;
 }
-
-/* ====== Header ====== */
-.kb-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 0 16px;
-  display: flex; justify-content: space-between; align-items: center;
-  box-shadow: 0 4px 20px rgba(102,126,234,0.3);
+.header {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  padding: 0 16px; display: flex; align-items: center; gap: 12px;
   position: sticky; top: 0; z-index: 100; height: 56px;
+  box-shadow: 0 4px 20px rgba(102,126,234,0.3);
 }
-.kb-header-left { display: flex; align-items: center; gap: 12px; }
-.btn-back {
-  background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3);
-  border-radius: 20px; padding: 5px 14px; font-size: 0.75rem; font-weight: 700;
-  cursor: pointer; display: flex; align-items: center; gap: 5px;
-  transition: all 0.2s; text-decoration: none;
-}
-.btn-back:hover { background: rgba(255,255,255,0.35); color: white; }
-.kb-title-group { line-height: 1.2; }
-.kb-title-main { font-weight: 900; color: #fff; font-size: 0.9rem; letter-spacing: 0.3px; text-shadow: 0 1px 2px rgba(0,0,0,0.15); }
-.kb-title-sub { font-weight: 500; color: rgba(255,255,255,0.75); font-size: 0.6rem; }
+.header a { background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 20px; padding: 5px 14px; font-size: 0.75rem; font-weight: 700; text-decoration: none; }
+.header .title { font-weight: 900; color: #fff; font-size: 0.9rem; }
+.header .sub { color: rgba(255,255,255,0.75); font-size: 0.6rem; }
+.wrap { max-width: 500px; margin: 0 auto; padding: 16px 14px 80px; }
 
-/* ====== Main Content ====== */
-.main-content { max-width: 740px; margin: 0 auto; padding: 20px 16px; }
-
-/* ====== Intro Banner ====== */
-.intro-banner {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 20px; padding: 28px 24px; margin-bottom: 24px;
-  color: white; position: relative; overflow: hidden;
+/* カード */
+.card-s {
+  background: white; border-radius: 18px; margin-bottom: 16px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.06); overflow: hidden;
 }
-.intro-banner::before {
-  content: ''; position: absolute; top: -30px; right: -30px;
-  width: 120px; height: 120px;
-  background: rgba(255,255,255,0.1); border-radius: 50%;
-}
-.intro-banner::after {
-  content: ''; position: absolute; bottom: -20px; left: -20px;
-  width: 80px; height: 80px;
-  background: rgba(255,255,255,0.08); border-radius: 50%;
-}
-.intro-banner h2 { font-size: 1.1rem; font-weight: 900; margin-bottom: 8px; }
-.intro-banner p { font-size: 0.85rem; opacity: 0.9; line-height: 1.7; margin: 0; }
-
-/* ====== Guide Card ====== */
-.guide-card {
-  background: white; border-radius: 20px; padding: 0;
-  margin-bottom: 20px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
-  overflow: hidden;
-}
-.guide-card-header {
-  padding: 18px 20px 14px;
-  display: flex; align-items: center; gap: 12px;
+.card-head {
+  padding: 16px 18px 12px; display: flex; align-items: center; gap: 12px;
   border-bottom: 1px solid #f0f0f0;
 }
-.guide-card-icon {
+.card-icon {
   width: 44px; height: 44px; border-radius: 12px;
   display: flex; align-items: center; justify-content: center;
   font-size: 1.3rem; color: #fff; flex-shrink: 0;
 }
-.guide-card-title { font-weight: 800; font-size: 0.95rem; color: #2c3e50; line-height: 1.4; }
-.guide-card-body { padding: 18px 20px 22px; font-size: 0.88rem; line-height: 1.8; color: #555; }
-.guide-card-body p { font-size: inherit; line-height: inherit; color: inherit; margin-bottom: 12px; }
-.guide-card-body p:last-child { margin-bottom: 0; }
-.guide-card-body h4 { font-size: 0.92rem; font-weight: 800; margin: 16px 0 8px; }
-.guide-card-body ul, .guide-card-body ol { font-size: inherit; line-height: inherit; color: inherit; margin-bottom: 12px; padding-left: 20px; }
-.guide-card-body li { margin-bottom: 4px; }
+.card-title { font-weight: 900; font-size: 0.95rem; color: #2c3e50; }
+.card-body { padding: 16px 18px 20px; font-size: 0.88rem; line-height: 1.9; color: #555; }
 
-/* Card color themes */
-.theme-purple .guide-card-icon { background: linear-gradient(135deg, #8e2de2, #4a00e0); }
-.theme-purple { border-top: 4px solid #8e2de2; }
-.theme-blue .guide-card-icon { background: linear-gradient(135deg, #667eea, #764ba2); }
-.theme-blue { border-top: 4px solid #667eea; }
-.theme-teal .guide-card-icon { background: linear-gradient(135deg, #11998e, #38ef7d); }
-.theme-teal { border-top: 4px solid #11998e; }
-.theme-orange .guide-card-icon { background: linear-gradient(135deg, #f2994a, #f2c94c); }
-.theme-orange { border-top: 4px solid #f2994a; }
-.theme-green .guide-card-icon { background: linear-gradient(135deg, #56ab2f, #a8e063); }
-.theme-green { border-top: 4px solid #56ab2f; }
-.theme-red .guide-card-icon { background: linear-gradient(135deg, #eb3349, #f45c43); }
-.theme-red { border-top: 4px solid #eb3349; }
-.theme-pink .guide-card-icon { background: linear-gradient(135deg, #ee5a24, #f0932b); }
-.theme-pink { border-top: 4px solid #ee5a24; }
-.theme-indigo .guide-card-icon { background: linear-gradient(135deg, #4834d4, #686de0); }
-.theme-indigo { border-top: 4px solid #4834d4; }
-.theme-cyan .guide-card-icon { background: linear-gradient(135deg, #00b4db, #0083b0); }
-.theme-cyan { border-top: 4px solid #00b4db; }
-.theme-gray .guide-card-icon { background: linear-gradient(135deg, #606c88, #3f4c6b); }
-.theme-gray { border-top: 4px solid #606c88; }
-
-/* ====== Highlight boxes ====== */
-.highlight-box {
-  background: #f8f5ff; border-left: 4px solid #764ba2;
-  border-radius: 0 12px 12px 0; padding: 14px 16px;
-  margin: 12px 0; font-size: 0.85rem; line-height: 1.7;
+/* ステップ */
+.step { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 14px; }
+.step-num {
+  width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 900; font-size: 0.85rem; color: white;
 }
-.highlight-box strong { color: #764ba2; }
+.step-text { flex: 1; }
+.step-text strong { color: #2c3e50; }
 
-.tip-box {
-  background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);
-  border-left: 4px solid #4caf50;
-  border-radius: 0 12px 12px 0; padding: 14px 16px;
-  margin: 12px 0; font-size: 0.85rem; line-height: 1.7;
-}
-
-.warn-box {
-  background: #fff8e1; border-left: 4px solid #ffa000;
-  border-radius: 0 12px 12px 0; padding: 14px 16px;
-  margin: 12px 0; font-size: 0.85rem; line-height: 1.7;
-}
-
-/* ====== Keyword badges ====== */
-.kw-badge {
-  display: inline-block; background: linear-gradient(135deg, #667eea, #764ba2);
-  color: #fff; font-size: 0.75rem; font-weight: 700; padding: 4px 12px;
-  border-radius: 20px; margin: 2px 4px 2px 0;
-}
-
-/* ====== Flow Chart ====== */
-.flow-container {
-  display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
-  justify-content: center; padding: 10px 0;
-}
-.flow-step {
-  display: flex; flex-direction: column; align-items: center;
-  background: white; border-radius: 14px; padding: 12px 10px;
-  min-width: 90px; max-width: 110px; text-align: center;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+/* フロー */
+.flow { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; padding: 8px 0; }
+.flow-box {
+  background: white; border-radius: 12px; padding: 10px 8px; text-align: center;
+  min-width: 70px; max-width: 90px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
   border-top: 3px solid #764ba2;
-  position: relative;
-  flex: 0 0 auto;
 }
-.flow-step .flow-icon {
-  font-size: 1.5rem; margin-bottom: 6px;
-}
-.flow-step .flow-label {
-  font-size: 0.7rem; font-weight: 700; color: #2c3e50; line-height: 1.3;
-}
-.flow-step .flow-who {
-  font-size: 0.6rem; color: #999; margin-top: 4px; font-weight: 500;
-}
-.flow-arrow {
-  font-size: 1.2rem; color: #764ba2; font-weight: 900;
-  flex-shrink: 0;
-}
-@media (max-width: 576px) {
-  .flow-step { min-width: 75px; max-width: 90px; padding: 10px 6px; }
-  .flow-step .flow-icon { font-size: 1.2rem; }
-  .flow-step .flow-label { font-size: 0.63rem; }
-  .flow-arrow { font-size: 1rem; }
-}
+.flow-box .icon { font-size: 1.3rem; }
+.flow-box .label { font-size: 0.65rem; font-weight: 700; color: #2c3e50; margin-top: 4px; }
+.flow-arrow { font-size: 1rem; color: #764ba2; font-weight: 900; align-self: center; }
 
-/* ====== Role Cards ====== */
-.role-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-@media (max-width: 576px) { .role-grid { grid-template-columns: 1fr; } }
-.role-card {
-  background: white; border-radius: 16px; padding: 20px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-  border-left: 5px solid #764ba2;
-}
-.role-card h4 {
-  font-size: 0.9rem; font-weight: 900; margin-bottom: 10px; color: #2c3e50;
-  display: flex; align-items: center; gap: 8px;
-}
-.role-card h4 .role-emoji { font-size: 1.3rem; }
-.role-card ul {
-  list-style: none; padding: 0; margin: 0;
-}
-.role-card ul li {
-  font-size: 0.8rem; line-height: 1.8; color: #555;
-  padding-left: 16px; position: relative;
-}
-.role-card ul li::before {
-  content: ''; position: absolute; left: 0; top: 10px;
-  width: 6px; height: 6px; border-radius: 50%;
-}
-.role-employee { border-left-color: #667eea; }
-.role-employee ul li::before { background: #667eea; }
-.role-member { border-left-color: #f2994a; }
-.role-member ul li::before { background: #f2994a; }
-.role-nurse { border-left-color: #11998e; }
-.role-nurse ul li::before { background: #11998e; }
-.role-exec { border-left-color: #eb3349; }
-.role-exec ul li::before { background: #eb3349; }
+/* ハイライト */
+.hl { background: #f8f5ff; border-left: 4px solid #764ba2; border-radius: 0 12px 12px 0; padding: 12px 14px; margin: 10px 0; font-size: 0.85rem; line-height: 1.7; }
+.hl strong { color: #764ba2; }
+.tip { background: #e8f5e9; border-left: 4px solid #4caf50; border-radius: 0 12px 12px 0; padding: 12px 14px; margin: 10px 0; font-size: 0.85rem; line-height: 1.7; }
 
-/* ====== Approval Flow ====== */
-.approval-flow {
-  display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: center;
-  gap: 6px; padding: 10px 0;
+/* 目次 */
+.toc { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.toc a {
+  display: flex; align-items: center; gap: 6px;
+  background: white; border-radius: 12px; padding: 10px 14px;
+  font-size: 0.82rem; font-weight: 700; color: #667eea;
+  text-decoration: none; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  flex: 1; min-width: 140px;
 }
-.approval-step {
-  display: flex; flex-direction: column; align-items: center;
-  text-align: center; min-width: 100px; max-width: 130px;
-}
-.approval-num {
-  width: 36px; height: 36px; border-radius: 50%;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: #fff; font-weight: 900; font-size: 0.9rem;
-  display: flex; align-items: center; justify-content: center;
-  margin-bottom: 6px;
-}
-.approval-label {
-  font-size: 0.75rem; font-weight: 700; color: #2c3e50;
-}
-.approval-arrow {
-  font-size: 1.2rem; color: #764ba2; font-weight: 900;
-  margin-top: 8px; flex-shrink: 0;
-}
-@media (max-width: 576px) {
-  .approval-step { min-width: 80px; }
-}
-
-/* ====== Empathy Grid ====== */
-.empathy-grid {
-  display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0;
-}
-.empathy-chip {
-  display: inline-flex; align-items: center; gap: 6px;
-  background: #f8f5ff; border: 1px solid #e0d8f0;
-  border-radius: 20px; padding: 6px 14px;
-  font-size: 0.8rem; font-weight: 600; color: #555;
-}
-.empathy-chip .emp-emoji { font-size: 1.1rem; }
-
-/* ====== Radar Chart (CSS) ====== */
-.radar-container {
-  display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 14px 0;
-}
-.radar-axis {
-  display: flex; flex-direction: column; align-items: center;
-  width: 90px; text-align: center;
-}
-.radar-bar-wrap {
-  width: 40px; height: 100px; background: #f0ecf8; border-radius: 8px;
-  display: flex; flex-direction: column; justify-content: flex-end;
-  overflow: hidden; margin-bottom: 6px;
-}
-.radar-bar {
-  width: 100%; border-radius: 8px 8px 0 0;
-  transition: height 0.6s ease;
-}
-.radar-label {
-  font-size: 0.7rem; font-weight: 700; color: #2c3e50; line-height: 1.3;
-}
-.radar-sub {
-  font-size: 0.6rem; color: #999;
-}
-
-/* ====== Table ====== */
-.guide-table {
-  width: 100%; border-collapse: separate; border-spacing: 0;
-  border-radius: 12px; overflow: hidden; margin: 14px 0; font-size: 0.82rem;
-}
-.guide-table th {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white; padding: 10px 12px; font-weight: 700; text-align: left;
-}
-.guide-table td {
-  padding: 10px 12px; border-bottom: 1px solid #f0f0f0;
-  line-height: 1.6; vertical-align: top;
-}
-.guide-table tr:last-child td { border-bottom: none; }
-.guide-table tr:nth-child(even) td { background: #faf8ff; }
-
-/* ====== FAQ ====== */
-.faq-item {
-  background: white; border-radius: 14px; padding: 16px 18px;
-  margin-bottom: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-  border-left: 4px solid #667eea;
-}
-.faq-q {
-  font-size: 0.85rem; font-weight: 800; color: #764ba2; margin-bottom: 6px;
-  display: flex; align-items: flex-start; gap: 6px;
-}
-.faq-a {
-  font-size: 0.82rem; color: #555; line-height: 1.7; padding-left: 24px;
-}
-
-/* ====== Evidence Tags ====== */
-.evidence-tags {
-  display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0;
-}
-.evidence-tag {
-  background: linear-gradient(135deg, #f5f0ff, #eef6ff);
-  border: 1px solid #e0d8f0; border-radius: 12px;
-  padding: 6px 14px; font-size: 0.75rem; font-weight: 600; color: #555;
-}
-
-/* ====== Challenge features ====== */
-.challenge-grid {
-  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin: 14px 0;
-}
-@media (max-width: 576px) { .challenge-grid { grid-template-columns: 1fr 1fr; } }
-.challenge-item {
-  background: #f8f5ff; border-radius: 14px; padding: 14px 12px;
-  text-align: center;
-}
-.challenge-item .ch-icon { font-size: 1.6rem; margin-bottom: 6px; }
-.challenge-item .ch-label { font-size: 0.75rem; font-weight: 700; color: #2c3e50; }
-.challenge-item .ch-desc { font-size: 0.68rem; color: #888; margin-top: 2px; }
-
-/* ====== Empathy flow diagram ====== */
-.empathy-flow {
-  display: flex; align-items: center; justify-content: center;
-  flex-wrap: wrap; gap: 8px; margin: 14px 0;
-}
-.empathy-flow-box {
-  background: white; border: 2px solid #e0d8f0; border-radius: 14px;
-  padding: 12px 16px; text-align: center; min-width: 120px;
-}
-.empathy-flow-box .ef-icon { font-size: 1.4rem; margin-bottom: 4px; }
-.empathy-flow-box .ef-label { font-size: 0.75rem; font-weight: 700; color: #2c3e50; }
-.empathy-flow-arrow { font-size: 1.2rem; color: #764ba2; font-weight: 900; }
+.toc a:active { transform: scale(0.97); }
 </style>
 </head>
 <body>
 
-<!-- ====== Header ====== -->
-<header class="kb-header">
-  <div class="kb-header-left">
-    <div class="kb-title-group">
-      <div class="kb-title-main">CoWell Health Project 2.0 システムガイド</div>
-      <div class="kb-title-sub">Health Project v2 System Guide</div>
-    </div>
-  </div>
-</header>
-
-<div class="main-content">
-
-<!-- ====== Intro Banner ====== -->
-<div class="intro-banner">
-  <h2><i class="fas fa-book-open"></i> このガイドについて</h2>
-  <p>CoWell Health Project 2.0 の全体像をまとめたガイドページです。<br>
-  プロジェクトの目的、フロー、役割分担、各機能の仕組みを分かりやすく解説します。</p>
-</div>
-
-<!-- ============================================================ -->
-<!-- 概要セクション（1〜3）                                       -->
-<!-- ============================================================ -->
-
-<!-- ====== セクション1: プロジェクトの目的 ====== -->
-<div class="guide-card theme-purple" data-keywords="目的 ボトムアップ 全員参加 エビデンス AIDA 気づき 行動変容">
-  <div class="guide-card-header">
-    <div class="guide-card-icon"><i class="fas fa-bullseye"></i></div>
-    <div class="guide-card-title">セクション1: プロジェクトの目的</div>
-  </div>
-  <div class="guide-card-body">
-    <p>これまでの健康施策は、会社が決めて社員に伝える<strong>トップダウン型</strong>でした。<br>
-    CoWell Health Project 2.0 では、<strong>社員の声から始まり、みんなで考え・選び・取り組む</strong>「ボトムアップ型」に転換します。</p>
-
-    <div class="highlight-box">
-      <strong>3つのキーワード</strong><br>
-      <span class="kw-badge">ボトムアップ</span>
-      <span class="kw-badge">全員参加</span>
-      <span class="kw-badge">エビデンスベース</span>
-    </div>
-
-    <p>社員一人ひとりの健康に関する悩みや気づきを出発点にし、<br>
-    科学的根拠（エビデンス）に基づいたテーマを全社で選び、<br>
-    楽しみながらチャレンジする仕組みです。</p>
-
-    <h4 style="color:#667eea; margin-top:20px;"><i class="fas fa-lightbulb me-2"></i>なぜこのシステムが生まれたのか</h4>
-    <p>健康診断の受診率が100%でも、<strong>「要検査の人が動かなければ意味がない」</strong>。これが出発点でした。</p>
-    <p>再検査に行かないのは本人の怠慢ではなく、時間・費用・心理的抵抗という<strong>「動けない構造」</strong>が原因。問題は"人"ではなく"構造"にありました。安全管理がGマークという仕組みで守られているのと同じように、<strong>健康管理にも仕組みが必要</strong>だという発想から生まれたシステムです。</p>
-
-    <h4 style="color:#667eea; margin-top:20px;"><i class="fas fa-arrow-right me-2"></i>健康版AIDAの法則</h4>
-    <p>消費行動モデル「AIDA」を健康行動に応用しています。</p>
-    <table class="guide-table">
-      <thead><tr><th>段階</th><th>意味</th><th>このシステムでの実現</th></tr></thead>
-      <tbody>
-        <tr><td><strong>A: 注意</strong></td><td>気づく</td><td>ヘルスバディーが日常の中で健康に気づかせる</td></tr>
-        <tr><td><strong>I: 興味</strong></td><td>関心を持つ</td><td>みんなの投稿や共感で「自分も同じだ」と感じる</td></tr>
-        <tr><td><strong>D: 欲求</strong></td><td>やってみたい</td><td>全社投票で選んだテーマだから「自分ごと」に</td></tr>
-        <tr><td><strong>A: 行動</strong></td><td>実際に動く</td><td>チャレンジ参加・KPI記録・ランキングで継続</td></tr>
-      </tbody>
-    </table>
-    <p>いきなり「行動しろ」では動けない。まず<strong>気づき</strong>があり、興味が生まれ、欲求につながり、ようやく行動に至る。このシステムは、その全段階を支える仕組みです。</p>
-
-    <div class="tip-box">
-      <i class="fas fa-quote-left" style="color:#667eea;"></i>
-      <strong>「健康管理 = 文化。文化は日々の積み重ねでつくられる。」</strong><br>
-      見える化 × 制度 × 継続 = 改善のカギ。"会社ごと"から"自分ごと"へ。
-    </div>
+<!-- ヘッダー -->
+<div class="header">
+  <a href="/" onclick="if(window.parent!==window){window.parent.switchAppTab('buddy');return false;}"><i class="fas fa-arrow-left"></i> 戻る</a>
+  <div>
+    <div class="title">3分でわかる CoWell</div>
+    <div class="sub">使い方ガイド</div>
   </div>
 </div>
 
-<!-- ====== セクション2: 全体フロー図 ====== -->
-<div class="guide-card theme-blue" data-keywords="フロー 流れ ステップ プロセス 全体像">
-  <div class="guide-card-header">
-    <div class="guide-card-icon"><i class="fas fa-project-diagram"></i></div>
-    <div class="guide-card-title">セクション2: 全体フロー図</div>
+<div class="wrap">
+
+  <!-- イントロ -->
+  <div style="background:linear-gradient(135deg,#667eea,#764ba2);border-radius:18px;padding:24px 20px;color:white;margin-bottom:16px;">
+    <div style="font-size:1.1rem;font-weight:900;margin-bottom:8px;">CoWell Health Project 2.0</div>
+    <div style="font-size:0.85rem;opacity:0.9;line-height:1.7;">あなたの声で職場を元気にするアプリ。<br>バディーと一緒に、毎日をちょっとだけ健康に。</div>
   </div>
-  <div class="guide-card-body">
-    <p>社員の投稿からテーマ確定、チャレンジ実行、成果レポートまでの全体の流れです。</p>
 
-    <div class="flow-container">
-      <div class="flow-step" style="border-top-color:#667eea;">
-        <div class="flow-icon">📝</div>
-        <div class="flow-label">社員の投稿</div>
-        <div class="flow-who">一般社員</div>
-      </div>
-      <div class="flow-arrow"><i class="fas fa-chevron-right"></i></div>
+  <!-- 目次 -->
+  <div class="toc">
+    <a href="#sec1"><span style="font-size:1.1rem;">🤖</span> バディーって何？</a>
+    <a href="#sec2"><span style="font-size:1.1rem;">🍽️</span> ごはんを投稿</a>
+    <a href="#sec3"><span style="font-size:1.1rem;">📢</span> 声を届ける</a>
+    <a href="#sec4"><span style="font-size:1.1rem;">💪</span> チャレンジ</a>
+    <a href="#sec5"><span style="font-size:1.1rem;">🪙</span> コイン＆ショップ</a>
+  </div>
 
-      <div class="flow-step" style="border-top-color:#e84393;">
-        <div class="flow-icon">❤️</div>
-        <div class="flow-label">共感<br>(ハートタップ)</div>
-        <div class="flow-who">全社員</div>
-      </div>
-      <div class="flow-arrow"><i class="fas fa-chevron-right"></i></div>
-
-      <div class="flow-step" style="border-top-color:#f2994a;">
-        <div class="flow-icon">💬</div>
-        <div class="flow-label">推進メンバー<br>議論</div>
-        <div class="flow-who">推進メンバー</div>
-      </div>
-      <div class="flow-arrow"><i class="fas fa-chevron-right"></i></div>
-
-      <div class="flow-step" style="border-top-color:#8e2de2;">
-        <div class="flow-icon">🤖</div>
-        <div class="flow-label">AI<br>7軸評価</div>
-        <div class="flow-who">AI自動</div>
-      </div>
-      <div class="flow-arrow"><i class="fas fa-chevron-right"></i></div>
-
-      <div class="flow-step" style="border-top-color:#6c5ce7;">
-        <div class="flow-icon">🧩</div>
-        <div class="flow-label">AI<br>テーマ凝集<br>(5候補+各A/B/Cプラン)</div>
-        <div class="flow-who">AI自動</div>
-      </div>
-      <div class="flow-arrow"><i class="fas fa-chevron-right"></i></div>
-
-      <div class="flow-step" style="border-top-color:#f2994a;">
-        <div class="flow-icon">🔍</div>
-        <div class="flow-label">テーマ精査<br>(採用/除外トグル)</div>
-        <div class="flow-who">推進メンバー</div>
-      </div>
-      <div class="flow-arrow"><i class="fas fa-chevron-right"></i></div>
-
-      <div class="flow-step" style="border-top-color:#00b4db;">
-        <div class="flow-icon">📝</div>
-        <div class="flow-label">メンバー<br>プラン追加(D〜)</div>
-        <div class="flow-who">推進メンバー</div>
-      </div>
-      <div class="flow-arrow"><i class="fas fa-chevron-right"></i></div>
-
-      <div class="flow-step" style="border-top-color:#e17055;">
-        <div class="flow-icon">💬</div>
-        <div class="flow-label">7種共感評価<br>+ディスカッション</div>
-        <div class="flow-who">推進メンバー</div>
-      </div>
-      <div class="flow-arrow"><i class="fas fa-chevron-right"></i></div>
-
-      <div class="flow-step" style="border-top-color:#11998e;">
-        <div class="flow-icon">🩺</div>
-        <div class="flow-label">専門家<br>プラン別助言</div>
-        <div class="flow-who">専門家アドバイザー</div>
-      </div>
-      <div class="flow-arrow"><i class="fas fa-chevron-right"></i></div>
-
-      <div class="flow-step" style="border-top-color:#eb3349;">
-        <div class="flow-icon">✅</div>
-        <div class="flow-label">役員承認</div>
-        <div class="flow-who">役員</div>
-      </div>
-      <div class="flow-arrow"><i class="fas fa-chevron-right"></i></div>
-
-      <div class="flow-step" style="border-top-color:#667eea;">
-        <div class="flow-icon">🗳️</div>
-        <div class="flow-label">全社投票</div>
-        <div class="flow-who">全社員</div>
-      </div>
-      <div class="flow-arrow"><i class="fas fa-chevron-right"></i></div>
-
-      <div class="flow-step" style="border-top-color:#00b894;">
-        <div class="flow-icon">🎯</div>
-        <div class="flow-label">テーマ確定</div>
-        <div class="flow-who">自動</div>
-      </div>
-      <div class="flow-arrow"><i class="fas fa-chevron-right"></i></div>
-
-      <div class="flow-step" style="border-top-color:#fdcb6e;">
-        <div class="flow-icon">⚡</div>
-        <div class="flow-label">チャレンジ<br>生成</div>
-        <div class="flow-who">AI自動</div>
-      </div>
-      <div class="flow-arrow"><i class="fas fa-chevron-right"></i></div>
-
-      <div class="flow-step" style="border-top-color:#00cec9;">
-        <div class="flow-icon">🙋</div>
-        <div class="flow-label">エントリー</div>
-        <div class="flow-who">社員任意</div>
-      </div>
-      <div class="flow-arrow"><i class="fas fa-chevron-right"></i></div>
-
-      <div class="flow-step" style="border-top-color:#0984e3;">
-        <div class="flow-icon">📊</div>
-        <div class="flow-label">KPI記録</div>
-        <div class="flow-who">参加者</div>
-      </div>
-      <div class="flow-arrow"><i class="fas fa-chevron-right"></i></div>
-
-      <div class="flow-step" style="border-top-color:#e17055;">
-        <div class="flow-icon">🏆</div>
-        <div class="flow-label">ランキング</div>
-        <div class="flow-who">自動集計</div>
-      </div>
-      <div class="flow-arrow"><i class="fas fa-chevron-right"></i></div>
-
-      <div class="flow-step" style="border-top-color:#a29bfe;">
-        <div class="flow-icon">📋</div>
-        <div class="flow-label">成果レポート</div>
-        <div class="flow-who">AI + 専門家アドバイザー</div>
-      </div>
-      <div class="flow-arrow"><i class="fas fa-chevron-right"></i></div>
-
-      <div class="flow-step" style="border-top-color:#55efc4;">
-        <div class="flow-icon">🔄</div>
-        <div class="flow-label">次サイクルへ</div>
-        <div class="flow-who">継続</div>
-      </div>
+  <!-- ========== セクション1: バディー ========== -->
+  <div class="card-s" id="sec1">
+    <div class="card-head">
+      <div class="card-icon" style="background:linear-gradient(135deg,#0ea5e9,#0284c7);"><i class="fas fa-robot"></i></div>
+      <div class="card-title">バディーって何？</div>
     </div>
+    <div class="card-body">
+      <p>アプリを開くと最初にいるのが<strong>ヘルスバディー</strong>。あなた専用の相棒です。</p>
 
-    <div class="tip-box">
-      <i class="fas fa-info-circle" style="color:#4caf50;"></i>
-      各ステップの担当者が明確に分かれており、内部統制の観点から承認プロセスが組み込まれています。
+      <div class="step">
+        <div class="step-num" style="background:#0ea5e9;">1</div>
+        <div class="step-text"><strong>話しかける</strong><br>体調のこと、愚痴、雑談、なんでもOK。気軽に話しかけてね。</div>
+      </div>
+      <div class="step">
+        <div class="step-num" style="background:#0ea5e9;">2</div>
+        <div class="step-text"><strong>相棒が覚えてくれる</strong><br>前に話したこと、食事の傾向、バディーはちゃんと覚えてるよ。</div>
+      </div>
+      <div class="step">
+        <div class="step-num" style="background:#0ea5e9;">3</div>
+        <div class="step-text"><strong>カスタマイズ</strong><br>名前、見た目、性格を自分好みに変えられる。マイページの「バディー」ボタンから。</div>
+      </div>
+
+      <div class="tip"><strong>ポイント：</strong> バディーは先生じゃなくて相棒。聞かれたときだけアドバイスします。気軽にどうぞ！</div>
     </div>
   </div>
+
+  <!-- ========== セクション2: ごはん投稿 ========== -->
+  <div class="card-s" id="sec2">
+    <div class="card-head">
+      <div class="card-icon" style="background:linear-gradient(135deg,#20c997,#38d9a9);"><i class="fas fa-utensils"></i></div>
+      <div class="card-title">ごはんを投稿しよう</div>
+    </div>
+    <div class="card-body">
+      <p>食事の写真を撮って投稿するだけ。みんなに見せよう！</p>
+
+      <div class="step">
+        <div class="step-num" style="background:#20c997;">1</div>
+        <div class="step-text"><strong>メニュータブ →「今日のごはん見せて！」</strong><br>カメラで食事を撮影。成分表示ラベルがあれば一緒に撮ると精度UP。</div>
+      </div>
+      <div class="step">
+        <div class="step-num" style="background:#20c997;">2</div>
+        <div class="step-text"><strong>AIが分析</strong><br>カロリー、栄養バランスを自動で分析してくれるよ。</div>
+      </div>
+      <div class="step">
+        <div class="step-num" style="background:#20c997;">3</div>
+        <div class="step-text"><strong>みんなの反応</strong><br>「食べたい！」「おいしそう！」「真似する！」のリアクションが届くよ。</div>
+      </div>
+
+      <div class="hl"><strong>連続投稿で木が育つ！</strong> マイページで自分だけの木を育てよう。食事傾向で花の色が変わるよ。</div>
+
+      <div class="tip"><strong>ごはん番長：</strong> 今週一番「食べたい！」をもらった人が「ごはん番長」としてメニュー画面に表示されるよ！</div>
+    </div>
+  </div>
+
+  <!-- ========== セクション3: 声を届ける ========== -->
+  <div class="card-s" id="sec3">
+    <div class="card-head">
+      <div class="card-icon" style="background:linear-gradient(135deg,#d63384,#e91e8c);"><i class="far fa-comment-dots"></i></div>
+      <div class="card-title">声を届けよう</div>
+    </div>
+    <div class="card-body">
+      <p>困ってること、気になること、なんでも投稿できる。あなたの声が職場を変える。</p>
+
+      <div style="font-weight:800;font-size:0.85rem;color:#2c3e50;margin:12px 0 8px;">あなたの声が届く流れ</div>
+      <div class="flow">
+        <div class="flow-box"><div class="icon">📢</div><div class="label">あなたが投稿</div></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box"><div class="icon">❤️</div><div class="label">みんなが共感</div></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box"><div class="icon">🤖</div><div class="label">AIがテーマ化</div></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box"><div class="icon">🗳️</div><div class="label">全社で投票</div></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box"><div class="icon">💪</div><div class="label">チャレンジ</div></div>
+      </div>
+
+      <div class="hl"><strong>2つの届け先</strong><br>
+        <strong style="color:#667eea;">みんなに聞いてみる</strong> → 全社員と共有。共感を集めてテーマに。<br>
+        <strong style="color:#d63384;">推進メンバーに相談</strong> → 職場環境の改善は推進メンバーの出番。
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== セクション4: チャレンジ ========== -->
+  <div class="card-s" id="sec4">
+    <div class="card-head">
+      <div class="card-icon" style="background:linear-gradient(135deg,#ff6b35,#ff9a5c);"><i class="fas fa-fire"></i></div>
+      <div class="card-title">チャレンジに参加しよう</div>
+    </div>
+    <div class="card-body">
+      <p>みんなの投票で決まったテーマが「チャレンジ」になる。参加は自由！</p>
+
+      <div class="step">
+        <div class="step-num" style="background:#ff6b35;">1</div>
+        <div class="step-text"><strong>チャレンジタブから参加</strong><br>画面下の🔥アイコンをタップ。「参加する」を押すだけ。</div>
+      </div>
+      <div class="step">
+        <div class="step-num" style="background:#ff6b35;">2</div>
+        <div class="step-text"><strong>毎日30秒でKPI記録</strong><br>「今日の歩数は？」「野菜食べた？」など、1タップで記録。</div>
+      </div>
+      <div class="step">
+        <div class="step-num" style="background:#ff6b35;">3</div>
+        <div class="step-text"><strong>バッジをゲット</strong><br>達成するとバッジがもらえる。途中参加・途中離脱もOK。</div>
+      </div>
+
+      <div class="tip"><strong>やめてもOK：</strong> 無理はしなくていい。「やってみようかな」と思ったときに参加してね。</div>
+    </div>
+  </div>
+
+  <!-- ========== セクション5: コイン＆ショップ ========== -->
+  <div class="card-s" id="sec5">
+    <div class="card-head">
+      <div class="card-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706);"><i class="fas fa-coins"></i></div>
+      <div class="card-title">コイン＆ショップ</div>
+    </div>
+    <div class="card-body">
+      <p>アプリを使うだけでCoWellコインが貯まる。ショップで使おう！</p>
+
+      <div style="font-weight:800;font-size:0.85rem;color:#2c3e50;margin:8px 0;">コインの貯め方</div>
+      <table style="width:100%;font-size:0.82rem;border-collapse:collapse;margin-bottom:12px;">
+        <tr style="background:#fffbeb;"><td style="padding:8px;border-bottom:1px solid #f0f0f0;">🍽️ ごはん投稿</td><td style="padding:8px;border-bottom:1px solid #f0f0f0;text-align:right;font-weight:700;color:#d97706;">+8pt</td></tr>
+        <tr><td style="padding:8px;border-bottom:1px solid #f0f0f0;">📢 声の投稿</td><td style="padding:8px;border-bottom:1px solid #f0f0f0;text-align:right;font-weight:700;color:#d97706;">+10pt</td></tr>
+        <tr style="background:#fffbeb;"><td style="padding:8px;border-bottom:1px solid #f0f0f0;">❤️ 共感リアクション</td><td style="padding:8px;border-bottom:1px solid #f0f0f0;text-align:right;font-weight:700;color:#d97706;">+5pt</td></tr>
+        <tr><td style="padding:8px;border-bottom:1px solid #f0f0f0;">💪 チャレンジKPI記録</td><td style="padding:8px;border-bottom:1px solid #f0f0f0;text-align:right;font-weight:700;color:#d97706;">+2pt</td></tr>
+      </table>
+
+      <div style="font-weight:800;font-size:0.85rem;color:#2c3e50;margin:8px 0;">ショップで交換</div>
+      <table style="width:100%;font-size:0.82rem;border-collapse:collapse;">
+        <tr style="background:#fffbeb;"><td style="padding:8px;border-bottom:1px solid #f0f0f0;">🎰 月イチ抽選券</td><td style="padding:8px;border-bottom:1px solid #f0f0f0;text-align:right;font-weight:700;">500pt</td></tr>
+        <tr><td style="padding:8px;border-bottom:1px solid #f0f0f0;">☕ おごりコーヒー</td><td style="padding:8px;border-bottom:1px solid #f0f0f0;text-align:right;font-weight:700;">1,000pt</td></tr>
+        <tr style="background:#fffbeb;"><td style="padding:8px;border-bottom:1px solid #f0f0f0;">🧢 アバターパーツ</td><td style="padding:8px;border-bottom:1px solid #f0f0f0;text-align:right;font-weight:700;">200〜400pt</td></tr>
+        <tr><td style="padding:8px;">💝 寄付（交通遺児支援）</td><td style="padding:8px;text-align:right;font-weight:700;">2,000pt</td></tr>
+      </table>
+
+      <div class="tip" style="margin-top:12px;"><strong>おごりコーヒー：</strong> 同僚にコーヒーを1杯おごれる！相手にバディーから通知が届くよ。</div>
+    </div>
+  </div>
+
+  <!-- フッター -->
+  <div style="text-align:center;padding:20px;font-size:0.75rem;color:#aaa;">
+    CoWell Health Project 2.0<br>
+    <a href="/guide-full" style="color:#667eea;text-decoration:none;">詳しいシステムガイドはこちら</a>
+    &nbsp;|&nbsp;
+    <a href="/knowledge" style="color:#667eea;text-decoration:none;">健康ナレッジベース</a>
+    &nbsp;|&nbsp;
+    <a href="/whitepaper" style="color:#667eea;text-decoration:none;">設計思想書</a>
+  </div>
+
 </div>
-
-<!-- ====== セクション3: 役割分担 ====== -->
-<div class="guide-card theme-orange" data-keywords="役割 権限 社員 推進メンバー 専門家アドバイザー 役員 アンバサダー">
-  <div class="guide-card-header">
-    <div class="guide-card-icon"><i class="fas fa-users"></i></div>
-    <div class="guide-card-title">セクション3: 役割分担</div>
-  </div>
-  <div class="guide-card-body">
-    <p>4つの役割それぞれに明確な担当範囲があります。</p>
-
-    <div class="role-grid">
-      <!-- 一般社員 -->
-      <div class="role-card role-employee">
-        <h4><span class="role-emoji">👤</span> 一般社員</h4>
-        <ul>
-          <li>健康相談・食事写真を投稿</li>
-          <li>他の社員の投稿に共感（7種/6種から選ぶだけ）</li>
-          <li>テーマ投票（2票まで）</li>
-          <li>チャレンジにエントリー・KPI記録</li>
-          <li>ランキングで競争</li>
-        </ul>
-      </div>
-
-      <!-- 推進メンバー -->
-      <div class="role-card role-member">
-        <h4><span class="role-emoji">🔧</span> 推進メンバー</h4>
-        <ul>
-          <li>投稿一覧を確認、注目投稿にコメント</li>
-          <li>メンバー同士でチャット議論</li>
-          <li>AIが自動実行した7軸評価の結果をレビュー</li>
-          <li>テーマ候補を採用/除外トグルで絞り込み</li>
-          <li>カスタムプラン（D以降）を追加（タイトル・説明・KPI付き）</li>
-          <li>全プラン（AI案+メンバー案）に7種共感ボタンで評価</li>
-          <li>チャレンジ内容をレビュー</li>
-          <li>実行中の伴走（声かけ・励まし）</li>
-        </ul>
-      </div>
-
-      <!-- 専門家アドバイザー -->
-      <div class="role-card role-nurse">
-        <h4><span class="role-emoji">🩺</span> 専門家アドバイザー（アンバサダー）</h4>
-        <ul>
-          <li>採用テーマのみ表示（除外テーマは非表示）</li>
-          <li>AIプラン+メンバープラン+共感データ+議論を一覧で確認</li>
-          <li>プランごとに専門的助言を記入（必須）</li>
-          <li>チャレンジ中間チェック</li>
-          <li>最終レポートへの所見</li>
-          <li>/ambassador 画面からアクセス</li>
-        </ul>
-      </div>
-
-      <!-- 役員 -->
-      <div class="role-card role-exec">
-        <h4><span class="role-emoji">👔</span> 役員</h4>
-        <ul>
-          <li>テーマの最終承認（必須・Exec権限）</li>
-          <li>承認者名が記録される</li>
-          <li>差戻し可能</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ====== セクション3-2: 一般ユーザーガイド ====== -->
-<div class="guide-card theme-green" data-keywords="一般ユーザー 社員 使い方 投稿 共感 チャレンジ CoWellコイン">
-  <div class="guide-card-header">
-    <div class="guide-card-icon"><i class="fas fa-user"></i></div>
-    <div class="guide-card-title">セクション3-2: 一般ユーザーガイド「何をすればいい？」</div>
-  </div>
-  <div class="guide-card-body">
-    <p style="font-size:0.9rem; color:#555;">難しいことは一切なし！<strong>3つのアクション</strong>でCoWellコインが貯まり、褒賞につながります。</p>
-
-    <div style="background:linear-gradient(135deg,#e8f5e9,#c8e6c9); border-radius:14px; padding:16px; margin-bottom:16px;">
-      <div style="font-weight:900; font-size:1rem; color:#2e7d32; margin-bottom:12px;">🎯 やること3つだけ</div>
-
-      <div style="background:white; border-radius:10px; padding:12px; margin-bottom:8px; border-left:4px solid #4caf50;">
-        <div style="font-weight:800; font-size:0.9rem; color:#333;">① 投稿する <span style="background:#fff9c4; color:#f57f17; font-size:0.7rem; padding:2px 8px; border-radius:8px; font-weight:700;">+10コイン</span></div>
-        <div style="font-size:0.82rem; color:#666; margin-top:4px;">
-          困っていること、気づいたこと、健康の悩みを気軽に投稿。<br>
-          食事写真を撮って投稿するだけでAIが栄養分析してくれます。<span style="background:#fff9c4; color:#f57f17; font-size:0.65rem; padding:1px 6px; border-radius:6px;">📸 +8コイン</span>
-        </div>
-      </div>
-
-      <div style="background:white; border-radius:10px; padding:12px; margin-bottom:8px; border-left:4px solid #e91e63;">
-        <div style="font-weight:800; font-size:0.9rem; color:#333;">② 共感する <span style="background:#fff9c4; color:#f57f17; font-size:0.7rem; padding:2px 8px; border-radius:8px; font-weight:700;">+5コイン</span></div>
-        <div style="font-size:0.82rem; color:#666; margin-top:4px;">
-          他の人の投稿を見て「わかる！」と思ったらタップ。<br>
-          3つの質問に答えるだけ（選択式、30秒で完了）。
-        </div>
-      </div>
-
-      <div style="background:white; border-radius:10px; padding:12px; margin-bottom:8px; border-left:4px solid #2196f3;">
-        <div style="font-weight:800; font-size:0.9rem; color:#333;">③ チャレンジに参加 <span style="background:#fff9c4; color:#f57f17; font-size:0.7rem; padding:2px 8px; border-radius:8px; font-weight:700;">毎日+2コイン</span></div>
-        <div style="font-size:0.82rem; color:#666; margin-top:4px;">
-          全社チャレンジ（歩数、野菜、睡眠など）にエントリー。<br>
-          毎日KPIを記録するだけ。ランキングやバッジで盛り上がります。
-        </div>
-      </div>
-    </div>
-
-    <div style="background:#fffde7; border:1.5px solid #ffe082; border-radius:12px; padding:12px;">
-      <div style="font-weight:800; font-size:0.85rem; color:#f57f17; margin-bottom:6px;"><i class="fas fa-coins me-1"></i> CoWellコインが貯まると…</div>
-      <div style="display:flex; gap:8px; flex-wrap:wrap; font-size:0.78rem;">
-        <span style="background:white; border:1px solid #eee; border-radius:8px; padding:4px 10px;">🥉 50pt ブロンズ</span>
-        <span style="background:white; border:1px solid #eee; border-radius:8px; padding:4px 10px;">🥈 150pt シルバー</span>
-        <span style="background:white; border:1px solid #eee; border-radius:8px; padding:4px 10px;">🥇 300pt ゴールド 🎁QUO500円</span>
-        <span style="background:white; border:1px solid #eee; border-radius:8px; padding:4px 10px;">👑 500pt プラチナ 🎁QUO1,000円</span>
-      </div>
-      <div style="font-size:0.72rem; color:#888; margin-top:6px;">※ アバタータップでコイン残高・ランキングを確認できます</div>
-    </div>
-  </div>
-</div>
-
-<!-- ====== セクション3-3: 推進メンバーガイド ====== -->
-<div class="guide-card theme-purple" data-keywords="推進メンバー 管理画面 Admin やること 手順 賛同 企画書">
-  <div class="guide-card-header">
-    <div class="guide-card-icon"><i class="fas fa-shield-alt"></i></div>
-    <div class="guide-card-title">セクション3-3: 推進メンバーガイド「管理画面で何をすればいい？」</div>
-  </div>
-  <div class="guide-card-body">
-    <p style="font-size:0.9rem; color:#555;">管理画面にログインしたら、<strong>上から順に</strong>やることを進めるだけ。AIが大部分を自動処理しています。</p>
-
-    <div style="position:relative; padding-left:30px;">
-      <!-- ステップ1 -->
-      <div style="position:relative; margin-bottom:16px;">
-        <div style="position:absolute; left:-30px; top:0; width:24px; height:24px; border-radius:50%; background:#667eea; color:white; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:0.75rem;">1</div>
-        <div style="background:#f0f4ff; border-radius:10px; padding:12px; border-left:3px solid #667eea;">
-          <div style="font-weight:800; font-size:0.88rem; color:#333;"><i class="fas fa-inbox me-1" style="color:#667eea;"></i> 投稿を確認する</div>
-          <div style="font-size:0.8rem; color:#666; margin-top:4px;">
-            <strong>「Inbox」タブ</strong>を開く → 新着投稿（NEWバッジ付き）をチェック<br>
-            食事投稿はAI分析のポイントが自動表示されます<br>
-            気になる投稿があれば<strong>アコーディオンを開いてコメント</strong>を残す
-          </div>
-        </div>
-      </div>
-
-      <!-- ステップ2 -->
-      <div style="position:relative; margin-bottom:16px;">
-        <div style="position:absolute; left:-30px; top:0; width:24px; height:24px; border-radius:50%; background:#667eea; color:white; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:0.75rem;">2</div>
-        <div style="background:#f0f4ff; border-radius:10px; padding:12px; border-left:3px solid #667eea;">
-          <div style="font-weight:800; font-size:0.88rem; color:#333;"><i class="fas fa-comments me-1" style="color:#667eea;"></i> メンバー同士で議論する</div>
-          <div style="font-size:0.8rem; color:#666; margin-top:4px;">
-            投稿の詳細パネル右側に<strong>チャット欄</strong>があります<br>
-            「この投稿、他にも同じ声が多いね」「これは急ぎかも」など自由に意見交換
-          </div>
-        </div>
-      </div>
-
-      <!-- ステップ3 -->
-      <div style="position:relative; margin-bottom:16px;">
-        <div style="position:absolute; left:-30px; top:0; width:24px; height:24px; border-radius:50%; background:#f59e0b; color:white; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:0.75rem;">3</div>
-        <div style="background:#fffde7; border-radius:10px; padding:12px; border-left:3px solid #f59e0b;">
-          <div style="font-weight:800; font-size:0.88rem; color:#333;"><i class="fas fa-magic me-1" style="color:#f59e0b;"></i> AIテーマ凝集を実行（※まとめ役がやればOK）</div>
-          <div style="font-size:0.8rem; color:#666; margin-top:4px;">
-            <strong>「ダッシュボード」タブ</strong> → 「テーマ凝集を実行」ボタン<br>
-            AIが投稿+共感+議論を分析し、テーマ候補を自動生成します<br>
-            <span style="color:#999; font-size:0.75rem;">※ 投稿が一定数集まってから実行します</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- ステップ4 -->
-      <div style="position:relative; margin-bottom:16px;">
-        <div style="position:absolute; left:-30px; top:0; width:24px; height:24px; border-radius:50%; background:#f59e0b; color:white; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:0.75rem;">4</div>
-        <div style="background:#fffde7; border-radius:10px; padding:12px; border-left:3px solid #f59e0b;">
-          <div style="font-weight:800; font-size:0.88rem; color:#333;"><i class="fas fa-users-cog me-1" style="color:#f59e0b;"></i> AI評議会で論点を確認する</div>
-          <div style="font-size:0.8rem; color:#666; margin-top:4px;">
-            <strong>「企画書」タブ</strong> → 各プラン候補の<strong>「AI評議会で論点整理」</strong>ボタン<br>
-            5名のAI専門家（メディカル/ヘルス/食事/経営/現場）が論点を整理<br>
-            賛成✅・条件付き⚠️・要検討🔍 がひと目でわかります
-          </div>
-        </div>
-      </div>
-
-      <!-- ステップ5 -->
-      <div style="position:relative; margin-bottom:16px;">
-        <div style="position:absolute; left:-30px; top:0; width:24px; height:24px; border-radius:50%; background:#4caf50; color:white; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:0.75rem;">5</div>
-        <div style="background:#e8f5e9; border-radius:10px; padding:12px; border-left:3px solid #4caf50;">
-          <div style="font-weight:800; font-size:0.88rem; color:#333;"><i class="fas fa-vote-yea me-1" style="color:#4caf50;"></i> 賛同する</div>
-          <div style="font-size:0.8rem; color:#666; margin-top:4px;">
-            プランが「メンバー検討」に回ったら、AI評議会の論点を読んで<br>
-            <strong>✅ 賛同</strong> または <strong>❌ 反対（理由記入）</strong>をクリック<br>
-            全員賛同で役員上申 → 承認 → チャレンジ開始
-          </div>
-        </div>
-      </div>
-
-      <!-- 日常 -->
-      <div style="position:relative; margin-bottom:8px;">
-        <div style="position:absolute; left:-30px; top:0; width:24px; height:24px; border-radius:50%; background:#9c27b0; color:white; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:0.65rem;">毎日</div>
-        <div style="background:#f3e5f5; border-radius:10px; padding:12px; border-left:3px solid #9c27b0;">
-          <div style="font-weight:800; font-size:0.88rem; color:#333;"><i class="fas fa-heartbeat me-1" style="color:#9c27b0;"></i> チャレンジ実行中の伴走</div>
-          <div style="font-size:0.8rem; color:#666; margin-top:4px;">
-            参加者への声かけ・励まし（バディー経由メッセージ）<br>
-            ダッシュボードでオンライン状況・CoWellコインランキングを確認
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div style="background:#f8f9fa; border-radius:10px; padding:10px; margin-top:12px; font-size:0.78rem; color:#888;">
-      <i class="fas fa-info-circle me-1" style="color:#667eea;"></i>
-      <strong>ポイント:</strong> 難しい分析はすべてAIが自動実行します。推進メンバーの仕事は「確認して判断する」こと。投稿チェックと議論を日常的に行い、凝集・評議会・賛同のタイミングで判断を下すだけです。
-    </div>
-  </div>
-</div>
-
-<!-- ============================================================ -->
-<!-- 画面・操作セクション（4〜5）                                 -->
-<!-- ============================================================ -->
-
-<!-- ====== セクション4: UI刷新・LINE風デザイン ====== -->
-<div class="guide-card" data-keywords="UI LINE デザイン ボトムナビ タブ リフレッシュ">
-  <div class="guide-card-header">
-    <div class="guide-card-icon" style="background:linear-gradient(135deg,#667eea,#764ba2);"><i class="fas fa-mobile-alt"></i></div>
-    <div class="guide-card-title">セクション4: UI・LINE風デザイン</div>
-  </div>
-  <div class="guide-card-body">
-    <h4 style="color:#667eea;"><i class="fas fa-th-large me-2"></i>ボトムナビゲーション</h4>
-    <p>画面下部に5つのタブを配置。LINEのような直感的な操作感を実現しました。</p>
-
-    <table class="guide-table">
-      <thead><tr><th>タブ</th><th>アイコン</th><th>内容</th></tr></thead>
-      <tbody>
-        <tr><td><strong>バディー</strong></td><td>🤖</td><td>ヘルスバディーとの会話（ホーム画面）。インラインアクションバーから全機能にアクセス</td></tr>
-        <tr><td><strong>メニュー</strong></td><td>📋</td><td>投稿・食事チェック・みんなの投稿を見る・アプリの仕組み・ガイドなど</td></tr>
-        <tr><td><strong>チャレンジ</strong></td><td>🔥</td><td>開催中・募集中のチャレンジ一覧。KPI記録・アバターチャレンジもここ</td></tr>
-        <tr><td><strong>お知らせ</strong></td><td>🔔</td><td>事務局・推進メンバーからの通知</td></tr>
-        <tr><td><strong>マイページ</strong></td><td>👤</td><td>プロフィール・バディー変更・投稿履歴・バディーメモ</td></tr>
-      </tbody>
-    </table>
-
-    <h4 style="color:#667eea; margin-top:20px;"><i class="fas fa-door-open me-2"></i>初回ログイン時のオンボーディング</h4>
-    <p>初めてログインしたユーザーには、<strong>4枚のスライド</strong>でアプリの使い方を案内するオンボーディング画面が表示されます。スワイプで進み、最後に「はじめる」をタップするとアプリ本体に入れます。</p>
-
-    <h4 style="color:#667eea; margin-top:20px;"><i class="fas fa-sync-alt me-2"></i>その他の改善</h4>
-
-    <table class="guide-table">
-      <thead><tr><th>機能</th><th>内容</th></tr></thead>
-      <tbody>
-        <tr><td><strong>Pull-to-refresh</strong></td><td>下にスワイプでデータ更新（ページリロードなし、画面状態を維持）</td></tr>
-        <tr><td><strong>フォントサイズ切替</strong></td><td>ヘッダー右の「A」ボタンで3段階ズーム（小/中/大）を切替。管理画面にも対応（高年齢者対応）</td></tr>
-        <tr><td><strong>ログイン状態保持</strong></td><td>ニックネーム・パスワードを保存し、次回はプリセット表示</td></tr>
-        <tr><td><strong>タブ状態復元</strong></td><td>ブラウザリロード後も開いていたタブに戻る</td></tr>
-        <tr><td><strong>健康eラーニング</strong></td><td>厚労省公認の無料教材へのリンクをメニュー内に配置</td></tr>
-        <tr><td><strong>PWA自動更新</strong></td><td>サーバー再起動時にバージョンを自動更新。PWAユーザーは60秒以内に最新版に自動切替</td></tr>
-        <tr><td><strong>管理画面スマホ対応</strong></td><td>サイドバーが画面下部の横スクロールナビに変換。投稿確認・返信・お知らせ送信がスマホで操作可能</td></tr>
-      </tbody>
-    </table>
-
-    <h4 style="color:#667eea; margin-top:20px;"><i class="fas fa-bolt me-2"></i>インラインアクションバー（チャット画面）</h4>
-    <p>チャット画面の入力欄の上部に、主要機能への直接アクセスボタンが常時表示されます。全てタブ切替なしでチャットの会話フローで完結します。</p>
-
-    <table class="guide-table">
-      <thead><tr><th>ボタン</th><th>内容</th></tr></thead>
-      <tbody>
-        <tr><td><strong>🗨 みんなに相談・提案</strong></td><td>バディーが誘導→カテゴリ選択→入力→匿名で投稿。AIがコメント</td></tr>
-        <tr><td><strong>🍽 食事診断・投稿</strong></td><td>バディーが誘導→写真撮影→プレビュー→AI食事アドバイザーが簡潔に分析（推定カロリー＋良い点＋改善点）→<strong>5軸レーダーチャート</strong>（たんぱく質・脂質・炭水化物・ビタミン・ミネラル）＋<strong>塩分バー</strong>（良好/適量/注意）で視覚表示。投稿一覧の詳細画面でもチャート再表示</td></tr>
-        <tr><td><strong>🛡 推進メンバーに相談・提案</strong></td><td>バディーが誘導→入力→推進メンバーに直接送信（非公開）</td></tr>
-        <tr><td><strong>🔥 チャレンジに挑戦する</strong></td><td>バディーがチャレンジ一覧を紹介→選択→詳細画面へ遷移</td></tr>
-        <tr><td><strong>📋 みんなの投稿を見る</strong></td><td>メニュータブの統合投稿一覧へ遷移（すべて/相談/食事フィルター）</td></tr>
-        <tr><td><strong>❓ 使い方</strong></td><td>8カテゴリのヘルプをチャット内で即回答（AI不使用・定型応答）</td></tr>
-      </tbody>
-    </table>
-
-    <div class="tip-box">
-      <i class="fas fa-info-circle" style="color:#4caf50;"></i>
-      全てのフローに「✕ やめる」ボタンがあり、いつでもチャットに戻れます。<br>
-      「使い方」「ヘルプ」等のキーワードをチャットに入力しても自動でヘルプが起動します。
-    </div>
-  </div>
-</div>
-
-<!-- ====== セクション5: ヘルスバディー ====== -->
-<div class="guide-card" data-keywords="バディー AI 相棒 体調 チェック 会話 性格 カスタマイズ">
-  <div class="guide-card-header">
-    <div class="guide-card-icon" style="background:linear-gradient(135deg,#0ea5e9,#0284c7);"><i class="fas fa-robot"></i></div>
-    <div class="guide-card-title">セクション5: ヘルスバディー</div>
-  </div>
-  <div class="guide-card-body">
-    <h4 style="color:#0284c7;"><i class="fas fa-robot me-2"></i>ヘルスバディーとは</h4>
-    <p>アプリを開くと最初に表示されるAI健康相棒です。チャットがメインビューとなっており、毎日あなたに話しかけ、体調を確認し、健康に関する悩みを自然な会話の中で引き出します。</p>
-    <p><strong>初回会話時</strong>には、バディーがアプリの仕組みを紹介し、カスタマイズを促します。バディーの名前・見た目・性格を設定して、自分だけの健康パートナーを作れます。</p>
-
-    <div class="guide-step">
-      <div class="step-number" style="background:linear-gradient(135deg,#0ea5e9,#0284c7);">1</div>
-      <div class="step-content">
-        <strong>毎日の体調チェック</strong><br>
-        アプリを開くとバディーが「今日の調子はどう？」と話しかけます。<br>
-        😊元気 / 😐普通 / 😔少し疲れ / 😩しんどい の4択をタップするだけ。
-      </div>
-    </div>
-
-    <div class="guide-step">
-      <div class="step-number" style="background:linear-gradient(135deg,#0ea5e9,#0284c7);">2</div>
-      <div class="step-content">
-        <strong>悩みの深掘り</strong><br>
-        体調に応じて「何か気になることは？」と選択肢を提示します。<br>
-        💤睡眠 / 🦴腰・肩 / 😣ストレス / 🍽️食欲 / 👁️目の疲れ など。<br>
-        「💬 自分の言葉で話す」で自由に相談することもできます。
-      </div>
-    </div>
-
-    <div class="guide-step">
-      <div class="step-number" style="background:linear-gradient(135deg,#0ea5e9,#0284c7);">3</div>
-      <div class="step-content">
-        <strong>エビデンスに基づくアドバイス</strong><br>
-        AIが厚生労働省のガイドラインや最新の研究に基づいてアドバイスします。<br>
-        具体的なアクション（🎯やってみよう）と出典（📚）がカード形式で表示されます。
-      </div>
-    </div>
-
-    <div class="guide-step">
-      <div class="step-number" style="background:linear-gradient(135deg,#0ea5e9,#0284c7);">4</div>
-      <div class="step-content">
-        <strong>推進メンバーへの橋渡し</strong><br>
-        AIだけでは解決できない悩み（職場の人間関係、医療相談など）は「🛡️推進メンバーに相談」で匿名で届けられます。<br>
-        推進メンバーがお知らせ通知で返事をします。
-      </div>
-    </div>
-
-    <div class="guide-step">
-      <div class="step-number" style="background:linear-gradient(135deg,#0ea5e9,#0284c7);">5</div>
-      <div class="step-content">
-        <strong>チャレンジとの連動</strong><br>
-        会話の中で現在進行中のチャレンジに関連する話題が出ると、AIが自然に参加を促します。
-      </div>
-    </div>
-
-    <h4 style="color:#0284c7; margin-top:20px;"><i class="fas fa-palette me-2"></i>バディーのカスタマイズ</h4>
-    <p>マイページの「バディーを変更する」ボタンから、いつでもカスタマイズできます。</p>
-
-    <table class="guide-table">
-      <thead><tr><th>項目</th><th>内容</th></tr></thead>
-      <tbody>
-        <tr><td><strong>見た目</strong></td><td>アバタービルダーで髪型・目・口・アクセサリーなどを自由にカスタマイズ</td></tr>
-        <tr><td><strong>名前</strong></td><td>好きな名前を付けられます（例：ハルちゃん、ケンタ先生）</td></tr>
-        <tr><td><strong>性格</strong></td><td>5種類から選択。AIの口調が変わります</td></tr>
-      </tbody>
-    </table>
-
-    <table class="guide-table">
-      <thead><tr><th>性格</th><th>特徴</th><th>口調の例</th></tr></thead>
-      <tbody>
-        <tr><td>🌸 やさしい</td><td>温かく寄り添う</td><td>「大丈夫ですよ」「一緒にがんばりましょうね」</td></tr>
-        <tr><td>⚡ 元気いっぱい</td><td>テンション高めで励ます</td><td>「やったね！」「いいね！すごい！」</td></tr>
-        <tr><td>📋 しっかり者</td><td>明確で的確なアドバイス</td><td>「ここがポイントです」「具体的には〜」</td></tr>
-        <tr><td>😄 おもしろ</td><td>ユーモアで楽しく</td><td>ダジャレや例え話を交えた親しみやすい口調</td></tr>
-        <tr><td>🍃 おだやか</td><td>ゆったり癒し系</td><td>「今の自分を大切に」マインドフルネス的な声がけ</td></tr>
-      </tbody>
-    </table>
-
-    <h4 style="color:#0284c7; margin-top:20px;"><i class="fas fa-shield-alt me-2"></i>AIの行動原則（保健指導15の極意）</h4>
-    <p>バディーは「保健指導を成功させる15の『し』と『じ』」に基づいて設計されています。</p>
-
-    <table class="guide-table">
-      <thead><tr><th>原則</th><th>AIでの実装</th></tr></thead>
-      <tbody>
-        <tr><td><strong>準備を怠らず</strong></td><td>食事・体調・健診データを会話前に自動読み込み</td></tr>
-        <tr><td><strong>信頼関係を築く</strong></td><td>過去の会話を覚えている。名前で呼ぶ</td></tr>
-        <tr><td><strong>柔軟に対応</strong></td><td>ユーザーの性格設定に合わせて口調を変える</td></tr>
-        <tr><td><strong>しゃべりすぎない</strong></td><td>3〜4文以内で簡潔に。選択肢を提示</td></tr>
-        <tr><td><strong>指示にならない</strong></td><td>「〜してください」ではなく「〜してみない？」</td></tr>
-        <tr><td><strong>自分で考えてもらう</strong></td><td>選択肢を出して本人に選ばせる</td></tr>
-        <tr><td><strong>じっくり、あせらず</strong></td><td>小さな変化を褒める。失敗を責めない</td></tr>
-        <tr><td><strong>自己完結しない</strong></td><td>深刻な悩みは推進メンバーへ橋渡し</td></tr>
-      </tbody>
-    </table>
-
-    <h4 style="color:#0284c7; margin-top:20px;"><i class="fas fa-cogs me-2"></i>裏側の仕組み</h4>
-
-    <table class="guide-table">
-      <thead><tr><th>仕組み</th><th>内容</th></tr></thead>
-      <tbody>
-        <tr><td><strong>テーマ織り込み</strong></td><td>推進メンバーが設定したテーマをAI会話に自然に織り込む</td></tr>
-        <tr><td><strong>食事データ連動</strong></td><td>食事投稿から生活状態を読み取り、自然な気づきを促す</td></tr>
-        <tr><td><strong>匿名の声の吸い上げ</strong></td><td>会話データを匿名でテーマ凝集分析に投入→v2サイクルに接続</td></tr>
-        <tr><td><strong>異常検知</strong></td><td>体調不良が続く場合、推進メンバーへアラート</td></tr>
-        <tr><td><strong>チャレンジ連動</strong></td><td>進行中のチャレンジをDBから都度取得し、関連する話題で自然に紹介</td></tr>
-        <tr><td><strong>サーバー同期</strong></td><td>バディーデータはサーバーDBに保存。端末を変えても同じバディー</td></tr>
-      </tbody>
-    </table>
-
-    <h4 style="color:#0284c7; margin-top:20px;"><i class="fas fa-shield-alt me-2"></i>プライバシーと情報の範囲</h4>
-    <p>バディーとの会話は<strong>あなただけのプライベート空間</strong>です。安心して健康相談ができます。</p>
-
-    <table class="guide-table">
-      <thead><tr><th>情報の流れ</th><th>内容</th></tr></thead>
-      <tbody>
-        <tr><td><strong>チャット内容</strong></td><td>あなたとバディーの間だけ。管理者・推進メンバー・他のユーザーは<strong>一切閲覧できません</strong></td></tr>
-        <tr><td><strong>管理者 → あなた</strong></td><td>推進メンバーからバディー経由でお知らせや話題共感の問いかけを届けることができます（一方向の配信のみ）</td></tr>
-        <tr><td><strong>あなた → 管理者</strong></td><td>「🛡️推進メンバーに相談」を<strong>自分の意思で選んだ時のみ</strong>、匿名で相談内容が届きます</td></tr>
-        <tr><td><strong>評価対象</strong></td><td>チャット内容は管理画面の評価には<strong>使用されません</strong>。評価対象は投稿（声）のみです</td></tr>
-      </tbody>
-    </table>
-
-    <h4 style="color:#0284c7; margin-top:20px;"><i class="fas fa-broom me-2"></i>チャット管理</h4>
-    <table class="guide-table">
-      <thead><tr><th>機能</th><th>内容</th></tr></thead>
-      <tbody>
-        <tr><td><strong>履歴クリア</strong></td><td>バディーヘッダー右の<i class="fas fa-trash-alt"></i>ボタンで全チャット履歴を削除できます。新しい挨拶から再スタートします</td></tr>
-        <tr><td><strong>メモ機能</strong></td><td>バディーの回答にある「メモ」ボタンで健康アドバイスを保存。マイページの「バディーメモ」で確認・削除できます</td></tr>
-        <tr><td><strong>履歴の復元</strong></td><td>同じ日にアプリを再度開くと、当日のチャット履歴が自動復元され「さっきの続きだね！」と自然に再開します</td></tr>
-      </tbody>
-    </table>
-  </div>
-</div>
-
-<!-- ====== セクション5-2: バディー経由メッセージ配信 ====== -->
-<div class="guide-card" data-keywords="バディー メッセージ 配信 推進メンバー 通知 お知らせ">
-  <div class="guide-card-header">
-    <div class="guide-card-icon" style="background:linear-gradient(135deg,#0ea5e9,#0284c7);"><i class="fas fa-paper-plane"></i></div>
-    <div class="guide-card-title">セクション5-2: バディー経由メッセージ配信</div>
-  </div>
-  <div class="guide-card-body">
-    <p>推進メンバーがバディーを通じてユーザーにメッセージを届ける機能です。お知らせとは別に、バディーチャット内に自然にメッセージが表示されます。</p>
-
-    <p><strong style="color:#0284c7;">送信方法（admin画面）</strong></p>
-    <ul>
-      <li><strong>個別送信:</strong> インボックスで投稿を開く → 返事を入力 → 青い<strong>「バディー経由」</strong>ボタンをクリック</li>
-      <li><strong>全体配信:</strong>「全員へお知らせ配信」モーダル →<strong>「ヘルスバディー経由で届ける」</strong>にチェック → 配信</li>
-    </ul>
-
-    <p><strong style="color:#0284c7;">ユーザー側の表示</strong></p>
-    <ul>
-      <li>バディーチャット画面に表示（お知らせ一覧には出ません）</li>
-      <li>個別メッセージ: 「💌 ○○さんからのメッセージ」</li>
-      <li>全体配信: 「🛡️ 推進メンバーからのお知らせ」</li>
-      <li>30秒ごとに新着を自動チェック（リロード不要）</li>
-      <li>PWAを閉じて再度開いた時にも自動チェック</li>
-    </ul>
-
-    <p><strong style="color:#0284c7;">仕組み</strong></p>
-    <ul>
-      <li>メッセージはDB管理で既読追跡（一度表示されたメッセージは再表示されない）</li>
-      <li>お知らせAPIとバディーAPIは完全に分離</li>
-      <li>バディーチャットの会話履歴にも保存され、同日の再訪問時に履歴として表示</li>
-    </ul>
-  </div>
-</div>
-
-<!-- ====== セクション5-3: 話題共感（バディー経由の声集め） ====== -->
-<div class="guide-card" data-keywords="話題 共感 アンケート テーマ 投票 ボトムアップ バディー">
-  <div class="guide-card-header">
-    <div class="guide-card-icon" style="background:linear-gradient(135deg,#ff7043,#e64a19);"><i class="fas fa-comments"></i></div>
-    <div class="guide-card-title">セクション5-3: 話題共感（バディー経由の声集め）</div>
-  </div>
-  <div class="guide-card-body">
-    <p>推進メンバーが話題（テーマ）を設定すると、バディーがユーザーに自然に問いかけ、共感や意見を収集する機能です。従来の受け身な共感収集を、<strong>バディーから能動的に問いかける形</strong>に変えることで、参加率の向上を狙います。</p>
-
-    <p><strong style="color:#e64a19;">推進メンバーの操作（admin画面）</strong></p>
-    <ol>
-      <li>サイドバーの<strong>「話題共感」</strong>タブを開く</li>
-      <li>話題テーマを入力（例：「階段を使う習慣、どう思いますか？」）</li>
-      <li>選択肢を編集（デフォルト4つ、最大6つまで追加可能）</li>
-      <li><strong>「話題を配信」</strong>をクリック → 既存の配信中話題は自動終了</li>
-    </ol>
-
-    <p><strong style="color:#e64a19;">ユーザー側の体験</strong></p>
-    <ol>
-      <li>バディーチャットを開くと「📢 今週の話題です！」と問いかけ</li>
-      <li>選択肢ボタンをタップして回答</li>
-      <li>任意でコメントを追加（スキップ可）</li>
-      <li>回答後、通常の体調チェックに移行</li>
-    </ol>
-    <p>※ 各ユーザーは1つの話題に1回のみ回答できます。回答済みの話題は再表示されません。</p>
-    <p>※ ページを開いたままでも30秒ごとに新しい話題をチェックします。adminが配信したら自動で問いかけが始まります。</p>
-
-    <p><strong style="color:#e64a19;">集計の確認（admin画面）</strong></p>
-    <ul>
-      <li>話題カードに選択肢ごとの回答数がグラフ表示</li>
-      <li>回答率（回答者数 / 全ユーザー数）を表示</li>
-      <li><strong>「詳細・コメント」</strong>ボタンで、回答者名・部署・コメント一覧を確認</li>
-      <li>話題は<strong>「終了」</strong>で配信停止、<strong>「削除」</strong>で回答データごと完全削除</li>
-    </ul>
-
-    <p><strong style="color:#e64a19;">v2スキームとの連携</strong></p>
-    <p>テーマ凝集 → 全社投票 → チャレンジ の流れに、バディー経由の「空気感の汲み取り」を加えることで、投票前の温度感を測定できます。話題共感の結果をテーマ選定の参考材料として活用してください。</p>
-  </div>
-</div>
-
-<!-- ============================================================ -->
-<!-- スキーム本流（6〜13）: 投稿→共感→評価→凝集→承認→チャレンジ -->
-<!-- ============================================================ -->
-
-<!-- ====== セクション6: 共感の仕組み ====== -->
-<div class="guide-card theme-pink" data-keywords="共感 ハート リアクション 投稿 相談 食事">
-  <div class="guide-card-header">
-    <div class="guide-card-icon"><i class="fas fa-heart"></i></div>
-    <div class="guide-card-title">セクション6: 共感の仕組み</div>
-  </div>
-  <div class="guide-card-body">
-    <p><strong>相談投稿への共感（7種）</strong></p>
-    <div class="empathy-grid">
-      <div class="empathy-chip"><span class="emp-emoji">🙋</span> わかる</div>
-      <div class="empathy-chip"><span class="emp-emoji">😰</span> ヤバい</div>
-      <div class="empathy-chip"><span class="emp-emoji">💡</span> 会社が動けば</div>
-      <div class="empathy-chip"><span class="emp-emoji">💪</span> 応援</div>
-      <div class="empathy-chip"><span class="emp-emoji">🤝</span> 一緒に</div>
-      <div class="empathy-chip"><span class="emp-emoji">🏥</span> 専門家に</div>
-      <div class="empathy-chip"><span class="emp-emoji">👀</span> 気になる</div>
-    </div>
-
-    <p style="margin-top:16px;"><strong>食事投稿への共感（6種）</strong></p>
-    <div class="empathy-grid">
-      <div class="empathy-chip"><span class="emp-emoji">🍽️</span> 美味しそう</div>
-      <div class="empathy-chip"><span class="emp-emoji">💪</span> 参考になる</div>
-      <div class="empathy-chip"><span class="emp-emoji">😅</span> 自分も</div>
-      <div class="empathy-chip"><span class="emp-emoji">🌿</span> 健康的</div>
-      <div class="empathy-chip"><span class="emp-emoji">🍺</span> 一緒に改善</div>
-      <div class="empathy-chip"><span class="emp-emoji">📸</span> もっと見たい</div>
-    </div>
-
-    <p style="margin-top:18px;"><strong>共感データの活用フロー</strong></p>
-    <div class="empathy-flow">
-      <div class="empathy-flow-box">
-        <div class="ef-icon">❤️</div>
-        <div class="ef-label">共感データ<br>(種別 + 件数)</div>
-      </div>
-      <div class="empathy-flow-arrow"><i class="fas fa-chevron-right"></i></div>
-      <div class="empathy-flow-box" style="border-color:#f2994a;">
-        <div class="ef-icon">💬</div>
-        <div class="ef-label">メンバー<br>コメント</div>
-      </div>
-      <div class="empathy-flow-arrow"><i class="fas fa-plus"></i></div>
-      <div class="empathy-flow-box" style="border-color:#8e2de2;">
-        <div class="ef-icon">🤖</div>
-        <div class="ef-label">AI分析</div>
-      </div>
-      <div class="empathy-flow-arrow"><i class="fas fa-chevron-right"></i></div>
-      <div class="empathy-flow-box" style="border-color:#11998e;">
-        <div class="ef-icon">📊</div>
-        <div class="ef-label">7軸評価<br>+ テーマ凝集</div>
-      </div>
-    </div>
-
-    <div class="tip-box">
-      共感の種別と件数がAIの7軸評価とテーマ凝集に直接反映されます。<br>
-      「🙋わかる」が多い悩みは<strong>ニーズ(needs)</strong>が高く、「😰ヤバい」が多い悩みは<strong>リスク(risk)</strong>が高く評価されます。
-    </div>
-  </div>
-</div>
-
-<!-- ====== セクション7: 自分の投稿 & チャット通知 ====== -->
-<div class="guide-card theme-red" data-keywords="自分の投稿 履歴 チャット 通知 推進メンバー コメント 新着">
-  <div class="guide-card-header">
-    <div class="guide-card-icon"><i class="fas fa-user-edit"></i></div>
-    <div class="guide-card-title">セクション7: 自分の投稿を確認する</div>
-  </div>
-  <div class="guide-card-body">
-    <p>自分が過去に投稿した内容と、推進メンバーからのフィードバックを確認できます。</p>
-
-    <div class="highlight-box">
-      <strong>自分の投稿の見方</strong><br>
-      1. ボトムナビの<strong>「マイページ」</strong>タブをタップ<br>
-      2. <strong>「自分の投稿」</strong> を選択<br>
-      3. 自分の投稿が新しい順に一覧表示されます
-    </div>
-
-    <p style="margin-top:16px;"><strong>投稿カードに表示されるバッジ</strong></p>
-    <table class="guide-table">
-      <thead>
-        <tr><th>バッジ</th><th>意味</th></tr>
-      </thead>
-      <tbody>
-        <tr><td><span style="background:#667eea;color:white;padding:2px 8px;border-radius:8px;font-size:0.75rem;">&#10084;&#65039; 共感 N</span></td><td>他のメンバーからの共感リアクション数</td></tr>
-        <tr><td><span style="background:#d32f2f;color:white;padding:2px 8px;border-radius:8px;font-size:0.75rem;">&#128172; メンバーから N件</span></td><td>推進メンバーからのチャットコメント数</td></tr>
-      </tbody>
-    </table>
-
-    <p style="margin-top:16px;"><strong>推進メンバーのチャットを読む</strong></p>
-    <p>投稿カードをタップすると詳細画面が開きます。推進メンバーがチャットで議論した内容がある場合、<strong style="color:#d32f2f;">「推進メンバーからのコメント」</strong>セクションに表示されます。</p>
-
-    <div class="tip-box">
-      <i class="fas fa-lock" style="color:#ff9800;"></i>
-      推進メンバーのチャット内容は<strong>投稿した本人だけ</strong>が閲覧できます。他の一般ユーザーには表示されません。
-    </div>
-
-    <p style="margin-top:16px;"><strong>管理画面（推進メンバー向け）のチャット通知</strong></p>
-    <p>推進メンバーが投稿にチャットを書き込むと、他のメンバーの管理画面に通知されます。</p>
-    <table class="guide-table">
-      <thead>
-        <tr><th>表示場所</th><th>内容</th></tr>
-      </thead>
-      <tbody>
-        <tr><td>ナビバー「投稿一覧」</td><td>赤い未読数バッジ（全体の未読チャット数）</td></tr>
-        <tr><td>投稿カード</td><td><span style="background:#e8eaf6;color:#5c6bc0;padding:1px 6px;border-radius:8px;font-size:0.75rem;">&#128172; 議論N</span> チャット総数</td></tr>
-        <tr><td>投稿カード</td><td><span style="background:linear-gradient(135deg,#667eea,#764ba2);color:white;padding:1px 8px;border-radius:8px;font-size:0.75rem;">&#128276; NEW +N</span> 未読の新着</td></tr>
-      </tbody>
-    </table>
-    <p>投稿の詳細を開くと自動的に既読になります。既読管理はメンバーごとに個別なので、自分が読んでも他のメンバーのバッジは消えません。</p>
-  </div>
-</div>
-
-<!-- ====== セクション8: 投稿新着バッジ ====== -->
-<div class="guide-card theme-purple" data-keywords="新着 バッジ 通知 未読 コメント">
-  <div class="guide-card-header">
-    <div class="guide-card-icon"><i class="fas fa-bell"></i></div>
-    <div class="guide-card-title">セクション8: 投稿新着バッジ</div>
-  </div>
-  <div class="guide-card-body">
-    <p>自分の投稿に推進メンバーからのコメントがあると、投稿カードに「新着N件」バッジが表示されます。</p>
-
-    <div class="step-flow">
-      <div class="step-item"><div class="step-num">1</div><div class="step-text">推進メンバーが投稿にチャットコメントを追加</div></div>
-      <div class="step-item"><div class="step-num">2</div><div class="step-text">ユーザーの画面で60秒ポーリングにより未読を検知</div></div>
-      <div class="step-item"><div class="step-num">3</div><div class="step-text">自分の投稿カードに「新着N件」バッジが表示</div></div>
-      <div class="step-item"><div class="step-num">4</div><div class="step-text">バッジをタップ or マイページで投稿を開くと既読化→バッジ消去</div></div>
-    </div>
-  </div>
-</div>
-
-<!-- ====== セクション9: AI 7軸評価 ====== -->
-<div class="guide-card theme-indigo" data-keywords="AI 7軸 評価 法令 リスク 頻度 緊急 安全 価値 ニーズ レーダー">
-  <div class="guide-card-header">
-    <div class="guide-card-icon"><i class="fas fa-brain"></i></div>
-    <div class="guide-card-title">セクション9: AI 7軸評価</div>
-  </div>
-  <div class="guide-card-body">
-    <p>AIが投稿・共感データ・メンバーコメント・チャット・エビデンス18領域を総合的に分析し、<br>7つの軸でテーマ候補を自動評価します。</p>
-
-    <div class="radar-container">
-      <div class="radar-axis">
-        <div class="radar-bar-wrap">
-          <div class="radar-bar" style="height:85%; background: linear-gradient(180deg, #eb3349, #f45c43);"></div>
-        </div>
-        <div class="radar-label">法令</div>
-        <div class="radar-sub">legal</div>
-      </div>
-      <div class="radar-axis">
-        <div class="radar-bar-wrap">
-          <div class="radar-bar" style="height:75%; background: linear-gradient(180deg, #f2994a, #f2c94c);"></div>
-        </div>
-        <div class="radar-label">リスク</div>
-        <div class="radar-sub">risk</div>
-      </div>
-      <div class="radar-axis">
-        <div class="radar-bar-wrap">
-          <div class="radar-bar" style="height:60%; background: linear-gradient(180deg, #667eea, #764ba2);"></div>
-        </div>
-        <div class="radar-label">頻度</div>
-        <div class="radar-sub">freq</div>
-      </div>
-      <div class="radar-axis">
-        <div class="radar-bar-wrap">
-          <div class="radar-bar" style="height:90%; background: linear-gradient(180deg, #e84393, #fd79a8);"></div>
-        </div>
-        <div class="radar-label">緊急</div>
-        <div class="radar-sub">urgency</div>
-      </div>
-      <div class="radar-axis">
-        <div class="radar-bar-wrap">
-          <div class="radar-bar" style="height:70%; background: linear-gradient(180deg, #00b894, #55efc4);"></div>
-        </div>
-        <div class="radar-label">安全</div>
-        <div class="radar-sub">safety</div>
-      </div>
-      <div class="radar-axis">
-        <div class="radar-bar-wrap">
-          <div class="radar-bar" style="height:65%; background: linear-gradient(180deg, #0984e3, #74b9ff);"></div>
-        </div>
-        <div class="radar-label">価値</div>
-        <div class="radar-sub">value</div>
-      </div>
-      <div class="radar-axis">
-        <div class="radar-bar-wrap">
-          <div class="radar-bar" style="height:80%; background: linear-gradient(180deg, #6c5ce7, #a29bfe);"></div>
-        </div>
-        <div class="radar-label">ニーズ</div>
-        <div class="radar-sub">needs</div>
-      </div>
-    </div>
-
-    <table class="guide-table">
-      <thead>
-        <tr><th>軸</th><th>評価内容</th></tr>
-      </thead>
-      <tbody>
-        <tr><td><strong>法令 (legal)</strong></td><td>法的義務への該当度</td></tr>
-        <tr><td><strong>リスク (risk)</strong></td><td>放置時の健康リスク</td></tr>
-        <tr><td><strong>頻度 (freq)</strong></td><td>組織内での普遍性</td></tr>
-        <tr><td><strong>緊急 (urgency)</strong></td><td>即座の対応必要度</td></tr>
-        <tr><td><strong>安全 (safety)</strong></td><td>身体・精神への影響</td></tr>
-        <tr><td><strong>価値 (value)</strong></td><td>施策の投資対効果</td></tr>
-        <tr><td><strong>ニーズ (needs)</strong></td><td>行動変容への寄与</td></tr>
-      </tbody>
-    </table>
-
-    <div class="highlight-box">
-      <strong>入力ソース:</strong> 共感データ + メンバーコメント + チャット議論 + エビデンス18領域の公的ガイドライン
-    </div>
-
-    <h4 style="margin-top:20px; font-weight:800; color:#1565c0; font-size:0.95rem;"><i class="fas fa-cogs" style="margin-right:6px;"></i>凝集前の自動7軸評価</h4>
-    <p>AIテーマ凝集の実行時、まだ7軸評価が済んでいない投稿は<strong>自動的に一括評価</strong>されます。<br>
-    管理者が個別に評価ボタンを押す必要はありません。</p>
-
-    <div style="background:#f8f9ff; border-radius:12px; padding:16px; margin:12px 0; border:1px solid #e0e4ff;">
-      <div style="font-weight:700; color:#667eea; margin-bottom:10px; font-size:0.85rem;"><i class="fas fa-list-ol" style="margin-right:4px;"></i>凝集時のフロー</div>
-      <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:0.8rem;">
-        <span style="background:#667eea; color:white; padding:4px 12px; border-radius:20px; font-weight:700;">1. 凝集ボタン</span>
-        <i class="fas fa-arrow-right" style="color:#ccc;"></i>
-        <span style="background:#ff9800; color:white; padding:4px 12px; border-radius:20px; font-weight:700;">2. 未評価を自動7軸評価</span>
-        <i class="fas fa-arrow-right" style="color:#ccc;"></i>
-        <span style="background:#4caf50; color:white; padding:4px 12px; border-radius:20px; font-weight:700;">3. 評価レポート表示</span>
-        <i class="fas fa-arrow-right" style="color:#ccc;"></i>
-        <span style="background:#e91e63; color:white; padding:4px 12px; border-radius:20px; font-weight:700;">4. 確認後に凝集実行</span>
-      </div>
-    </div>
-
-    <h4 style="margin-top:16px; font-weight:800; color:#1565c0; font-size:0.95rem;"><i class="fas fa-file-alt" style="margin-right:6px;"></i>7軸評価レポート</h4>
-    <p>凝集前に表示されるレポートでは、以下の情報を確認できます。</p>
-    <table class="guide-table">
-      <thead>
-        <tr><th>項目</th><th>内容</th></tr>
-      </thead>
-      <tbody>
-        <tr><td><strong>スコア順一覧</strong></td><td>全投稿を合計スコア（/35）の高い順に表示。色分け（赤=25以上、橙=18以上、緑=18未満）で重要度が一目瞭然</td></tr>
-        <tr><td><strong>7軸スコア</strong></td><td>各投稿の法令・危険度・頻度・緊急・安全・価値・ニーズをバッジで表示</td></tr>
-        <tr><td><strong>評価根拠</strong></td><td>AIがそのスコアを付けた理由を2〜3文で表示。共感データやメンバー議論の内容が反映</td></tr>
-        <tr><td><strong>参照ガイドライン</strong></td><td>スコアの根拠となった厚労省等の公的ガイドライン名</td></tr>
-        <tr><td><strong>NEWバッジ</strong></td><td>今回の凝集で新たに評価された投稿を識別</td></tr>
-      </tbody>
-    </table>
-
-    <div class="highlight-box" style="border-left-color:#ff9800;">
-      <strong><i class="fas fa-exclamation-triangle" style="color:#ff9800; margin-right:4px;"></i>注意:</strong>
-      共感データやメンバー議論がない段階で評価すると、頻度(freq)やニーズ(needs)のスコアが低く出る傾向があります。十分な共感・議論が集まってから凝集を実行すると、より精度の高いテーマ生成が期待できます。
-    </div>
-  </div>
-</div>
-
-<!-- ====== セクション10: AI凝集の改善 ====== -->
-<div class="guide-card theme-blue" data-keywords="凝集 7軸評価 レートリミット Gemini フォールバック">
-  <div class="guide-card-header">
-    <div class="guide-card-icon"><i class="fas fa-magic"></i></div>
-    <div class="guide-card-title">セクション10: AI凝集の改善</div>
-  </div>
-  <div class="guide-card-body">
-    <p>AIテーマ凝集の安定性と効率性を大幅に改善しました。</p>
-
-    <table class="guide-table">
-      <thead><tr><th>改善項目</th><th>内容</th></tr></thead>
-      <tbody>
-        <tr><td><strong>5テーマ+プラン案生成</strong></td><td>AIが5つのテーマ候補を生成し、各テーマにA/B/Cの3つのアクションプラン案（タイトル・説明・KPI付き）を自動提案</td></tr>
-        <tr><td><strong>メンバーカスタムプラン</strong></td><td>推進メンバーがD以降のプランを自由に追加可能（タイトル・説明・KPI）。AI案と同列に並ぶ</td></tr>
-        <tr><td><strong>7種共感ボタン</strong></td><td>全プラン（AI案+メンバー案）に対し7種の共感ボタンで評価: 👍賛成 / 🔥最優先 / 💡効果的 / 👥巻き込める / 🤔要議論 / ⚠️難しい / ❌見送り</td></tr>
-        <tr><td><strong>採用/除外トグル</strong></td><td>メンバーがテーマを採用・除外に切り替えて候補を絞り込み。アンバサダー画面には採用テーマのみ表示</td></tr>
-        <tr><td><strong>食事投稿除外</strong></td><td>7軸評価・凝集の対象から食事投稿を除外。評価対象が98件→9件に削減</td></tr>
-        <tr><td><strong>投稿時リアルタイム評価</strong></td><td>相談投稿時にAIスコアをauto_evaluationsテーブルに即時保存。凝集時の一括評価が不要に</td></tr>
-        <tr><td><strong>バックグラウンド処理</strong></td><td>7軸一括評価をバックグラウンドジョブ化。5秒ポーリングで進捗表示（504タイムアウト回避）</td></tr>
-        <tr><td><strong>AI基盤統一</strong></td><td>全AIプロンプトをGemini 2.5 Flashに統一（2026年3月〜）</td></tr>
-      </tbody>
-    </table>
-  </div>
-</div>
-
-<!-- ====== セクション10-2: テーマディスカッション（推進メンバー議論チャット） ====== -->
-<div class="guide-card theme-orange" data-keywords="テーマ ディスカッション 議論 チャット 候補 推進メンバー">
-  <div class="guide-card-header">
-    <div class="guide-card-icon"><i class="fas fa-comments"></i></div>
-    <div class="guide-card-title">セクション10-2: テーマディスカッション</div>
-  </div>
-  <div class="guide-card-body">
-    <p>テーマ候補段階から推進メンバーがプラン案の評価・追加・議論を行い、合意形成を図る機能です。</p>
-
-    <h4 style="color:#e64a19;"><i class="fas fa-comments me-2"></i>機能概要</h4>
-    <table class="guide-table">
-      <thead><tr><th>項目</th><th>内容</th></tr></thead>
-      <tbody>
-        <tr><td><strong>対象</strong></td><td>テーマ候補ごとに個別のチャットスレッド + プラン案一覧（候補段階から利用可能）</td></tr>
-        <tr><td><strong>参加者</strong></td><td>推進メンバー全員（管理画面からアクセス）</td></tr>
-        <tr><td><strong>タイミング</strong></td><td>AI凝集後。採用/除外トグルで絞り込み → プラン評価・追加 → 専門家助言・役員承認の前</td></tr>
-        <tr><td><strong>目的</strong></td><td>AIプラン（A/B/C）+メンバー追加プラン（D〜）に共感ボタンで評価し、ディスカッションで合意形成</td></tr>
-      </tbody>
-    </table>
-
-    <h4 style="color:#e64a19; margin-top:20px;"><i class="fas fa-hand-pointer me-2"></i>7種共感ボタン</h4>
-    <table class="guide-table">
-      <thead><tr><th>ボタン</th><th>意味</th></tr></thead>
-      <tbody>
-        <tr><td>👍 賛成</td><td>このプランに賛成する</td></tr>
-        <tr><td>🔥 最優先</td><td>最も優先して取り組むべき</td></tr>
-        <tr><td>💡 効果的</td><td>効果が高いと思う</td></tr>
-        <tr><td>👥 巻き込める</td><td>多くのメンバーを巻き込めそう</td></tr>
-        <tr><td>🤔 要議論</td><td>もう少し議論が必要</td></tr>
-        <tr><td>⚠️ 難しい</td><td>実現が難しいと思う</td></tr>
-        <tr><td>❌ 見送り</td><td>今回は見送るべき</td></tr>
-      </tbody>
-    </table>
-
-    <h4 style="color:#e64a19; margin-top:20px;"><i class="fas fa-cogs me-2"></i>使い方</h4>
-    <ol>
-      <li>管理画面でAI凝集を実行し、5テーマ候補（各A/B/Cプラン付き）を生成</li>
-      <li>テーマを<strong>採用/除外トグル</strong>で絞り込み（除外テーマはアンバサダー画面に表示されない）</li>
-      <li>各プラン（AI案A/B/C）に<strong>7種共感ボタン</strong>で評価</li>
-      <li>必要に応じて<strong>カスタムプラン（D以降）</strong>を追加（タイトル・説明・KPI）</li>
-      <li>各テーマ候補カードの<strong>「ディスカッション」</strong>ボタンで議論</li>
-      <li>チャット画面でメンバー名入りのメッセージを投稿し合意形成</li>
-      <li>精査が完了したら専門家プラン別助言 → 役員承認へ進行</li>
-    </ol>
-
-    <div class="highlight-box">
-      <strong>v2サイクルでの位置づけ</strong><br>
-      AI凝集（5候補+A/B/Cプラン） → <strong>採用/除外トグル → メンバープラン追加（D〜） → 7種共感評価 → ディスカッション</strong> → 専門家プラン別助言 → 役員承認 → 全社投票<br>
-      共感データ・議論の内容は次回以降のAI凝集にも反映され、テーマとプランの質が継続的に向上します。
-    </div>
-
-    <div class="highlight-box" style="border-left-color:#11998e;">
-      <strong><i class="fas fa-user-md" style="color:#11998e; margin-right:4px;"></i>専門家アドバイザー（アンバサダー）画面</strong><br>
-      採用テーマのみが表示され、各テーマのAIプラン・メンバー追加プラン・共感データ集計・メンバー議論を一覧で確認。<br>
-      専門家アドバイザーはプランごとに専門的助言を記入できます（全体コメントではなくプラン単位）。
-    </div>
-  </div>
-</div>
-
-<!-- ====== セクション11: 承認フロー（内部統制） ====== -->
-<div class="guide-card theme-red" data-keywords="承認 内部統制 フロー 専門家アドバイザー 役員 投票 確定">
-  <div class="guide-card-header">
-    <div class="guide-card-icon"><i class="fas fa-shield-alt"></i></div>
-    <div class="guide-card-title">セクション11: 承認フロー（内部統制）</div>
-  </div>
-  <div class="guide-card-body">
-    <p>テーマが確定するまでに8段階の承認ステップを設けています。</p>
-
-    <div class="approval-flow">
-      <div class="approval-step">
-        <div class="approval-num">1</div>
-        <div class="approval-label">採用/除外<br>トグル</div>
-      </div>
-      <div class="approval-arrow"><i class="fas fa-chevron-right"></i></div>
-      <div class="approval-step">
-        <div class="approval-num">2</div>
-        <div class="approval-label">プラン追加<br>(D〜)</div>
-      </div>
-      <div class="approval-arrow"><i class="fas fa-chevron-right"></i></div>
-      <div class="approval-step">
-        <div class="approval-num">3</div>
-        <div class="approval-label">7種共感<br>評価</div>
-      </div>
-      <div class="approval-arrow"><i class="fas fa-chevron-right"></i></div>
-      <div class="approval-step">
-        <div class="approval-num">4</div>
-        <div class="approval-label">テーマ<br>ディスカッション</div>
-      </div>
-      <div class="approval-arrow"><i class="fas fa-chevron-right"></i></div>
-      <div class="approval-step">
-        <div class="approval-num">5</div>
-        <div class="approval-label">専門家<br>プラン別助言</div>
-      </div>
-      <div class="approval-arrow"><i class="fas fa-chevron-right"></i></div>
-      <div class="approval-step">
-        <div class="approval-num">6</div>
-        <div class="approval-label">役員<br>承認</div>
-      </div>
-      <div class="approval-arrow"><i class="fas fa-chevron-right"></i></div>
-      <div class="approval-step">
-        <div class="approval-num">7</div>
-        <div class="approval-label">全社<br>投票</div>
-      </div>
-      <div class="approval-arrow"><i class="fas fa-chevron-right"></i></div>
-      <div class="approval-step">
-        <div class="approval-num">8</div>
-        <div class="approval-label">テーマ<br>確定</div>
-      </div>
-    </div>
-
-    <div class="warn-box">
-      <strong><i class="fas fa-exclamation-triangle" style="color:#ffa000;"></i> 統制ルール</strong><br>
-      ・専門家アドバイザーのプラン別助言なしでは役員承認に進めない<br>
-      ・アンバサダー画面には採用テーマのみ表示（除外テーマは非表示）<br>
-      ・役員承認なしでは投票を開始できない<br>
-      ・Exec権限のアカウントのみ承認可能（なりすまし防止）
-    </div>
-  </div>
-</div>
-
-<!-- ====== セクション12: チャレンジの仕組み ====== -->
-<div class="guide-card theme-teal" data-keywords="チャレンジ KPI ランキング バッジ EAST エントリー">
-  <div class="guide-card-header">
-    <div class="guide-card-icon"><i class="fas fa-fire"></i></div>
-    <div class="guide-card-title">セクション12: チャレンジの仕組み</div>
-  </div>
-  <div class="guide-card-body">
-    <p>確定したテーマに基づき、AIがチャレンジ企画書を自動生成します。<br>
-    参加は任意、毎日30秒でKPIを記録、ランキングで楽しく競争できます。</p>
-
-    <div class="challenge-grid">
-      <div class="challenge-item">
-        <div class="ch-icon">🤖</div>
-        <div class="ch-label">AI企画書</div>
-        <div class="ch-desc">EASTフレームワーク準拠</div>
-      </div>
-      <div class="challenge-item">
-        <div class="ch-icon">🙋</div>
-        <div class="ch-label">任意参加</div>
-        <div class="ch-desc">強制しない</div>
-      </div>
-      <div class="challenge-item">
-        <div class="ch-icon">⏱️</div>
-        <div class="ch-label">毎日30秒</div>
-        <div class="ch-desc">KPI記録</div>
-      </div>
-      <div class="challenge-item">
-        <div class="ch-icon">🏆</div>
-        <div class="ch-label">ランキング</div>
-        <div class="ch-desc">総合/連続/記録数</div>
-      </div>
-      <div class="challenge-item">
-        <div class="ch-icon">🎖️</div>
-        <div class="ch-label">バッジ</div>
-        <div class="ch-desc">初参加/7日連続/皆勤賞</div>
-      </div>
-      <div class="challenge-item">
-        <div class="ch-icon">📅</div>
-        <div class="ch-label">期間</div>
-        <div class="ch-desc">約30日間</div>
-      </div>
-    </div>
-
-    <div class="tip-box">
-      <i class="fas fa-lightbulb" style="color:#4caf50;"></i>
-      途中参加・途中離脱もOK。無理なく続けられる設計です。
-    </div>
-
-    <h4 style="color:#00897b; margin-top:20px;"><i class="fas fa-clipboard-check me-2"></i>KPI記録タイプ</h4>
-    <table class="guide-table">
-      <thead><tr><th>タイプ</th><th>例</th><th>記録方法</th></tr></thead>
-      <tbody>
-        <tr><td><strong>数値入力</strong></td><td>歩数チャレンジ</td><td>歩数計の数値を入力</td></tr>
-        <tr><td><strong>野菜チェック</strong></td><td>野菜チャレンジ</td><td>「食べた/食べてない」→ 食事投稿から判定 or その場で写真撮影 → AI判定で0-3点スコア化＋推定塩分表示</td></tr>
-        <tr><td><strong>選択式</strong></td><td>睡眠チャレンジ</td><td>就寝/起床時刻＋睡眠の質を選択肢から選ぶ</td></tr>
-      </tbody>
-    </table>
-    <p style="font-size:0.85rem; color:#555;">野菜チェックでは写真を公開したくない方もプライベートに撮影可能です（タイムラインには載りません）。</p>
-
-    <h4 style="color:#00897b; margin-top:20px;"><i class="fas fa-comment-dots me-2"></i>チャレンジ反応収集</h4>
-    <p>バディーとの会話でチャレンジが紹介された時、反応ボタンが表示されます。</p>
-    <table class="guide-table">
-      <thead><tr><th>反応</th><th>活用</th></tr></thead>
-      <tbody>
-        <tr><td>🙋 やってみたい</td><td>テーマの優先度を上げる材料</td></tr>
-        <tr><td>💡 興味がある</td><td>関心度の測定</td></tr>
-        <tr><td>😅 ちょっと面倒</td><td>アクションプランの簡素化を検討</td></tr>
-        <tr><td>✅ もう参加中</td><td>参加率の把握</td></tr>
-      </tbody>
-    </table>
-
-    <h4 style="color:#00897b; margin-top:20px;"><i class="fas fa-mobile-alt me-2"></i>チャレンジタブ</h4>
-    <p>ボトムナビの「🔥チャレンジ」タブから、開催中・募集中のチャレンジを一覧で確認できます。各チャレンジをタップするとKPI記録フォームが展開されます。バディーチャット画面の右上にもミニステータスボードが表示されます。</p>
-    <p>チャレンジヘッダーには<strong>QUOカードミニバッジ</strong>が表示され、報酬の有無が一目で分かります。</p>
-    <p>また、<strong>アバターチャレンジ</strong>（バディーのアバターカスタマイズ）もチャレンジタブ内に配置されています。</p>
-  </div>
-</div>
-
-<!-- ====== セクション13: ランキング＆バッジ ====== -->
-<div class="guide-card theme-orange" data-keywords="ランキング バッジ 投稿 紹介 アバター 順位">
-  <div class="guide-card-header">
-    <div class="guide-card-icon"><i class="fas fa-coins"></i></div>
-    <div class="guide-card-title">セクション13: CoWellコイン＆ランキング</div>
-  </div>
-  <div class="guide-card-body">
-    <p>アプリを使うだけで<strong>CoWellコイン</strong>が自動的に貯まります。マイページやアバタータップで残高・ランキングを確認できます。</p>
-
-    <div class="highlight-box">
-      <strong>マイページに表示される情報</strong><br>
-      1. CoWellコインの残高（pt）と現在のバッジ<br>
-      2. 次のバッジまでの進捗と褒賞情報<br>
-      3. CoWellコインランキング TOP10
-    </div>
-
-    <p style="margin-top:16px;"><strong>コイン獲得アクション</strong></p>
-    <table class="guide-table">
-      <thead>
-        <tr><th>アクション</th><th>コイン</th></tr>
-      </thead>
-      <tbody>
-        <tr><td>✍️ 投稿（相談・提案）</td><td>+10</td></tr>
-        <tr><td>📸 食事写真投稿</td><td>+8</td></tr>
-        <tr><td>💗 共感＋3問回答</td><td>+5</td></tr>
-        <tr><td>💬 書き込み</td><td>+3</td></tr>
-        <tr><td>📊 チャレンジKPI記録</td><td>+2（毎日）</td></tr>
-      </tbody>
-    </table>
-
-    <p style="margin-top:16px;"><strong>褒賞バッジ（自動昇格）</strong></p>
-    <table class="guide-table">
-      <thead>
-        <tr><th>バッジ</th><th>必要コイン</th><th>褒賞</th></tr>
-      </thead>
-      <tbody>
-        <tr><td>🌱 ビギナー</td><td>0〜</td><td>-</td></tr>
-        <tr><td>🥉 ブロンズ</td><td>50〜</td><td>-</td></tr>
-        <tr><td>🥈 シルバー</td><td>150〜</td><td>-</td></tr>
-        <tr><td>🥇 ゴールド</td><td>300〜</td><td>🎁 QUOカード 500円</td></tr>
-        <tr><td>👑 プラチナ</td><td>500〜</td><td>🎁 QUOカード 1,000円</td></tr>
-      </tbody>
-    </table>
-
-    <div class="tip-box">
-      <i class="fas fa-lightbulb" style="color:#4caf50;"></i>
-      ランキングはCoWellコインTOP10を表示。自分がランクインしていれば青くハイライトされ「(あなた)」と表示されます。投稿数による旧ランク（Bronze〜Black）は廃止されCoWellコインに統合されました。
-    </div>
-  </div>
-</div>
-
-<!-- ============================================================ -->
-<!-- 補助機能セクション（14〜15）                                 -->
-<!-- ============================================================ -->
-
-<!-- ====== セクション14: 週間食事分析レポート ====== -->
-<div class="guide-card theme-green" data-keywords="食事 栄養 週間 レポート 分析 自動配信">
-  <div class="guide-card-header">
-    <div class="guide-card-icon"><i class="fas fa-utensils"></i></div>
-    <div class="guide-card-title">セクション14: 週間食事分析レポート</div>
-  </div>
-  <div class="guide-card-body">
-    <p>毎週月曜7:00に自動実行。先週の食事投稿をユーザーごとに集計し、AI栄養アドバイザーが週間栄養分析レポートを生成・配信します。</p>
-
-    <div class="step-flow">
-      <div class="step-item"><div class="step-num">1</div><div class="step-text"><strong>自動集計</strong>：先週月曜〜日曜の食事投稿（写真投稿）をユーザーごとに収集</div></div>
-      <div class="step-item"><div class="step-num">2</div><div class="step-text"><strong>AI分析</strong>：各ユーザーの1週間分の食事を栄養学的に分析（Gemini 2.5 Flash）</div></div>
-      <div class="step-item"><div class="step-num">3</div><div class="step-text"><strong>本人通知</strong>：「お知らせ」に個人レポートとして自動配信</div></div>
-      <div class="step-item"><div class="step-num">4</div><div class="step-text"><strong>管理者閲覧</strong>：管理画面で全ユーザーのレポートを一覧表示、推進メンバーが議論・コメント</div></div>
-    </div>
-
-    <p style="margin-top:12px;"><strong>レポート内容：</strong></p>
-    <table class="guide-table">
-      <thead><tr><th>項目</th><th>内容</th></tr></thead>
-      <tbody>
-        <tr><td><strong>今週の食事傾向</strong></td><td>全体の傾向を2〜3文で要約</td></tr>
-        <tr><td><strong>五大栄養素バランス</strong></td><td>たんぱく質・脂質・炭水化物・ビタミン・ミネラルの過不足評価</td></tr>
-        <tr><td><strong>🧂 塩分分析</strong></td><td>推定塩分摂取傾向、塩分が多い原因の特定（味噌汁・漬物・加工食品・惣菜等）、目標: 1日7.5g未満</td></tr>
-        <tr><td><strong>良かった点</strong></td><td>具体的に1〜2つ褒めて継続を促す</td></tr>
-        <tr><td><strong>来週の心がけ</strong></td><td>減塩のコツを含む、具体的で実践しやすいアドバイスを2〜3つ</td></tr>
-        <tr><td><strong>出典</strong></td><td>根拠となる厚労省ガイドライン等を明記</td></tr>
-      </tbody>
-    </table>
-
-    <div class="warn-box">
-      <strong><i class="fas fa-info-circle" style="color:#1976d2;"></i> 運用ポイント</strong><br>
-      ・投稿がない週のユーザーはスキップされます<br>
-      ・管理画面から手動実行も可能です<br>
-      ・食事投稿は7軸評価・凝集の対象外です（相談・提案投稿のみが凝集対象）
-    </div>
-  </div>
-</div>
-
-<!-- ====== セクション15: 健康診断結果閲覧 ====== -->
-<div class="guide-card theme-red" data-keywords="健診 健康診断 Box 判定結果 経年推移 誓約">
-  <div class="guide-card-header">
-    <div class="guide-card-icon"><i class="fas fa-file-medical"></i></div>
-    <div class="guide-card-title">セクション15: 健康診断結果閲覧</div>
-  </div>
-  <div class="guide-card-body">
-    <p>エルスケアネットワークの健診データをBox APIから都度取得し、本人のみが閲覧できる機能です。健診データはサーバーに一切保存されません。</p>
-
-    <div class="step-flow">
-      <div class="step-item"><div class="step-num">1</div><div class="step-text"><strong>3重認証</strong>：JWTログイン + パスワード入力 + 生年月日入力で本人確認</div></div>
-      <div class="step-item"><div class="step-num">2</div><div class="step-text"><strong>誓約チェック</strong>：6項目の誓約事項に全て同意が必要（なりすまし禁止、第三者非開示、キャプチャ禁止、目的外利用禁止、医療免責、ログ同意）</div></div>
-      <div class="step-item"><div class="step-num">3</div><div class="step-text"><strong>データ取得</strong>：Box APIから判定結果xlsmをダウンロードし、本人の行のみ抽出して表示</div></div>
-    </div>
-
-    <p style="margin-top:12px;"><strong>表示モード（2タブ）：</strong></p>
-    <table class="guide-table">
-      <thead><tr><th>タブ</th><th>内容</th></tr></thead>
-      <tbody>
-        <tr><td><strong>年度別</strong></td><td>各年度の健診データを詳細表示。総合判定（肥満/高血圧/脂質異常/高血糖/肝機能/腎機能/貧血）、生体計測、血液検査、視力・聴力等</td></tr>
-        <tr><td><strong>経年推移</strong></td><td>全年度の数値を横並び比較。トレンド矢印（↑悪化/↓改善）、危険値の色分け（橙:要改善/赤:要医療）、ミニバーで基準値内の位置を視覚化。判定推移も年度横断で表示</td></tr>
-      </tbody>
-    </table>
-
-    <p style="margin-top:12px;"><strong>基準値（エビデンス）：</strong></p>
-    <ul>
-      <li>BMI：日本肥満学会基準（25以上:要改善、30以上:要医療）</li>
-      <li>腹囲：メタボ診断基準2005（男85cm/女90cm）性別で自動分岐</li>
-      <li>血圧：JSH2019高血圧治療ガイドライン（130/85以上:要改善、140/90以上:要医療）</li>
-      <li>脂質：動脈硬化性疾患予防ガイドライン2022</li>
-      <li>血糖：日本糖尿病学会診断基準（空腹時100以上:要改善、126以上:要医療）</li>
-      <li>ヘモグロビン：WHO貧血基準（男13.0/女12.0未満）性別で自動分岐</li>
-    </ul>
-
-    <div class="warn-box">
-      <strong><i class="fas fa-shield-alt" style="color:#e91e63;"></i> 内部統制</strong><br>
-      ・閲覧ごとにアクセスログ（user_id, IP, user_agent, 日時）をDBに記録<br>
-      ・レスポンスから氏名を削除（万が一の通信傍受対策）<br>
-      ・健診データはDBに一切保存しない（Box API都度取得方式）
-    </div>
-
-    <h4 style="color:#d32f2f; margin-top:20px;"><i class="fas fa-chart-pie me-2"></i>全社健診データ分析（管理者向け）</h4>
-    <p>全社員の健診データを<strong>匿名で集計</strong>し、AIが3パターンのアクションプランを提案する機能です。個人は特定されません。</p>
-
-    <table class="guide-table">
-      <thead><tr><th>項目</th><th>内容</th></tr></thead>
-      <tbody>
-        <tr><td><strong>集計項目</strong></td><td>BMI、肥満・高血圧・脂質異常・高血糖・肝機能・腎機能・貧血の異常率</td></tr>
-        <tr><td><strong>AI 3パターン提案</strong></td><td>各プランに優先度・対象リスク・エビデンス根拠・EAST設計・KPI指標・推奨期間を提示</td></tr>
-        <tr><td><strong>専門家アドバイザーへの申し送り</strong></td><td>AIが分析に基づく注意事項を専門家アドバイザー向けに記載</td></tr>
-        <tr><td><strong>推進メンバーへの参考資料</strong></td><td>分析結果はボトムアップでプラン案を検討する推進メンバーへの参考情報として活用。テーマ選定や施策立案時のエビデンスとなる</td></tr>
-      </tbody>
-    </table>
-
-    <div class="warn-box">
-      <strong><i class="fas fa-user-md" style="color:#43a047;"></i> AIと専門家アドバイザーの役割分担</strong><br>
-      ・<strong>AI</strong>: データ集計・分析・提案の「下書き」を高速で作る<br>
-      ・<strong>専門家アドバイザー（アンバサダー）</strong>: 現場を知る専門家として「承認・修正・補足」する<br>
-      ・AIが専門家を代替するのではなく、専門家の判断を支援する設計
-    </div>
-  </div>
-</div>
-
-<!-- ============================================================ -->
-<!-- リファレンスセクション（16〜18）                             -->
-<!-- ============================================================ -->
-
-<!-- ====== セクション16: エビデンスベース ====== -->
-<div class="guide-card theme-green" data-keywords="エビデンス ガイドライン 公的 18領域 学習">
-  <div class="guide-card-header">
-    <div class="guide-card-icon"><i class="fas fa-graduation-cap"></i></div>
-    <div class="guide-card-title">セクション16: エビデンスベース</div>
-  </div>
-  <div class="guide-card-body">
-    <p>AI評価の基盤となる全18領域の公的ガイドラインです。</p>
-
-    <div class="evidence-tags">
-      <div class="evidence-tag">腰痛</div>
-      <div class="evidence-tag">睡眠</div>
-      <div class="evidence-tag">食生活</div>
-      <div class="evidence-tag">血糖値</div>
-      <div class="evidence-tag">高血圧</div>
-      <div class="evidence-tag">メンタル</div>
-      <div class="evidence-tag">喫煙</div>
-      <div class="evidence-tag">飲酒</div>
-      <div class="evidence-tag">運動</div>
-      <div class="evidence-tag">熱中症</div>
-      <div class="evidence-tag">過重労働</div>
-      <div class="evidence-tag">化学物質</div>
-      <div class="evidence-tag">女性の健康</div>
-      <div class="evidence-tag">がん</div>
-      <div class="evidence-tag">歯科</div>
-      <div class="evidence-tag">感染症</div>
-      <div class="evidence-tag">特定健診</div>
-      <div class="evidence-tag">運転者健康管理</div>
-    </div>
-
-    <p style="margin-top:18px;"><strong>行動変容フレームワーク（帝京大学 提供資料）</strong></p>
-    <table class="guide-table">
-      <thead>
-        <tr><th>資料名</th><th>フレームワーク</th><th>主な技法</th></tr>
-      </thead>
-      <tbody>
-        <tr><td>ナッジ運動編</td><td>EASTフレームワーク</td><td>Easy・Attractive・Social・Timely</td></tr>
-        <tr><td>ナッジ食事編</td><td>CANフレームワーク</td><td>Convenient・Attractive・Normative</td></tr>
-        <tr><td>ナッジ禁煙編</td><td>MINDSPACEフレームワーク</td><td>Messenger・Incentives・Norms・Defaults・Affect</td></tr>
-        <tr><td>15のカタカナ・テクニーク</td><td>COM-Bモデル</td><td>リスクアセスメント、ヘルスリテラシー、モチベーション、ゴール&スモールステップ、モデリング、トレーニング、チャンス&キュー、インセンティブ、コミットメント、ルール、モニタリング&フィードバック、サポーティブ環境、グループパワー、ファン&エンジョイ、コミュニケーション</td></tr>
-      </tbody>
-    </table>
-
-    <p style="margin-top:18px;"><strong>その他の参考資料</strong></p>
-    <ul>
-      <li>国立長寿医療研究センター「栄養改善パック」（2020年）</li>
-      <li>標準的な健診・保健指導プログラム（令和6年度版）— 保健指導の基本姿勢</li>
-    </ul>
-
-    <div class="highlight-box">
-      <i class="fas fa-book" style="color:#764ba2;"></i>
-      各領域の詳しい解説は <a href="/knowledge" style="color:#764ba2; font-weight:700;">学習ページ（/knowledge）</a> をご覧ください。
-    </div>
-  </div>
-</div>
-
-<!-- ====== セクション17: AIプロンプト一覧 ====== -->
-<div class="guide-card theme-indigo" data-keywords="AI プロンプト Gemini LLM モデル チャット 評価 分析">
-  <div class="guide-card-header">
-    <div class="guide-card-icon"><i class="fas fa-robot"></i></div>
-    <div class="guide-card-title">セクション17: AIプロンプト一覧</div>
-  </div>
-  <div class="guide-card-body">
-    <p>本システムでは<strong>22種のAIプロンプト</strong>を使用しています。<br>
-    テキスト処理には<strong>Gemini 2.5 Flash</strong>、画像分析には<strong>Gemini Flash（Vision）</strong>を使用。全AIをGeminiに統一。<br>
-    全プロンプトは<strong>18領域の公的ガイドライン</strong>をエビデンス基盤として参照しています。</p>
-
-    <div class="highlight-box">
-      <strong>共通ルール（全プロンプト）</strong><br>
-      ・エビデンスのない助言は絶対にしない<br>
-      ・マークダウン記法（**太字**や###見出し）は使用禁止。強調は【】で囲む<br>
-      ・助言時は必ず「📚 出典:」として根拠ガイドラインを明記<br>
-      ・行動変容フレームワーク: EAST / CAN / COM-B / ゴール&スモールステップを活用
-    </div>
-
-    <p style="margin-top:18px;"><strong>ユーザー向けAI（5種）</strong></p>
-    <table class="guide-table">
-      <thead><tr><th>機能</th><th>モデル</th><th>概要</th></tr></thead>
-      <tbody>
-        <tr><td><strong>AIヘルスアドバイザー（チャット）</strong></td><td>Gemini 2.5 Flash</td><td>エビデンスに基づく健康相談チャット。コーチング重視、ティーチングより質問で気づきを促す</td></tr>
-        <tr><td><strong>初回あいさつ生成</strong></td><td>Gemini 2.5 Flash</td><td>新規チャット開始時の自己紹介と健康に関するオープンな質問</td></tr>
-        <tr><td><strong>画像分析（食事・健診）</strong></td><td>Gemini Vision + 2.5 Flash</td><td>食事写真の五大栄養素分析＋推定カロリー＋改善提案を簡潔テキスト（100〜150字）で出力。<strong>5軸レーダーチャート</strong>（SVG）＋<strong>塩分横バー</strong>（良好/適量/注意）で栄養バランスを視覚補完。チャートがあるため文章は要点のみに絞る設計。健診結果の数値解説にも対応</td></tr>
-        <tr><td><strong>投稿ケアコメント生成</strong></td><td>Gemini 2.5 Flash</td><td>健康相談投稿に対するAIからの温かいケアコメント + 7軸自動評価スコア</td></tr>
-        <tr><td><strong>健康ナレッジBot</strong></td><td>Gemini 2.5 Flash</td><td>健康経営の専門知識を平易な言葉で解説。ナッジ/EAST/CAN等のフレームワークも教育</td></tr>
-      </tbody>
-    </table>
-
-    <p style="margin-top:18px;"><strong>管理者向けAI（9種）</strong></p>
-    <table class="guide-table">
-      <thead><tr><th>機能</th><th>モデル</th><th>概要</th></tr></thead>
-      <tbody>
-        <tr><td><strong>7軸AI評価</strong></td><td>Gemini 2.5 Flash</td><td>投稿をCOM-Bモデル準拠の7軸（法令/リスク/頻度/緊急/安全/価値/ニーズ）で1-5点評価</td></tr>
-        <tr><td><strong>総合7軸評価</strong></td><td>Gemini 2.5 Flash</td><td>共感データ + メンバーコメント + 議論を統合した多角的7軸評価</td></tr>
-        <tr><td><strong>共感→スコア変換</strong></td><td>Gemini 2.5 Flash</td><td>ハートリアクションの種別・件数から7軸スコアを自動算出</td></tr>
-        <tr><td><strong>AI会議シミュレーション</strong></td><td>Gemini 2.5 Flash</td><td>11人のペルソナ（20代ドライバー/50代役員/専門家アドバイザー等）による議論を自動生成</td></tr>
-        <tr><td><strong>AIリアクション</strong></td><td>Gemini 2.5 Flash</td><td>人間のコメントに対するAI会議メンバーの反応を1-2件生成</td></tr>
-        <tr><td><strong>専門家アドバイス</strong></td><td>Gemini 2.5 Flash</td><td>健康経営コンサルタントとしての専門的助言</td></tr>
-        <tr><td><strong>栄養レポート生成</strong></td><td>Gemini 2.5 Flash</td><td>ユーザーの食事履歴を分析し、傾向/良い点/改善点/目標のレポートを生成</td></tr>
-        <tr><td><strong>類似投稿検索</strong></td><td>Gemini 2.5 Flash</td><td>テーマが似ている投稿をAIが分析してグルーピング</td></tr>
-        <tr><td><strong>テーマ自動凝集</strong></td><td>Gemini 2.5 Flash</td><td>全投稿から3-5個の健康テーマを自動クラスタリング。共感データ・評価スコアを重み付け</td></tr>
-      </tbody>
-    </table>
-
-    <p style="margin-top:18px;"><strong>企画・チャレンジ生成AI（4種）</strong></p>
-    <table class="guide-table">
-      <thead><tr><th>機能</th><th>モデル</th><th>概要</th></tr></thead>
-      <tbody>
-        <tr><td><strong>アクションプラン生成</strong></td><td>Gemini 2.5 Flash</td><td>現状分析/経営根拠/実行計画/KPI指標を含む企画書をMarkdownで自動生成</td></tr>
-        <tr><td><strong>3パターンアイデア</strong></td><td>Gemini 2.5 Flash</td><td>小さく始める案/ゲーミフィケーション案/根本解決案の3パターンを提案</td></tr>
-        <tr><td><strong>企画書リファイン</strong></td><td>Gemini 2.5 Flash</td><td>フィードバックを反映して企画書を改善。セクションごとの修正意図も出力</td></tr>
-        <tr><td><strong>チャレンジ自動設計</strong></td><td>Gemini 2.5 Flash</td><td>30日間の任意参加プログラムを自動設計。EAST/COM-Bフレームワーク準拠、KPI定義、バッジシステム（初記録/7日連続/皆勤賞等）を含む</td></tr>
-      </tbody>
-    </table>
-
-    <div class="tip-box" style="margin-top:16px;">
-      <i class="fas fa-lightbulb" style="color:#4caf50;"></i>
-      全プロンプトは厚労省ガイドライン・日本糖尿病学会・日本高血圧学会等の<strong>18領域の公的エビデンス</strong>を共通基盤として参照しています。
-      詳細は <a href="/knowledge" style="color:#764ba2; font-weight:700;">学習ページ</a> をご覧ください。
-    </div>
-  </div>
-</div>
-
-<!-- ====== セクション18: 画面一覧 ====== -->
-<div class="guide-card theme-cyan" data-keywords="画面 URL ページ 管理 ユーザー アンバサダー">
-  <div class="guide-card-header">
-    <div class="guide-card-icon"><i class="fas fa-desktop"></i></div>
-    <div class="guide-card-title">セクション18: 画面一覧</div>
-  </div>
-  <div class="guide-card-body">
-    <table class="guide-table">
-      <thead>
-        <tr><th>URL</th><th>画面名</th><th>対象者</th></tr>
-      </thead>
-      <tbody>
-        <tr><td><code>/</code></td><td>ユーザー画面</td><td>全社員</td></tr>
-        <tr><td><code>/admin</code></td><td>管理画面</td><td>推進メンバー・役員</td></tr>
-        <tr><td><code>/ambassador</code></td><td>アンバサダー画面</td><td>専門家アドバイザー</td></tr>
-        <tr><td><code>/knowledge</code></td><td>学習資料</td><td>全員</td></tr>
-        <tr><td><code>/guide</code></td><td>このガイド</td><td>全員</td></tr>
-      </tbody>
-    </table>
-  </div>
-</div>
-
-<!-- ====== セクション18-2: オンラインヒート表示（管理画面） ====== -->
-<div class="guide-card theme-red" data-keywords="オンライン ヒート 管理画面 リアルタイム アクティブ ダッシュボード 温度">
-  <div class="guide-card-header">
-    <div class="guide-card-icon"><i class="fas fa-fire"></i></div>
-    <div class="guide-card-title">セクション18-2: オンラインヒート表示</div>
-  </div>
-  <div class="guide-card-body">
-    <p>管理画面（<code>/admin</code>）のダッシュボード最上部に、<strong>現在アプリを利用中のユーザー数</strong>をリアルタイムで温度表現するパネルです。</p>
-
-    <h4 style="color:#ef4444; margin-top:16px;"><i class="fas fa-thermometer-half me-2"></i>ヒートレベル</h4>
-    <table class="guide-table">
-      <thead>
-        <tr><th>アイコン</th><th>人数</th><th>状態</th></tr>
-      </thead>
-      <tbody>
-        <tr><td>❄️</td><td>0人</td><td>オフライン</td></tr>
-        <tr><td>🟢</td><td>1〜3人</td><td>静か</td></tr>
-        <tr><td>🔥</td><td>4〜8人</td><td>アクティブ</td></tr>
-        <tr><td>🔥🔥</td><td>9〜15人</td><td>盛り上がり中</td></tr>
-        <tr><td>🔥🔥🔥</td><td>16人以上</td><td>大盛況！</td></tr>
-      </tbody>
-    </table>
-
-    <h4 style="color:#ef4444; margin-top:16px;"><i class="fas fa-eye me-2"></i>表示内容</h4>
-    <table class="guide-table">
-      <thead>
-        <tr><th>要素</th><th>説明</th></tr>
-      </thead>
-      <tbody>
-        <tr><td><strong>ヒートアイコン＋人数</strong></td><td>現在のオンラインユーザー数を温度アイコンで表現。盛り上がり時はグローアニメーション付き</td></tr>
-        <tr><td><strong>ミニアバター列</strong></td><td>オンラインユーザーのアバターを最大8人まで横並び表示。誰がいるか一目で判別可能</td></tr>
-        <tr><td><strong>ヒートバー</strong></td><td>人数に応じて幅と色が変化するプログレスバー（青→黄→赤のグラデーション）</td></tr>
-        <tr><td><strong>部署別内訳</strong></td><td>パネルをクリックすると展開。どの部署から何人が利用中かをバッジで表示</td></tr>
-        <tr><td><strong>ユーザーリスト</strong></td><td>展開時にオンライン全ユーザーをアバター付きグリッドで一覧表示</td></tr>
-      </tbody>
-    </table>
-
-    <h4 style="color:#ef4444; margin-top:16px;"><i class="fas fa-cogs me-2"></i>仕組み</h4>
-    <ul>
-      <li>ユーザーがアプリにログインすると、<strong>60秒ごと</strong>にサーバーにheartbeat（生存信号）を自動送信</li>
-      <li>サーバーは<strong>3分以内</strong>にheartbeatがあったユーザーを「オンライン」と判定</li>
-      <li>管理画面は<strong>30秒ごと</strong>に最新データを自動取得し、パネルを更新</li>
-      <li>10分以上heartbeatのないユーザーのデータはサーバーメモリから自動削除</li>
-    </ul>
-
-    <div class="tip-box">
-      <i class="fas fa-lightbulb" style="color:#f59e0b;"></i>
-      推進メンバーが「今、誰がアプリを使っているか」を把握できるため、リアルタイムでのメッセージ配信やチャレンジ促進の<strong>タイミング判断</strong>に活用できます。
-    </div>
-  </div>
-</div>
-
-<!-- ====== セクション18-3: 全社健診データ分析（管理画面） ====== -->
-<div class="guide-card theme-red" data-keywords="健診 分析 全社 Box API AI 提案 専門家アドバイザー エビデンス ダッシュボード">
-  <div class="guide-card-header">
-    <div class="guide-card-icon"><i class="fas fa-heartbeat"></i></div>
-    <div class="guide-card-title">セクション18-3: 全社健診データ分析</div>
-  </div>
-  <div class="guide-card-body">
-    <p>管理画面ダッシュボードから、<strong>Box API経由で全社の健診データを取得</strong>し、AIがエビデンスに基づく3パターンのアクションプランを提案する機能です。</p>
-
-    <h4 style="color:#e53935; margin-top:16px;"><i class="fas fa-cogs me-2"></i>仕組み</h4>
-    <table class="guide-table">
-      <thead><tr><th>項目</th><th>内容</th></tr></thead>
-      <tbody>
-        <tr><td><strong>データソース</strong></td><td>エルスケアネットワーク提供の健診データ（xlsm形式）をBox Cloudから取得</td></tr>
-        <tr><td><strong>判定記号</strong></td><td>●=要受診、▲=要注意、★=要経過観察、空=異常なし</td></tr>
-        <tr><td><strong>分析項目</strong></td><td>肥満・高血圧・脂質異常・高血糖・肝機能・腎機能・貧血</td></tr>
-        <tr><td><strong>AI提案</strong></td><td>エビデンス18領域に基づき、優先度付きの3パターン提案（EAST設計含む）</td></tr>
-        <tr><td><strong>専門家連携</strong></td><td>AIが「下書き」を高速作成 → 専門家アドバイザーが「承認・修正・補足」する役割分担</td></tr>
-      </tbody>
-    </table>
-
-    <h4 style="color:#e53935; margin-top:16px;"><i class="fas fa-desktop me-2"></i>使い方</h4>
-    <ol>
-      <li>管理画面の<strong>ダッシュボード</strong>タブを開く</li>
-      <li>「全社健診データ分析」カードの<strong>「分析実行」</strong>ボタンをクリック</li>
-      <li>Box APIからデータ取得〜AI分析に約30秒</li>
-      <li>集計結果（BMI・各リスク率）＋3パターンの提案が表示される</li>
-      <li>専門家アドバイザーへの申し送りも自動生成</li>
-    </ol>
-
-    <div class="tip-box">
-      <i class="fas fa-lightbulb" style="color:#f59e0b;"></i>
-      分析結果はあくまでも<strong>推進メンバーがボトムアップでプランを検討する際の参考資料</strong>です。テーマ選定や施策立案の根拠として活用してください。
-    </div>
-  </div>
-</div>
-
-<!-- ====== セクション18-4: ダッシュボード統一デザイン ====== -->
-<div class="guide-card theme-purple" data-keywords="ダッシュボード デザイン カード 管理画面 レイアウト グリッド">
-  <div class="guide-card-header">
-    <div class="guide-card-icon"><i class="fas fa-th-large"></i></div>
-    <div class="guide-card-title">セクション18-4: ダッシュボード統一デザイン</div>
-  </div>
-  <div class="guide-card-body">
-    <p>管理画面のダッシュボードは<strong>統一カードシステム（dash-card）</strong>で設計されており、一貫性のある視認性の高いUIを実現しています。</p>
-
-    <h4 style="color:#667eea; margin-top:16px;"><i class="fas fa-layer-group me-2"></i>レイアウト構成</h4>
-    <table class="guide-table">
-      <thead><tr><th>エリア</th><th>内容</th></tr></thead>
-      <tbody>
-        <tr><td><strong>上段左（1/3幅）</strong></td><td>オンラインヒートパネル — 現在のアクティブユーザー数・アバター・ヒートレベル</td></tr>
-        <tr><td><strong>上段右（2/3幅）</strong></td><td>サイクル状態 — 現在のテーマ凝集サイクルの進捗（精査→助言→承認→投票→確定）</td></tr>
-        <tr><td><strong>中段（全幅）</strong></td><td>全社健診データ分析カード — ボタン一体型のカードデザイン</td></tr>
-        <tr><td><strong>下段</strong></td><td>アクションボタン群 ＋ テーマ候補カード（2列グリッド）</td></tr>
-      </tbody>
-    </table>
-
-    <h4 style="color:#667eea; margin-top:16px;"><i class="fas fa-ruler-combined me-2"></i>デザイントークン</h4>
-    <table class="guide-table">
-      <thead><tr><th>要素</th><th>値</th></tr></thead>
-      <tbody>
-        <tr><td>カード角丸</td><td>16px（全カード統一）</td></tr>
-        <tr><td>サブ要素角丸</td><td>10px（ボタン・バッジ・内部ボックス）</td></tr>
-        <tr><td>影</td><td><code>0 2px 12px rgba(0,0,0,0.06)</code></td></tr>
-        <tr><td>パディング</td><td>20px（モバイル時16px）</td></tr>
-        <tr><td>グリッド間隔</td><td>16px</td></tr>
-      </tbody>
-    </table>
-
-    <p style="margin-top:12px;"><strong>レスポンシブ対応:</strong> 768px以下では全カードが自動的に1カラム表示に切り替わります。</p>
-  </div>
-</div>
-
-<!-- ====== セクション18-5: プラン案評価（共感）システム ====== -->
-<div class="guide-card theme-green" data-keywords="プラン 評価 共感 賛成 最優先 効果的 議論 テーマ 推進メンバー">
-  <div class="guide-card-header">
-    <div class="guide-card-icon"><i class="fas fa-thumbs-up"></i></div>
-    <div class="guide-card-title">セクション18-5: プラン案評価（共感）システム</div>
-  </div>
-  <div class="guide-card-body">
-    <p>AIが生成したテーマ別プラン案（案A/B/C）や、メンバーが追加した自由提案（案D以降）に対して、推進メンバーが<strong>複数の評価タイプを同時に付けられる</strong>共感システムです。</p>
-
-    <h4 style="color:#43a047; margin-top:16px;"><i class="fas fa-icons me-2"></i>評価タイプ（7種類）</h4>
-    <table class="guide-table">
-      <thead><tr><th>アイコン</th><th>ラベル</th><th>意味</th></tr></thead>
-      <tbody>
-        <tr><td>👍</td><td>賛成</td><td>基本的な賛同を示す</td></tr>
-        <tr><td>🔥</td><td>最優先</td><td>急いで対応すべきと考える</td></tr>
-        <tr><td>💡</td><td>効果的</td><td>高い効果が見込めると評価</td></tr>
-        <tr><td>👥</td><td>巻き込める</td><td>多くの社員を参加させられそう</td></tr>
-        <tr><td>🤔</td><td>要議論</td><td>もう少し議論が必要</td></tr>
-        <tr><td>⚠️</td><td>難しい</td><td>実行が困難と感じる</td></tr>
-        <tr><td>❌</td><td>見送り</td><td>今回は不採用が妥当</td></tr>
-      </tbody>
-    </table>
-
-    <h4 style="color:#43a047; margin-top:16px;"><i class="fas fa-mouse-pointer me-2"></i>操作方法</h4>
-    <ul>
-      <li>各プラン案の下に表示されるボタンをタップして評価</li>
-      <li><strong>複数の評価タイプを同時に付けられます</strong>（例: 👍賛成 + 💡効果的 + 🔥最優先）</li>
-      <li>もう一度タップすると解除（トグル式）</li>
-      <li>各ボタンに評価人数がバッジ表示される</li>
-      <li>自分が押した評価はハイライト表示で一目で判別可能</li>
-    </ul>
-
-    <h4 style="color:#43a047; margin-top:16px;"><i class="fas fa-edit me-2"></i>メンバー自由提案</h4>
-    <p>AIの案A/B/Cに加えて、推進メンバーは<strong>案D以降の自由提案</strong>を追加できます。タイトル・概要・KPIを入力して追加すると、AI案と同じ共感ボタンで評価されます。</p>
-
-    <div class="tip-box">
-      <i class="fas fa-lightbulb" style="color:#f59e0b;"></i>
-      評価結果はチャレンジ自動生成時にAIが参照し、最も支持されたプラン案をベースにチャレンジ内容を作成します。<strong>推進メンバー全員の意見が反映される仕組み</strong>です。
-    </div>
-  </div>
-</div>
-
-<!-- ============================================================ -->
-<!-- 技術基盤セクション（19〜20）                                 -->
-<!-- ============================================================ -->
-
-<!-- ====== セクション19: セキュリティ対策 ====== -->
-<div class="guide-card theme-red" data-keywords="セキュリティ 認証 暗号化 HTTPS CORS レート制限 JWT">
-  <div class="guide-card-header">
-    <div class="guide-card-icon"><i class="fas fa-shield-alt"></i></div>
-    <div class="guide-card-title">セクション19: セキュリティ対策</div>
-  </div>
-  <div class="guide-card-body">
-    <p>本システムは外部アクセス（大学関係者・専門家アドバイザー等）を想定し、以下のセキュリティ対策を実装しています。</p>
-
-    <table class="guide-table">
-      <thead>
-        <tr><th>対策</th><th>内容</th></tr>
-      </thead>
-      <tbody>
-        <tr><td><strong>HTTPS強制</strong></td><td>全通信をSSL/TLS（Let's Encrypt + Cloudflare）で暗号化。HTTP接続は自動的にHTTPSへリダイレクト</td></tr>
-        <tr><td><strong>CORS制限</strong></td><td>APIへのアクセスを health.biz-terrace.org からのリクエストのみに限定。外部サイトからの不正呼び出しを防止</td></tr>
-        <tr><td><strong>CSPヘッダー</strong></td><td>Content Security Policy により、XSS（クロスサイトスクリプティング）やクリックジャッキング攻撃を防止</td></tr>
-        <tr><td><strong>レート制限</strong></td><td>API全体: 15分あたり500リクエストまで。認証系（ログイン・登録）: 15分あたり50回まで。ブルートフォース攻撃を防止</td></tr>
-        <tr><td><strong>JWT認証</strong></td><td>ログイン後に発行されるトークンで本人確認。有効期限24時間。秘密鍵は環境変数で厳格管理</td></tr>
-        <tr><td><strong>管理API認証</strong></td><td>全ての管理操作（承認・評価・議論・バックアップ等）に管理者トークン認証が必須</td></tr>
-        <tr><td><strong>パスワード保護</strong></td><td>bcryptハッシュで保存。平文パスワードはサーバーに保存されません</td></tr>
-        <tr><td><strong>パスワード変更</strong></td><td>生年月日による本人確認が必須。旧パスワードなしでも変更可能（忘れた場合の救済）</td></tr>
-        <tr><td><strong>ファイルアップロード制限</strong></td><td>画像タイプ検証（JPEG/PNG/WebPのみ）、5MB以下に制限、ランダムファイル名で推測不能化</td></tr>
-        <tr><td><strong>リクエストサイズ制限</strong></td><td>リクエストボディを10MBに制限。大量データ送信によるDoS攻撃を防止</td></tr>
-        <tr><td><strong>自動バックアップ</strong></td><td>毎日深夜2時にSQLiteデータベースをBox Cloudへ自動バックアップ</td></tr>
-      </tbody>
-    </table>
-
-    <div class="warn-box">
-      <strong><i class="fas fa-exclamation-triangle" style="color:#ffa000;"></i> 運用上の注意</strong><br>
-      ・管理者パスワードは定期的に変更してください<br>
-      ・不審なアクセスがあった場合はサーバーログを確認してください<br>
-      ・JWTトークンの有効期限は24時間です。長時間操作しない場合は再ログインが必要です
-    </div>
-  </div>
-</div>
-
-<!-- ====== セクション20: 同時ログイン防止 ====== -->
-<div class="guide-card theme-blue" data-keywords="セッション ログイン 同時接続 セキュリティ">
-  <div class="guide-card-header">
-    <div class="guide-card-icon"><i class="fas fa-user-lock"></i></div>
-    <div class="guide-card-title">セクション20: 同時ログイン防止</div>
-  </div>
-  <div class="guide-card-body">
-    <p>1アカウントにつき1端末のみログイン可能です。別の端末でログインすると、前の端末のセッションは自動的に無効化されます。</p>
-
-    <table class="guide-table">
-      <thead><tr><th>仕組み</th><th>内容</th></tr></thead>
-      <tbody>
-        <tr><td><strong>セッションID</strong></td><td>ログイン時にランダムなセッションIDを発行し、DBに保存</td></tr>
-        <tr><td><strong>検証</strong></td><td>API呼び出しごとにJWT内のセッションIDとDB上のIDを照合</td></tr>
-        <tr><td><strong>無効化</strong></td><td>新ログインでDBのセッションIDが更新され、旧端末のIDが不一致に</td></tr>
-        <tr><td><strong>通知</strong></td><td>旧端末で「別の端末でログインされました。再ログインしてください。」と表示</td></tr>
-      </tbody>
-    </table>
-  </div>
-</div>
-
-<!-- ====== セクション21-2: CoWellコイン（ポイント報酬） ====== -->
-<div class="guide-card theme-orange" data-keywords="CoWellコイン ポイント 報酬 褒賞 QUO バッジ ランキング">
-  <div class="guide-card-header">
-    <div class="guide-card-icon"><i class="fas fa-coins"></i></div>
-    <div class="guide-card-title">セクション21-2: CoWellコイン（ポイント報酬）</div>
-  </div>
-  <div class="guide-card-body">
-    <p>投稿・共感・書き込み等のアクションで<strong>CoWellコイン</strong>が自動付与されます。貯めたコインに応じて褒賞バッジとQUOカードが獲得できます。</p>
-    <h5><i class="fas fa-coins" style="color:#f59e0b;"></i> ポイント配分</h5>
-    <table class="table table-bordered" style="font-size:0.82rem;">
-      <thead style="background:#fffde7;"><tr><th>アクション</th><th>コイン</th><th>説明</th></tr></thead>
-      <tbody>
-        <tr><td>✍️ 投稿（相談・提案）</td><td class="fw-bold text-center">10</td><td>最も価値が高い情報提供</td></tr>
-        <tr><td>📸 食事写真投稿</td><td class="fw-bold text-center">8</td><td>栄養分析データの提供</td></tr>
-        <tr><td>💗 共感＋3問回答</td><td class="fw-bold text-center">5</td><td>AI分析に貢献</td></tr>
-        <tr><td>💬 書き込み</td><td class="fw-bold text-center">3</td><td>議論の活性化</td></tr>
-        <tr><td>📊 チャレンジKPI記録</td><td class="fw-bold text-center">2</td><td>日々の継続</td></tr>
-      </tbody>
-    </table>
-    <h5><i class="fas fa-medal" style="color:#667eea;"></i> 褒賞バッジ</h5>
-    <table class="table table-bordered" style="font-size:0.82rem;">
-      <thead style="background:#f0f4ff;"><tr><th>バッジ</th><th>必要コイン</th><th>褒賞</th></tr></thead>
-      <tbody>
-        <tr><td>🥉 ブロンズ</td><td class="text-center">50</td><td>-</td></tr>
-        <tr><td>🥈 シルバー</td><td class="text-center">150</td><td>-</td></tr>
-        <tr><td>🥇 ゴールド</td><td class="text-center">300</td><td>🎁 QUOカード 500円</td></tr>
-        <tr><td>👑 プラチナ</td><td class="text-center">500</td><td>🎁 QUOカード 1,000円</td></tr>
-      </tbody>
-    </table>
-    <p style="font-size:0.8rem; color:#888;">ユーザーはアバタータップでCoWellコイン残高・ランキング・次のバッジまでの進捗を確認できます。管理画面ダッシュボードにはランキングと褒賞対象者一覧が表示されます。</p>
-  </div>
-</div>
-
-<!-- ====== セクション21-3: AI評議会（プランレベル） ====== -->
-<div class="guide-card theme-blue" data-keywords="AI評議会 プラン 論点 専門家 賛同 メンバー検討">
-  <div class="guide-card-header">
-    <div class="guide-card-icon"><i class="fas fa-users-cog"></i></div>
-    <div class="guide-card-title">セクション21-3: AI評議会（プラン論点整理）</div>
-  </div>
-  <div class="guide-card-body">
-    <p>AI凝集で生成されたプラン候補に対して、<strong>5名のAI専門家</strong>が論点を整理します。推進メンバーはこの論点を確認した上で賛同・反対を判断します。</p>
-    <h5><i class="fas fa-user-md"></i> AI専門家メンバー</h5>
-    <table class="table table-bordered" style="font-size:0.82rem;">
-      <thead style="background:#f0f4ff;"><tr><th>専門家</th><th>観点</th></tr></thead>
-      <tbody>
-        <tr><td>🩺 AIメディカルアドバイザー</td><td>医学的妥当性、エビデンスの観点</td></tr>
-        <tr><td>💉 AIヘルスアドバイザー</td><td>産業保健、労働安全衛生の観点</td></tr>
-        <tr><td>🥗 AI食事アドバイザー</td><td>栄養学、食習慣改善の観点</td></tr>
-        <tr><td>📊 AI経営アドバイザー</td><td>コスト対効果、経営インパクトの観点</td></tr>
-        <tr><td>🚛 AI現場アドバイザー</td><td>ドライバー実態、現場実現可能性の観点</td></tr>
-      </tbody>
-    </table>
-    <h5><i class="fas fa-stream"></i> フロー</h5>
-    <div style="font-size:0.82rem; line-height:1.8;">
-      投稿 → 共感+3問回答 → AI7軸評価<br>
-      → <strong>AI凝集（テーマクラスタリング）</strong><br>
-      → プラン候補（複数）<br>
-      → <strong style="color:#667eea;">AI評議会（各プランの論点整理）</strong><br>
-      → 推進メンバー確認 → 賛同 → 役員承認 → チャレンジ実行
-    </div>
-    <p class="mt-2" style="font-size:0.8rem; color:#888;">※投稿レベルのAI評議会は廃止し、プランレベルに統一。投稿は7軸評価+メンバー議論のみ。</p>
-  </div>
-</div>
-
-<!-- ====== セクション21-4: 個人情報保護（実名マスク） ====== -->
-<div class="guide-card theme-gray" data-keywords="個人情報 実名 マスク 非公開 show_real_name プライバシー">
-  <div class="guide-card-header">
-    <div class="guide-card-icon"><i class="fas fa-user-shield"></i></div>
-    <div class="guide-card-title">セクション21-4: 個人情報保護</div>
-  </div>
-  <div class="guide-card-body">
-    <p>管理画面における実名表示を制御する<strong>show_real_name</strong>フラグを導入。デフォルトで実名は非公開です。</p>
-    <h5><i class="fas fa-eye-slash"></i> 仕組み</h5>
-    <ul style="font-size:0.82rem;">
-      <li>一般ユーザー・コアメンバーの実名はデフォルトで<strong>非表示（●●●●）</strong></li>
-      <li>APIレスポンス自体から実名・生年月日・電話番号を除去（DevToolsでも見えない）</li>
-      <li>編集モーダルでも非公開ユーザーの個人情報はreadonly+マスク表示</li>
-      <li>保存時はDB既存値を維持（マスク値で上書きしない）</li>
-    </ul>
-    <h5><i class="fas fa-user-check"></i> 除外対象（実名表示ON）</h5>
-    <ul style="font-size:0.82rem;">
-      <li>大学関係者（is_university=1）</li>
-      <li>NPO法人関係者</li>
-      <li>取締役（is_exec=1）</li>
-      <li>管理部責任者</li>
-    </ul>
-    <p style="font-size:0.8rem; color:#888;">管理画面のメンバー一覧で目アイコン（👁）をクリックして個別に切替可能。</p>
-  </div>
-</div>
-
-<!-- ============================================================ -->
-<!-- FAQ（常に最後）                                               -->
-<!-- ============================================================ -->
-
-<!-- ====== セクション21: FAQ ====== -->
-<div class="guide-card theme-gray" data-keywords="FAQ 質問 匿名 共感 チャレンジ 専門家アドバイザー 役員 承認">
-  <div class="guide-card-header">
-    <div class="guide-card-icon"><i class="fas fa-question-circle"></i></div>
-    <div class="guide-card-title">セクション21: よくある質問（FAQ）</div>
-  </div>
-  <div class="guide-card-body">
-    <div class="faq-item">
-      <div class="faq-q"><span>Q.</span> 投稿は匿名ですか？</div>
-      <div class="faq-a">ニックネームで表示されます。管理画面でも実名はデフォルト非公開（●●●●）で、show_real_nameフラグがONの除外対象者のみ表示されます。</div>
-    </div>
-
-    <div class="faq-item">
-      <div class="faq-q"><span>Q.</span> 共感は何回できますか？</div>
-      <div class="faq-a">1つの投稿につき1回です。種別を選んでタップするだけで完了します。</div>
-    </div>
-
-    <div class="faq-item">
-      <div class="faq-q"><span>Q.</span> チャレンジは強制ですか？</div>
-      <div class="faq-a">任意参加です。途中参加・途中離脱もOKです。</div>
-    </div>
-
-    <div class="faq-item">
-      <div class="faq-q"><span>Q.</span> 専門家アドバイザーはどこからアクセスしますか？</div>
-      <div class="faq-a"><a href="/ambassador" style="color:#764ba2; font-weight:700;">/ambassador</a> のアンバサダー画面からアクセスします。</div>
-    </div>
-
-    <div class="faq-item">
-      <div class="faq-q"><span>Q.</span> 役員承認は誰ができますか？</div>
-      <div class="faq-a">メンバー管理で<strong>Exec権限</strong>が設定されたアカウントのみ承認可能です。</div>
-    </div>
-  </div>
-</div>
-
-</div><!-- /main-content -->
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -252,9 +252,14 @@ app.get('/ambassador', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'public', 'ambassador.html'));
 });
 
-// システムガイド
+// システムガイド（簡易版）
 app.get('/guide', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'public', 'guide.html'));
+});
+
+// システムガイド（詳細版 — 旧版）
+app.get('/guide-full', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'public', 'guide-full.html'));
 });
 
 // ナレッジベース

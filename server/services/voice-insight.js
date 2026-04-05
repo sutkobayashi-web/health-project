@@ -244,16 +244,14 @@ ${postData}
       reportId, weekStart, weekEnd, report, Object.keys(userConversations).length, posts.length, foodStats.count, activeUsers
     );
 
-    // 推進メンバー全員に通知
+    // 推進メンバーのみに通知（一般社員には配信しない）
     try {
-      var members = db.prepare("SELECT email FROM core_members WHERE status = 'approved'").all();
       var noticeContent = '【週次ボイスインサイト ' + weekLabel + '】\n\n' +
         '社員' + Object.keys(userConversations).length + '人の会話 + 投稿' + posts.length + '件 + 食事' + foodStats.count + '件を匿名分析しました。\n\n' +
         report;
 
-      // 全体通知として保存
       var noticeId = 'notice_vi_' + Date.now();
-      db.prepare("INSERT INTO notices (notice_id, content, sender, target_id, status) VALUES (?, ?, '📊 ボイスインサイト', 'ALL', 'unread')").run(
+      db.prepare("INSERT INTO notices (notice_id, content, sender, target_id, status) VALUES (?, ?, '📊 ボイスインサイト', 'ADMIN', 'unread')").run(
         noticeId, noticeContent
       );
     } catch(e) { console.log('[voice-insight] 通知送信エラー:', e.message); }

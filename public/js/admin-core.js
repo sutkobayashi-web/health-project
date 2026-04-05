@@ -437,8 +437,7 @@ function renderCoreMembers(members, onlineMap) {
             '<div style="font-size:0.8rem; font-weight:800; color:#e65100; margin-bottom:10px;"><i class="fas fa-exclamation-circle me-1"></i>承認待ち（' + pending.length + '件）</div>';
         pending.forEach(function(m) {
             var avatarHtml = _renderMemberAvatar(m.avatar, '🛡️', 32);
-            var pendingShowName = m.show_real_name === 1;
-            var pendingDisplayName = pendingShowName ? escapeHtml(m.name) : '●●●●';
+            var pendingDisplayName = m.name ? escapeHtml(m.name) : '●●●●';
             html += '<div style="display:flex; align-items:center; gap:10px; padding:10px; background:white; border-radius:8px; margin-bottom:6px; border:1px solid #ffe0b2;">' +
                 '<div style="width:32px;height:32px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;">' + avatarHtml + '</div>' +
                 '<div style="flex:1; min-width:0;">' +
@@ -461,7 +460,8 @@ function renderCoreMembers(members, onlineMap) {
             var onlineDot = '<div style="position:absolute;bottom:0;right:0;width:10px;height:10px;border-radius:50%;border:2px solid white;background:' + (isOnline ? '#4caf50' : '#ccc') + ';"></div>';
             var roleLabel = m.is_exec ? '<span class="badge bg-danger">Exec</span>' : (m.is_university ? '<span class="badge bg-info">大学</span>' : '<span class="badge bg-secondary">Member</span>');
             var showName = m.show_real_name === 1;
-            var displayName = (showName && m.name) ? escapeHtml(m.name) : '<span style="color:#999;">●●●●</span>';
+            var nameVisible = !!m.name;
+            var displayName = nameVisible ? escapeHtml(m.name) : '<span style="color:#999;">●●●●</span>';
             var toggleIcon = showName ? 'fa-eye' : 'fa-eye-slash';
             var toggleColor = showName ? '#4caf50' : '#ccc';
             return '<tr>' +
@@ -493,7 +493,7 @@ function renderGeneralUsers(users, onlineMap) {
             var onlineDot = '<div style="position:absolute;bottom:0;right:0;width:10px;height:10px;border-radius:50%;border:2px solid white;background:' + (isOnline ? '#4caf50' : '#ccc') + ';"></div>';
             var dateStr = u.created_at ? new Date(u.created_at + 'Z').toLocaleDateString('ja-JP', { timeZone: 'Asia/Tokyo' }) : '';
             var showName = u.show_real_name === 1;
-            var displayRealName = showName ? escapeHtml(u.real_name || '') : (u.real_name ? '<span style="color:#999;">●●●●</span>' : '');
+            var displayRealName = u.real_name ? escapeHtml(u.real_name) : (showName ? '' : '<span style="color:#999;">●●●●</span>');
             var toggleIcon = showName ? 'fa-eye' : 'fa-eye-slash';
             var toggleColor = showName ? '#4caf50' : '#ccc';
             return '<tr>' +
@@ -568,7 +568,7 @@ function openAddCoreMemberModal() {
 }
 
 function openEditCoreMemberModal(m) {
-    var nameVisible = m.show_real_name === 1;
+    var nameVisible = !!m.name;
     showMemberModal('<i class="fas fa-edit text-primary me-2"></i>コアメンバー編集', [
         { key: 'name', label: '氏名' + (nameVisible ? '' : '（非公開）'), value: nameVisible ? m.name : '●●●●', readonly: !nameVisible },
         { key: 'email', label: 'メールアドレス', type: 'email', value: m.email },

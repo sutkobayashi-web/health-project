@@ -237,7 +237,17 @@ router.post('/food', async (req, res) => {
         keys.forEach(k => { sums[k] = 0; counts[k] = 0; });
         pastPosts.forEach(p => {
           try {
-            const sc = JSON.parse(p.nutrition_scores);
+            let sc = JSON.parse(p.nutrition_scores);
+            // 旧形式(1-5スコア)→実数値に変換
+            const isLegacy = (typeof sc.protein === 'number' && sc.protein <= 5 && !sc.calories);
+            if (isLegacy) {
+              sc = {
+                calories:{value:300+(sc.protein||3)*70}, protein:{value:(sc.protein||3)*5},
+                fat:{value:15+(sc.fat||3)*3}, carbs:{value:35+(sc.carbs||sc.carb||3)*6},
+                vitamin:{value:(sc.vitamin||3)*30}, mineral:{value:(sc.mineral||3)*55},
+                salt:{value:4.0-(sc.salt||3)*0.5}
+              };
+            }
             keys.forEach(k => {
               const v = sc[k];
               const num = (v && typeof v === 'object') ? Number(v.value) : Number(v);

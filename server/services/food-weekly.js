@@ -100,19 +100,35 @@ async function generateUserFoodReport(uid, userData, weekLabel, weekStart) {
     return '[' + date + '] ' + content + (aiComment ? ' → AI: ' + aiComment.substring(0, 200) : '');
   }).join('\n');
 
-  // 実データから平均栄養値を計算（新形式: {key:{value,unit}} / 旧形式: {key:number} 両対応）
+  // 実データから平均栄養値を計算
+  // 旧形式(1-5スコア)は実数値に変換してから計算
   var avgScores = null;
   if (mealScores.length > 0) {
+    // 旧形式検出: caloriesキーがなく、proteinが5以下の数値
+    var normalizedScores = mealScores.map(function(s) {
+      var isLegacy = (typeof s.protein === 'number' && s.protein <= 5 && !s.calories);
+      if (isLegacy) {
+        return {
+          calories: { value: 300 + (s.protein || 3) * 70, unit: 'kcal' },
+          protein:  { value: (s.protein || 3) * 5, unit: 'g' },
+          fat:      { value: 15 + (s.fat || 3) * 3, unit: '%' },
+          carbs:    { value: 35 + (s.carbs || s.carb || 3) * 6, unit: '%' },
+          vitamin:  { value: (s.vitamin || 3) * 30, unit: 'g' },
+          mineral:  { value: (s.mineral || 3) * 55, unit: 'mg' },
+          salt:     { value: 4.0 - (s.salt || 3) * 0.5, unit: 'g' }
+        };
+      }
+      return s;
+    });
     var allKeys = ['calories','protein','fat','carbs','vitamin','mineral','salt'];
     var sums = {}; var counts = {};
     allKeys.forEach(function(k) { sums[k] = 0; counts[k] = 0; });
-    mealScores.forEach(function(s) {
+    normalizedScores.forEach(function(s) {
       allKeys.forEach(function(k) {
         var v = s[k];
         if (v === undefined || v === null) return;
-        // 新形式: {value:X, unit:"..."} / 旧形式: 数値そのまま
         var num = (typeof v === 'object' && v.value !== undefined) ? Number(v.value) : Number(v);
-        if (!isNaN(num)) { sums[k] += num; counts[k]++; }
+        if (!isNaN(num) && num > 0) { sums[k] += num; counts[k]++; }
       });
     });
     avgScores = {};
@@ -122,7 +138,8 @@ async function generateUserFoodReport(uid, userData, weekLabel, weekStart) {
         avgScores[k] = { value: Math.round(sums[k] / counts[k] * 10) / 10, unit: unitMap[k] };
       }
     });
-    console.log('[food-weekly] ' + userData.nickname + ': ' + mealScores.length + '食分の実データから平均算出');
+    var legacyCount = mealScores.filter(function(s) { return typeof s.protein === 'number' && s.protein <= 5 && !s.calories; }).length;
+    console.log('[food-weekly] ' + userData.nickname + ': ' + mealScores.length + '食(' + (mealScores.length - legacyCount) + '新+' + legacyCount + '旧)から平均算出');
   }
 
   // 前週レポートを取得（前週との比較用）

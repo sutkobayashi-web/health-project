@@ -1191,4 +1191,36 @@ router.post('/food-weekly-rescore', async (req, res) => {
   } catch (e) { res.json({ success: false, msg: e.message }); }
 });
 
+// ========================================
+// ボイスインサイト
+// ========================================
+
+// インサイトレポート一覧
+router.get('/voice-insights', (req, res) => {
+  try {
+    const db = getDb();
+    try {
+      db.exec(`CREATE TABLE IF NOT EXISTS voice_insight_reports (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        report_id TEXT UNIQUE NOT NULL,
+        week_start TEXT, week_end TEXT, report_text TEXT,
+        conversation_count INTEGER DEFAULT 0, post_count INTEGER DEFAULT 0,
+        food_count INTEGER DEFAULT 0, active_users INTEGER DEFAULT 0,
+        created_at TEXT DEFAULT (datetime('now'))
+      )`);
+    } catch(e) {}
+    const reports = db.prepare('SELECT * FROM voice_insight_reports ORDER BY created_at DESC LIMIT 10').all();
+    res.json({ success: true, reports });
+  } catch (e) { res.json({ success: false, msg: e.message }); }
+});
+
+// インサイト手動実行
+router.post('/voice-insights/run', async (req, res) => {
+  try {
+    const { runWeeklyVoiceInsight } = require('../services/voice-insight');
+    await runWeeklyVoiceInsight();
+    res.json({ success: true, msg: 'インサイト分析を実行しました' });
+  } catch (e) { res.json({ success: false, msg: e.message }); }
+});
+
 module.exports = router;

@@ -242,6 +242,25 @@ function scheduleFoodWeekly() {
 }
 scheduleFoodWeekly();
 
+// 週次ボイスインサイト（毎週月曜 7:30 JST — 食事分析の30分後）
+function scheduleVoiceInsight() {
+  const now = new Date();
+  const jstNow = new Date(now.getTime() + 9 * 3600000);
+  const jstNext = new Date(jstNow);
+  const dayOfWeek = jstNext.getDay();
+  const daysUntilMonday = dayOfWeek === 0 ? 1 : dayOfWeek === 1 ? (jstNow.getHours() >= 8 ? 7 : 0) : 8 - dayOfWeek;
+  jstNext.setDate(jstNext.getDate() + daysUntilMonday);
+  jstNext.setHours(7, 30, 0, 0);
+  const utcNext = new Date(jstNext.getTime() - 9 * 3600000);
+  const delay = Math.max(utcNext - now, 60000);
+  console.log(`次回インサイト: ${jstNext.toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' })} (${Math.round(delay/3600000)}h後)`);
+  setTimeout(() => {
+    const { runWeeklyVoiceInsight } = require('./services/voice-insight');
+    runWeeklyVoiceInsight().then(() => scheduleVoiceInsight()).catch(e => { console.error('インサイトエラー:', e.message); scheduleVoiceInsight(); });
+  }, delay);
+}
+scheduleVoiceInsight();
+
 // SPA フォールバック (管理画面)
 app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'public', 'admin.html'));

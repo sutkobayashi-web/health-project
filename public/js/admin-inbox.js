@@ -41,6 +41,15 @@
   .like-badge { display:inline-flex; align-items:center; gap:3px; background:#fff0f0; color:#ff6b6b; border-radius:10px; padding:2px 8px; font-size:0.75rem; font-weight:bold; margin-left:8px; }
   @keyframes pulseGlow { 0%,100% { box-shadow:0 2px 8px rgba(67,160,71,0.3); } 50% { box-shadow:0 4px 16px rgba(67,160,71,0.5); } }
   .btn-admin { font-size:0.75rem; padding:4px 12px; border-radius:20px; font-weight:bold; display:inline-flex; align-items:center; justify-content:center; }
+  @media (max-width: 768px) {
+    .inbox-detail-split { flex-direction:column !important; min-height:auto !important; }
+    .inbox-detail-split > div { max-height:none !important; border-right:none !important; border-bottom:1px solid #f0f0f0; }
+    .inbox-detail-split > div:last-child { border-bottom:none; }
+    .inbox-filter-bar { gap:5px; }
+    .inbox-filter-btn { padding:4px 10px; font-size:0.72rem; }
+    .post-header-bar { padding:6px 10px; font-size:0.75rem; }
+    .ai-reply { font-size:0.8rem; padding:10px; }
+  }
 `; document.head.appendChild(s);})();
 
 /* ── Constants ── */
@@ -287,12 +296,12 @@ function renderReportList(data) {
             '<div id="inbox-detail-'+pid+'" style="display:none; border-top:1px solid #e0e0e0;">' +
                 '<div class="inbox-detail-split" style="display:flex; min-height:300px;">' +
                     // 左: 投稿内容+AI分析
-                    '<div style="flex:1; padding:14px; overflow-y:auto; max-height:450px; border-right:1px solid #f0f0f0;">' +
+                    '<div style="flex:1; padding:14px; overflow-y:auto; max-height:450px; border-right:1px solid #f0f0f0; min-width:0;">' +
                         // 投稿本文
                         '<div style="font-size:0.85rem; line-height:1.8; color:#444; white-space:pre-wrap; margin-bottom:12px; padding:10px; background:#fafafa; border-radius:10px;">'+escapeHtml(rawContent)+'</div>' +
                         // 写真+ポイント
-                        (displayUrl || pointsHtml ? '<div style="display:flex; gap:10px; align-items:flex-start; margin-bottom:12px;">' +
-                            (displayUrl ? '<img src="'+displayUrl+'" style="width:160px; height:160px; object-fit:cover; border-radius:12px; border:1px solid #eee; flex-shrink:0; cursor:pointer;" onclick="event.stopPropagation(); window.open(\''+displayUrl+'\',\'_blank\');" onerror="this.style.display=\'none\'">' : '') +
+                        (displayUrl || pointsHtml ? '<div style="display:flex; flex-wrap:wrap; gap:10px; align-items:flex-start; margin-bottom:12px;">' +
+                            (displayUrl ? '<img src="'+displayUrl+'" style="width:min(160px,40%); height:auto; aspect-ratio:1; object-fit:cover; border-radius:12px; border:1px solid #eee; flex-shrink:0; cursor:pointer;" onclick="event.stopPropagation(); window.open(\''+displayUrl+'\',\'_blank\');" onerror="this.style.display=\'none\'">' : '') +
                             (pointsHtml ? '<div style="flex:1; min-width:0;">'+pointsHtml+'</div>' : '') +
                         '</div>' : '') +
                         // AI分析
@@ -311,7 +320,7 @@ function renderReportList(data) {
                         '</div>' +
                     '</div>' +
                     // 右: 共感+議論
-                    '<div style="flex:1; display:flex; flex-direction:column; max-height:450px;">' +
+                    '<div style="flex:1; display:flex; flex-direction:column; max-height:450px; min-width:0;">' +
                         // 共感セクション
                         '<div style="flex-shrink:0; padding:10px 14px; overflow-y:auto; max-height:220px; background:linear-gradient(180deg,#faf5ff,#f0f4ff);">' +
                             '<div style="font-size:0.72rem; font-weight:700; color:#7c3aed; margin-bottom:6px;"><i class="fas fa-heart me-1"></i>共感 <span id="empathy-count-'+pid+'" style="color:#a78bfa;"></span></div>' +

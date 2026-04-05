@@ -4646,7 +4646,8 @@ function startBuddyChatFresh(buddyData) {
       return;
     }
 
-    msg += '\n\n今日はどんな1日だった？';
+    var timeMsg = hour < 11 ? '今日はどんな予定？' : hour < 17 ? '今日はどんな感じ？' : '今日はどんな1日だった？';
+    msg += '\n\n' + timeMsg;
     addBuddyMessage('ai', msg);
     // カスタマイズ案内（「表示しない」を選ぶまで毎回表示）
     if (!localStorage.getItem(getBuddySetupKey())) {

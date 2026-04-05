@@ -306,6 +306,8 @@ function renderReportList(data) {
                         '</div>' : '') +
                         // AI分析
                         (aiHtml ? '<div style="background:#f8f9ff; border-radius:10px; padding:10px; margin-bottom:12px;">'+aiHtml+'</div>' : '') +
+                        // 栄養エビデンス対比バーチャート
+                        (function(){ var ns = r[INBOX_COLS.NUTRITION]; if (!ns) return ''; try { var sc = typeof ns === 'string' ? JSON.parse(ns) : ns; return typeof buildAdminNutritionBar === 'function' ? buildAdminNutritionBar(sc) : ''; } catch(e){ return ''; } })() +
                         // AI 7軸評価（表示のみ）
                         '<div id="auto-eval-'+pid+'" style="font-size:0.78rem; margin-bottom:12px;"></div>' +
                         // 投稿者への返事

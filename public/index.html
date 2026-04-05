@@ -838,27 +838,28 @@
         <i class="fas fa-question-circle"></i> 使い方
       </button>
     </div>
-    <!-- 音声モードバー -->
-    <div id="voice-mode-bar" style="flex-shrink:0;background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border-top:1px solid #bae6fd;padding:6px 12px;display:none;">
-      <div style="display:flex;align-items:center;justify-content:space-between;">
-        <div style="display:flex;align-items:center;gap:6px;">
-          <i class="fas fa-headset" style="color:#0284c7;font-size:0.85rem;"></i>
-          <span style="font-size:0.75rem;font-weight:700;color:#0369a1;">音声会話モード</span>
-          <span id="voice-status" style="font-size:0.7rem;color:#64748b;">待機中</span>
+    <!-- 音声モードパネル（タップで話す方式） -->
+    <div id="voice-mode-panel" style="display:none;flex-shrink:0;background:linear-gradient(180deg,#f0f9ff,#ffffff);border-top:1px solid #bae6fd;padding:12px;">
+      <div style="display:flex;align-items:center;justify-content:center;gap:12px;">
+        <button id="voice-mic-btn" onclick="tapToSpeak()" style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#0ea5e9,#0284c7);color:white;border:none;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 16px rgba(14,165,233,0.35);transition:all 0.2s;">
+          <i class="fas fa-microphone"></i>
+        </button>
+        <div style="flex:1;min-width:0;">
+          <div id="voice-status" style="font-size:0.8rem;font-weight:700;color:#0369a1;">タップして話しかけてね</div>
+          <div id="voice-sub-status" style="font-size:0.68rem;color:#64748b;margin-top:2px;">バディーの返答も読み上げます</div>
         </div>
-        <button onclick="toggleVoiceMode()" style="font-size:0.7rem;padding:4px 10px;background:#e2e8f0;color:#475569;border:none;border-radius:12px;cursor:pointer;font-weight:600;">OFF</button>
+        <button onclick="toggleVoiceMode()" style="font-size:0.72rem;padding:5px 12px;background:#e2e8f0;color:#475569;border:none;border-radius:12px;cursor:pointer;font-weight:600;flex-shrink:0;">終了</button>
       </div>
-    </div>
-    <!-- 音声認識中の波形表示 -->
-    <div id="voice-listening-indicator" style="display:none;flex-shrink:0;background:linear-gradient(135deg,#fef2f2,#fee2e2);padding:10px 12px;text-align:center;">
-      <div style="display:flex;align-items:center;justify-content:center;gap:8px;">
-        <div class="voice-wave"><span></span><span></span><span></span><span></span><span></span></div>
-        <span style="font-size:0.8rem;font-weight:700;color:#dc2626;">聞いています...</span>
-        <button onclick="stopVoiceRecognition()" style="font-size:0.7rem;padding:4px 10px;background:#fca5a5;color:white;border:none;border-radius:12px;cursor:pointer;">停止</button>
+      <!-- 音声認識中の波形 -->
+      <div id="voice-listening-indicator" style="display:none;margin-top:8px;">
+        <div style="display:flex;align-items:center;justify-content:center;gap:8px;padding:6px;background:linear-gradient(135deg,#fef2f2,#fee2e2);border-radius:10px;">
+          <div class="voice-wave"><span></span><span></span><span></span><span></span><span></span></div>
+          <span style="font-size:0.78rem;font-weight:700;color:#dc2626;">聞いています...</span>
+        </div>
       </div>
     </div>
     <!-- 入力バー -->
-    <div style="flex-shrink:0;background:white;border-top:1px solid #eee;padding:8px 12px;">
+    <div id="text-input-bar" style="flex-shrink:0;background:white;border-top:1px solid #eee;padding:8px 12px;">
       <div style="display:flex;align-items:center;gap:8px;">
         <button id="voice-toggle-btn" onclick="toggleVoiceMode()" title="音声会話モード" style="width:40px;height:40px;border-radius:50%;background:#f1f5f9;color:#64748b;border:1.5px solid #e2e8f0;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.3s;"><i class="fas fa-microphone"></i></button>
         <input type="text" id="buddy-input" placeholder="メッセージを入力..." style="flex:1;border:1.5px solid #e0e0e0;border-radius:20px;padding:10px 14px;font-size:0.88rem;outline:none;" onkeydown="if(event.key==='Enter')sendBuddyMessage()">
@@ -6209,22 +6210,24 @@ function inlineChallengeView() {
 var _voiceModeActive = false;
 var _speechRecognition = null;
 var _isSpeaking = false;
+var _isListening = false;
 
 function toggleVoiceMode() {
   _voiceModeActive = !_voiceModeActive;
-  var bar = document.getElementById('voice-mode-bar');
+  var panel = document.getElementById('voice-mode-panel');
+  var textBar = document.getElementById('text-input-bar');
   var btn = document.getElementById('voice-toggle-btn');
-  var offBtn = bar ? bar.querySelector('button') : null;
 
   if (_voiceModeActive) {
-    if (bar) bar.style.display = 'block';
-    if (btn) { btn.style.background = 'linear-gradient(135deg,#0ea5e9,#0284c7)'; btn.style.color = 'white'; btn.style.borderColor = '#0284c7'; }
-    if (offBtn) { offBtn.textContent = 'ON'; offBtn.style.background = '#0ea5e9'; offBtn.style.color = 'white'; }
-    updateVoiceStatus('マイクをタップして話しかけてね');
-    // 音声モード開始 → すぐに音声認識開始
-    startVoiceRecognition();
+    // 音声モードON: テキスト入力を隠して音声パネル表示
+    if (panel) panel.style.display = 'block';
+    if (textBar) textBar.style.display = 'none';
+    updateVoiceStatus('タップして話しかけてね');
+    updateVoiceSubStatus('バディーの返答も読み上げます');
   } else {
-    if (bar) bar.style.display = 'none';
+    // 音声モードOFF
+    if (panel) panel.style.display = 'none';
+    if (textBar) textBar.style.display = 'block';
     if (btn) { btn.style.background = '#f1f5f9'; btn.style.color = '#64748b'; btn.style.borderColor = '#e2e8f0'; }
     stopVoiceRecognition();
     stopSpeaking();
@@ -6234,6 +6237,43 @@ function toggleVoiceMode() {
 function updateVoiceStatus(text) {
   var el = document.getElementById('voice-status');
   if (el) el.textContent = text;
+}
+function updateVoiceSubStatus(text) {
+  var el = document.getElementById('voice-sub-status');
+  if (el) el.textContent = text;
+}
+
+// マイクボタンのビジュアル状態更新
+function setMicState(state) {
+  var micBtn = document.getElementById('voice-mic-btn');
+  if (!micBtn) return;
+  if (state === 'listening') {
+    micBtn.style.background = 'linear-gradient(135deg,#dc2626,#ef4444)';
+    micBtn.style.boxShadow = '0 4px 20px rgba(220,38,38,0.4)';
+    micBtn.innerHTML = '<i class="fas fa-stop"></i>';
+  } else if (state === 'speaking') {
+    micBtn.style.background = 'linear-gradient(135deg,#8b5cf6,#a78bfa)';
+    micBtn.style.boxShadow = '0 4px 16px rgba(139,92,246,0.35)';
+    micBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
+  } else if (state === 'processing') {
+    micBtn.style.background = 'linear-gradient(135deg,#f59e0b,#fbbf24)';
+    micBtn.style.boxShadow = '0 4px 16px rgba(245,158,11,0.35)';
+    micBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i>';
+  } else {
+    micBtn.style.background = 'linear-gradient(135deg,#0ea5e9,#0284c7)';
+    micBtn.style.boxShadow = '0 4px 16px rgba(14,165,233,0.35)';
+    micBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+  }
+}
+
+// --- タップで話す ---
+function tapToSpeak() {
+  // 読み上げ中なら停止
+  if (_isSpeaking) { stopSpeaking(); setMicState('ready'); updateVoiceStatus('タップして話しかけてね'); return; }
+  // 認識中なら停止
+  if (_isListening) { stopVoiceRecognition(); return; }
+  // 音声認識開始
+  startVoiceRecognition();
 }
 
 // --- STT: 音声認識 ---
@@ -6245,7 +6285,7 @@ function startVoiceRecognition() {
     return;
   }
 
-  stopVoiceRecognition(); // 既存セッションをクリア
+  stopVoiceRecognition();
 
   _speechRecognition = new SpeechRecognition();
   _speechRecognition.lang = 'ja-JP';
@@ -6257,9 +6297,11 @@ function startVoiceRecognition() {
   var input = document.getElementById('buddy-input');
 
   _speechRecognition.onstart = function() {
+    _isListening = true;
     if (indicator) indicator.style.display = 'block';
+    setMicState('listening');
     updateVoiceStatus('聞いています...');
-    if (input) input.placeholder = '話してください...';
+    updateVoiceSubStatus('話し終わったら自動で送信します');
   };
 
   _speechRecognition.onresult = function(event) {
@@ -6269,48 +6311,74 @@ function startVoiceRecognition() {
       transcript += event.results[i][0].transcript;
       if (event.results[i].isFinal) isFinal = true;
     }
+    // リアルタイムプレビュー
+    updateVoiceSubStatus(transcript || '...');
     if (input) input.value = transcript;
+
     if (isFinal && transcript.trim()) {
+      _isListening = false;
       if (indicator) indicator.style.display = 'none';
+      setMicState('processing');
       updateVoiceStatus('送信中...');
+      updateVoiceSubStatus(transcript);
       sendBuddyMessage();
     }
   };
 
   _speechRecognition.onerror = function(event) {
+    _isListening = false;
     if (indicator) indicator.style.display = 'none';
+    setMicState('ready');
     if (event.error === 'no-speech') {
-      updateVoiceStatus('聞き取れませんでした。もう一度どうぞ');
-      if (_voiceModeActive) setTimeout(function() { startVoiceRecognition(); }, 1000);
+      updateVoiceStatus('聞き取れませんでした');
+      updateVoiceSubStatus('もう一度タップして話しかけてね');
     } else if (event.error === 'not-allowed') {
       alert('マイクへのアクセスが許可されていません。ブラウザの設定を確認してください。');
       toggleVoiceMode();
+    } else if (event.error === 'aborted') {
+      // ユーザーが停止した場合は何もしない
     } else {
-      updateVoiceStatus('エラー: ' + event.error);
-      if (_voiceModeActive) setTimeout(function() { startVoiceRecognition(); }, 2000);
+      updateVoiceStatus('エラーが発生しました');
+      updateVoiceSubStatus('もう一度タップしてください');
     }
   };
 
   _speechRecognition.onend = function() {
+    _isListening = false;
     if (indicator) indicator.style.display = 'none';
+    // フリーズ防止: 認識終了後は必ずready状態に戻す（processingでなければ）
+    var micBtn = document.getElementById('voice-mic-btn');
+    if (micBtn && micBtn.innerHTML.indexOf('fa-stop') !== -1) {
+      setMicState('ready');
+      updateVoiceStatus('タップして話しかけてね');
+    }
   };
 
-  _speechRecognition.start();
+  try {
+    _speechRecognition.start();
+  } catch(e) {
+    _isListening = false;
+    setMicState('ready');
+    updateVoiceStatus('音声認識を開始できませんでした');
+    updateVoiceSubStatus('もう一度タップしてください');
+  }
 }
 
 function stopVoiceRecognition() {
+  _isListening = false;
   if (_speechRecognition) {
     try { _speechRecognition.abort(); } catch(e) {}
     _speechRecognition = null;
   }
   var indicator = document.getElementById('voice-listening-indicator');
   if (indicator) indicator.style.display = 'none';
+  setMicState('ready');
+  updateVoiceStatus('タップして話しかけてね');
 }
 
 // --- TTS: 読み上げ ---
 function getJapaneseVoice() {
   var voices = speechSynthesis.getVoices();
-  // 優先順: Google日本語 > デバイス日本語女性 > 日本語なら何でも
   var preferred = ['Google 日本語', 'Kyoko', 'O-Ren', 'Hattori', 'Microsoft Nanami'];
   for (var p = 0; p < preferred.length; p++) {
     for (var v = 0; v < voices.length; v++) {
@@ -6323,21 +6391,24 @@ function getJapaneseVoice() {
   return null;
 }
 
-function speakBuddyText(btnEl) {
-  var text = btnEl.getAttribute('data-text');
-  if (!text) return;
-  doSpeak(text, btnEl.closest('.buddy-msg'));
-}
-
-function doSpeak(text, msgEl) {
-  stopSpeaking();
-  // テキストをクリーンアップ（絵文字や記号を除去して自然に読む）
-  var cleanText = text.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{27BF}\u{FE00}-\u{FE0F}\u{1F900}-\u{1F9FF}]/gu, '')
+function cleanTextForSpeech(text) {
+  return text.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{27BF}\u{FE00}-\u{FE0F}\u{1F900}-\u{1F9FF}]/gu, '')
     .replace(/[★●▲♪♥❤️✨💪🎯⭐🔥]/g, '')
     .replace(/━+/g, '')
     .replace(/\n+/g, '。')
     .trim();
-  if (!cleanText) return;
+}
+
+function speakBuddyText(btnEl) {
+  var text = btnEl.getAttribute('data-text');
+  if (!text) return;
+  doSpeak(text, btnEl.closest('.buddy-msg'), null);
+}
+
+function doSpeak(text, msgEl, onDone) {
+  stopSpeaking();
+  var cleanText = cleanTextForSpeech(text);
+  if (!cleanText) { if (onDone) onDone(); return; }
 
   var utterance = new SpeechSynthesisUtterance(cleanText);
   utterance.lang = 'ja-JP';
@@ -6354,10 +6425,12 @@ function doSpeak(text, msgEl) {
   utterance.onend = function() {
     _isSpeaking = false;
     if (bubble) bubble.classList.remove('speaking');
+    if (onDone) onDone();
   };
   utterance.onerror = function() {
     _isSpeaking = false;
     if (bubble) bubble.classList.remove('speaking');
+    if (onDone) onDone();
   };
 
   speechSynthesis.speak(utterance);
@@ -6369,44 +6442,23 @@ function stopSpeaking() {
   document.querySelectorAll('.buddy-bubble.speaking').forEach(function(el) { el.classList.remove('speaking'); });
 }
 
-// 音声モード: 自動読み上げ → 完了後に次の音声認識開始
+// 音声モード: 自動読み上げ → 完了後にready状態に戻す（タップ待ち）
 function autoSpeakAndListen(text) {
   var msgs = document.getElementById('buddy-messages');
   var lastAI = msgs ? msgs.querySelector('.buddy-msg.ai:last-child') : null;
-  stopSpeaking();
 
-  var cleanText = text.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{27BF}\u{FE00}-\u{FE0F}\u{1F900}-\u{1F9FF}]/gu, '')
-    .replace(/[★●▲♪♥❤️✨💪🎯⭐🔥]/g, '').replace(/━+/g, '').replace(/\n+/g, '。').trim();
-  if (!cleanText) { if (_voiceModeActive) startVoiceRecognition(); return; }
-
-  var utterance = new SpeechSynthesisUtterance(cleanText);
-  utterance.lang = 'ja-JP';
-  utterance.rate = 1.05;
-  utterance.pitch = 1.1;
-  var voice = getJapaneseVoice();
-  if (voice) utterance.voice = voice;
-
-  var bubble = lastAI ? lastAI.querySelector('.buddy-bubble') : null;
-  if (bubble) bubble.classList.add('speaking');
-  _isSpeaking = true;
+  setMicState('speaking');
   updateVoiceStatus('バディーが話しています...');
+  updateVoiceSubStatus('');
 
-  utterance.onend = function() {
-    _isSpeaking = false;
-    if (bubble) bubble.classList.remove('speaking');
-    // 読み上げ完了 → 次の音声認識を自動開始
+  doSpeak(text, lastAI, function() {
+    // 読み上げ完了 → タップ待ち状態に戻す
     if (_voiceModeActive) {
-      updateVoiceStatus('あなたの番です');
-      setTimeout(function() { startVoiceRecognition(); }, 500);
+      setMicState('ready');
+      updateVoiceStatus('タップして話しかけてね');
+      updateVoiceSubStatus('');
     }
-  };
-  utterance.onerror = function() {
-    _isSpeaking = false;
-    if (bubble) bubble.classList.remove('speaking');
-    if (_voiceModeActive) setTimeout(function() { startVoiceRecognition(); }, 500);
-  };
-
-  speechSynthesis.speak(utterance);
+  });
 }
 
 // 音声リスト読み込み（一部ブラウザは非同期で読み込まれる）

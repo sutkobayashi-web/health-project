@@ -212,23 +212,95 @@ function sendPersonalMessage(targetUid, targetName) {
 }
 
 function sendBuddyMessage(targetUid, targetName) {
-  const msg = prompt('「' + targetName + '」さんにバディーチャットで送信:\n(バディー画面に吹き出しで表示されます)');
-  if (!msg || !msg.trim()) return;
+  // モーダルで送信フォーム＋履歴を表示
+  var existing = document.getElementById('buddy-send-modal');
+  if (existing) existing.remove();
 
-  showLoading('送信中...');
-  saveAdminNotice({ content: '【BUDDY】' + msg.trim(), isBroadcast: false, targetUid: targetUid, sender: currentAdminProfile.name || 'Admin' })
+  var modal = document.createElement('div');
+  modal.id = 'buddy-send-modal';
+  modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;';
+  modal.innerHTML =
+    '<div style="background:white;border-radius:16px;width:90%;max-width:500px;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 8px 32px rgba(0,0,0,0.2);">' +
+      '<div style="padding:16px 20px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center;">' +
+        '<div style="font-weight:800;font-size:1rem;"><i class="fas fa-comment-dots" style="color:#0ea5e9;margin-right:6px;"></i>バディー経由メッセージ — ' + escapeHtml(targetName) + 'さん</div>' +
+        '<button onclick="document.getElementById(\'buddy-send-modal\').remove()" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:#999;">&times;</button>' +
+      '</div>' +
+      '<div style="padding:16px 20px;border-bottom:1px solid #eee;">' +
+        '<textarea id="buddy-send-text" rows="3" placeholder="バディー画面に吹き出しで表示されます..." style="width:100%;border:1.5px solid #e0e0e0;border-radius:10px;padding:10px;font-size:0.85rem;resize:none;box-sizing:border-box;"></textarea>' +
+        '<button id="buddy-send-btn" onclick="execBuddySend(\'' + targetUid + '\',\'' + escapeHtml(targetName) + '\')" style="margin-top:8px;width:100%;padding:10px;background:linear-gradient(135deg,#0ea5e9,#0284c7);color:white;border:none;border-radius:10px;font-weight:700;font-size:0.85rem;cursor:pointer;"><i class="fas fa-paper-plane" style="margin-right:6px;"></i>送信</button>' +
+      '</div>' +
+      '<div style="padding:12px 20px;font-weight:700;font-size:0.8rem;color:#666;border-bottom:1px solid #f0f0f0;"><i class="fas fa-history" style="margin-right:4px;"></i>送信履歴</div>' +
+      '<div id="buddy-send-history" style="flex:1;overflow-y:auto;padding:8px 20px;">' +
+        '<div class="text-center p-2"><div class="spinner-border spinner-border-sm"></div></div>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(modal);
+  modal.addEventListener('click', function(e) { if (e.target === modal) modal.remove(); });
+  document.getElementById('buddy-send-text').focus();
+
+  // 履歴取得
+  loadBuddySentHistory(targetUid);
+}
+
+function execBuddySend(targetUid, targetName) {
+  var textarea = document.getElementById('buddy-send-text');
+  var msg = textarea.value.trim();
+  if (!msg) return;
+
+  var btn = document.getElementById('buddy-send-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 送信中...';
+
+  saveAdminNotice({ content: '【BUDDY】' + msg, isBroadcast: false, targetUid: targetUid, sender: currentAdminProfile.name || 'Admin' })
     .then(function(res) {
-      hideLoading();
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-paper-plane" style="margin-right:6px;"></i>送信';
       if (res && res.success) {
-        alert('バディーチャットに送信しました');
+        textarea.value = '';
+        loadBuddySentHistory(targetUid);
       } else {
         alert('送信エラー: ' + ((res && res.msg) || '不明'));
       }
     })
     .catch(function(err) {
-      hideLoading();
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-paper-plane" style="margin-right:6px;"></i>送信';
       alert('エラー: ' + (err.message || '不明'));
     });
+}
+
+function loadBuddySentHistory(filterUid) {
+  var area = document.getElementById('buddy-send-history');
+  if (!area) return;
+
+  fetch('/api/notices/buddy-sent-history', {
+    headers: { 'Authorization': 'Bearer ' + getAdminToken() }
+  }).then(function(r) { return r.json(); }).then(function(data) {
+    if (!data.success || !data.list || data.list.length === 0) {
+      area.innerHTML = '<div style="text-align:center;padding:20px;color:#aaa;font-size:0.8rem;">送信履歴はまだありません</div>';
+      return;
+    }
+    // 特定ユーザー宛をフィルタ（指定あれば）、なければ全件
+    var list = filterUid ? data.list.filter(function(n) { return n.targetId === filterUid; }) : data.list;
+    if (list.length === 0) {
+      area.innerHTML = '<div style="text-align:center;padding:20px;color:#aaa;font-size:0.8rem;">この方への送信履歴はまだありません</div>';
+      return;
+    }
+    var html = '';
+    list.forEach(function(n) {
+      var statusIcon = n.status === 'buddy_read' ? '<span style="color:#4caf50;font-size:0.7rem;" title="表示済み"><i class="fas fa-check-double"></i></span>' : '<span style="color:#aaa;font-size:0.7rem;" title="未表示"><i class="fas fa-check"></i></span>';
+      html += '<div style="padding:8px 0;border-bottom:1px solid #f5f5f5;">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">' +
+          '<span style="font-size:0.7rem;color:#999;">' + n.date + ' ' + statusIcon + '</span>' +
+          '<span style="font-size:0.7rem;color:#0ea5e9;font-weight:600;">' + escapeHtml(n.sender) + ' → ' + escapeHtml(n.targetName) + '</span>' +
+        '</div>' +
+        '<div style="font-size:0.82rem;color:#333;line-height:1.5;background:#f0f9ff;border-radius:8px;padding:8px 10px;">' + escapeHtml(n.content) + '</div>' +
+      '</div>';
+    });
+    area.innerHTML = html;
+  }).catch(function() {
+    area.innerHTML = '<div style="text-align:center;padding:20px;color:#e74c3c;font-size:0.8rem;">履歴の取得に失敗しました</div>';
+  });
 }
 
 // ---- 解決済みアーカイブ読み込み ----

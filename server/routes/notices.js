@@ -163,4 +163,25 @@ router.get('/admin-list', (req, res) => {
   } catch (e) { res.json({ list: [], unreadCount: 0 }); }
 });
 
+// バディー経由送信履歴（Admin用）
+router.get('/buddy-sent-history', (req, res) => {
+  try {
+    const db = getDb();
+    const notices = db.prepare("SELECT * FROM notices WHERE content LIKE '【BUDDY】%' ORDER BY created_at DESC LIMIT 100").all();
+    const users = db.prepare('SELECT id, nickname FROM users').all();
+    const userMap = {};
+    users.forEach(u => { userMap[u.id] = u.nickname; });
+    const list = notices.map(n => ({
+      id: n.notice_id,
+      date: new Date(n.created_at + 'Z').toLocaleString('ja-JP', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Tokyo' }),
+      targetName: userMap[n.target_id] || n.target_id,
+      targetId: n.target_id,
+      sender: n.sender,
+      content: n.content.replace('【BUDDY】', '').trim(),
+      status: n.status
+    }));
+    res.json({ success: true, list });
+  } catch (e) { res.json({ success: true, list: [] }); }
+});
+
 module.exports = router;

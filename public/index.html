@@ -4571,22 +4571,15 @@ function startBuddyChat(buddyData) {
         _buddyMoodChecked = true;
         // バディー経由メッセージも読み込む
         loadBuddyNotices();
-        // 履歴復元後は「続きから」メッセージ（最後の発言がこのメッセージ自体なら追加しない）
-        // 「続きから」メッセージはUI表示のみ（サーバー保存しない）
-        setTimeout(function() {
-          window._buddyRestoring = true;
-          addBuddyMessage('ai', 'さっきの続きだね！何か聞きたいことがあればいつでもどうぞ😊');
-          window._buddyRestoring = false;
-          // カスタマイズ案内（非表示設定されていなければ）
-          if (!localStorage.getItem(getBuddySetupKey())) {
-            setTimeout(function() {
-              window._buddyRestoring = true;
-              addBuddyMessage('ai', '🎨 そういえば、バディーの名前・見た目・性格をカスタマイズできるよ！');
-              window._buddyRestoring = false;
-              showBuddySetupPromptWithDismiss();
-            }, 1000);
-          }
-        }, 500);
+        // カスタマイズ案内（非表示設定されていなければ）
+        if (!localStorage.getItem(getBuddySetupKey())) {
+          setTimeout(function() {
+            window._buddyRestoring = true;
+            addBuddyMessage('ai', '🎨 そういえば、バディーの名前・見た目・性格をカスタマイズできるよ！');
+            window._buddyRestoring = false;
+            showBuddySetupPromptWithDismiss();
+          }, 500);
+        }
       } else {
         // 履歴なし → 通常の初回フロー
         startBuddyChatFresh(buddyData);

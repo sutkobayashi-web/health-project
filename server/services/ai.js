@@ -423,26 +423,22 @@ async function getBuddyGreeting(userName, buddyType) {
     const buddyName = getBuddyName(buddyType);
     const hour = new Date().getHours();
     const timeContext = hour < 11 ? '朝' : hour < 17 ? '昼' : '夜';
-    const timeQuestion = hour < 11 ? '「今日はどんな予定？」「朝ごはん食べた？」' : hour < 17 ? '「今日どんな感じ？」「お昼何食べた？」' : '「今日はどんな1日だった？」「なんかあった？」';
     const sys = `あなたはユーザーの健康パートナー「ヘルスバディー」（${buddyName}）です。
 ユーザー「${userName || 'さん'}」がアプリを開きました。現在は${timeContext}の時間帯です。
 
 以下を含む挨拶を2〜3文で返してください：
 - 「来てくれた」ことへの嬉しさ（「おっ、来てくれた！」「よっ！」等、友達に会った感じで）
 - 今日の天気や季節に軽く触れるか、前回話した内容に触れる
-- ${timeQuestion}のように時間帯に合った問いかけで締める
+- 最後は「まず、今の調子はどう？」のように体調を聞いて締める
 - ★★★「何をしましょうか」「何かお手伝い」的なサービス口調は禁止。友達の口調で★★★
 
 # 性格・口調
 ${tone}`;
     const reply = await callAIWithFallback(sys, '挨拶してください');
     if (reply) return { success: true, reply };
-    const fallbackQ = hour < 11 ? '今日はどんな予定？' : hour < 17 ? '今日どんな感じ？' : '今日はどんな1日だった？';
-    return { success: true, reply: `おっ、${userName || ''}さん！来てくれて嬉しい😊\n${fallbackQ}` };
+    return { success: true, reply: `おっ、${userName || ''}さん！来てくれて嬉しい😊\nまず、今の調子はどう？` };
   } catch (e) {
-    const hour = new Date().getHours();
-    const fallbackQ = hour < 11 ? '今日はどんな予定？' : hour < 17 ? '今日どんな感じ？' : '今日はどんな1日だった？';
-    return { success: true, reply: `おっ、${userName || ''}さん！来てくれて嬉しい😊\n${fallbackQ}` };
+    return { success: true, reply: `おっ、${userName || ''}さん！来てくれて嬉しい😊\nまず、今の調子はどう？` };
   }
 }
 

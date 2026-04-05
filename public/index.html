@@ -4646,8 +4646,7 @@ function startBuddyChatFresh(buddyData) {
       return;
     }
 
-    var timeMsg = hour < 11 ? '今日はどんな予定？' : hour < 17 ? '今日はどんな感じ？' : '今日はどんな1日だった？';
-    msg += '\n\n' + timeMsg;
+    msg += '\n\nまず、今の調子はどう？';
     addBuddyMessage('ai', msg);
     // カスタマイズ案内（「表示しない」を選ぶまで毎回表示）
     if (!localStorage.getItem(getBuddySetupKey())) {
@@ -4659,7 +4658,7 @@ function startBuddyChatFresh(buddyData) {
     loadBuddyNotices();
     setTimeout(function() { checkBuddyTopic(); }, 800);
   }).catch(function() {
-    addBuddyMessage('ai', greeting + '、' + nickname + 'さん！\n📅 ' + fullDate + '\n\n今日の調子はいかがですか？');
+    addBuddyMessage('ai', greeting + '、' + nickname + 'さん！\n📅 ' + fullDate + '\n\nまず、今の調子はどう？');
     loadBuddyNotices();
     setTimeout(function() { checkBuddyTopic(); }, 800);
   });
@@ -5003,16 +5002,18 @@ function selectMood(mood) {
   // 体調をDBに記録
   saveBuddyMood(mood);
 
-  // 体調に応じた返答
+  // 体調に応じた返答 + 時間帯の問いかけ
+  var h = new Date().getHours();
+  var timeFollow = h < 11 ? '\n今日はどんな予定？' : h < 17 ? '\n今日はどんな感じ？' : '\n今日はどんな1日だった？';
   setTimeout(function() {
     if (mood === 'great') {
-      addBuddyMessage('ai', 'いい感じですね！✨\nその調子で今日も頑張りましょう！');
+      addBuddyMessage('ai', 'いい感じですね！✨' + timeFollow);
       setTimeout(function() { showFollowUpTopics(); }, 1000);
     } else if (mood === 'normal') {
-      addBuddyMessage('ai', 'まずまずですね👍\n何か気になることはありますか？');
+      addBuddyMessage('ai', 'まずまずですね👍' + timeFollow);
       setTimeout(function() { showConcernOptions(); }, 1000);
     } else if (mood === 'tired') {
-      addBuddyMessage('ai', '少し疲れてるんですね。\n最近で気になることはありますか？');
+      addBuddyMessage('ai', '少し疲れてるんですね。\n無理しないでね。何か気になることはありますか？');
       setTimeout(function() { showConcernOptions(); }, 1000);
     } else {
       addBuddyMessage('ai', 'それは心配ですね😢\n無理しないでくださいね。\n何かつらいことがありますか？');

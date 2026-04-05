@@ -261,6 +261,25 @@ function scheduleVoiceInsight() {
 }
 scheduleVoiceInsight();
 
+// 週次ふりかえりレポート（毎週月曜 8:00 JST — インサイトの30分後）
+function scheduleWeeklyReflection() {
+  const now = new Date();
+  const jstNow = new Date(now.getTime() + 9 * 3600000);
+  const jstNext = new Date(jstNow);
+  const dayOfWeek = jstNext.getDay();
+  const daysUntilMonday = dayOfWeek === 0 ? 1 : dayOfWeek === 1 ? (jstNow.getHours() >= 8 ? 7 : 0) : 8 - dayOfWeek;
+  jstNext.setDate(jstNext.getDate() + daysUntilMonday);
+  jstNext.setHours(8, 0, 0, 0);
+  const utcNext = new Date(jstNext.getTime() - 9 * 3600000);
+  const delay = Math.max(utcNext - now, 60000);
+  console.log(`次回ふりかえり: ${jstNext.toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' })} (${Math.round(delay/3600000)}h後)`);
+  setTimeout(() => {
+    const { runWeeklyReflection } = require('./services/weekly-reflection');
+    runWeeklyReflection().then(() => scheduleWeeklyReflection()).catch(e => { console.error('ふりかえりエラー:', e.message); scheduleWeeklyReflection(); });
+  }, delay);
+}
+scheduleWeeklyReflection();
+
 // SPA フォールバック (管理画面)
 app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'public', 'admin.html'));

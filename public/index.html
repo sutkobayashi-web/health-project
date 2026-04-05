@@ -5163,16 +5163,76 @@ async function buddyAskAI(concern, userText) {
       if (challengeMentioned) {
         setTimeout(function() { showChallengeReaction(challengeMentioned); }, 800);
       }
+      // 声の吸い上げ提案を検知 → 「みんなにも聞いてみる？」ボタン表示
+      if (data.voiceSuggest) {
+        setTimeout(function() { showVoiceSuggestButtons(); }, 1000);
+        return; // wrapUpは出さない（吸い上げ提案が優先）
+      }
       // 1往復のアドバイス後に締めの選択肢を表示
       setTimeout(function() { showBuddyWrapUp(); }, challengeMentioned ? 2000 : 1200);
     } else {
-      addBuddyMessage('ai', '申し訳ありません、うまく返答できませんでした。\nもう一度お話しいただけますか？');
+      addBuddyMessage('ai', 'あれ、うまく聞き取れなかった。もう一回教えてくれる？');
     }
   } catch(e) {
     var loadEl = document.getElementById(loadingId);
     if (loadEl) loadEl.remove();
-    addBuddyMessage('ai', '通信エラーが発生しました。\n少し時間をおいて試してみてください。');
+    addBuddyMessage('ai', 'ごめん、ちょっと調子悪いみたい。少ししたらまた話そう！');
   }
+}
+
+// ========================================
+// 声の自然な吸い上げ: バディー会話→投稿
+// ========================================
+function showVoiceSuggestButtons() {
+  addBuddyInlineQuick(
+    '<div style="text-align:center;padding:6px 0;">' +
+      '<div style="font-size:0.72rem;color:#667eea;font-weight:700;margin-bottom:8px;">同じ悩みの人がいるかも。匿名でみんなに聞いてみる？</div>' +
+      '<div style="display:flex;gap:8px;justify-content:center;">' +
+        '<div class="buddy-quick-btn" onclick="submitVoiceFromChat()" style="border-color:#20c997;color:#20c997;font-weight:700;">📢 聞いてみる</div>' +
+        '<div class="buddy-quick-btn" onclick="declineVoiceSuggest()" style="border-color:#999;color:#999;">🙅 やめとく</div>' +
+      '</div>' +
+      '<div style="font-size:0.6rem;color:#aaa;margin-top:6px;">バディーが要約するから、そのまま投稿されることはないよ</div>' +
+    '</div>'
+  );
+}
+
+function submitVoiceFromChat() {
+  markBuddyQuickUsed();
+  addBuddyMessage('user', '📢 みんなにも聞いてみる');
+  addBuddyMessage('ai', '了解！今の会話をまとめてるね…🖊️');
+
+  // 直近の会話履歴を取得（最大10往復）
+  var recentMessages = _buddyHistory.slice(-20).map(function(h) {
+    return { role: h.role === 'ai' ? 'assistant' : 'user', content: h.content };
+  });
+
+  fetch('/api/chat/voice-from-chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
+    body: JSON.stringify({
+      uid: currentUser.uid,
+      nickname: currentUser.nickname,
+      avatar: currentUser.avatar,
+      department: currentUser.department,
+      birthDate: currentUser.birthDate,
+      recentMessages: recentMessages
+    })
+  }).then(function(r) { return r.json(); }).then(function(res) {
+    if (res.success) {
+      addBuddyMessage('ai', 'みんなに届けたよ！名前は出してないから安心してね😊\n推進メンバーも見てくれるはずだよ。');
+      updateBuddyHeaderStreak();
+    } else {
+      addBuddyMessage('ai', 'ごめん、うまく届けられなかった…。また後で試してみてね。');
+    }
+  }).catch(function() {
+    addBuddyMessage('ai', 'ごめん、通信エラーみたい。また後で試してね。');
+  });
+}
+
+function declineVoiceSuggest() {
+  markBuddyQuickUsed();
+  addBuddyMessage('user', '🙅 やめとく');
+  addBuddyMessage('ai', '全然いいよ！ここだけの話にしとくね😊\n何かあったらいつでも言ってね。');
 }
 
 function showChallengeReaction(challenge) {

@@ -434,6 +434,77 @@ router.get('/daily-greeting', async (req, res) => {
   }
 });
 
+// ========================================
+// 声の自然な吸い上げ: 会話→要約→自動投稿
+// ========================================
+router.post('/voice-from-chat', authUser, async (req, res) => {
+  try {
+    const { uid, nickname, avatar, department, birthDate, recentMessages } = req.body;
+    if (!uid || !recentMessages || recentMessages.length === 0) {
+      return res.json({ success: false, msg: '会話履歴がありません' });
+    }
+
+    const db = getDb();
+    const { callAIWithFallback } = require('../services/ai');
+    const { awardMarigan } = require('../services/marigan');
+    const { v4: uuidv4 } = require('uuid');
+
+    // 直近の会話から要約を生成（AI）
+    const chatText = recentMessages.map(m => (m.role === 'user' ? '社員: ' : 'バディー: ') + m.content).join('\n');
+
+    const summaryPrompt = `以下はある社員とヘルスバディーの会話です。この中から社員が困っていること・提案・要望を1つ抽出し、匿名の投稿文として要約してください。
+
+【会話】
+${chatText}
+
+【要約ルール】
+- 社員の立場で書く（「私は」「自分は」で始めてOK）
+- 個人が特定されない表現にする（名前、具体的な日時は除く）
+- 困りごとの本質を2〜3文で簡潔に
+- 「〜だったらいいのに」「〜してほしい」のような要望形で締める
+- マークダウン不可
+- 50〜100文字程度`;
+
+    const summary = await callAIWithFallback('あなたは社員の声を匿名で要約するアシスタントです。', summaryPrompt);
+    if (!summary) return res.json({ success: false, msg: '要約生成に失敗しました' });
+
+    // 投稿として保存（バディー経由であることを記録）
+    const pid = 'post_' + uuidv4().substring(0, 8);
+
+    // AIヘルスアドバイザーのコメントも生成
+    const { EVIDENCE_BASE } = require('../services/ai');
+    const careSys = `あなたは相棒です。以下の社員の声に対して、共感と労いの一言を返してください。
+- 2〜3文で短く
+- 「大変だったね」「わかるよ」から入る
+- 同じ悩みを持つ人がいることを伝える
+- マークダウン不可、強調は【】
+- 最後に「📚 出典:」でガイドライン名を明記`;
+    let careComment = await callAIWithFallback(careSys, summary);
+    if (!careComment) careComment = '声を届けてくれてありがとう。推進メンバーが確認するよ。';
+
+    const analysis = `【相棒からのひとこと】\n${careComment}\n///SCORE///\n{"is_target":true,"legal":1,"risk":2,"freq":2,"urgency":2,"safety":2,"value":3,"needs":3}`;
+
+    db.prepare(`INSERT INTO posts (post_id, user_id, content, analysis, nickname, avatar, status, category, department, birth_date)
+      VALUES (?, ?, ?, ?, ?, ?, 'open', '💬 相談・提案', ?, ?)`).run(
+      pid, uid, '【バディーとの会話から】' + summary, analysis, nickname, avatar, department || '', birthDate || ''
+    );
+
+    // コイン付与
+    awardMarigan(uid, 'post', pid);
+
+    // バディーメッセージで完了を通知
+    db.prepare('INSERT INTO buddy_messages (user_id, role, content) VALUES (?, ?, ?)').run(
+      uid, 'assistant',
+      'みんなに届けたよ！名前は出してないから安心してね😊\n推進メンバーが見てくれるはずだよ。'
+    );
+
+    res.json({ success: true, postId: pid, summary: summary });
+  } catch (e) {
+    console.error('[voice-from-chat]', e.message);
+    res.json({ success: false, msg: e.message });
+  }
+});
+
 // メモ保存
 router.post('/save-memo', (req, res) => {
   try {

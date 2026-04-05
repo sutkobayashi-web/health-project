@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260405_1500">
+<html data-app-version="20260405_1520">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -315,10 +315,20 @@
         <div style="font-size:1.6rem; font-weight:900; color:#2c3e50; margin-bottom:4px;">CoWell Health Project 2.0</div>
         <div class="auth-hero-catch">みんなの声で職場を元気に。<br><strong>AIヘルスアドバイザー</strong>と<strong>AI食事アドバイザー</strong>があなたの健康をサポートします</div>
       </div>
-      <div class="auth-guide-text">はじめに選択してください</div>
-      <button class="auth-menu-btn btn-new-user" onclick="showStep('register')"><i class="fas fa-user-plus"></i><div><span class="auth-menu-title">はじめての方</span><span class="auth-menu-desc">新規登録して参加する</span></div></button>
-      <button class="auth-menu-btn btn-exist-user" onclick="showStep('login')"><i class="fas fa-sign-in-alt"></i><div><span class="auth-menu-title">登録済みの方</span><span class="auth-menu-desc">ログインして続ける</span></div></button>
+      <div class="auth-guide-text">あなたの役割を選択してください</div>
+      <button class="auth-menu-btn" onclick="showStep('user-menu')" style="background:linear-gradient(135deg,#e8f5e9,#c8e6c9); border:2px solid #66bb6a;"><i class="fas fa-users" style="color:#2e7d32;"></i><div><span class="auth-menu-title" style="color:#2e7d32;">社員の方</span><span class="auth-menu-desc">健康アプリを利用する</span></div></button>
       <button class="auth-menu-btn" onclick="showStep('member-menu')" style="background:linear-gradient(135deg,#fff0f6,#fce4ec); border:2px solid #f48fb1;"><i class="fas fa-shield-alt" style="color:#d63384;"></i><div><span class="auth-menu-title" style="color:#d63384;">推進メンバーの方</span><span class="auth-menu-desc">管理・登録はこちら</span></div></button>
+    </div>
+
+    <div id="auth-step-user-menu" style="display:none;">
+      <div style="text-align:center; margin-bottom:14px;">
+        <div style="font-size:2.5rem; animation: authHeroBounce 2.5s ease-in-out infinite;">👋</div>
+        <div class="modal-title" style="border:none; margin-bottom:4px; padding-bottom:0; color:#2e7d32;">社員の方</div>
+        <div style="font-size:0.8rem; color:#888;">健康アプリへようこそ</div>
+      </div>
+      <button class="auth-menu-btn" onclick="showStep('register')" style="background:linear-gradient(135deg,#e3f2fd,#bbdefb); border:2px solid #42a5f5;"><i class="fas fa-user-plus" style="color:#1565c0;"></i><div><span class="auth-menu-title" style="color:#1565c0;">はじめての方</span><span class="auth-menu-desc">新規登録して参加する</span></div></button>
+      <button class="auth-menu-btn" onclick="showStep('login')" style="background:linear-gradient(135deg,#e8f5e9,#c8e6c9); border:2px solid #66bb6a;"><i class="fas fa-sign-in-alt" style="color:#2e7d32;"></i><div><span class="auth-menu-title" style="color:#2e7d32;">登録済みの方</span><span class="auth-menu-desc">ログインして続ける</span></div></button>
+      <div class="back-btn" onclick="showStep('menu')">← 戻る</div>
     </div>
 
     <div id="auth-step-member-menu" style="display:none;">
@@ -382,7 +392,7 @@
         </div>
       </div>
       <button class="auth-submit-btn" id="reg-submit-btn" onclick="doRegister()" disabled style="opacity:0.5; cursor:not-allowed;">利用規約に同意してください</button>
-      <div class="back-btn" onclick="showStep('menu')">← 戻る</div>
+      <div class="back-btn" onclick="showStep('user-menu')">← 戻る</div>
     </div>
 
     <div id="auth-step-login" style="display:none;">
@@ -402,7 +412,7 @@
       <div style="margin-bottom:15px;"><label style="font-weight:normal; display:flex; align-items:center; cursor:pointer; font-size:0.85rem; color:#555;"><input type="checkbox" id="user-remember" checked style="width:auto; margin-right:8px; transform:scale(1.3); accent-color:#20c997;"> 次回から自動ログイン</label></div>
       <button class="auth-submit-btn" style="background:linear-gradient(135deg, #20c997, #38d9a9);" onclick="doLogin()"><i class="fas fa-sign-in-alt" style="margin-right:6px;"></i> ログイン</button>
       <div style="text-align:center; margin-top:12px;"><a style="font-size:0.82rem; color:#e74c3c; cursor:pointer; text-decoration:underline;" onclick="goToReset()"><i class="fas fa-key" style="margin-right:3px;"></i> パスワードを忘れた方はこちら</a></div>
-      <div class="back-btn" onclick="showStep('menu')">← 戻る</div>
+      <div class="back-btn" onclick="showStep('user-menu')">← 戻る</div>
     </div>
 
     <div id="auth-step-reset" style="display:none;">
@@ -1558,6 +1568,7 @@ function doUserLogout() {
 
 function showStep(step) {
   document.getElementById('auth-step-menu').style.display = step === 'menu' ? 'block' : 'none';
+  document.getElementById('auth-step-user-menu').style.display = step === 'user-menu' ? 'block' : 'none';
   document.getElementById('auth-step-member-menu').style.display = step === 'member-menu' ? 'block' : 'none';
   document.getElementById('auth-step-register').style.display = step === 'register' ? 'block' : 'none';
   document.getElementById('auth-step-login').style.display = step === 'login' ? 'block' : 'none';

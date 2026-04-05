@@ -69,9 +69,9 @@ var EMPATHY_CONFIG = {
   },
   food: {
     types: [
-      { key: 'oishii',  emoji: '\uD83C\uDF7D\uFE0F', label: '\u7F8E\u5473\u3057\u305D\u3046\uFF01' },
-      { key: 'sankou',  emoji: '\uD83D\uDCAA', label: '\u53C2\u8003\u306B\u306A\u308B\uFF01' },
-      { key: 'onaji',   emoji: '\uD83D\uDE05', label: '\u81EA\u5206\u3082\u3053\u3093\u306A\u611F\u3058\u2026' }
+      { key: 'oishii',  emoji: '🤤', label: '食いてぇ！' },
+      { key: 'sankou',  emoji: '👍', label: 'うまそう！' },
+      { key: 'onaji',   emoji: '🙌', label: '真似する！' }
     ],
     questions: {
       oishii: [

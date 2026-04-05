@@ -399,6 +399,156 @@ router.get('/streak/:uid', (req, res) => {
   } catch (e) { res.json({ success: false, msg: e.message }); }
 });
 
+// ========================================
+// コイン��ョップ
+// ========================================
+
+// ショップアイテム一覧
+router.get('/shop/items', (req, res) => {
+  try {
+    const db = getDb();
+    // shop_itemsテーブルが無ければ作成
+    db.exec(`CREATE TABLE IF NOT EXISTS shop_items (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      item_id TEXT UNIQUE NOT NULL,
+      name TEXT NOT NULL,
+      description TEXT,
+      icon TEXT DEFAULT '🎁',
+      cost INTEGER NOT NULL,
+      category TEXT DEFAULT 'reward',
+      stock INTEGER DEFAULT -1,
+      active INTEGER DEFAULT 1,
+      created_at TEXT DEFAULT (datetime('now'))
+    )`);
+    db.exec(`CREATE TABLE IF NOT EXISTS shop_redemptions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id TEXT NOT NULL,
+      item_id TEXT NOT NULL,
+      cost INTEGER NOT NULL,
+      status TEXT DEFAULT 'pending',
+      created_at TEXT DEFAULT (datetime('now'))
+    )`);
+
+    // デフォルトアイテムを初期投入（存在しなければ）
+    const count = db.prepare('SELECT COUNT(*) as cnt FROM shop_items').get();
+    if (count.cnt === 0) {
+      const defaults = [
+        ['lottery_ticket', '月イチ抽選券', 'QUOカード500円やドリンク券が当たるかも！', '🎰', 500, 'lottery', -1],
+        ['coffee_gift', 'おごりコーヒー', '同僚にコーヒー1杯おごれる。相手に通知が届きます', '☕', 1000, 'gift', -1],
+        ['avatar_hat_cap', 'キャップ帽', 'アバター用のかっこいいキャップ', '🧢', 200, 'avatar', -1],
+        ['avatar_hat_helmet', 'ヘルメット', 'アバター用の安全ヘルメット', '⛑️', 300, 'avatar', -1],
+        ['avatar_glasses_sun', 'サングラス', 'アバター用のクールなサングラス', '🕶️', 250, 'avatar', -1],
+        ['avatar_glasses_star', 'スター眼鏡', 'アバター用のキラキラ星眼鏡', '⭐', 400, 'avatar', -1],
+        ['donate_100', '寄付 100円', '交通遺児支援に100円寄付（会社負担）', '💝', 2000, 'donate', -1]
+      ];
+      const ins = db.prepare('INSERT OR IGNORE INTO shop_items (item_id, name, description, icon, cost, category, stock) VALUES (?,?,?,?,?,?,?)');
+      defaults.forEach(d => ins.run(...d));
+    }
+
+    const items = db.prepare('SELECT * FROM shop_items WHERE active = 1 ORDER BY cost ASC').all();
+    res.json({ success: true, items });
+  } catch (e) { res.json({ success: false, msg: e.message }); }
+});
+
+// コイン交換（アイテム購入）
+router.post('/shop/redeem', (req, res) => {
+  try {
+    const { uid, itemId, targetUid } = req.body;
+    if (!uid || !itemId) return res.json({ success: false, msg: '必須項目が不足' });
+
+    const db = getDb();
+    const user = db.prepare('SELECT marigan_total, nickname FROM users WHERE id = ?').get(uid);
+    if (!user) return res.json({ success: false, msg: 'ユーザーが見つかりません' });
+
+    const item = db.prepare('SELECT * FROM shop_items WHERE item_id = ? AND active = 1').get(itemId);
+    if (!item) return res.json({ success: false, msg: 'アイテムが見つかりません' });
+
+    if ((user.marigan_total || 0) < item.cost) {
+      return res.json({ success: false, msg: 'コインが足りません（必要: ' + item.cost + 'pt、残高: ' + (user.marigan_total || 0) + 'pt）' });
+    }
+
+    // コイン消費
+    db.prepare('UPDATE users SET marigan_total = marigan_total - ? WHERE id = ?').run(item.cost, uid);
+
+    // 交換ログ
+    db.prepare('INSERT INTO shop_redemptions (user_id, item_id, cost, status) VALUES (?, ?, ?, ?)').run(uid, itemId, item.cost, 'pending');
+
+    // 抽選の場合は即時結果を生成
+    let lotteryResult = null;
+    if (item.category === 'lottery') {
+      const rand = Math.random();
+      if (rand < 0.05) { lotteryResult = { won: true, prize: 'QUOカード 500円', icon: '🎉', tier: 'gold' }; }
+      else if (rand < 0.20) { lotteryResult = { won: true, prize: 'ドリンク1本', icon: '🥤', tier: 'silver' }; }
+      else if (rand < 0.50) { lotteryResult = { won: true, prize: 'CoWellコイン 100pt', icon: '🪙', tier: 'bronze' }; }
+      else { lotteryResult = { won: false, prize: 'ハズレ…でもまた来週！', icon: '😅', tier: 'miss' }; }
+
+      // 当選時はコインバック
+      if (lotteryResult.tier === 'bronze') {
+        db.prepare('UPDATE users SET marigan_total = marigan_total + 100 WHERE id = ?').run(uid);
+      }
+
+      // バディーメッセージで結果を伝える
+      const lotteryMsg = lotteryResult.won
+        ? `🎰 抽選結果！\n${lotteryResult.icon} おめでとう！【${lotteryResult.prize}】が当たったよ！\n推進メンバーに見せてね！`
+        : `🎰 抽選結果！\n${lotteryResult.icon} 残念、今回はハズレ…\nでも参加してくれてありがとう！また挑戦してね💪`;
+      try {
+        db.prepare('INSERT INTO buddy_messages (user_id, role, content) VALUES (?, ?, ?)').run(uid, 'assistant', lotteryMsg);
+      } catch(e) {}
+    }
+
+    // おごりコーヒーの場合
+    if (item.category === 'gift' && targetUid) {
+      const target = db.prepare('SELECT nickname FROM users WHERE id = ?').get(targetUid);
+      const targetName = target ? target.nickname : '仲間';
+      // 相手にバディーメッセージ
+      try {
+        db.prepare('INSERT INTO buddy_messages (user_id, role, content) VALUES (?, ?, ?)').run(
+          targetUid, 'assistant',
+          `☕ ${user.nickname}さんから【おごりコーヒー】が届いたよ！\n「いつもありがとう」だって😊\n推進メンバーに見せてコーヒーもらってね！`
+        );
+        // 通知も送る
+        db.prepare("INSERT INTO notices (notice_id, content, sender, target_id, status) VALUES (?, ?, ?, ?, 'unread')").run(
+          'notice_' + Date.now(), `☕ ${user.nickname}さんからおごりコーヒーが届きました！推進メンバーに見せてコーヒーをもらってください。`, '🎁 CoWellショップ', targetUid
+        );
+      } catch(e) {}
+    }
+
+    const newTotal = db.prepare('SELECT marigan_total FROM users WHERE id = ?').get(uid);
+
+    res.json({
+      success: true,
+      item: item,
+      newTotal: newTotal ? newTotal.marigan_total : 0,
+      lotteryResult: lotteryResult,
+      msg: item.name + 'と交換しました！'
+    });
+  } catch (e) { res.json({ success: false, msg: e.message }); }
+});
+
+// 交換履歴
+router.get('/shop/history/:uid', (req, res) => {
+  try {
+    const db = getDb();
+    const history = db.prepare(`
+      SELECT sr.*, si.name, si.icon, si.category
+      FROM shop_redemptions sr
+      JOIN shop_items si ON sr.item_id = si.item_id
+      WHERE sr.user_id = ?
+      ORDER BY sr.created_at DESC LIMIT 20
+    `).all(req.params.uid);
+    res.json({ success: true, history });
+  } catch (e) { res.json({ success: false, msg: e.message }); }
+});
+
+// 社員一覧（おごりコーヒー用）
+router.get('/shop/users', (req, res) => {
+  try {
+    const db = getDb();
+    const users = db.prepare('SELECT id, nickname, avatar FROM users ORDER BY nickname').all();
+    res.json({ success: true, users });
+  } catch (e) { res.json({ success: false, msg: e.message }); }
+});
+
 // バディータイプ変更
 router.post('/update-buddy', (req, res) => {
   try {

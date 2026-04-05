@@ -396,13 +396,30 @@ router.get('/daily-greeting', async (req, res) => {
     }
 
     // 記念日は静的データ優先（AIは信頼しない）
+
+    // 好奇心ギャップ：「気になる一言」を生成
+    const curiosityTemplates = [
+      '今日のあなたの食事、ちょっと意外な発見があるかも…？',
+      '今週のデータ見たら、面白いことわかったよ👀',
+      '最近の食事パターン、あることに気づいたんだけど…',
+      'みんなの中で、あなたの○○が���番変わってたよ',
+      '今日のメシ見せてくれたら、あることを教えてあげる',
+      '先週と今週、ある数字が全然違うんだけど、気づいた？',
+      '今日の天気と食事、実は関係があるって知ってた？',
+      '今月のあなた、先月と比べて…（続きはバディーで！）',
+      '今週みんなが一番食べてるメニュー、当てられる？',
+      'あなたの食事傾向、ある有名人と似てるかも…？'
+    ];
+    const todayCuriosity = curiosityTemplates[(day + month * 3) % curiosityTemplates.length];
+
     const result = {
       dateStr: dateStr,
       dateInfo: memorial ? memorial[0] : (parsed.dateInfo || dateStr),
       dateFact: memorial ? memorial[1] : (parsed.dateFact || ''),
       weather: parsed.weather || '',
       healthTip: parsed.healthTip || '',
-      weatherRaw: weatherText
+      weatherRaw: weatherText,
+      curiosity: todayCuriosity
     };
 
     _dailyGreetingCache = { date: today, data: result };

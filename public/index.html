@@ -640,6 +640,7 @@
     <!-- ボタン -->
     <div style="padding:6px 18px;display:flex;gap:6px;">
       <button onclick="openBuddySetup()" style="flex:1;padding:8px 4px;background:linear-gradient(135deg,#0ea5e9,#0284c7);color:white;border:none;border-radius:10px;font-size:0.7rem;font-weight:700;cursor:pointer;"><i class="fas fa-robot"></i> バディー</button>
+      <button onclick="openCoinShop()" style="flex:1;padding:8px 4px;background:linear-gradient(135deg,#f59e0b,#d97706);color:white;border:none;border-radius:10px;font-size:0.7rem;font-weight:700;cursor:pointer;"><i class="fas fa-store"></i> ショップ</button>
       <button onclick="openAdminFromUser()" style="flex:1;padding:8px 4px;background:white;color:#d63384;border:1.5px solid #d63384;border-radius:10px;font-size:0.7rem;font-weight:700;cursor:pointer;"><i class="fas fa-shield-alt"></i> 推進メンバー</button>
       <button onclick="closeMyPosts();openProfileEditModal();" style="flex:1;padding:8px 4px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;border-radius:10px;font-size:0.7rem;font-weight:700;cursor:pointer;"><i class="fas fa-edit"></i> 編集</button>
     </div>
@@ -652,6 +653,25 @@
     <!-- 投稿一覧 -->
     <div style="padding:8px 12px 4px;font-size:0.78rem;font-weight:700;color:#999;flex-shrink:0;"><i class="fas fa-history"></i> 投稿履歴</div>
     <div id="my-posts-list" style="flex:1;overflow-y:auto;padding:0 12px 12px;"></div>
+  </div>
+</div>
+
+<!-- ====== コインショップ ====== -->
+<div id="coin-shop-modal" style="position:fixed;top:56px;left:0;right:0;bottom:56px;background:white;z-index:2500;display:none;flex-direction:column;overflow:hidden;">
+  <div style="width:100%;height:100%;display:flex;flex-direction:column;overflow:hidden;">
+    <div style="padding:12px 16px;background:linear-gradient(135deg,#f59e0b,#d97706);color:white;display:flex;align-items:center;gap:10px;flex-shrink:0;">
+      <button onclick="closeCoinShop()" style="background:rgba(255,255,255,0.2);border:none;color:white;width:32px;height:32px;border-radius:50%;font-size:14px;cursor:pointer;flex-shrink:0;"><i class="fas fa-arrow-left"></i></button>
+      <div style="flex:1;">
+        <div style="font-weight:900;font-size:0.95rem;"><i class="fas fa-store"></i> CoWellショップ</div>
+        <div style="font-size:0.68rem;opacity:0.85;">コインを使ってゲットしよう</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.2);padding:4px 12px;border-radius:12px;">
+        <span style="font-size:0.8rem;font-weight:800;" id="shop-coin-balance"><i class="fas fa-coins"></i> --pt</span>
+      </div>
+    </div>
+    <div id="shop-content" style="flex:1;overflow-y:auto;padding:14px 16px;background:#fffbeb;">
+      <div style="text-align:center;padding:30px;color:#999;"><i class="fas fa-spinner fa-spin"></i></div>
+    </div>
   </div>
 </div>
 
@@ -2937,6 +2957,127 @@ function renderTreeVisual(stage, color) {
 }
 
 // ========================================
+// コインショップ
+// ========================================
+function openCoinShop() {
+  var modal = document.getElementById('coin-shop-modal');
+  modal.style.display = 'flex';
+  loadShopItems();
+}
+function closeCoinShop() {
+  document.getElementById('coin-shop-modal').style.display = 'none';
+}
+function loadShopItems() {
+  var content = document.getElementById('shop-content');
+  content.innerHTML = '<div style="text-align:center;padding:30px;color:#999;"><i class="fas fa-spinner fa-spin"></i></div>';
+
+  Promise.all([
+    fetch('/api/auth/shop/items').then(function(r){return r.json();}),
+    fetch('/api/auth/marigan/' + currentUser.uid).then(function(r){return r.json();})
+  ]).then(function(results) {
+    var shopData = results[0];
+    var coinData = results[1];
+    if (!shopData.success) { content.innerHTML = '<div style="text-align:center;padding:30px;color:#999;">読み込みエラー</div>'; return; }
+
+    var balance = coinData.total || 0;
+    document.getElementById('shop-coin-balance').innerHTML = '<i class="fas fa-coins"></i> ' + balance + 'pt';
+
+    var items = shopData.items || [];
+    var categories = { lottery: '🎰 抽選', avatar: '👤 アバターパーツ', gift: '🎁 ギフト', donate: '💝 寄付' };
+    var grouped = {};
+    items.forEach(function(item) {
+      var cat = item.category || 'reward';
+      if (!grouped[cat]) grouped[cat] = [];
+      grouped[cat].push(item);
+    });
+
+    var html = '';
+    Object.keys(categories).forEach(function(cat) {
+      if (!grouped[cat] || grouped[cat].length === 0) return;
+      html += '<div style="font-weight:800;font-size:0.82rem;color:#92400e;margin:12px 0 8px;">' + categories[cat] + '</div>';
+      grouped[cat].forEach(function(item) {
+        var canBuy = balance >= item.cost;
+        var btnStyle = canBuy
+          ? 'background:linear-gradient(135deg,#f59e0b,#d97706);color:white;'
+          : 'background:#e5e7eb;color:#999;cursor:default;';
+        html += '<div style="background:white;border-radius:14px;padding:12px;margin-bottom:8px;box-shadow:0 2px 8px rgba(0,0,0,0.05);border:1px solid #f0f0f0;">' +
+          '<div style="display:flex;align-items:center;gap:10px;">' +
+            '<div style="font-size:1.8rem;width:44px;text-align:center;">' + item.icon + '</div>' +
+            '<div style="flex:1;min-width:0;">' +
+              '<div style="font-weight:700;font-size:0.88rem;color:#333;">' + item.name + '</div>' +
+              '<div style="font-size:0.7rem;color:#888;margin-top:2px;">' + (item.description || '') + '</div>' +
+            '</div>' +
+            '<button onclick="redeemItem(\'' + item.item_id + '\',\'' + item.name + '\',' + item.cost + ')" style="padding:8px 14px;border:none;border-radius:10px;font-size:0.75rem;font-weight:700;cursor:pointer;white-space:nowrap;' + btnStyle + '">' +
+              '<i class="fas fa-coins" style="font-size:0.6rem;"></i> ' + item.cost + 'pt' +
+            '</button>' +
+          '</div>' +
+        '</div>';
+      });
+    });
+
+    if (!html) html = '<div style="text-align:center;padding:30px;color:#999;">ショップ準備中...</div>';
+    content.innerHTML = html;
+  }).catch(function(e) {
+    content.innerHTML = '<div style="text-align:center;padding:30px;color:#999;">読み込みエラー</div>';
+  });
+}
+
+function redeemItem(itemId, itemName, cost) {
+  if (!confirm(itemName + '（' + cost + 'pt）と交換しますか？')) return;
+
+  // おごりコーヒーの場合は相手を選ぶ
+  var targetUid = '';
+  if (itemId === 'coffee_gift') {
+    var targetName = prompt('誰におごる？（ニックネームを入力）');
+    if (!targetName) return;
+    // ユーザー一覧から検索（簡易版: ニックネーム入力→サーバーで照合）
+    targetUid = targetName; // サーバー側で照合する
+  }
+
+  showLoading('交換中...');
+  fetch('/api/auth/shop/redeem', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ uid: currentUser.uid, itemId: itemId, targetUid: targetUid })
+  }).then(function(r){return r.json();}).then(function(res) {
+    hideLoading();
+    if (!res.success) { alert(res.msg || '交換に失敗しました'); return; }
+
+    // 抽選結果の演出
+    if (res.lotteryResult) {
+      showLotteryResult(res.lotteryResult);
+    } else {
+      alert('🎉 ' + res.msg);
+    }
+
+    // コイン残高を更新
+    document.getElementById('shop-coin-balance').innerHTML = '<i class="fas fa-coins"></i> ' + (res.newTotal || 0) + 'pt';
+    // ショップ再読み込み
+    loadShopItems();
+  }).catch(function(e) { hideLoading(); alert('エラー: ' + e.message); });
+}
+
+function showLotteryResult(result) {
+  var overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:9999;display:flex;justify-content:center;align-items:center;padding:16px;backdrop-filter:blur(6px);';
+  overlay.onclick = function(e) { if(e.target === overlay) overlay.remove(); };
+
+  var bgColor = result.won ? 'linear-gradient(135deg,#fef3c7,#fffbeb)' : 'linear-gradient(135deg,#f5f5f5,#e5e5e5)';
+  var borderColor = result.tier === 'gold' ? '#f59e0b' : result.tier === 'silver' ? '#6b7280' : result.tier === 'bronze' ? '#d97706' : '#ccc';
+
+  var box = document.createElement('div');
+  box.style.cssText = 'background:' + bgColor + ';border-radius:24px;padding:30px 24px;max-width:320px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3);border:3px solid ' + borderColor + ';animation:fadeIn 0.5s;';
+  box.innerHTML =
+    '<div style="font-size:4rem;margin-bottom:12px;animation:empBounce 0.6s ease;">' + result.icon + '</div>' +
+    '<div style="font-weight:900;font-size:1.2rem;color:' + (result.won ? '#92400e' : '#666') + ';margin-bottom:8px;">' + (result.won ? 'おめでとう！' : '残念！') + '</div>' +
+    '<div style="font-size:0.95rem;color:#333;font-weight:700;padding:12px;background:white;border-radius:12px;margin-bottom:16px;">' + result.prize + '</div>' +
+    (result.won && result.tier !== 'bronze' ? '<div style="font-size:0.75rem;color:#888;margin-bottom:12px;">推進メンバーに見せて景品をもらってね！</div>' : '') +
+    '<button onclick="this.closest(\'div[style*=fixed]\').remove()" style="padding:12px 32px;background:linear-gradient(135deg,#f59e0b,#d97706);color:white;border:none;border-radius:14px;font-weight:700;font-size:0.9rem;cursor:pointer;">閉じる</button>';
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+}
+
+// ========================================
 // 「今日の空気」ダッシュボード
 // ========================================
 function loadAtmosphere() {
@@ -4494,6 +4635,10 @@ function startBuddyChatFresh(buddyData) {
       if (data.dateInfo) msg += '\n\n今日は「' + data.dateInfo + '」' + (data.dateFact ? '\n' + data.dateFact : '');
       if (data.weather) msg += '\n\n' + data.weather;
       if (data.healthTip) msg += '\n💡 ' + data.healthTip;
+      // 好奇心ギャップの一言（Phase4）
+      if (data.curiosity) {
+        msg += '\n\n👀 ' + data.curiosity;
+      }
     }
     // 初回のみ仕組み説明（挨拶→説明→体調チェックの流れ）
     var introKey = 'co_heart_buddy_intro_' + (currentUser ? currentUser.uid : '');
@@ -4517,7 +4662,7 @@ function startBuddyChatFresh(buddyData) {
       return;
     }
 
-    msg += '\n\nさて、今日の調子はいかがですか？';
+    msg += '\n\n今日はどんな1日だった？';
     addBuddyMessage('ai', msg);
     // カスタマイズ案内（「表示しない」を選ぶまで毎回表示）
     if (!localStorage.getItem(getBuddySetupKey())) {

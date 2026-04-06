@@ -6240,7 +6240,6 @@ var _isSpeaking = false;
 var _isListening = false;
 var _voiceSendTimer = null;
 var _voiceAccumulated = '';
-var _voiceModeRestarting = false;
 
 function toggleVoiceMode() {
   _voiceModeActive = !_voiceModeActive;
@@ -6329,43 +6328,36 @@ function tapToSpeak() {
 }
 
 // --- STT: 連続音声認識 ---
-function startVoiceRecognition() {
+var VOICE_SEND_DELAY = 3000; // 発話完了と判定するまでの無音時間(ms)
+
+function _createRecognitionInstance() {
   var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SpeechRecognition) {
-    alert('このブラウザは音声認識に対応していません。Chrome/Safariをお使いください。');
-    toggleVoiceMode();
-    return;
-  }
+  if (!SpeechRecognition) return null;
+  var rec = new SpeechRecognition();
+  rec.lang = 'ja-JP';
+  rec.continuous = true;
+  rec.interimResults = true;
+  rec.maxAlternatives = 1;
+  return rec;
+}
 
-  stopVoiceRecognition();
-  _voicePaused = false;
-
-  _speechRecognition = new SpeechRecognition();
-  _speechRecognition.lang = 'ja-JP';
-  _speechRecognition.continuous = true;
-  _speechRecognition.interimResults = true;
-  _speechRecognition.maxAlternatives = 1;
-
+function _attachRecognitionHandlers(rec) {
   var indicator = document.getElementById('voice-listening-indicator');
   var input = document.getElementById('buddy-input');
-  var VOICE_SEND_DELAY = 3000;       // 発話完了と判定するまでの無音時間(ms)
-  // ★ onend→再起動時は蓄積テキストとタイマーを保持する（初回起動時のみリセット）
-  if (!_voiceModeRestarting) {
-    _voiceAccumulated = '';
-    if (_voiceSendTimer) { clearTimeout(_voiceSendTimer); _voiceSendTimer = null; }
-  }
-  _voiceModeRestarting = false;
 
-  _speechRecognition.onstart = function() {
+  rec.onstart = function() {
     _isListening = true;
     if (indicator) indicator.style.display = 'block';
     setMicState('listening');
     updateVoiceStatus('聞いています...');
-    updateVoiceSubStatus('そのまま話しかけてください');
+    if (_voiceAccumulated) {
+      updateVoiceSubStatus(_voiceAccumulated + '...');
+    } else {
+      updateVoiceSubStatus('そのまま話しかけてください');
+    }
   };
 
-  _speechRecognition.onresult = function(event) {
-    // TTS再生中は認識結果を無視
+  rec.onresult = function(event) {
     if (_voicePaused) return;
 
     var finalText = '';
@@ -6378,21 +6370,20 @@ function startVoiceRecognition() {
       }
     }
 
-    // finalが来たら蓄積に追加
     if (finalText) {
       _voiceAccumulated += finalText;
     }
 
-    // リアルタイムプレビュー（蓄積＋暫定を表示）
+    // リアルタイムプレビュー
     var preview = (_voiceAccumulated + interimText) || '...';
     updateVoiceSubStatus(preview);
     if (input) input.value = _voiceAccumulated + interimText;
 
-    // 暫定結果（interimResults）が来ている間 = まだ話し中なのでタイマーリセット
+    // 結果が来るたびにタイマーリセット（まだ話し中）
     if (_voiceSendTimer) { clearTimeout(_voiceSendTimer); _voiceSendTimer = null; }
 
     if (finalText && _voiceAccumulated.trim()) {
-      // 終了キーワード検知（即時判定）
+      // 終了キーワード検知
       var endWords = ['おわり', '終わり', '終了', 'おしまい', 'バイバイ', 'ばいばい', 'またね'];
       var trimmed = _voiceAccumulated.trim();
       var lastSentence = trimmed.split(/[。、\s]+/).filter(Boolean).pop() || trimmed;
@@ -6406,7 +6397,7 @@ function startVoiceRecognition() {
         return;
       }
 
-      // 発話完了待ちタイマー開始（無音が1.5秒続いたら送信）
+      // 発話完了待ちタイマー（3秒無音で送信）
       _voiceSendTimer = setTimeout(function() {
         if (!_voiceAccumulated.trim()) return;
         if (input) input.value = _voiceAccumulated;
@@ -6421,55 +6412,71 @@ function startVoiceRecognition() {
     }
   };
 
-  _speechRecognition.onerror = function(event) {
-    if (event.error === 'no-speech' || event.error === 'aborted') {
-      // 連続モードでは無視（onendで再起動する）
-      return;
-    } else if (event.error === 'not-allowed') {
+  rec.onerror = function(event) {
+    if (event.error === 'no-speech' || event.error === 'aborted') return;
+    if (event.error === 'not-allowed') {
       _isListening = false;
       alert('マイクへのアクセスが許可されていません。ブラウザの設定を確認してください。');
       toggleVoiceMode();
     }
   };
 
-  _speechRecognition.onend = function() {
+  rec.onend = function() {
     _isListening = false;
-    // 音声モードOFFまたは明示的に停止された場合
     if (!_voiceModeActive) {
       if (indicator) indicator.style.display = 'none';
       setMicState('ready');
       updateVoiceStatus('タップしてバディーと会話モードに切替');
       return;
     }
-    // TTS再生中（バディー応答待ち）→ 再開はautoSpeakAndListenに任せる
     if (_voicePaused) return;
-    // 連続モード: 新しいインスタンスで再起動（蓄積テキスト・タイマーは保持）
+    // ★ 認識が切れたら新インスタンスで再起動（蓄積・タイマーはグローバルなので消えない）
     setTimeout(function() {
-      if (_voiceModeActive && !_voicePaused) {
-        _voiceModeRestarting = true;
-        startVoiceRecognition();
-      }
+      if (!_voiceModeActive || _voicePaused) return;
+      var newRec = _createRecognitionInstance();
+      if (!newRec) return;
+      _speechRecognition = newRec;
+      _attachRecognitionHandlers(newRec);
+      try { newRec.start(); } catch(e) {}
     }, 200);
   };
+}
+
+function startVoiceRecognition() {
+  var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    alert('このブラウザは音声認識に対応していません。Chrome/Safariをお使いください。');
+    toggleVoiceMode();
+    return;
+  }
+
+  // 既存インスタンスだけ停止（蓄積・タイマーはクリアしない）
+  if (_speechRecognition) {
+    try { _speechRecognition.abort(); } catch(e) {}
+    _speechRecognition = null;
+  }
+  _isListening = false;
+  _voicePaused = false;
+
+  // 新規開始時のみ蓄積リセット
+  _voiceAccumulated = '';
+  if (_voiceSendTimer) { clearTimeout(_voiceSendTimer); _voiceSendTimer = null; }
+
+  var rec = _createRecognitionInstance();
+  if (!rec) return;
+  _speechRecognition = rec;
+  _attachRecognitionHandlers(rec);
 
   try {
-    _speechRecognition.start();
+    rec.start();
   } catch(e) {
-    // 起動失敗時はリトライ
     setTimeout(function() {
       if (_voiceModeActive && !_voicePaused) {
-        try {
-          _speechRecognition = new SpeechRecognition();
-          _speechRecognition.lang = 'ja-JP';
-          _speechRecognition.continuous = true;
-          _speechRecognition.interimResults = true;
-          _speechRecognition.start();
-        } catch(e2) {
-          _isListening = false;
-          setMicState('ready');
-          updateVoiceStatus('音声認識を開始できませんでした');
-          updateVoiceSubStatus('もう一度タップしてください');
-        }
+        var retry = _createRecognitionInstance();
+        if (!retry) return;
+        _speechRecognition = retry;
+        _attachRecognitionHandlers(retry);
+        try { retry.start(); } catch(e2) {}
       }
     }, 300);
   }
@@ -6478,7 +6485,6 @@ function startVoiceRecognition() {
 function stopVoiceRecognition() {
   _isListening = false;
   _voicePaused = false;
-  _voiceModeRestarting = false;
   if (_voiceSendTimer) { clearTimeout(_voiceSendTimer); _voiceSendTimer = null; }
   _voiceAccumulated = '';
   if (_speechRecognition) {

@@ -464,7 +464,7 @@ ${userDataContext || '（データなし）'}`;
     }
     messages.push({ role: 'user', content: userMessage });
 
-    const result = await callGeminiText(null, null, { messages, temperature: 0.8, max_tokens: 800, _fn: 'chat' });
+    const result = await callGeminiText(null, null, { messages, temperature: 0.8, max_tokens: 1500, _fn: 'chat' });
 
     if (result) {
       // ///VOICE_SUGGEST/// タグを検出してフロントに通知

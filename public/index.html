@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260406_2310">
+<html data-app-version="20260406_2320">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -6369,30 +6369,28 @@ function _startOneShot() {
 
     if (finalText.trim()) {
       // 終了キーワード検知
-      var endWords = ['おわり', '終わり', '終了', 'おしまい', 'バイバイ', 'ばいばい', 'またね'];
-      var trimmed = finalText.trim().replace(/[。．.！!？?]+$/, '');
+      var endWords = ['おわり', '終わり', '終了', 'おしまい', 'バイバイ', 'ばいばい', 'またね', 'ストップ', 'やめ'];
+      var trimmed = finalText.trim().replace(/[。．.！!？?\s]+$/, '');
       var isEnd = endWords.some(function(w) { return trimmed === w || trimmed.endsWith(w); });
       if (isEnd) {
-        if (_voiceSendTimer) { clearTimeout(_voiceSendTimer); _voiceSendTimer = null; }
-        if (input) input.value = '';
         _voiceStopping = true;
+        _voicePaused = true;
+        if (input) input.value = '';
+        try { rec.abort(); } catch(e) {}
+        _speechRecognition = null;
+        _isListening = false;
         toggleVoiceMode();
         var _bName = 'バディ'; try { _bName = JSON.parse(localStorage.getItem('co_heart_buddy') || '{}').name || 'バディ'; } catch(e) {}
         addBuddyMessage('ai', 'またね！いつでも「バディ」って呼んでくれたら' + _bName + 'が応えるよ 😊');
         return;
       }
-      // 送信（1発話=1セッションなのでそのまま送信）
-      if (_voiceSendTimer) clearTimeout(_voiceSendTimer);
+      // 即送信（continuous=falseなのでブラウザが発話完了を判定済み）
       if (input) input.value = finalText;
-      _voiceSendTimer = setTimeout(function() {
-        _voiceSendTimer = null;
-        if (_voicePaused || !_voiceModeActive || _voiceStopping) return;
-        _voicePaused = true;
-        if (indicator) indicator.style.display = 'none';
-        setMicState('processing');
-        updateVoiceStatus('考え中...');
-        sendBuddyMessage();
-      }, 1500);
+      _voicePaused = true;
+      if (indicator) indicator.style.display = 'none';
+      setMicState('processing');
+      updateVoiceStatus('考え中...');
+      sendBuddyMessage();
     }
   };
 
@@ -6407,18 +6405,14 @@ function _startOneShot() {
 
   rec.onend = function() {
     _isListening = false;
-    // 停止指示 or モードOFF → 終了
-    if (_voiceStopping || !_voiceModeActive) return;
-    // バディー応答待ち → 何もしない（resumeListeningAfterTTSで再開）
-    if (_voicePaused) return;
-    // 送信タイマー待ち中は再起動しない（バディー応答を待つ）
-    if (_voiceSendTimer) return;
-    // 次の発話を待つ（1秒後に新セッション開始）
+    // 停止済み or モードOFF or バディー応答待ち → 何もしない
+    if (_voiceStopping || !_voiceModeActive || _voicePaused) return;
+    // 無音でセッション切れ → 次の発話を待つ
     setTimeout(function() {
-      if (_voiceModeActive && !_voicePaused && !_voiceStopping && !_voiceSendTimer) {
+      if (_voiceModeActive && !_voicePaused && !_voiceStopping) {
         _startOneShot();
       }
-    }, 1000);
+    }, 500);
   };
 
   try { rec.start(); } catch(e) {}

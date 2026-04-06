@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260406_2230">
+<html data-app-version="20260406_2300">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -6307,48 +6307,43 @@ function ensureAudioContext() {
 }
 
 // --- タップで話す ---
-var _voicePaused = false; // TTS再生中は認識結果を無視
+var _voicePaused = false;
+var _voiceStopping = false; // 明示的停止フラグ
 
 function tapToSpeak() {
-  // ユーザータップ時にAudioContextをアンロック
   ensureAudioContext();
-  // 読み上げ中なら停止して聞き取りに戻る
   if (_isSpeaking) {
     stopSpeaking();
     _voicePaused = false;
-    setMicState('listening');
-    updateVoiceStatus('聞いています...');
-    updateVoiceSubStatus('話しかけてください');
+    _startOneShot();
     return;
   }
-  // 認識中なら停止
   if (_isListening) { stopVoiceRecognition(); return; }
-  // 連続音声認識開始
   startVoiceRecognition();
 }
 
-// --- STT: 連続音声認識 ---
-function startVoiceRecognition() {
+// --- STT: 1発話1セッション方式（continuous=false） ---
+// 1回の発話ごとにセッションが完了。再起動時に音声バッファは消費済みなので重複しない。
+
+function _startOneShot() {
   var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SpeechRecognition) {
-    alert('このブラウザは音声認識に対応していません。Chrome/Safariをお使いください。');
-    toggleVoiceMode();
-    return;
+  if (!SpeechRecognition || !_voiceModeActive || _voiceStopping) return;
+
+  if (_speechRecognition) {
+    try { _speechRecognition.abort(); } catch(e) {}
   }
 
-  stopVoiceRecognition();
-  _voicePaused = false;
-
-  _speechRecognition = new SpeechRecognition();
-  _speechRecognition.lang = 'ja-JP';
-  _speechRecognition.continuous = true;
-  _speechRecognition.interimResults = true;
-  _speechRecognition.maxAlternatives = 1;
+  var rec = new SpeechRecognition();
+  rec.lang = 'ja-JP';
+  rec.continuous = false;
+  rec.interimResults = true;
+  rec.maxAlternatives = 1;
+  _speechRecognition = rec;
 
   var indicator = document.getElementById('voice-listening-indicator');
   var input = document.getElementById('buddy-input');
 
-  _speechRecognition.onstart = function() {
+  rec.onstart = function() {
     _isListening = true;
     if (indicator) indicator.style.display = 'block';
     setMicState('listening');
@@ -6356,45 +6351,42 @@ function startVoiceRecognition() {
     updateVoiceSubStatus('そのまま話しかけてください');
   };
 
-  _speechRecognition.onresult = function(event) {
-    // TTS再生中は認識結果を無視
-    if (_voicePaused) return;
+  rec.onresult = function(event) {
+    if (_voicePaused || _voiceStopping) return;
 
-    // セッション内の全finalテキストを結合（重複なし）
-    var fullText = '';
+    var finalText = '';
     var interimText = '';
-    var hasFinal = false;
     for (var i = 0; i < event.results.length; i++) {
       if (event.results[i].isFinal) {
-        fullText += event.results[i][0].transcript;
-        hasFinal = true;
+        finalText += event.results[i][0].transcript;
       } else {
         interimText += event.results[i][0].transcript;
       }
     }
-    // リアルタイムプレビュー
-    updateVoiceSubStatus((fullText + interimText) || '...');
-    if (input) input.value = fullText + interimText;
+    // プレビュー
+    updateVoiceSubStatus(finalText + interimText || '...');
+    if (input) input.value = finalText + interimText;
 
-    if (hasFinal && fullText.trim()) {
-      // 終了キーワード検知（文末に含まれていればOK）
+    if (finalText.trim()) {
+      // 終了キーワード検知
       var endWords = ['おわり', '終わり', '終了', 'おしまい', 'バイバイ', 'ばいばい', 'またね'];
-      var trimmed = fullText.trim().replace(/。$/, '');
+      var trimmed = finalText.trim().replace(/[。．.！!？?]+$/, '');
       var isEnd = endWords.some(function(w) { return trimmed === w || trimmed.endsWith(w); });
       if (isEnd) {
         if (_voiceSendTimer) { clearTimeout(_voiceSendTimer); _voiceSendTimer = null; }
         if (input) input.value = '';
+        _voiceStopping = true;
         toggleVoiceMode();
         var _bName = 'バディ'; try { _bName = JSON.parse(localStorage.getItem('co_heart_buddy') || '{}').name || 'バディ'; } catch(e) {}
         addBuddyMessage('ai', 'またね！いつでも「バディ」って呼んでくれたら' + _bName + 'が応えるよ 😊');
         return;
       }
-      // 1.5秒待ってから送信（話し続けていたらリセット）
+      // 送信（1発話=1セッションなのでそのまま送信）
       if (_voiceSendTimer) clearTimeout(_voiceSendTimer);
-      if (input) input.value = fullText;
+      if (input) input.value = finalText;
       _voiceSendTimer = setTimeout(function() {
         _voiceSendTimer = null;
-        if (_voicePaused || !_voiceModeActive) return;
+        if (_voicePaused || !_voiceModeActive || _voiceStopping) return;
         _voicePaused = true;
         if (indicator) indicator.style.display = 'none';
         setMicState('processing');
@@ -6404,46 +6396,47 @@ function startVoiceRecognition() {
     }
   };
 
-  _speechRecognition.onerror = function(event) {
-    if (event.error === 'no-speech') {
-      // 連続モードでは無視して待ち続ける
-      return;
-    } else if (event.error === 'not-allowed') {
+  rec.onerror = function(event) {
+    if (event.error === 'no-speech' || event.error === 'aborted') return;
+    if (event.error === 'not-allowed') {
       _isListening = false;
-      alert('マイクへのアクセスが許可されていません。ブラウザの設定を確認してください。');
+      alert('マイクへのアクセスが許可されていません。');
       toggleVoiceMode();
-    } else if (event.error === 'aborted') {
-      // 停止時は何もしない
     }
   };
 
-  _speechRecognition.onend = function() {
-    // 連続モード: 音声モードがONなら自動再開
-    if (_voiceModeActive && !_voicePaused) {
-      try { _speechRecognition.start(); } catch(e) {}
-      return;
-    }
-    if (_voiceModeActive && _voicePaused) {
-      // TTS再生中に認識が切れた場合、再生完了後に再開するのでここでは何もしない
-      return;
-    }
+  rec.onend = function() {
     _isListening = false;
-    if (indicator) indicator.style.display = 'none';
-    setMicState('ready');
-    updateVoiceStatus('タップしてバディーと会話モードに切替');
+    // 停止指示 or モードOFF → 終了
+    if (_voiceStopping || !_voiceModeActive) return;
+    // バディー応答待ち → 何もしない（resumeListeningAfterTTSで再開）
+    if (_voicePaused) return;
+    // 次の発話を待つ（1秒後に新セッション開始）
+    setTimeout(function() {
+      if (_voiceModeActive && !_voicePaused && !_voiceStopping) {
+        _startOneShot();
+      }
+    }, 1000);
   };
 
-  try {
-    _speechRecognition.start();
-  } catch(e) {
-    _isListening = false;
-    setMicState('ready');
-    updateVoiceStatus('音声認識を開始できませんでした');
-    updateVoiceSubStatus('もう一度タップしてください');
+  try { rec.start(); } catch(e) {}
+}
+
+function startVoiceRecognition() {
+  var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    alert('このブラウザは音声認識に対応していません。');
+    toggleVoiceMode();
+    return;
   }
+  stopVoiceRecognition();
+  _voicePaused = false;
+  _voiceStopping = false;
+  _startOneShot();
 }
 
 function stopVoiceRecognition() {
+  _voiceStopping = true;
   _isListening = false;
   _voicePaused = false;
   if (_voiceSendTimer) { clearTimeout(_voiceSendTimer); _voiceSendTimer = null; }
@@ -6513,19 +6506,9 @@ function stopWakeWordListener() {
 
 // TTS再生完了後に認識を再開
 function resumeListeningAfterTTS() {
-  if (!_voiceModeActive) return;
+  if (!_voiceModeActive || _voiceStopping) return;
   _voicePaused = false;
-  var indicator = document.getElementById('voice-listening-indicator');
-  if (indicator) indicator.style.display = 'block';
-  setMicState('listening');
-  updateVoiceStatus('聞いています...');
-  updateVoiceSubStatus('続けて話しかけてください');
-  // 認識が切れていたら再開
-  if (_speechRecognition) {
-    try { _speechRecognition.start(); } catch(e) {}
-  } else {
-    startVoiceRecognition();
-  }
+  _startOneShot();
 }
 
 // --- TTS: 読み上げ ---

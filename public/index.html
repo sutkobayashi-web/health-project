@@ -6369,6 +6369,16 @@ function startVoiceRecognition() {
     if (input) input.value = transcript;
 
     if (isFinal && transcript.trim()) {
+      // 終了キーワード検知
+      var endWords = ['おわり', '終わり', '終了', 'おしまい', 'バイバイ', 'ばいばい', 'またね'];
+      var trimmed = transcript.trim();
+      var isEnd = endWords.some(function(w) { return trimmed === w || trimmed === w + '。'; });
+      if (isEnd) {
+        if (input) input.value = '';
+        toggleVoiceMode();
+        addBuddyMessage('ai', 'またね！いつでも「バディ」って呼んでね 😊');
+        return;
+      }
       _voicePaused = true; // 送信中〜TTS完了まで認識を一時停止
       if (indicator) indicator.style.display = 'none';
       setMicState('processing');

@@ -8,7 +8,95 @@ const router = express.Router();
 // ヘルスバディーチャット
 router.post('/message', authUser, async (req, res) => {
   const { userMessage, history, userName, buddyType, buddyName } = req.body;
-  const result = await chatWithBuddy(userMessage, history, userName, buddyType || 'gentle', buddyName || '');
+  const uid = req.user.uid;
+
+  // ユーザーの食事・相談データを収集してコンテキストに含める
+  let userDataContext = '';
+  try {
+    const db = getDb();
+
+    // 直近10食の食事データ
+    const recentMeals = db.prepare(`
+      SELECT content, nutrition_scores, created_at FROM posts
+      WHERE user_id = ? AND category LIKE '%食事%' AND nutrition_scores IS NOT NULL
+      ORDER BY created_at DESC LIMIT 10
+    `).all(uid);
+
+    if (recentMeals.length > 0) {
+      // 最近の食事メニュー一覧
+      const menuList = recentMeals.slice(0, 5).map(m => {
+        const d = new Date(m.created_at + 'Z');
+        const dateStr = (d.getMonth()+1) + '/' + d.getDate();
+        return dateStr + ': ' + (m.content || '').substring(0, 50);
+      }).join('\n');
+
+      // 栄養傾向の計算
+      const targets = { calories: 550, protein: 20, fat: 25, carbs: 57.5, vitamin: 120, salt: 2.5, fiber: 6, alcohol: 0 };
+      const sums = {};
+      let count = 0;
+      recentMeals.forEach(m => {
+        try {
+          const ns = typeof m.nutrition_scores === 'string' ? JSON.parse(m.nutrition_scores) : m.nutrition_scores;
+          if (!ns) return;
+          count++;
+          Object.keys(targets).forEach(k => {
+            if (ns[k] && ns[k].value !== undefined) sums[k] = (sums[k] || 0) + ns[k].value;
+          });
+        } catch(e) {}
+      });
+
+      let trendText = '';
+      if (count >= 2) {
+        Object.keys(targets).forEach(k => {
+          if (sums[k] === undefined) return;
+          const avg = Math.round(sums[k] / count * 10) / 10;
+          const target = targets[k];
+          const ratio = avg / target;
+          let status = '適量';
+          if (ratio > 1.2) status = '多め';
+          if (ratio > 1.5) status = '過剰傾向';
+          if (ratio < 0.7) status = '不足傾向';
+          if (ratio < 0.5) status = '不足';
+          const labels = { calories:'カロリー', protein:'たんぱく質', fat:'脂質', carbs:'炭水化物', vitamin:'野菜量', salt:'塩分', fiber:'食物繊維', alcohol:'アルコール' };
+          trendText += `${labels[k]||k}: 平均${avg}（目安${target}）→ ${status}\n`;
+        });
+      }
+
+      userDataContext += `\n# この社員の食事データ（直近${recentMeals.length}食）\n`;
+      userDataContext += `## 最近の食事\n${menuList}\n`;
+      if (trendText) userDataContext += `## 栄養傾向\n${trendText}`;
+    }
+
+    // 直近の相談・投稿（食事以外）
+    const recentConsults = db.prepare(`
+      SELECT content, category, created_at FROM posts
+      WHERE user_id = ? AND category NOT LIKE '%食事%' AND content IS NOT NULL
+      ORDER BY created_at DESC LIMIT 5
+    `).all(uid);
+
+    if (recentConsults.length > 0) {
+      userDataContext += `\n# この社員の最近の相談・投稿\n`;
+      recentConsults.forEach(c => {
+        const d = new Date(c.created_at + 'Z');
+        const dateStr = (d.getMonth()+1) + '/' + d.getDate();
+        userDataContext += `- ${dateStr} [${c.category||''}]: ${(c.content||'').substring(0, 80)}\n`;
+      });
+    }
+
+    // 最新の週次食事レポート
+    const weeklyReport = db.prepare(`
+      SELECT report_text, week_start, week_end FROM food_weekly_reports
+      WHERE user_id = ? ORDER BY created_at DESC LIMIT 1
+    `).get(uid);
+
+    if (weeklyReport) {
+      userDataContext += `\n# 最新の週次食事分析（${weeklyReport.week_start}〜${weeklyReport.week_end}）\n`;
+      userDataContext += (weeklyReport.report_text || '').substring(0, 300) + '\n';
+    }
+
+  } catch(e) { /* データ取得失敗しても会話は続行 */ }
+
+  const result = await chatWithBuddy(userMessage, history, userName, buddyType || 'gentle', buddyName || '', userDataContext);
   // アクティブなチャレンジ情報を付与（フロントでチャレンジ言及検知に使用）
   try {
     const db = getDb();

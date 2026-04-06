@@ -293,7 +293,7 @@ function getBuddyName(buddyType) {
 }
 
 // ヘルスバディーチャット
-async function chatWithBuddy(userMessage, history, userName, buddyType, buddyName) {
+async function chatWithBuddy(userMessage, history, userName, buddyType, buddyName, userDataContext) {
   try {
     const tone = getBuddyTone(buddyType);
 
@@ -396,7 +396,13 @@ ${tone}
 - ★★★マークダウン記法は絶対に使わない。強調は【】で囲む★★★
 - 助言する場合のみ最後に「📚 出典:」を付ける（雑談・共感だけの場合は不要）
 - 具体的アクション提案時のみ「🎯 やってみる？:」として1つだけ簡潔に示す
-- 声の吸い上げ提案時のみ応答末尾に ///VOICE_SUGGEST/// を付ける（1会話で1回まで。しつこくしない）`;
+- 声の吸い上げ提案時のみ応答末尾に ///VOICE_SUGGEST/// を付ける（1会話で1回まで。しつこくしない）
+
+# ユーザーデータの活用ルール
+- 以下のデータはユーザーから「昨日何食べた？」「食事の傾向は？」「ランチ何がいい？」等と聞かれたときに参照する
+- 聞かれていないのに突然データを話題にしない。自然な会話の中で活用する
+- ランチ提案時は栄養傾向の不足を補うメニューを具体的に提案する
+${userDataContext || '（データなし）'}`;
 
     const messages = [{ role: 'system', content: systemPrompt }];
     if (history && history.length > 0) {

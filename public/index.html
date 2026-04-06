@@ -6429,17 +6429,18 @@ function doSpeak(text, msgEl, onDone) {
     document.body.appendChild(dbg);
   }
 
-  // デバッグ表示用
-  function ttsDebug(msg) {
-    console.log('[TTS]', msg);
-    var d = document.getElementById('tts-debug');
-    if (d) d.textContent = msg;
-  }
+  // デバッグ表示用（蓄積表示）
   if (!document.getElementById('tts-debug')) {
     var dbg = document.createElement('div');
     dbg.id = 'tts-debug';
-    dbg.style.cssText = 'position:fixed;bottom:70px;left:10px;right:10px;background:rgba(0,0,0,0.8);color:#0f0;font-size:11px;padding:6px 10px;border-radius:8px;z-index:99999;font-family:monospace;word-break:break-all;';
+    dbg.style.cssText = 'position:fixed;bottom:70px;left:10px;right:10px;background:rgba(0,0,0,0.85);color:#0f0;font-size:10px;padding:8px 10px;border-radius:8px;z-index:99999;font-family:monospace;word-break:break-all;max-height:120px;overflow-y:auto;line-height:1.5;';
     document.body.appendChild(dbg);
+  }
+  document.getElementById('tts-debug').innerHTML = '';
+  function ttsDebug(msg) {
+    console.log('[TTS]', msg);
+    var d = document.getElementById('tts-debug');
+    if (d) d.innerHTML += msg + '<br>';
   }
 
   ttsDebug('1. TTS API呼び出し中... (' + cleanText.length + '文字)');

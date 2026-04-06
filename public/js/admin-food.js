@@ -129,7 +129,7 @@ function buildAdminNutritionBar(sc) {
     if (isLegacy) {
         sc = {
             calories:{value:300+(sc.protein||3)*70,unit:'kcal'}, protein:{value:(sc.protein||3)*5,unit:'g'},
-            fat:{value:15+(sc.fat||3)*3,unit:'%'}, carbs:{value:35+(sc.carbs||sc.carb||3)*6,unit:'%'},
+            fat:{value:5+(sc.fat||3)*2.5,unit:'g'}, carbs:{value:40+(sc.carbs||sc.carb||3)*10,unit:'g'},
             vitamin:{value:(sc.vitamin||3)*30,unit:'g'}, mineral:{value:(sc.mineral||3)*55,unit:'mg'},
             fiber:{value:(sc.vitamin||3)*1.5,unit:'g'}, salt:{value:4.0-(sc.salt||3)*0.5,unit:'g'},
             alcohol:{value:0,unit:'g'}
@@ -138,8 +138,8 @@ function buildAdminNutritionBar(sc) {
     var items = [
         {key:'calories',icon:'🔥',label:'カロリー',unit:'kcal',target:550,min:450,max:650,range:true},
         {key:'protein',icon:'🍖',label:'たんぱく質',unit:'g',target:20},
-        {key:'fat',icon:'🫒',label:'脂質',unit:'%',target:25,min:20,max:30,range:true},
-        {key:'carbs',icon:'🍚',label:'炭水化物',unit:'%',target:57.5,min:50,max:65,range:true},
+        {key:'fat',icon:'🫒',label:'脂質',unit:'g',target:15,min:12,max:18,range:true},
+        {key:'carbs',icon:'🍚',label:'炭水化物',unit:'g',target:79,min:69,max:89,range:true},
         {key:'vitamin',icon:'🥬',label:'野菜量',unit:'g',target:120},
         {key:'mineral',icon:'🦴',label:'カルシウム',unit:'mg',target:227},
         {key:'fiber',icon:'🌾',label:'食物繊維',unit:'g',target:7},
@@ -153,6 +153,11 @@ function buildAdminNutritionBar(sc) {
         if (raw && typeof raw === 'object' && raw.value !== undefined) val = Number(raw.value);
         else if (typeof raw === 'number') val = raw;
         if (item.optional && val === 0) return;
+        // 旧データ互換: fat/carbsが%で保存されている場合→gに変換
+        var calRaw = sc.calories;
+        var calV = (calRaw && typeof calRaw === 'object') ? Number(calRaw.value) : (typeof calRaw === 'number' ? calRaw : 550);
+        if (item.key === 'fat' && val > 0 && val <= 50) { val = Math.round(val * calV / 100 / 9 * 10) / 10; }
+        if (item.key === 'carbs' && val > 0 && val <= 70) { val = Math.round(val * calV / 100 / 4 * 10) / 10; }
         var barMax = item.target * 1.5;
         var pct = Math.min(100, (val / barMax) * 100);
         var status, color;
@@ -184,6 +189,14 @@ function buildAdminNutritionBar(sc) {
                 '<div style="position:absolute;top:11px;left:'+targetPct+'%;transform:translateX(-50%);font-size:0.5rem;color:#888;white-space:nowrap;">'+item.target+'</div>' +
             '</div></div>';
     });
+    // 信憑性バッジ（Admin用）
+    var conf = sc.confidence;
+    if (conf && conf.level) {
+        var confStars = conf.level === 3 ? '★★★' : conf.level === 2 ? '★★☆' : '★☆☆';
+        var confColor = conf.level === 3 ? '#20c997' : conf.level === 2 ? '#f59e0b' : '#ef4444';
+        var confLabel = conf.reason || (conf.level === 3 ? '成分表示' : conf.level === 2 ? '定番料理' : '目視推定');
+        html += '<div style="margin-top:6px;text-align:center;"><span style="font-size:0.62rem;padding:2px 6px;border-radius:6px;background:'+confColor+'18;color:'+confColor+';font-weight:700;">🔍 信憑性 '+confStars+'（'+confLabel+'）</span></div>';
+    }
     html += '<div style="text-align:right;font-size:0.55rem;color:#aaa;margin-top:6px;">▮ 基準値｜食事摂取基準2025・スマートミール基準</div>';
     html += '</div>';
     return html;

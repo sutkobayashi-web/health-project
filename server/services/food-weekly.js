@@ -111,8 +111,8 @@ async function generateUserFoodReport(uid, userData, weekLabel, weekStart) {
         return {
           calories: { value: 300 + (s.protein || 3) * 70, unit: 'kcal' },
           protein:  { value: (s.protein || 3) * 5, unit: 'g' },
-          fat:      { value: 15 + (s.fat || 3) * 3, unit: '%' },
-          carbs:    { value: 35 + (s.carbs || s.carb || 3) * 6, unit: '%' },
+          fat:      { value: 5 + (s.fat || 3) * 2.5, unit: 'g' },
+          carbs:    { value: 40 + (s.carbs || s.carb || 3) * 10, unit: 'g' },
           vitamin:  { value: (s.vitamin || 3) * 30, unit: 'g' },
           mineral:  { value: (s.mineral || 3) * 55, unit: 'mg' },
           fiber:    { value: (s.vitamin || 3) * 1.5, unit: 'g' },
@@ -134,7 +134,7 @@ async function generateUserFoodReport(uid, userData, weekLabel, weekStart) {
       });
     });
     avgScores = {};
-    var unitMap = {calories:'kcal',protein:'g',fat:'%',carbs:'%',vitamin:'g',mineral:'mg',salt:'g'};
+    var unitMap = {calories:'kcal',protein:'g',fat:'g',carbs:'g',vitamin:'g',mineral:'mg',salt:'g'};
     allKeys.forEach(function(k) {
       if (counts[k] > 0) {
         avgScores[k] = { value: Math.round(sums[k] / counts[k] * 10) / 10, unit: unitMap[k] };
@@ -170,7 +170,7 @@ async function generateUserFoodReport(uid, userData, weekLabel, weekStart) {
   var avgInfo = '';
   if (avgScores) {
     var avgItems = [];
-    var tgts = {calories:{t:550,u:'kcal'},protein:{t:20,u:'g'},fat:{t:25,u:'%'},carbs:{t:57.5,u:'%'},vitamin:{t:120,u:'g'},mineral:{t:227,u:'mg'},salt:{t:2.5,u:'g'}};
+    var tgts = {calories:{t:550,u:'kcal'},protein:{t:20,u:'g'},fat:{t:15,u:'g'},carbs:{t:79,u:'g'},vitamin:{t:120,u:'g'},mineral:{t:227,u:'mg'},salt:{t:2.5,u:'g'}};
     Object.keys(avgScores).forEach(function(k) {
       var tgt = tgts[k];
       if (tgt) avgItems.push(k + ': ' + avgScores[k].value + tgt.u + '（目標' + tgt.t + tgt.u + '）');
@@ -189,8 +189,8 @@ async function generateUserFoodReport(uid, userData, weekLabel, weekStart) {
     '2. 七大栄養項目の評価（実データ平均に基づく）\n' +
     '   - カロリー（目標450-650kcal/食）\n' +
     '   - たんぱく質（目標20g/食）\n' +
-    '   - 脂質（目標20-30%）\n' +
-    '   - 炭水化物（目標50-65%）\n' +
+    '   - 脂質（目標12-18g/食）\n' +
+    '   - 炭水化物（目標69-89g/食）\n' +
     '   - 野菜量（目標120g/食）\n' +
     '   - カルシウム（目標227mg/食）\n' +
     '   各項目で実データ平均値と目標値を比較し、過不足を具体的に指摘\n' +
@@ -207,12 +207,12 @@ async function generateUserFoodReport(uid, userData, weekLabel, weekStart) {
     '★★★トーン指示: 健康指導ではなく、友達が食事日記を見せてくれた感覚で書く。「すごいじゃん」「ここいいね」「これだけで全然違うよ」のようなバディー口調で。堅い表現禁止。温かく、短く、テンポよく。★★★\n' +
     '特に塩分については運輸業のドライバーはコンビニ弁当・惣菜中心の食生活が多いため、具体的な減塩提案を重視してください。\n\n' +
     '★★★重要: レポート本文の最後に、必ず以下の形式で1食あたりの推定平均栄養データを出力すること★★★\n' +
-    '///WEEKLY_SCORE///{"calories":{"value":数値,"unit":"kcal"},"protein":{"value":数値,"unit":"g"},"fat":{"value":数値,"unit":"%"},"carbs":{"value":数値,"unit":"%"},"vitamin":{"value":数値,"unit":"g"},"mineral":{"value":数値,"unit":"mg"},"salt":{"value":数値,"unit":"g"}}\n' +
+    '///WEEKLY_SCORE///{"calories":{"value":数値,"unit":"kcal"},"protein":{"value":数値,"unit":"g"},"fat":{"value":数値,"unit":"g"},"carbs":{"value":数値,"unit":"g"},"vitamin":{"value":数値,"unit":"g"},"mineral":{"value":数値,"unit":"mg"},"salt":{"value":数値,"unit":"g"}}\n' +
     '各valueは1食あたりの推定平均実数値（小数点1桁）:\n' +
     '- calories: 推定カロリー(kcal) 目標450-650\n' +
     '- protein: たんぱく質(g) 目標20\n' +
-    '- fat: 脂質エネルギー比(%) 目標20-30\n' +
-    '- carbs: 炭水化物エネルギー比(%) 目標50-65\n' +
+    '- fat: 脂質量(g) 目標12-18\n' +
+    '- carbs: 炭水化物量(g) 目標69-89\n' +
     '- vitamin: 野菜量(g) 目標120\n' +
     '- mineral: カルシウム(mg) 目標227\n' +
     '- salt: 塩分(g) 目標2.5未満\n' +

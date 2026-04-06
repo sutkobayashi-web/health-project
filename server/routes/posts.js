@@ -322,19 +322,23 @@ router.post('/food', async (req, res) => {
 
 ★★★絶対必須★★★ テキストの最後に以下のJSON形式で栄養データを必ず出力。数値にカンマを入れないこと。
 ///NUTRIENTS///
-{"calories":{"value":数値,"unit":"kcal"},"protein":{"value":数値,"unit":"g"},"fat":{"value":数値,"unit":"%"},"carbs":{"value":数値,"unit":"%"},"vitamin":{"value":数値,"unit":"g"},"mineral":{"value":数値,"unit":"mg"},"salt":{"value":数値,"unit":"g"},"fiber":{"value":数値,"unit":"g"},"alcohol":{"value":数値,"unit":"g"},"has_alcohol":true/false}
+{"calories":{"value":数値,"unit":"kcal"},"protein":{"value":数値,"unit":"g"},"fat":{"value":数値,"unit":"g"},"carbs":{"value":数値,"unit":"g"},"vitamin":{"value":数値,"unit":"g"},"mineral":{"value":数値,"unit":"mg"},"salt":{"value":数値,"unit":"g"},"fiber":{"value":数値,"unit":"g"},"alcohol":{"value":数値,"unit":"g"},"has_alcohol":true/false,"confidence":{"level":数値,"reason":"理由"}}
 
 各項目のvalueは実数値または推定実数値（小数点1桁まで、カンマ禁止）:
 - calories: カロリー（kcal）。目標: 450-650kcal/食
 - protein: たんぱく質量（g）。目標: 20g/食
-- fat: 脂質エネルギー比（%）。ラベル読取時はg数から総カロリーに対する%を算出。目標: 20-30%
-- carbs: 炭水化物エネルギー比（%）。ラベル読取時はg数から%を算出。目標: 50-65%
+- fat: 脂質量（g）。ラベル読取時はそのまま使用。推定時は食品成分表から算出。目標: 12-18g/食
+- carbs: 炭水化物量（g）。ラベル読取時はそのまま使用。推定時は食品成分表から算出。目標: 69-89g/食
 - vitamin: 野菜量（g）。目標: 120g/食
 - mineral: カルシウム量（mg）。目標: 227mg/食
 - salt: 食塩相当量（g）。目標: 2.5g未満/食
 - fiber: 食物繊維（g）。ラベル記載あればそのまま、なければ野菜・海藻・きのこ・穀物から推定。目標: 7g/食（1日21g以上）
 - alcohol: 写真に写っている酒類から推定する純アルコール量（g）。酒が無ければ0。ビール350ml=14g、日本酒1合=22g、焼酎ロック1杯=20g、ワイン1杯=12g、ハイボール1杯=7g、チューハイ350ml=14g
 - has_alcohol: 画像にアルコール飲料が写っているか（true/false）。缶ビール、日本酒、焼酎、ワイン、グラス等を検出
+- confidence: 栄養データの信憑性。以下の基準でlevelを判定:
+  - level 3（reason:"成分表示"）: 栄養成分表示ラベルから読み取った場合。信頼度ほぼ100%
+  - level 2（reason:"定番料理"）: コンビニ商品・外食チェーン等、メニュー名から栄養値が特定しやすい場合
+  - level 1（reason:"目視推定"）: 手作り料理・成分表示なし等、写真からの推定に頼る場合
 ※ラベルに糖質・飽和脂肪酸・コレステロール等が記載されていればそれらも読み取り、テキスト分析に含めること`;
     let nutResRaw = await callGeminiVision(nutSys, imageBase64, mimeType);
     if (!nutResRaw || nutResRaw === '通信エラー') nutResRaw = '解析できませんでした。';

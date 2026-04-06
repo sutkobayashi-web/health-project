@@ -6419,13 +6419,15 @@ function _ensureListening() {
   rec.onend = function() {
     _isListening = false;
     if (!_voiceModeActive || _voicePaused) return;
-    // 同一インスタンスで再起動（新インスタンスだと音声バッファ再処理で重複する）
+    // ★ 蓄積テキストがある場合は再起動しない（再起動するとバッファ再処理で重複する）
+    // → 3秒タイマーが送信を処理する。送信後にresumeListeningAfterTTSで新規開始される
+    if (_voiceAccumulated.trim()) return;
+    // 蓄積が空（無音でセッション切れ）→ 次の発話を待つため再起動
     setTimeout(function() {
       if (!_voiceModeActive || _voicePaused || _isListening) return;
       try {
         rec.start();
       } catch(e) {
-        // 同一インスタンス再起動が失敗した場合のみ新インスタンス
         _ensureListening();
       }
     }, 300);

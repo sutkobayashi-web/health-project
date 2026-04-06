@@ -6530,6 +6530,12 @@ function doSpeak(text, msgEl, onDone) {
   if (bubble) bubble.classList.add('speaking');
   _isSpeaking = true;
 
+  // TTS再生前に音声認識を一時停止（マイクとスピーカーの競合防止）
+  if (_speechRecognition && _isListening) {
+    try { _speechRecognition.stop(); } catch(e) {}
+    _isListening = false;
+  }
+
   // ユーザーの音声設定を反映してサーバーURLから直接再生
   var vs = getVoiceSettings();
   var personality = getBuddyPersonality();

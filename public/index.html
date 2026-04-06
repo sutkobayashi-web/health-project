@@ -8543,6 +8543,11 @@ if ('serviceWorker' in navigator) {
         reg.update();
         // PWA復帰時に新着バディーメッセージをチェック
         if (typeof loadBuddyNotices === 'function' && currentUser) loadBuddyNotices();
+      } else {
+        // アプリ非表示時にマイクを確実に停止
+        if (typeof stopWakeWordListener === 'function') stopWakeWordListener();
+        if (typeof stopVoiceRecognition === 'function') stopVoiceRecognition();
+        if (typeof _voiceModeActive !== 'undefined' && _voiceModeActive) toggleVoiceMode();
       }
     });
   });

@@ -6355,38 +6355,53 @@ function startVoiceRecognition() {
     updateVoiceSubStatus('そのまま話しかけてください');
   };
 
+  var _sendTimer = null;
+
   _speechRecognition.onresult = function(event) {
     // TTS再生中は認識結果を無視
     if (_voicePaused) return;
 
-    var transcript = '';
-    var isFinal = false;
-    for (var i = event.resultIndex; i < event.results.length; i++) {
-      transcript += event.results[i][0].transcript;
-      if (event.results[i].isFinal) isFinal = true;
+    // セッション内の全finalテキストを結合（重複なし）
+    var fullText = '';
+    var interimText = '';
+    var hasFinal = false;
+    for (var i = 0; i < event.results.length; i++) {
+      if (event.results[i].isFinal) {
+        fullText += event.results[i][0].transcript;
+        hasFinal = true;
+      } else {
+        interimText += event.results[i][0].transcript;
+      }
     }
     // リアルタイムプレビュー
-    updateVoiceSubStatus(transcript || '...');
-    if (input) input.value = transcript;
+    updateVoiceSubStatus((fullText + interimText) || '...');
+    if (input) input.value = fullText + interimText;
 
-    if (isFinal && transcript.trim()) {
-      // 終了キーワード検知
+    if (hasFinal && fullText.trim()) {
+      // 終了キーワード検知（文末に含まれていればOK）
       var endWords = ['おわり', '終わり', '終了', 'おしまい', 'バイバイ', 'ばいばい', 'またね'];
-      var trimmed = transcript.trim();
-      var isEnd = endWords.some(function(w) { return trimmed === w || trimmed === w + '。'; });
+      var trimmed = fullText.trim().replace(/。$/, '');
+      var isEnd = endWords.some(function(w) { return trimmed === w || trimmed.endsWith(w); });
       if (isEnd) {
+        if (_sendTimer) { clearTimeout(_sendTimer); _sendTimer = null; }
         if (input) input.value = '';
         toggleVoiceMode();
         var _bName = 'バディ'; try { _bName = JSON.parse(localStorage.getItem('co_heart_buddy') || '{}').name || 'バディ'; } catch(e) {}
         addBuddyMessage('ai', 'またね！いつでも「バディ」って呼んでくれたら' + _bName + 'が応えるよ 😊');
         return;
       }
-      _voicePaused = true; // 送信中〜TTS完了まで認識を一時停止
-      if (indicator) indicator.style.display = 'none';
-      setMicState('processing');
-      updateVoiceStatus('送信中...');
-      updateVoiceSubStatus(transcript);
-      sendBuddyMessage();
+      // 1.5秒待ってから送信（話し続けていたらリセット）
+      if (_sendTimer) clearTimeout(_sendTimer);
+      if (input) input.value = fullText;
+      _sendTimer = setTimeout(function() {
+        _sendTimer = null;
+        if (_voicePaused) return;
+        _voicePaused = true;
+        if (indicator) indicator.style.display = 'none';
+        setMicState('processing');
+        updateVoiceStatus('考え中...');
+        sendBuddyMessage();
+      }, 1500);
     }
   };
 

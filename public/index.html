@@ -6240,6 +6240,7 @@ var _isSpeaking = false;
 var _isListening = false;
 var _voiceSendTimer = null;
 var _voiceAccumulated = '';
+var _voiceStopped = false; // stopVoiceRecognition()で明示的に停止されたか
 
 function toggleVoiceMode() {
   _voiceModeActive = !_voiceModeActive;
@@ -6344,6 +6345,7 @@ function startVoiceRecognition() {
   }
 
   stopVoiceRecognition();
+  _voiceStopped = false; // これから開始するのでフラグ解除
   _voicePaused = false;
   _voiceAccumulated = '';
   if (_voiceSendTimer) { clearTimeout(_voiceSendTimer); _voiceSendTimer = null; }
@@ -6427,6 +6429,8 @@ function startVoiceRecognition() {
 
   _speechRecognition.onend = function() {
     _isListening = false;
+    // 明示的に停止された場合は再起動しない
+    if (_voiceStopped) return;
     // 音声モードON＆バディー応答待ちでなければ再起動
     if (_voiceModeActive && !_voicePaused) {
       try { _speechRecognition.start(); } catch(e) {}
@@ -6441,6 +6445,7 @@ function startVoiceRecognition() {
 }
 
 function stopVoiceRecognition() {
+  _voiceStopped = true; // onendでの再起動を防止
   _isListening = false;
   _voicePaused = false;
   if (_voiceSendTimer) { clearTimeout(_voiceSendTimer); _voiceSendTimer = null; }
@@ -6512,6 +6517,7 @@ function stopWakeWordListener() {
 // TTS再生完了後に認識を再開
 function resumeListeningAfterTTS() {
   if (!_voiceModeActive) return;
+  _voiceStopped = false;
   _voicePaused = false;
   _voiceAccumulated = '';
   if (_voiceSendTimer) { clearTimeout(_voiceSendTimer); _voiceSendTimer = null; }

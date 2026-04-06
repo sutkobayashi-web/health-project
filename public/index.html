@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260406_2335">
+<html data-app-version="20260406_2340">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -6261,8 +6261,7 @@ function toggleVoiceMode() {
     if (btn) { btn.style.background = '#f1f5f9'; btn.style.color = '#64748b'; btn.style.borderColor = '#e2e8f0'; }
     stopVoiceRecognition();
     stopSpeaking();
-    // ウェイクワード検知を再開
-    setTimeout(function() { startWakeWordListener(); }, 1000);
+    stopWakeWordListener(); // 明示的に停止（再開しない）
   }
 }
 

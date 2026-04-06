@@ -546,7 +546,15 @@ router.post('/delete-memo', (req, res) => {
 // ========================================
 // Google Cloud Text-to-Speech（音声ファイルとして直接配信）
 // ========================================
+// GETでも対応（Audio.srcから直接アクセス）
+router.get('/tts', async (req, res) => {
+  req.body = { text: req.query.text };
+  return ttsHandler(req, res);
+});
 router.post('/tts', async (req, res) => {
+  return ttsHandler(req, res);
+});
+async function ttsHandler(req, res) {
   try {
     const { text } = req.body;
     if (!text || text.trim().length === 0) return res.status(400).json({ error: 'テキストが空です' });
@@ -592,6 +600,6 @@ router.post('/tts', async (req, res) => {
     console.error('TTS error:', e.message);
     res.status(500).json({ error: e.message });
   }
-});
+}
 
 module.exports = router;

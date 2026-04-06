@@ -6443,57 +6443,40 @@ function doSpeak(text, msgEl, onDone) {
     if (d) d.innerHTML += msg + '<br>';
   }
 
-  ttsDebug('1. TTS API呼び出し中... (' + cleanText.length + '文字)');
+  ttsDebug('1. 音声URL生成中... (' + cleanText.length + '文字)');
 
-  // サーバーから音声ファイルを直接取得
-  fetch('/api/chat/tts', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ text: cleanText })
-  }).then(function(r) {
-    ttsDebug('2. レスポンス status=' + r.status + ' type=' + (r.headers.get('content-type') || ''));
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    return r.blob();
-  }).then(function(blob) {
-    ttsDebug('3. 音声Blob取得OK (' + blob.size + 'bytes, type=' + blob.type + ')');
-    var url = URL.createObjectURL(blob);
-    var audio = new Audio();
-    window._currentTtsAudio = audio;
+  // サーバーURLを直接Audio.srcに指定（Blob URL不要）
+  var ttsUrl = '/api/chat/tts?text=' + encodeURIComponent(cleanText) + '&t=' + Date.now();
+  var audio = new Audio();
+  window._currentTtsAudio = audio;
 
-    audio.oncanplaythrough = function() {
-      ttsDebug('4. デコード完了 → 再生開始');
-    };
-    audio.onended = function() {
-      ttsDebug('5. 再生完了');
-      _isSpeaking = false;
-      if (bubble) bubble.classList.remove('speaking');
-      URL.revokeObjectURL(url);
-      window._currentTtsAudio = null;
-      if (onDone) onDone();
-    };
-    audio.onerror = function(e) {
-      ttsDebug('ERR. 再生エラー code=' + (audio.error ? audio.error.code + ':' + audio.error.message : 'unknown'));
-      _isSpeaking = false;
-      if (bubble) bubble.classList.remove('speaking');
-      URL.revokeObjectURL(url);
-      window._currentTtsAudio = null;
-      if (onDone) onDone();
-    };
-    audio.src = url;
-    audio.play().then(function() {
-      ttsDebug('4. play()成功 → 再生中...');
-    }).catch(function(e) {
-      ttsDebug('4. play()失敗: ' + e.message);
-      _isSpeaking = false;
-      if (bubble) bubble.classList.remove('speaking');
-      URL.revokeObjectURL(url);
-      window._currentTtsAudio = null;
-      if (onDone) onDone();
-    });
-  }).catch(function(e) {
-    ttsDebug('ERR. fetch失敗: ' + e.message);
+  audio.oncanplaythrough = function() {
+    ttsDebug('3. デコード完了');
+  };
+  audio.onended = function() {
+    ttsDebug('4. 再生完了');
     _isSpeaking = false;
     if (bubble) bubble.classList.remove('speaking');
+    window._currentTtsAudio = null;
+    if (onDone) onDone();
+  };
+  audio.onerror = function(e) {
+    ttsDebug('ERR. 再生エラー code=' + (audio.error ? audio.error.code + ':' + audio.error.message : 'unknown'));
+    _isSpeaking = false;
+    if (bubble) bubble.classList.remove('speaking');
+    window._currentTtsAudio = null;
+    if (onDone) onDone();
+  };
+
+  audio.src = ttsUrl;
+  ttsDebug('2. src設定完了 → 再生開始');
+  audio.play().then(function() {
+    ttsDebug('3. play()成功 → 再生中...');
+  }).catch(function(e) {
+    ttsDebug('ERR. play()失敗: ' + e.message);
+    _isSpeaking = false;
+    if (bubble) bubble.classList.remove('speaking');
+    window._currentTtsAudio = null;
     if (onDone) onDone();
   });
 }

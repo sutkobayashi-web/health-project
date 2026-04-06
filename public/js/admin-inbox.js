@@ -296,8 +296,28 @@ function renderReportList(data) {
                     '<button id="inbox-toggle-btn-'+pid+'" class="btn btn-sm btn-outline-primary" style="font-size:0.68rem; padding:3px 12px;" onclick="event.stopPropagation(); toggleInboxDetail(\''+pid+'\')"><i class="fas fa-chevron-down" style="font-size:0.6rem;margin-right:3px;"></i>開く</button>' +
                 '</div>' +
             '</div>' +
-            // 詳細パネル
+            // 詳細パネル（アラートの場合は専用UI）
             '<div id="inbox-detail-'+pid+'" style="display:none; border-top:1px solid #e0e0e0;">' +
+            (isAlert ?
+                // === アラート専用パネル ===
+                '<div style="background:linear-gradient(135deg,#fef2f2,#fff1f2); padding:14px;">' +
+                    '<div style="background:#dc2626; color:white; padding:8px 14px; border-radius:8px; font-size:0.78rem; font-weight:700; margin-bottom:12px;"><i class="fas fa-exclamation-triangle me-1"></i>要対応アラート — バディーが推進メンバーへの相談を促しました</div>' +
+                    '<div style="font-size:0.85rem; line-height:1.8; color:#444; white-space:pre-wrap; margin-bottom:12px; padding:10px; background:white; border-radius:10px; border:1px solid #fecaca;">'+escapeHtml(rawContent)+'</div>' +
+                    (aiHtml ? '<div style="background:#fff7ed; border-radius:10px; padding:10px; margin-bottom:12px; border:1px solid #fed7aa;">'+aiHtml+'</div>' : '') +
+                    '<div style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-start;">' +
+                        '<button class="btn btn-sm fw-bold" style="font-size:0.78rem; background:linear-gradient(135deg,#22c55e,#16a34a); color:white; border:none; border-radius:8px; padding:8px 20px;" onclick="resolveAlert(\''+pid+'\')"><i class="fas fa-check-circle me-1"></i>対応済みにする</button>' +
+                    '</div>' +
+                    '<div style="margin-top:12px; border-top:1px solid #fecaca; padding-top:10px;">' +
+                        '<div style="font-size:0.72rem; font-weight:700; color:#667eea; margin-bottom:6px;"><i class="fas fa-comments me-1"></i>推進メンバーメモ</div>' +
+                        '<div id="empathy-member-chats-'+pid+'" style="overflow-y:auto; font-size:0.78rem; background:white; border-radius:8px; padding:8px; min-height:60px; max-height:180px; word-break:break-word; border:1px solid #e5e7eb; margin-bottom:6px;"></div>' +
+                        '<div style="display:flex; gap:4px;">' +
+                            '<textarea id="empathy-chat-input-'+pid+'" placeholder="メモを入力...（Ctrl+Enterで送信）" rows="2" style="flex:1; border:1px solid #e5e7eb; border-radius:8px; padding:6px 10px; font-size:0.78rem; outline:none; resize:none; line-height:1.5; background:#f9fafb;" onfocus="this.style.borderColor=\'#667eea\';this.style.background=\'white\'" onblur="this.style.borderColor=\'#e5e7eb\';this.style.background=\'#f9fafb\'" onkeydown="if(event.key===\'Enter\'&&(event.ctrlKey||event.metaKey)){event.preventDefault();doPostEmpathyChat(\''+pid+'\');}"></textarea>' +
+                            '<button class="btn btn-sm" style="font-size:0.72rem; padding:4px 10px; align-self:flex-end; background:#667eea; color:white; border:none; border-radius:8px;" onclick="doPostEmpathyChat(\''+pid+'\')"><i class="fas fa-paper-plane"></i></button>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>'
+            :
+                // === 通常パネル ===
                 '<div class="inbox-detail-split" style="display:flex; min-height:300px;">' +
                     // 左: 投稿内容+AI分析
                     '<div style="flex:1; padding:14px; overflow-y:auto; max-height:450px; border-right:1px solid #f0f0f0; min-width:0;">' +
@@ -349,7 +369,8 @@ function renderReportList(data) {
                             '</div>' +
                         '</div>' +
                     '</div>' +
-                '</div>' +
+                '</div>'
+            ) +
             '</div>';
         list.appendChild(div);
         // コメント読み込み
@@ -715,6 +736,15 @@ function openEvalModalWithTab(pid, tab) {
         openPriorityModal(pid);
         setTimeout(function(){ if(typeof switchPrioTab === 'function') switchPrioTab(tab); }, 100);
     } else { alert("詳細画面を開けません。リロードしてください。"); }
+}
+
+/* ── Resolve alert ── */
+function resolveAlert(pid) {
+    if (!confirm('このアラートを対応済みにしますか？')) return;
+    updatePostStatus(pid, 'resolved').then(function(res) {
+        if (res && res.success) { loadReportData(); }
+        else { alert('エラー: ' + (res ? res.msg : '不明')); }
+    });
 }
 
 /* ── Toggle triage (target) status ── */

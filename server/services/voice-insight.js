@@ -102,6 +102,7 @@ async function runWeeklyVoiceInsight() {
         SELECT content, category FROM posts
         WHERE date(created_at) >= ? AND date(created_at) <= ?
           AND category != '🍱 食事・栄養'
+          AND COALESCE(category,'') NOT LIKE '%要対応%'
         ORDER BY created_at
       `).all(weekStart, weekEnd);
     } catch(e) {}

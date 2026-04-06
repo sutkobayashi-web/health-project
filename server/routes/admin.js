@@ -212,6 +212,11 @@ router.post('/update-status', (req, res) => {
   try {
     const { pid, status } = req.body;
     const db = getDb();
+    // 要対応アラートは resolved のみ許可
+    const post = db.prepare('SELECT category FROM posts WHERE post_id = ?').get(pid);
+    if (post && String(post.category || '').includes('要対応') && status !== 'resolved') {
+      return res.json({ success: false, msg: '要対応アラートは「対応済み」のみ設定できます' });
+    }
     const result = db.prepare('UPDATE posts SET status = ? WHERE post_id = ?').run(status, pid);
     if (result.changes > 0) res.json({ success: true, msg: '更新しました' });
     else res.json({ success: false, msg: '不明なID' });
@@ -434,7 +439,7 @@ router.post('/vote', (req, res) => {
 router.get('/matrix', (req, res) => {
   try {
     const db = getDb();
-    const posts = db.prepare("SELECT * FROM posts WHERE status IN ('open','public')").all();
+    const posts = db.prepare("SELECT * FROM posts WHERE status IN ('open','public') AND COALESCE(category,'') NOT LIKE '%要対応%'").all();
     const points = [];
     posts.forEach(r => {
       const parsed = parsePostScore(r.analysis);
@@ -995,6 +1000,7 @@ async function runEvalJob() {
     AND p.content NOT LIKE '【写真】%'
     AND COALESCE(p.category,'') NOT LIKE '%食事%'
     AND COALESCE(p.category,'') NOT LIKE '%栄養%'
+    AND COALESCE(p.category,'') NOT LIKE '%要対応%'
   `).all();
 
   evalJobState = { running: true, evaluated: 0, failed: 0, total: unevaluated.length, done: false, error: null };

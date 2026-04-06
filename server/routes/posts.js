@@ -22,7 +22,7 @@ router.get('/public', (req, res) => {
     if (catFilter === 'consult') catWhere = " AND category = '相談'";
     else if (catFilter === 'food') catWhere = " AND category LIKE '%食事%'";
 
-    const posts = db.prepare(`SELECT * FROM posts WHERE status IN ('open','public','resolved','planned')${catWhere} ORDER BY created_at DESC LIMIT ? OFFSET ?`).all(limit + 1, offset);
+    const posts = db.prepare(`SELECT * FROM posts WHERE status IN ('open','public','resolved','planned') AND COALESCE(category,'') NOT LIKE '%要対応%'${catWhere} ORDER BY created_at DESC LIMIT ? OFFSET ?`).all(limit + 1, offset);
     const hasNext = posts.length > limit;
     const pagedPosts = posts.slice(0, limit);
 

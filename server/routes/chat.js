@@ -134,7 +134,7 @@ ${fullChat}
         db.prepare(`INSERT INTO posts (post_id, user_id, content, analysis, nickname, avatar, status, category, department, birth_date)
           VALUES (?, ?, ?, ?, ?, ?, 'open', '🚨 要対応アラート', ?, ?)`).run(
           pid, uid, '【要対応】' + summary, analysis,
-          user ? user.nickname : '匿名', user ? user.avatar : '',
+          '匿名の社員', '',
           user ? (user.department || '') : '', user ? (user.birth_date || '') : ''
         );
       }

@@ -5207,7 +5207,7 @@ async function buddyAskAI(concern, userText) {
     }
 
     var buddyName = (buddyData && buddyData.name) ? buddyData.name : 'ヘルスバディー';
-    var systemPrompt = 'あなたの名前は「' + buddyName + '」です。自分のことを「' + buddyName + '」と名乗ってください。「バディー」とは名乗らないでください。\n' +
+    var systemPrompt = 'あなたの名前は「' + buddyName + '」です。初回の挨拶時のみ名乗り、会話の途中では名前を繰り返さないでください。\n' +
       '以下の原則に従って会話してください：\n' +
       '・3行以内で簡潔に返答する\n' +
       '・「〜してください」ではなく「〜してみない？」とコーチング口調\n' +

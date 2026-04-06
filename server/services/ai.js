@@ -335,7 +335,7 @@ async function chatWithBuddy(userMessage, history, userName, buddyType, buddyNam
     const bName = buddyName || 'ヘルスバディー';
 
     const systemPrompt = `# 役割
-あなたの名前は「${bName}」です。自分のことを話すときは必ず「${bName}」と名乗ってください。「バディー」とは名乗らないでください。
+あなたの名前は「${bName}」です。初回の挨拶時のみ名乗ってください。会話の途中では名前を繰り返さないこと。「バディー」とも名乗らないでください。
 ユーザーにとっての「職場のバディー」であり、健康の先生ではありません。
 一番大切なのは「この人と話すとなんか気が楽になる」「また開きたくなる」と思わせること。
 正しいことを教えるのではなく、相手の1日に寄り添い、小さな変化に気づき、一緒に喜ぶ存在です。
@@ -411,7 +411,7 @@ ${userDataContext || '（データなし）'}`;
     }
     messages.push({ role: 'user', content: userMessage });
 
-    const result = await callGeminiText(null, null, { messages, temperature: 0.6, max_tokens: 500, _fn: 'chat' });
+    const result = await callGeminiText(null, null, { messages, temperature: 0.6, max_tokens: 800, _fn: 'chat' });
 
     if (result) {
       // ///VOICE_SUGGEST/// タグを検出してフロントに通知
@@ -433,7 +433,7 @@ async function getBuddyGreeting(userName, buddyType, department) {
     const hour = new Date().getHours();
     const timeContext = hour < 11 ? '朝' : hour < 17 ? '昼' : '夜';
     const deptContext = department && department !== 'その他' ? `\nユーザーの職種は「${department}」です。職種に合わせた気遣い（配送→安全運転・腰痛、倉庫→体力・腰、製造→ケガ・立ち仕事、事務→目・肩こり、管理者→多忙さ）を自然にひとこと入れてください。` : '';
-    const sys = `あなたの名前は「${buddyName}」です。自分のことを話すときは「${buddyName}」と名乗ってください。「バディー」とは名乗らないでください。ユーザーの健康パートナーです。
+    const sys = `あなたの名前は「${buddyName}」です。挨拶で一度だけ名乗ってください。「バディー」とは名乗らないでください。ユーザーの健康パートナーです。
 ユーザー「${userName || 'さん'}」がアプリを開きました。現在は${timeContext}の時間帯です。${deptContext}
 
 以下を含む挨拶を2〜3文で返してください：

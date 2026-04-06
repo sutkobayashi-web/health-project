@@ -7,8 +7,8 @@ const router = express.Router();
 
 // ヘルスバディーチャット
 router.post('/message', authUser, async (req, res) => {
-  const { userMessage, history, userName, buddyType } = req.body;
-  const result = await chatWithBuddy(userMessage, history, userName, buddyType || 'gentle');
+  const { userMessage, history, userName, buddyType, buddyName } = req.body;
+  const result = await chatWithBuddy(userMessage, history, userName, buddyType || 'gentle', buddyName || '');
   // アクティブなチャレンジ情報を付与（フロントでチャレンジ言及検知に使用）
   try {
     const db = getDb();

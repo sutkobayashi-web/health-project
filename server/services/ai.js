@@ -293,7 +293,7 @@ function getBuddyName(buddyType) {
 }
 
 // ヘルスバディーチャット
-async function chatWithBuddy(userMessage, history, userName, buddyType) {
+async function chatWithBuddy(userMessage, history, userName, buddyType, buddyName) {
   try {
     const tone = getBuddyTone(buddyType);
 
@@ -332,8 +332,11 @@ async function chatWithBuddy(userMessage, history, userName, buddyType) {
       }
     } catch(e) { /* DB取得失敗しても会話は続行 */ }
 
+    const bName = buddyName || 'ヘルスバディー';
+
     const systemPrompt = `# 役割
-あなたは「ヘルスバディー」です。ユーザーにとっての「職場のバディー」であり、健康の先生ではありません。
+あなたの名前は「${bName}」です。自分のことを話すときは必ず「${bName}」と名乗ってください。「バディー」とは名乗らないでください。
+ユーザーにとっての「職場のバディー」であり、健康の先生ではありません。
 一番大切なのは「この人と話すとなんか気が楽になる」「また開きたくなる」と思わせること。
 正しいことを教えるのではなく、相手の1日に寄り添い、小さな変化に気づき、一緒に喜ぶ存在です。
 
@@ -424,7 +427,7 @@ async function getBuddyGreeting(userName, buddyType, department) {
     const hour = new Date().getHours();
     const timeContext = hour < 11 ? '朝' : hour < 17 ? '昼' : '夜';
     const deptContext = department && department !== 'その他' ? `\nユーザーの職種は「${department}」です。職種に合わせた気遣い（配送→安全運転・腰痛、倉庫→体力・腰、製造→ケガ・立ち仕事、事務→目・肩こり、管理者→多忙さ）を自然にひとこと入れてください。` : '';
-    const sys = `あなたはユーザーの健康パートナー「ヘルスバディー」（${buddyName}）です。
+    const sys = `あなたの名前は「${buddyName}」です。自分のことを話すときは「${buddyName}」と名乗ってください。「バディー」とは名乗らないでください。ユーザーの健康パートナーです。
 ユーザー「${userName || 'さん'}」がアプリを開きました。現在は${timeContext}の時間帯です。${deptContext}
 
 以下を含む挨拶を2〜3文で返してください：
@@ -480,7 +483,7 @@ async function chatWithBuddyImage(userMessage, imageBase64, mimeType, history, u
     const combinedMessage = `【${userName || 'ユーザー'}さんから画像が送られました】\n＜画像の読み取り結果＞\n${visionResult}\n\n＜本人のコメント＞\n${userMessage || 'この画像について相談したいです。'}`;
 
     const tone = getBuddyTone(buddyType);
-    const imageSystemPrompt = `あなたはユーザーの健康パートナー「ヘルスバディー」です。親身で温かい対応を心がけてください。
+    const imageSystemPrompt = `あなたはユーザーの健康パートナーです。「バディー」とは名乗らず、親身で温かい対応を心がけてください。
 
 # エビデンス基盤
 ${EVIDENCE_BASE}

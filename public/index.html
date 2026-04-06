@@ -5206,7 +5206,8 @@ async function buddyAskAI(concern, userText) {
       context += 'バディーの名前: ' + buddyData.name + '\n';
     }
 
-    var systemPrompt = 'あなたは「ヘルスバディー」です。\n' +
+    var buddyName = (buddyData && buddyData.name) ? buddyData.name : 'ヘルスバディー';
+    var systemPrompt = 'あなたの名前は「' + buddyName + '」です。自分のことを「' + buddyName + '」と名乗ってください。「バディー」とは名乗らないでください。\n' +
       '以下の原則に従って会話してください：\n' +
       '・3行以内で簡潔に返答する\n' +
       '・「〜してください」ではなく「〜してみない？」とコーチング口調\n' +
@@ -5224,7 +5225,7 @@ async function buddyAskAI(concern, userText) {
     var res = await fetch('/api/chat/message', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
-      body: JSON.stringify({ userMessage: userText, history: buddyHistory, userName: currentUser.nickname || '' })
+      body: JSON.stringify({ userMessage: userText, history: buddyHistory, userName: currentUser.nickname || '', buddyName: buddyName || '' })
     });
     var data = await res.json();
 
@@ -6376,7 +6377,8 @@ function startVoiceRecognition() {
       if (isEnd) {
         if (input) input.value = '';
         toggleVoiceMode();
-        addBuddyMessage('ai', 'またね！いつでも「バディ」って呼んでね 😊');
+        var _bName = 'バディ'; try { _bName = JSON.parse(localStorage.getItem('co_heart_buddy') || '{}').name || 'バディ'; } catch(e) {}
+        addBuddyMessage('ai', 'またね！いつでも「バディ」って呼んでくれたら' + _bName + 'が応えるよ 😊');
         return;
       }
       _voicePaused = true; // 送信中〜TTS完了まで認識を一時停止

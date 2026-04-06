@@ -11,6 +11,7 @@
   .post-card:active { background-color:#fafafa; }
   .post-card.hidden { display:none; }
   .post-header-bar { padding:8px 15px; display:flex; justify-content:space-between; align-items:center; color:white; font-size:0.85rem; font-weight:bold; }
+  .header-alert   { background:linear-gradient(90deg,#ef4444 0%,#f97316 100%); color:white; text-shadow:0 1px 2px rgba(0,0,0,0.2); }
   .header-consult { background:linear-gradient(90deg,#ff9a9e 0%,#fecfef 100%); text-shadow:0 1px 1px rgba(0,0,0,0.1); }
   .header-food    { background:linear-gradient(90deg,#84fab0 0%,#8fd3f4 100%); text-shadow:0 1px 1px rgba(0,0,0,0.1); }
   .header-target  { background:linear-gradient(90deg,#f6d365 0%,#fda085 100%); text-shadow:0 1px 1px rgba(0,0,0,0.1); }
@@ -161,25 +162,27 @@ function renderReportList(data) {
     var list = document.getElementById('report-list-area'); if(!list) return;
     list.innerHTML = "";
     if(!data || data.length === 0) { list.innerHTML = '<div class="text-center text-muted py-5 small">投稿データがありません</div>'; return; }
-    var catCount = { all:0, consult:0, food:0, target:0 };
-    var catUnread = { all:0, consult:0, food:0, target:0 };
-    var catColors = { all:'#6c757d', consult:'#d63384', food:'#20c997', target:'#fd7e14' };
-    var catLabels = { all:'📋 すべて', consult:'💬 相談', food:'🍱 食事', target:'⭐ 重点' };
+    var catCount = { all:0, alert:0, consult:0, food:0, target:0 };
+    var catUnread = { all:0, alert:0, consult:0, food:0, target:0 };
+    var catColors = { all:'#6c757d', alert:'#dc2626', consult:'#d63384', food:'#20c997', target:'#fd7e14' };
+    var catLabels = { all:'📋 すべて', alert:'🚨 要対応', consult:'💬 相談', food:'🍱 食事', target:'⭐ 重点' };
     data.forEach(function(r) {
         var rawContent = String(r[INBOX_COLS.CONTENT]||""); var analysisText = String(r[INBOX_COLS.ANALYSIS]||"");
         var isTarget = false;
         if(analysisText.includes("///SCORE///")) { try { var s = JSON.parse(analysisText.split("///SCORE///")[1]); if(s.is_target) isTarget = true; } catch(e){} }
         var dbCat = String(r[INBOX_COLS.CAT]||"");
+        var isAlert = dbCat.includes("要対応");
         var isFood = dbCat.includes("食事") || dbCat.includes("栄養");
         var isUnread = !r[INBOX_COLS.ADMIN_READ];
         catCount.all++;
         if(isUnread) catUnread.all++;
-        if(isTarget) { catCount.target++; if(isUnread) catUnread.target++; }
+        if(isAlert) { catCount.alert++; if(isUnread) catUnread.alert++; }
+        else if(isTarget) { catCount.target++; if(isUnread) catUnread.target++; }
         else if(isFood) { catCount.food++; if(isUnread) catUnread.food++; }
         else { catCount.consult++; if(isUnread) catUnread.consult++; }
     });
     var filterBar = document.createElement('div'); filterBar.className = 'inbox-filter-bar';
-    ['all','consult','food','target'].forEach(function(cat) {
+    ['all','alert','consult','food','target'].forEach(function(cat) {
         var btn = document.createElement('button');
         btn.className = 'inbox-filter-btn' + (cat===currentInboxCatFilter ? ' active' : '');
         btn.setAttribute('data-cat',cat); btn.setAttribute('data-color',catColors[cat]);
@@ -204,7 +207,8 @@ function renderReportList(data) {
         var likeBadge = likeCount > 0 ? '<span class="like-badge"><i class="fas fa-heart"></i> ' + likeCount + '</span>' : '';
         var dateStr = String(r[INBOX_COLS.DATE]||"");
         var headerClass, icon, catName, cardCat;
-        if(isTarget) { headerClass="header-target"; icon="fas fa-star"; catName="重点検討案件"; cardCat="target";
+        if(dbCat.includes("要対応")) { headerClass="header-alert"; icon="fas fa-exclamation-triangle"; catName="要対応アラート"; cardCat="alert"; }
+        else if(isTarget) { headerClass="header-target"; icon="fas fa-star"; catName="重点検討案件"; cardCat="target";
             // 重点案件の賛同進捗バッジを後で設定するためのフラグ
         }
         else if(dbCat.includes("食事") || dbCat.includes("栄養")) { headerClass="header-food"; icon="fas fa-utensils"; catName="食事チェック"; cardCat="food"; }

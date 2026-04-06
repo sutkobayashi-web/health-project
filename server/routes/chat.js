@@ -103,6 +103,45 @@ router.post('/message', authUser, async (req, res) => {
     const activeChallenges = db.prepare("SELECT challenge_id, title FROM challenges WHERE status = 'active' LIMIT 3").all();
     result.activeChallenges = activeChallenges;
   } catch(e) { result.activeChallenges = []; }
+
+  // ★ エスカレーション検知: バディーが推進メンバーを紹介した場合、管理画面に自動通知
+  try {
+    if (result.reply && result.reply.indexOf('推進メンバー') !== -1) {
+      const db = getDb();
+      // 同一ユーザーの当日アラート重複防止
+      const todayAlert = db.prepare(`SELECT post_id FROM posts WHERE user_id = ? AND category = '🚨 要対応アラート' AND created_at > datetime('now', '-12 hours')`).get(uid);
+      if (!todayAlert) {
+      const { v4: uuidv4 } = require('uuid');
+      const { callAIWithFallback } = require('../services/ai');
+      const user = db.prepare('SELECT nickname, avatar, department, birth_date FROM users WHERE id = ?').get(uid);
+
+      // AIで会話を匿名要約（個人特定情報を除去）
+      const recentChat = (history || []).slice(-6).map(m => (m.role === 'user' ? '社員: ' : 'バディー: ') + m.content).join('\n');
+      const fullChat = recentChat + '\n社員: ' + userMessage + '\nバディー: ' + result.reply;
+      const summaryPrompt = `以下の会話でバディーが推進メンバーへの相談を促しました。管理者向けに状況を匿名で要約してください。
+【会話】
+${fullChat}
+【ルール】
+- 個人名・日時は除く
+- 「ある社員が〜」で始める
+- 何が問題か、どの程度深刻かを2〜3文で簡潔に
+- マークダウン不可`;
+
+      const summary = await callAIWithFallback('あなたは管理者向けに社員の状況を匿名要約するアシスタントです。', summaryPrompt);
+      if (summary) {
+        const pid = 'alert_' + uuidv4().substring(0, 8);
+        const analysis = `【要対応】バディーが推進メンバーへの相談を促しました。\n///SCORE///\n{"is_target":true,"legal":2,"risk":3,"freq":1,"urgency":4,"safety":3,"value":3,"needs":4}`;
+        db.prepare(`INSERT INTO posts (post_id, user_id, content, analysis, nickname, avatar, status, category, department, birth_date)
+          VALUES (?, ?, ?, ?, ?, ?, 'open', '🚨 要対応アラート', ?, ?)`).run(
+          pid, uid, '【要対応】' + summary, analysis,
+          user ? user.nickname : '匿名', user ? user.avatar : '',
+          user ? (user.department || '') : '', user ? (user.birth_date || '') : ''
+        );
+      }
+      } // todayAlert check
+    }
+  } catch(e) { console.error('[escalation-alert]', e.message); }
+
   res.json(result);
 });
 

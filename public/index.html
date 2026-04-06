@@ -6369,7 +6369,6 @@ function startVoiceRecognition() {
 
   _speechRecognition.onresult = function(event) {
     if (_voicePaused) return;
-    _gotResultInSession = true;
 
     var transcript = '';
     var isFinal = false;
@@ -6428,21 +6427,16 @@ function startVoiceRecognition() {
     }
   };
 
-  var _gotResultInSession = false; // このセッションで認識結果があったか
-
   _speechRecognition.onend = function() {
     _isListening = false;
     if (_voiceStopped) return;
-    // 音声モードON＆バディー応答待ちでなく、かつ発話中だった場合のみ再起動
-    // 無音でセッション切れ（no-speech）の場合は再起動しない→無限ループ防止
-    if (_voiceModeActive && !_voicePaused && _gotResultInSession) {
-      _gotResultInSession = false;
-      try { _speechRecognition.start(); } catch(e) {}
-    } else {
-      // 無音終了 → 待機状態に戻す（マイクタップで再開）
-      setMicState('ready');
-      updateVoiceStatus('タップして話しかける');
-      updateVoiceSubStatus('');
+    // 音声モードON＆バディー応答待ちでなければ再起動（「バディー」で会話継続するため）
+    // 無音ループ防止: 1秒待ってから再起動
+    if (_voiceModeActive && !_voicePaused) {
+      setTimeout(function() {
+        if (!_voiceModeActive || _voicePaused || _voiceStopped || _isListening) return;
+        try { _speechRecognition.start(); } catch(e) {}
+      }, 1000);
     }
   };
 

@@ -6417,11 +6417,11 @@ function getJapaneseVoice() {
 
 // --- 音声設定管理（声はバディー性格連動、速度のみユーザー設定） ---
 var _voicePersonalityMap = {
-  gentle:   { voice: 'ja-JP-Neural2-B',  icon: '👩',    name: 'あかり', desc: 'やさしい女性ボイス' },
-  energy:   { voice: 'ja-JP-Wavenet-B',  icon: '👩‍🏫', name: 'はるか', desc: '明るい女性ボイス' },
-  smart:    { voice: 'ja-JP-Neural2-D',  icon: '👩‍⚕️', name: 'みさき', desc: 'しっかり女性ボイス' },
-  calm:     { voice: 'ja-JP-Neural2-C',  icon: '👨',    name: 'けんた', desc: '落ち着いた男性ボイス' },
-  reliable: { voice: 'ja-JP-Wavenet-C',  icon: '👨‍⚕️', name: 'そうた', desc: '知的な男性ボイス' }
+  gentle:   { voice: 'ja-JP-Neural2-B',  pitch: 2.0,  icon: '🌸', name: 'あかり', desc: 'やさしく穏やかな声' },
+  energy:   { voice: 'ja-JP-Wavenet-B',  pitch: 3.0,  icon: '☀️', name: 'はるか', desc: '明るく元気な声' },
+  smart:    { voice: 'ja-JP-Neural2-D',  pitch: 0.0,  icon: '📚', name: 'みさき', desc: '知的でしっかりした声' },
+  calm:     { voice: 'ja-JP-Wavenet-A',  pitch: 1.0,  icon: '🍃', name: 'ゆい',   desc: 'おだやかで温かい声' },
+  reliable: { voice: 'ja-JP-Neural2-D',  pitch: -1.0, icon: '🔬', name: 'りん',   desc: '頼もしく落ち着いた声' }
 };
 
 function getBuddyPersonality() {
@@ -6469,7 +6469,7 @@ function previewVoice() {
     reliable: 'データによると、今週の調子は上向きだよ。この調子で続けよう。'
   };
   var previewText = texts[personality] || texts.gentle;
-  var url = '/api/chat/tts?text=' + encodeURIComponent(previewText) + '&voice=' + s.voice + '&speed=' + s.speed + '&t=' + Date.now();
+  var url = '/api/chat/tts?text=' + encodeURIComponent(previewText) + '&voice=' + s.voice + '&speed=' + s.speed + '&pitch=' + mapped.pitch + '&t=' + Date.now();
   var audio = new Audio();
   audio.src = url;
   audio.play().catch(function(e) { alert('再生できませんでした: ' + e.message); });
@@ -6501,7 +6501,9 @@ function doSpeak(text, msgEl, onDone) {
 
   // ユーザーの音声設定を反映してサーバーURLから直接再生
   var vs = getVoiceSettings();
-  var ttsUrl = '/api/chat/tts?text=' + encodeURIComponent(cleanText) + '&voice=' + vs.voice + '&speed=' + vs.speed + '&t=' + Date.now();
+  var personality = getBuddyPersonality();
+  var mapped = _voicePersonalityMap[personality] || _voicePersonalityMap.gentle;
+  var ttsUrl = '/api/chat/tts?text=' + encodeURIComponent(cleanText) + '&voice=' + vs.voice + '&speed=' + vs.speed + '&pitch=' + mapped.pitch + '&t=' + Date.now();
   var audio = new Audio();
   window._currentTtsAudio = audio;
 

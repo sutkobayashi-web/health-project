@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260406_2340">
+<html data-app-version="20260406_2400">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -596,6 +596,9 @@
           <div id="voice-personality-desc" style="font-size:0.62rem;color:#999;">バディーの性格に合わせて自動設定</div>
         </div>
       </div>
+      <!-- 声キャラ選択 -->
+      <div style="font-size:0.7rem; font-weight:600; color:#555; margin-bottom:6px;">🎤 声を選ぶ（タップで試聴）</div>
+      <div id="voice-char-list" style="margin-bottom:12px;max-height:200px;overflow-y:auto;"></div>
       <!-- 速度 -->
       <div style="font-size:0.7rem; font-weight:600; color:#555; margin-bottom:6px;">話す速さ</div>
       <div style="display:flex; gap:6px; margin-bottom:12px;">
@@ -6520,6 +6523,22 @@ function getJapaneseVoice() {
 }
 
 // --- 音声設定管理（声はバディー性格連動、速度のみユーザー設定） ---
+// 性格ごとに複数の声パターンを用意。ユーザーが選択可能
+var _voiceOptions = [
+  { id: 'akari',   voice: 'ja-JP-Neural2-B',  pitch: 2.0,  icon: '🌸', name: 'あかり',   desc: 'やさしく穏やかな声',     personality: ['gentle'] },
+  { id: 'haruka',  voice: 'ja-JP-Wavenet-B',  pitch: 3.0,  icon: '☀️', name: 'はるか',   desc: '明るく元気な声',         personality: ['energy', 'cheerful'] },
+  { id: 'misaki',  voice: 'ja-JP-Neural2-D',  pitch: 0.0,  icon: '📚', name: 'みさき',   desc: '知的でしっかりした声',   personality: ['smart', 'strict'] },
+  { id: 'yui',     voice: 'ja-JP-Wavenet-A',  pitch: 1.0,  icon: '🍃', name: 'ゆい',     desc: 'おだやかで温かい声',     personality: ['calm'] },
+  { id: 'rin',     voice: 'ja-JP-Neural2-D',  pitch: -1.0, icon: '🔬', name: 'りん',     desc: '頼もしく落ち着いた声',   personality: ['reliable'] },
+  { id: 'sora',    voice: 'ja-JP-Neural2-C',  pitch: 1.5,  icon: '🌈', name: 'そら',     desc: '明るくハキハキした声',   personality: ['energy', 'cheerful'] },
+  { id: 'kaede',   voice: 'ja-JP-Wavenet-C',  pitch: 0.5,  icon: '🍁', name: 'かえで',   desc: 'さわやかで親しみやすい声', personality: ['gentle', 'calm'] },
+  { id: 'hinata',  voice: 'ja-JP-Wavenet-D',  pitch: 2.5,  icon: '🌻', name: 'ひなた',   desc: 'ぽかぽか温かい声',       personality: ['gentle', 'calm'] },
+  { id: 'mei',     voice: 'ja-JP-Neural2-C',  pitch: -0.5, icon: '🎀', name: 'めい',     desc: 'テキパキ頼れる声',       personality: ['smart', 'strict', 'reliable'] },
+  { id: 'riku',    voice: 'ja-JP-Wavenet-D',  pitch: -2.0, icon: '🏔️', name: 'りく',     desc: '低めで安心感のある声',   personality: ['reliable', 'calm'] },
+  { id: 'niko',    voice: 'ja-JP-Wavenet-C',  pitch: 3.5,  icon: '😊', name: 'にこ',     desc: '元気いっぱいかわいい声', personality: ['energy', 'cheerful'] },
+  { id: 'tsubaki', voice: 'ja-JP-Neural2-B',  pitch: -0.5, icon: '🌺', name: 'つばき',   desc: '凛とした大人の声',       personality: ['strict', 'reliable'] }
+];
+// 旧互換用マッピング
 var _voicePersonalityMap = {
   gentle:   { voice: 'ja-JP-Neural2-B',  pitch: 2.0,  icon: '🌸', name: 'あかり', desc: 'やさしく穏やかな声' },
   energy:   { voice: 'ja-JP-Wavenet-B',  pitch: 3.0,  icon: '☀️', name: 'はるか', desc: '明るく元気な声' },
@@ -6533,33 +6552,93 @@ function getBuddyPersonality() {
 }
 function getVoiceSettings() {
   var personality = getBuddyPersonality();
-  var mapped = _voicePersonalityMap[personality] || _voicePersonalityMap.gentle;
   try {
     var s = JSON.parse(localStorage.getItem('cowell_voice_settings') || '{}');
-    return { voice: mapped.voice, speed: s.speed || '1.15' };
-  } catch(e) { return { voice: mapped.voice, speed: '1.15' }; }
+    // ユーザーが声を個別選択している場合はそれを使う
+    if (s.voiceId) {
+      var selected = _voiceOptions.find(function(v) { return v.id === s.voiceId; });
+      if (selected) return { voice: selected.voice, speed: s.speed || '1.15', pitch: selected.pitch };
+    }
+    // 未選択 → 性格に連動したデフォルト
+    var mapped = _voicePersonalityMap[personality] || _voicePersonalityMap.gentle;
+    return { voice: mapped.voice, speed: s.speed || '1.15', pitch: mapped.pitch };
+  } catch(e) {
+    var m = _voicePersonalityMap[personality] || _voicePersonalityMap.gentle;
+    return { voice: m.voice, speed: '1.15', pitch: m.pitch };
+  }
+}
+function _getSavedVoiceSettings() {
+  try { return JSON.parse(localStorage.getItem('cowell_voice_settings') || '{}'); } catch(e) { return {}; }
+}
+function _saveVoiceSettings(obj) {
+  var cur = _getSavedVoiceSettings();
+  Object.keys(obj).forEach(function(k) { cur[k] = obj[k]; });
+  localStorage.setItem('cowell_voice_settings', JSON.stringify(cur));
 }
 function selectVoiceSpeed(btn) {
   document.querySelectorAll('.voice-speed-btn').forEach(function(b) {
     b.style.borderColor = '#e0e0e0'; b.style.background = 'white';
   });
   btn.style.borderColor = '#0ea5e9'; btn.style.background = '#f0f9ff';
-  localStorage.setItem('cowell_voice_settings', JSON.stringify({ speed: btn.getAttribute('data-speed') }));
+  _saveVoiceSettings({ speed: btn.getAttribute('data-speed') });
+}
+function selectVoiceChar(id) {
+  _saveVoiceSettings({ voiceId: id });
+  initVoiceSettingsUI();
+  // 選択した声でサンプル再生
+  var v = _voiceOptions.find(function(o) { return o.id === id; });
+  if (v) {
+    ensureAudioContext();
+    var sampleText = 'こんにちは！' + v.name + 'だよ。よろしくね！';
+    var ttsUrl = '/api/chat/tts?text=' + encodeURIComponent(sampleText) + '&voice=' + v.voice + '&speed=1.15&pitch=' + v.pitch + '&t=' + Date.now();
+    fetch(ttsUrl).then(function(r) { return r.arrayBuffer(); }).then(function(buf) {
+      var ctx = ensureAudioContext();
+      ctx.decodeAudioData(buf, function(ab) { var s = ctx.createBufferSource(); s.buffer = ab; s.connect(ctx.destination); s.start(0); });
+    }).catch(function(){});
+  }
 }
 function initVoiceSettingsUI() {
-  var s = getVoiceSettings();
+  var saved = _getSavedVoiceSettings();
+  var personality = getBuddyPersonality();
   // 速度ボタン初期化
+  var curSpeed = saved.speed || '1.15';
   document.querySelectorAll('.voice-speed-btn').forEach(function(b) {
-    if (b.getAttribute('data-speed') === s.speed) { b.style.borderColor = '#0ea5e9'; b.style.background = '#f0f9ff'; }
+    if (b.getAttribute('data-speed') === curSpeed) { b.style.borderColor = '#0ea5e9'; b.style.background = '#f0f9ff'; }
     else { b.style.borderColor = '#e0e0e0'; b.style.background = 'white'; }
   });
-  // 性格連動の声情報を表示
-  var personality = getBuddyPersonality();
-  var mapped = _voicePersonalityMap[personality] || _voicePersonalityMap.gentle;
+  // 声キャラ選択UI生成
+  var container = document.getElementById('voice-char-list');
+  if (container) {
+    var currentId = saved.voiceId || '';
+    // 性格に合う声を優先表示
+    var sorted = _voiceOptions.slice().sort(function(a, b) {
+      var aMatch = a.personality.indexOf(personality) !== -1 ? 0 : 1;
+      var bMatch = b.personality.indexOf(personality) !== -1 ? 0 : 1;
+      return aMatch - bMatch;
+    });
+    container.innerHTML = sorted.map(function(v) {
+      var isActive = v.id === currentId;
+      var isRecommend = v.personality.indexOf(personality) !== -1;
+      return '<div onclick="selectVoiceChar(\'' + v.id + '\')" style="display:inline-block;text-align:center;padding:8px 6px;margin:4px;border-radius:12px;border:2px solid ' + (isActive ? '#0ea5e9' : '#e5e7eb') + ';background:' + (isActive ? '#f0f9ff' : 'white') + ';cursor:pointer;min-width:70px;position:relative">'
+        + (isRecommend ? '<span style="position:absolute;top:-6px;right:-6px;font-size:10px;background:#fef3c7;border-radius:8px;padding:1px 4px">おすすめ</span>' : '')
+        + '<div style="font-size:24px">' + v.icon + '</div>'
+        + '<div style="font-size:12px;font-weight:600;margin-top:2px">' + v.name + '</div>'
+        + '<div style="font-size:10px;color:#6b7280;margin-top:1px">' + v.desc + '</div>'
+        + '</div>';
+    }).join('');
+  }
+  // 現在の声表示
   var iconEl = document.getElementById('voice-personality-icon');
   var nameEl = document.getElementById('voice-personality-name');
-  if (iconEl) iconEl.textContent = mapped.icon;
-  if (nameEl) nameEl.textContent = mapped.name + '（' + mapped.desc + '）';
+  if (currentId) {
+    var sel = _voiceOptions.find(function(v) { return v.id === saved.voiceId; });
+    if (sel && iconEl) iconEl.textContent = sel.icon;
+    if (sel && nameEl) nameEl.textContent = sel.name + '（' + sel.desc + '）';
+  } else {
+    var mapped = _voicePersonalityMap[personality] || _voicePersonalityMap.gentle;
+    if (iconEl) iconEl.textContent = mapped.icon;
+    if (nameEl) nameEl.textContent = mapped.name + '（' + mapped.desc + '）';
+  }
 }
 function previewVoice() {
   var s = getVoiceSettings();
@@ -6612,9 +6691,7 @@ function doSpeak(text, msgEl, onDone) {
 
   // ユーザーの音声設定を反映
   var vs = getVoiceSettings();
-  var personality = getBuddyPersonality();
-  var mapped = _voicePersonalityMap[personality] || _voicePersonalityMap.gentle;
-  var ttsUrl = '/api/chat/tts?text=' + encodeURIComponent(cleanText) + '&voice=' + vs.voice + '&speed=' + vs.speed + '&pitch=' + mapped.pitch + '&t=' + Date.now();
+  var ttsUrl = '/api/chat/tts?text=' + encodeURIComponent(cleanText) + '&voice=' + vs.voice + '&speed=' + vs.speed + '&pitch=' + vs.pitch + '&t=' + Date.now();
 
   // AudioContext経由で再生（モバイル自動再生制限を回避）
   var ctx = ensureAudioContext();

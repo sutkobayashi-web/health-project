@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260406_2300">
+<html data-app-version="20260406_2310">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -6411,9 +6411,11 @@ function _startOneShot() {
     if (_voiceStopping || !_voiceModeActive) return;
     // バディー応答待ち → 何もしない（resumeListeningAfterTTSで再開）
     if (_voicePaused) return;
+    // 送信タイマー待ち中は再起動しない（バディー応答を待つ）
+    if (_voiceSendTimer) return;
     // 次の発話を待つ（1秒後に新セッション開始）
     setTimeout(function() {
-      if (_voiceModeActive && !_voicePaused && !_voiceStopping) {
+      if (_voiceModeActive && !_voicePaused && !_voiceStopping && !_voiceSendTimer) {
         _startOneShot();
       }
     }, 1000);

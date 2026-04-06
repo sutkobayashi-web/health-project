@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260406_2400">
+<html data-app-version="20260406_2410">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -6525,26 +6525,31 @@ function getJapaneseVoice() {
 // --- 音声設定管理（声はバディー性格連動、速度のみユーザー設定） ---
 // 性格ごとに複数の声パターンを用意。ユーザーが選択可能
 var _voiceOptions = [
-  { id: 'akari',   voice: 'ja-JP-Neural2-B',  pitch: 2.0,  icon: '🌸', name: 'あかり',   desc: 'やさしく穏やかな声',     personality: ['gentle'] },
-  { id: 'haruka',  voice: 'ja-JP-Wavenet-B',  pitch: 3.0,  icon: '☀️', name: 'はるか',   desc: '明るく元気な声',         personality: ['energy', 'cheerful'] },
-  { id: 'misaki',  voice: 'ja-JP-Neural2-D',  pitch: 0.0,  icon: '📚', name: 'みさき',   desc: '知的でしっかりした声',   personality: ['smart', 'strict'] },
-  { id: 'yui',     voice: 'ja-JP-Wavenet-A',  pitch: 1.0,  icon: '🍃', name: 'ゆい',     desc: 'おだやかで温かい声',     personality: ['calm'] },
-  { id: 'rin',     voice: 'ja-JP-Neural2-D',  pitch: -1.0, icon: '🔬', name: 'りん',     desc: '頼もしく落ち着いた声',   personality: ['reliable'] },
-  { id: 'sora',    voice: 'ja-JP-Neural2-C',  pitch: 1.5,  icon: '🌈', name: 'そら',     desc: '明るくハキハキした声',   personality: ['energy', 'cheerful'] },
-  { id: 'kaede',   voice: 'ja-JP-Wavenet-C',  pitch: 0.5,  icon: '🍁', name: 'かえで',   desc: 'さわやかで親しみやすい声', personality: ['gentle', 'calm'] },
-  { id: 'hinata',  voice: 'ja-JP-Wavenet-D',  pitch: 2.5,  icon: '🌻', name: 'ひなた',   desc: 'ぽかぽか温かい声',       personality: ['gentle', 'calm'] },
-  { id: 'mei',     voice: 'ja-JP-Neural2-C',  pitch: -0.5, icon: '🎀', name: 'めい',     desc: 'テキパキ頼れる声',       personality: ['smart', 'strict', 'reliable'] },
-  { id: 'riku',    voice: 'ja-JP-Wavenet-D',  pitch: -2.0, icon: '🏔️', name: 'りく',     desc: '低めで安心感のある声',   personality: ['reliable', 'calm'] },
-  { id: 'niko',    voice: 'ja-JP-Wavenet-C',  pitch: 3.5,  icon: '😊', name: 'にこ',     desc: '元気いっぱいかわいい声', personality: ['energy', 'cheerful'] },
-  { id: 'tsubaki', voice: 'ja-JP-Neural2-B',  pitch: -0.5, icon: '🌺', name: 'つばき',   desc: '凛とした大人の声',       personality: ['strict', 'reliable'] }
+  // ♀ 女性ボイス（Neural2-B / Wavenet-A / Wavenet-B）
+  { id: 'akari',   voice: 'ja-JP-Neural2-B',  pitch: 2.0,  icon: '🌸', name: 'あかり',   desc: '♀ やさしく穏やかな声',     personality: ['gentle'] },
+  { id: 'haruka',  voice: 'ja-JP-Wavenet-B',  pitch: 3.0,  icon: '☀️', name: 'はるか',   desc: '♀ 明るく元気な声',         personality: ['energy', 'cheerful'] },
+  { id: 'yui',     voice: 'ja-JP-Wavenet-A',  pitch: 1.0,  icon: '🍃', name: 'ゆい',     desc: '♀ おだやかで温かい声',     personality: ['calm'] },
+  { id: 'niko',    voice: 'ja-JP-Wavenet-B',  pitch: 1.5,  icon: '😊', name: 'にこ',     desc: '♀ 元気いっぱいかわいい声', personality: ['energy', 'cheerful'] },
+  { id: 'tsubaki', voice: 'ja-JP-Wavenet-A',  pitch: -0.5, icon: '🌺', name: 'つばき',   desc: '♀ 凛とした大人の声',       personality: ['strict', 'reliable'] },
+  { id: 'hinata',  voice: 'ja-JP-Neural2-B',  pitch: 3.5,  icon: '🌻', name: 'ひなた',   desc: '♀ ぽかぽか温かい声',       personality: ['gentle', 'calm'] },
+  { id: 'kaede',   voice: 'ja-JP-Wavenet-A',  pitch: 2.5,  icon: '🍁', name: 'かえで',   desc: '♀ さわやかで親しみやすい声', personality: ['gentle', 'calm'] },
+  { id: 'mei',     voice: 'ja-JP-Neural2-B',  pitch: 0.5,  icon: '🎀', name: 'めい',     desc: '♀ テキパキ頼れる声',       personality: ['smart', 'strict'] },
+  // ♂ 男性ボイス（Neural2-C / Neural2-D / Wavenet-C / Wavenet-D）
+  { id: 'sora',    voice: 'ja-JP-Neural2-C',  pitch: 1.5,  icon: '🌈', name: 'そら',     desc: '♂ 明るくハキハキした声',   personality: ['energy', 'cheerful'] },
+  { id: 'ken',     voice: 'ja-JP-Neural2-D',  pitch: 0.0,  icon: '📚', name: 'けん',     desc: '♂ 知的でしっかりした声',   personality: ['smart', 'strict'] },
+  { id: 'riku',    voice: 'ja-JP-Wavenet-D',  pitch: -1.0, icon: '🏔️', name: 'りく',     desc: '♂ 低めで安心感のある声',   personality: ['reliable', 'calm'] },
+  { id: 'daichi',  voice: 'ja-JP-Wavenet-C',  pitch: 0.0,  icon: '🛡️', name: 'だいち',   desc: '♂ 頼もしく落ち着いた声',   personality: ['reliable'] }
 ];
-// 旧互換用マッピング
+// デフォルト（声未選択時）の性格→声マッピング（全て女性ボイス）
 var _voicePersonalityMap = {
   gentle:   { voice: 'ja-JP-Neural2-B',  pitch: 2.0,  icon: '🌸', name: 'あかり', desc: 'やさしく穏やかな声' },
   energy:   { voice: 'ja-JP-Wavenet-B',  pitch: 3.0,  icon: '☀️', name: 'はるか', desc: '明るく元気な声' },
-  smart:    { voice: 'ja-JP-Neural2-D',  pitch: 0.0,  icon: '📚', name: 'みさき', desc: '知的でしっかりした声' },
+  cheerful: { voice: 'ja-JP-Wavenet-B',  pitch: 3.0,  icon: '☀️', name: 'はるか', desc: '明るく元気な声' },
+  smart:    { voice: 'ja-JP-Neural2-B',  pitch: 0.5,  icon: '🎀', name: 'めい',   desc: 'テキパキ頼れる声' },
+  strict:   { voice: 'ja-JP-Neural2-B',  pitch: 0.5,  icon: '🎀', name: 'めい',   desc: 'テキパキ頼れる声' },
   calm:     { voice: 'ja-JP-Wavenet-A',  pitch: 1.0,  icon: '🍃', name: 'ゆい',   desc: 'おだやかで温かい声' },
-  reliable: { voice: 'ja-JP-Neural2-D',  pitch: -1.0, icon: '🔬', name: 'りん',   desc: '頼もしく落ち着いた声' }
+  reliable: { voice: 'ja-JP-Wavenet-A',  pitch: -0.5, icon: '🌺', name: 'つばき', desc: '凛とした大人の声' },
+  funny:    { voice: 'ja-JP-Wavenet-B',  pitch: 1.5,  icon: '😊', name: 'にこ',   desc: '元気いっぱいかわいい声' }
 };
 
 function getBuddyPersonality() {

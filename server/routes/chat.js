@@ -556,10 +556,17 @@ router.post('/tts', async (req, res) => {
 });
 async function ttsHandler(req, res) {
   try {
-    const { text } = req.body;
+    const text = req.body.text || req.query.text;
     if (!text || text.trim().length === 0) return res.status(400).json({ error: 'テキストが空です' });
 
     const cleanText = text.substring(0, 5000);
+    const voiceName = req.body.voice || req.query.voice || 'ja-JP-Neural2-B';
+    const speed = parseFloat(req.body.speed || req.query.speed || '1.0') || 1.0;
+
+    // 許可する音声名のリスト
+    const allowedVoices = ['ja-JP-Neural2-B','ja-JP-Neural2-C','ja-JP-Neural2-D','ja-JP-Wavenet-B','ja-JP-Wavenet-C','ja-JP-Wavenet-D'];
+    const safeVoice = allowedVoices.includes(voiceName) ? voiceName : 'ja-JP-Neural2-B';
+    const safeSpeed = Math.max(0.5, Math.min(2.0, speed));
 
     const apiKey = process.env.GOOGLE_TTS_API_KEY || process.env.GEMINI_API_KEY;
     if (!apiKey) return res.status(500).json({ error: 'TTS API Keyが設定されていません' });
@@ -572,11 +579,11 @@ async function ttsHandler(req, res) {
         input: { text: cleanText },
         voice: {
           languageCode: 'ja-JP',
-          name: 'ja-JP-Neural2-B'
+          name: safeVoice
         },
         audioConfig: {
           audioEncoding: 'MP3',
-          speakingRate: 1.05,
+          speakingRate: safeSpeed,
           pitch: 1.0
         }
       })

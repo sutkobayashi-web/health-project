@@ -584,6 +584,42 @@
         <button onclick="openAbEditor(currentUser.avatar, saveAvatarChange)" style="flex:1; background:linear-gradient(135deg,#667eea,#764ba2); color:white; border:none; border-radius:10px; padding:12px; font-weight:700; font-size:0.85rem; cursor:pointer;"><i class="fas fa-edit me-1"></i>アバターを編集</button>
       </div>
     </div>
+
+    <!-- 音声設定 -->
+    <div style="margin-top:16px; padding:14px; background:linear-gradient(135deg,#f0f9ff,#e0f2fe); border-radius:12px; border:1px solid #bae6fd;">
+      <div style="font-size:0.8rem; font-weight:700; color:#0369a1; margin-bottom:12px;"><i class="fas fa-headset" style="margin-right:4px;"></i>バディー音声設定</div>
+      <!-- 声の選択 -->
+      <div style="font-size:0.7rem; font-weight:600; color:#555; margin-bottom:6px;">声のタイプ</div>
+      <div id="voice-type-options" style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:12px;">
+        <button class="voice-opt-btn" data-voice="ja-JP-Neural2-B" onclick="selectVoiceType(this)" style="padding:10px 8px;border:2px solid #e0e0e0;border-radius:10px;background:white;cursor:pointer;font-size:0.75rem;font-weight:700;text-align:center;transition:all 0.2s;">
+          <div style="font-size:1.1rem;margin-bottom:2px;">👩</div>あかり<div style="font-size:0.6rem;color:#999;font-weight:400;">やさしい女性</div>
+        </button>
+        <button class="voice-opt-btn" data-voice="ja-JP-Neural2-D" onclick="selectVoiceType(this)" style="padding:10px 8px;border:2px solid #e0e0e0;border-radius:10px;background:white;cursor:pointer;font-size:0.75rem;font-weight:700;text-align:center;transition:all 0.2s;">
+          <div style="font-size:1.1rem;margin-bottom:2px;">👩‍⚕️</div>みさき<div style="font-size:0.6rem;color:#999;font-weight:400;">しっかり女性</div>
+        </button>
+        <button class="voice-opt-btn" data-voice="ja-JP-Wavenet-B" onclick="selectVoiceType(this)" style="padding:10px 8px;border:2px solid #e0e0e0;border-radius:10px;background:white;cursor:pointer;font-size:0.75rem;font-weight:700;text-align:center;transition:all 0.2s;">
+          <div style="font-size:1.1rem;margin-bottom:2px;">👩‍🏫</div>はるか<div style="font-size:0.6rem;color:#999;font-weight:400;">明るい女性</div>
+        </button>
+        <button class="voice-opt-btn" data-voice="ja-JP-Neural2-C" onclick="selectVoiceType(this)" style="padding:10px 8px;border:2px solid #e0e0e0;border-radius:10px;background:white;cursor:pointer;font-size:0.75rem;font-weight:700;text-align:center;transition:all 0.2s;">
+          <div style="font-size:1.1rem;margin-bottom:2px;">👨</div>けんた<div style="font-size:0.6rem;color:#999;font-weight:400;">落ち着いた男性</div>
+        </button>
+        <button class="voice-opt-btn" data-voice="ja-JP-Wavenet-C" onclick="selectVoiceType(this)" style="padding:10px 8px;border:2px solid #e0e0e0;border-radius:10px;background:white;cursor:pointer;font-size:0.75rem;font-weight:700;text-align:center;transition:all 0.2s;">
+          <div style="font-size:1.1rem;margin-bottom:2px;">👨‍⚕️</div>そうた<div style="font-size:0.6rem;color:#999;font-weight:400;">知的な男性</div>
+        </button>
+        <button class="voice-opt-btn" data-voice="ja-JP-Wavenet-D" onclick="selectVoiceType(this)" style="padding:10px 8px;border:2px solid #e0e0e0;border-radius:10px;background:white;cursor:pointer;font-size:0.75rem;font-weight:700;text-align:center;transition:all 0.2s;">
+          <div style="font-size:1.1rem;margin-bottom:2px;">👨‍🏫</div>りょう<div style="font-size:0.6rem;color:#999;font-weight:400;">元気な男性</div>
+        </button>
+      </div>
+      <!-- 速度 -->
+      <div style="font-size:0.7rem; font-weight:600; color:#555; margin-bottom:6px;">話す速さ</div>
+      <div style="display:flex; gap:6px; margin-bottom:12px;">
+        <button class="voice-speed-btn" data-speed="0.85" onclick="selectVoiceSpeed(this)" style="flex:1;padding:8px;border:2px solid #e0e0e0;border-radius:10px;background:white;cursor:pointer;font-size:0.75rem;font-weight:700;text-align:center;transition:all 0.2s;">🐢 ゆっくり</button>
+        <button class="voice-speed-btn" data-speed="1.0" onclick="selectVoiceSpeed(this)" style="flex:1;padding:8px;border:2px solid #e0e0e0;border-radius:10px;background:white;cursor:pointer;font-size:0.75rem;font-weight:700;text-align:center;transition:all 0.2s;">▶ 普通</button>
+        <button class="voice-speed-btn" data-speed="1.2" onclick="selectVoiceSpeed(this)" style="flex:1;padding:8px;border:2px solid #e0e0e0;border-radius:10px;background:white;cursor:pointer;font-size:0.75rem;font-weight:700;text-align:center;transition:all 0.2s;">⚡ 早い</button>
+      </div>
+      <!-- 試聴 -->
+      <button onclick="previewVoice()" style="width:100%;padding:10px;background:linear-gradient(135deg,#0ea5e9,#0284c7);color:white;border:none;border-radius:10px;font-weight:700;font-size:0.82rem;cursor:pointer;"><i class="fas fa-play me-1"></i>試聴する</button>
+    </div>
   </div>
 </div>
 
@@ -2228,6 +2264,8 @@ function openProfileEditModal() {
   // アバタープレビュー表示
   var avEl = document.getElementById('profile-edit-avatar');
   if (avEl) avEl.innerHTML = getAvatarHtml(currentUser.avatar, 52);
+  // 音声設定UI初期化
+  initVoiceSettingsUI();
 }
 
 function closeProfileEditModal() {
@@ -6391,6 +6429,50 @@ function getJapaneseVoice() {
   return null;
 }
 
+// --- 音声設定管理 ---
+function getVoiceSettings() {
+  try {
+    var s = JSON.parse(localStorage.getItem('cowell_voice_settings') || '{}');
+    return { voice: s.voice || 'ja-JP-Neural2-B', speed: s.speed || '1.0' };
+  } catch(e) { return { voice: 'ja-JP-Neural2-B', speed: '1.0' }; }
+}
+function saveVoiceSettings(voice, speed) {
+  localStorage.setItem('cowell_voice_settings', JSON.stringify({ voice: voice, speed: speed }));
+}
+function selectVoiceType(btn) {
+  document.querySelectorAll('.voice-opt-btn').forEach(function(b) {
+    b.style.borderColor = '#e0e0e0'; b.style.background = 'white';
+  });
+  btn.style.borderColor = '#0ea5e9'; btn.style.background = '#f0f9ff';
+  var s = getVoiceSettings();
+  saveVoiceSettings(btn.getAttribute('data-voice'), s.speed);
+}
+function selectVoiceSpeed(btn) {
+  document.querySelectorAll('.voice-speed-btn').forEach(function(b) {
+    b.style.borderColor = '#e0e0e0'; b.style.background = 'white';
+  });
+  btn.style.borderColor = '#0ea5e9'; btn.style.background = '#f0f9ff';
+  var s = getVoiceSettings();
+  saveVoiceSettings(s.voice, btn.getAttribute('data-speed'));
+}
+function initVoiceSettingsUI() {
+  var s = getVoiceSettings();
+  document.querySelectorAll('.voice-opt-btn').forEach(function(b) {
+    if (b.getAttribute('data-voice') === s.voice) { b.style.borderColor = '#0ea5e9'; b.style.background = '#f0f9ff'; }
+  });
+  document.querySelectorAll('.voice-speed-btn').forEach(function(b) {
+    if (b.getAttribute('data-speed') === s.speed) { b.style.borderColor = '#0ea5e9'; b.style.background = '#f0f9ff'; }
+  });
+}
+function previewVoice() {
+  var s = getVoiceSettings();
+  var previewText = 'こんにちは！今日も一緒に健康を意識していこうね。';
+  var url = '/api/chat/tts?text=' + encodeURIComponent(previewText) + '&voice=' + s.voice + '&speed=' + s.speed + '&t=' + Date.now();
+  var audio = new Audio();
+  audio.src = url;
+  audio.play().catch(function(e) { alert('再生できませんでした: ' + e.message); });
+}
+
 function cleanTextForSpeech(text) {
   return text.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{27BF}\u{FE00}-\u{FE0F}\u{1F900}-\u{1F9FF}]/gu, '')
     .replace(/[★●▲♪♥❤️✨💪🎯⭐🔥]/g, '')
@@ -6445,8 +6527,9 @@ function doSpeak(text, msgEl, onDone) {
 
   ttsDebug('1. 音声URL生成中... (' + cleanText.length + '文字)');
 
-  // サーバーURLを直接Audio.srcに指定（Blob URL不要）
-  var ttsUrl = '/api/chat/tts?text=' + encodeURIComponent(cleanText) + '&t=' + Date.now();
+  // ユーザーの音声設定を反映
+  var vs = getVoiceSettings();
+  var ttsUrl = '/api/chat/tts?text=' + encodeURIComponent(cleanText) + '&voice=' + vs.voice + '&speed=' + vs.speed + '&t=' + Date.now();
   var audio = new Audio();
   window._currentTtsAudio = audio;
 

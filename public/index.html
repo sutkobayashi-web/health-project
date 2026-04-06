@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260406_2320">
+<html data-app-version="20260406_2330">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -6454,20 +6454,29 @@ var _wakeWordActive = false;
 
 function startWakeWordListener() {
   if (_wakeWordActive || _voiceModeActive) return;
+  _wakeWordActive = true;
+  _startWakeWordSession();
+}
+
+function _startWakeWordSession() {
   var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SpeechRecognition) return;
+  if (!SpeechRecognition || !_wakeWordActive || _voiceModeActive) return;
 
-  _wakeWordRecognition = new SpeechRecognition();
-  _wakeWordRecognition.lang = 'ja-JP';
-  _wakeWordRecognition.continuous = true;
-  _wakeWordRecognition.interimResults = false;
+  if (_wakeWordRecognition) {
+    try { _wakeWordRecognition.abort(); } catch(e) {}
+  }
 
-  _wakeWordRecognition.onresult = function(event) {
-    for (var i = event.resultIndex; i < event.results.length; i++) {
+  var rec = new SpeechRecognition();
+  rec.lang = 'ja-JP';
+  rec.continuous = false;
+  rec.interimResults = false;
+  _wakeWordRecognition = rec;
+
+  rec.onresult = function(event) {
+    for (var i = 0; i < event.results.length; i++) {
       var text = event.results[i][0].transcript.toLowerCase();
       if (text.indexOf('バディ') !== -1 || text.indexOf('ばでぃ') !== -1 || text.indexOf('buddy') !== -1 || text.indexOf('ばでい') !== -1 || text.indexOf('バディー') !== -1) {
         stopWakeWordListener();
-        // 音声会話モード起動
         toggleVoiceMode();
         tapToSpeak();
         return;
@@ -6475,21 +6484,21 @@ function startWakeWordListener() {
     }
   };
 
-  _wakeWordRecognition.onerror = function(event) {
+  rec.onerror = function(event) {
     if (event.error === 'no-speech' || event.error === 'aborted') return;
   };
 
-  _wakeWordRecognition.onend = function() {
-    // 音声モードでなければ再起動
-    if (_wakeWordActive && !_voiceModeActive) {
-      try { _wakeWordRecognition.start(); } catch(e) {}
-    }
+  rec.onend = function() {
+    if (!_wakeWordActive || _voiceModeActive) return;
+    // 2秒間隔で次のセッション（高速ループ防止）
+    setTimeout(function() {
+      if (_wakeWordActive && !_voiceModeActive) {
+        _startWakeWordSession();
+      }
+    }, 2000);
   };
 
-  try {
-    _wakeWordRecognition.start();
-    _wakeWordActive = true;
-  } catch(e) {}
+  try { rec.start(); } catch(e) {}
 }
 
 function stopWakeWordListener() {

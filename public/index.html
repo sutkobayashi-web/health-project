@@ -3599,7 +3599,11 @@ function showAlcoholLogPanel(afterElementId, pid) {
   html += '<button onclick="submitAlcoholLog(\'' + pid + '\')" style="width:100%;margin-top:10px;padding:10px;background:linear-gradient(135deg,#e65100,#ff8a50);color:white;border:none;border-radius:10px;font-weight:700;font-size:0.85rem;cursor:pointer;"><i class="fas fa-check" style="margin-right:4px;"></i>晩酌を記録する</button>';
   html += '</div>';
 
-  container.insertAdjacentHTML('afterend', html);
+  container.insertAdjacentHTML('beforeend', html);
+
+  // パネルが見えるようスクロール
+  var panel = document.getElementById('alcohol-log-panel');
+  if (panel) setTimeout(function() { panel.scrollIntoView({ behavior:'smooth', block:'nearest' }); }, 100);
 
   // ドリンクカウント管理
   window._drinkCounts = {};

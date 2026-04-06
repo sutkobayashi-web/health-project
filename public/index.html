@@ -6239,6 +6239,7 @@ var _voiceModeActive = false;
 var _speechRecognition = null;
 var _isSpeaking = false;
 var _isListening = false;
+var _voiceSendTimer = null;
 
 function toggleVoiceMode() {
   _voiceModeActive = !_voiceModeActive;
@@ -6355,8 +6356,6 @@ function startVoiceRecognition() {
     updateVoiceSubStatus('そのまま話しかけてください');
   };
 
-  var _sendTimer = null;
-
   _speechRecognition.onresult = function(event) {
     // TTS再生中は認識結果を無視
     if (_voicePaused) return;
@@ -6383,7 +6382,7 @@ function startVoiceRecognition() {
       var trimmed = fullText.trim().replace(/。$/, '');
       var isEnd = endWords.some(function(w) { return trimmed === w || trimmed.endsWith(w); });
       if (isEnd) {
-        if (_sendTimer) { clearTimeout(_sendTimer); _sendTimer = null; }
+        if (_voiceSendTimer) { clearTimeout(_voiceSendTimer); _voiceSendTimer = null; }
         if (input) input.value = '';
         toggleVoiceMode();
         var _bName = 'バディ'; try { _bName = JSON.parse(localStorage.getItem('co_heart_buddy') || '{}').name || 'バディ'; } catch(e) {}
@@ -6391,11 +6390,11 @@ function startVoiceRecognition() {
         return;
       }
       // 1.5秒待ってから送信（話し続けていたらリセット）
-      if (_sendTimer) clearTimeout(_sendTimer);
+      if (_voiceSendTimer) clearTimeout(_voiceSendTimer);
       if (input) input.value = fullText;
-      _sendTimer = setTimeout(function() {
-        _sendTimer = null;
-        if (_voicePaused) return;
+      _voiceSendTimer = setTimeout(function() {
+        _voiceSendTimer = null;
+        if (_voicePaused || !_voiceModeActive) return;
         _voicePaused = true;
         if (indicator) indicator.style.display = 'none';
         setMicState('processing');
@@ -6447,6 +6446,7 @@ function startVoiceRecognition() {
 function stopVoiceRecognition() {
   _isListening = false;
   _voicePaused = false;
+  if (_voiceSendTimer) { clearTimeout(_voiceSendTimer); _voiceSendTimer = null; }
   if (_speechRecognition) {
     try { _speechRecognition.abort(); } catch(e) {}
     _speechRecognition = null;

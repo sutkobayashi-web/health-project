@@ -6347,7 +6347,7 @@ function startVoiceRecognition() {
 
   var indicator = document.getElementById('voice-listening-indicator');
   var input = document.getElementById('buddy-input');
-  var VOICE_SEND_DELAY = 1500;       // 発話完了と判定するまでの無音時間(ms)
+  var VOICE_SEND_DELAY = 3000;       // 発話完了と判定するまでの無音時間(ms)
   _voiceAccumulated = '';
   if (_voiceSendTimer) { clearTimeout(_voiceSendTimer); _voiceSendTimer = null; }
 

@@ -587,28 +587,14 @@
 
     <!-- 音声設定 -->
     <div style="margin-top:16px; padding:14px; background:linear-gradient(135deg,#f0f9ff,#e0f2fe); border-radius:12px; border:1px solid #bae6fd;">
-      <div style="font-size:0.8rem; font-weight:700; color:#0369a1; margin-bottom:12px;"><i class="fas fa-headset" style="margin-right:4px;"></i>バディー音声設定</div>
-      <!-- 声の選択 -->
-      <div style="font-size:0.7rem; font-weight:600; color:#555; margin-bottom:6px;">声のタイプ</div>
-      <div id="voice-type-options" style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:12px;">
-        <button class="voice-opt-btn" data-voice="ja-JP-Neural2-B" onclick="selectVoiceType(this)" style="padding:10px 8px;border:2px solid #e0e0e0;border-radius:10px;background:white;cursor:pointer;font-size:0.75rem;font-weight:700;text-align:center;transition:all 0.2s;">
-          <div style="font-size:1.1rem;margin-bottom:2px;">👩</div>あかり<div style="font-size:0.6rem;color:#999;font-weight:400;">やさしい女性</div>
-        </button>
-        <button class="voice-opt-btn" data-voice="ja-JP-Neural2-D" onclick="selectVoiceType(this)" style="padding:10px 8px;border:2px solid #e0e0e0;border-radius:10px;background:white;cursor:pointer;font-size:0.75rem;font-weight:700;text-align:center;transition:all 0.2s;">
-          <div style="font-size:1.1rem;margin-bottom:2px;">👩‍⚕️</div>みさき<div style="font-size:0.6rem;color:#999;font-weight:400;">しっかり女性</div>
-        </button>
-        <button class="voice-opt-btn" data-voice="ja-JP-Wavenet-B" onclick="selectVoiceType(this)" style="padding:10px 8px;border:2px solid #e0e0e0;border-radius:10px;background:white;cursor:pointer;font-size:0.75rem;font-weight:700;text-align:center;transition:all 0.2s;">
-          <div style="font-size:1.1rem;margin-bottom:2px;">👩‍🏫</div>はるか<div style="font-size:0.6rem;color:#999;font-weight:400;">明るい女性</div>
-        </button>
-        <button class="voice-opt-btn" data-voice="ja-JP-Neural2-C" onclick="selectVoiceType(this)" style="padding:10px 8px;border:2px solid #e0e0e0;border-radius:10px;background:white;cursor:pointer;font-size:0.75rem;font-weight:700;text-align:center;transition:all 0.2s;">
-          <div style="font-size:1.1rem;margin-bottom:2px;">👨</div>けんた<div style="font-size:0.6rem;color:#999;font-weight:400;">落ち着いた男性</div>
-        </button>
-        <button class="voice-opt-btn" data-voice="ja-JP-Wavenet-C" onclick="selectVoiceType(this)" style="padding:10px 8px;border:2px solid #e0e0e0;border-radius:10px;background:white;cursor:pointer;font-size:0.75rem;font-weight:700;text-align:center;transition:all 0.2s;">
-          <div style="font-size:1.1rem;margin-bottom:2px;">👨‍⚕️</div>そうた<div style="font-size:0.6rem;color:#999;font-weight:400;">知的な男性</div>
-        </button>
-        <button class="voice-opt-btn" data-voice="ja-JP-Wavenet-D" onclick="selectVoiceType(this)" style="padding:10px 8px;border:2px solid #e0e0e0;border-radius:10px;background:white;cursor:pointer;font-size:0.75rem;font-weight:700;text-align:center;transition:all 0.2s;">
-          <div style="font-size:1.1rem;margin-bottom:2px;">👨‍🏫</div>りょう<div style="font-size:0.6rem;color:#999;font-weight:400;">元気な男性</div>
-        </button>
+      <div style="font-size:0.8rem; font-weight:700; color:#0369a1; margin-bottom:8px;"><i class="fas fa-headset" style="margin-right:4px;"></i>バディー音声設定</div>
+      <!-- 現在の声（性格連動・表示のみ） -->
+      <div style="padding:8px 12px;background:white;border-radius:10px;margin-bottom:12px;display:flex;align-items:center;gap:8px;">
+        <span id="voice-personality-icon" style="font-size:1.2rem;"></span>
+        <div>
+          <div id="voice-personality-name" style="font-size:0.78rem;font-weight:700;color:#333;"></div>
+          <div id="voice-personality-desc" style="font-size:0.62rem;color:#999;">バディーの性格に合わせて自動設定</div>
+        </div>
       </div>
       <!-- 速度 -->
       <div style="font-size:0.7rem; font-weight:600; color:#555; margin-bottom:6px;">話す速さ</div>
@@ -6429,44 +6415,60 @@ function getJapaneseVoice() {
   return null;
 }
 
-// --- 音声設定管理 ---
+// --- 音声設定管理（声はバディー性格連動、速度のみユーザー設定） ---
+var _voicePersonalityMap = {
+  gentle:   { voice: 'ja-JP-Neural2-B',  icon: '👩',    name: 'あかり', desc: 'やさしい女性ボイス' },
+  energy:   { voice: 'ja-JP-Wavenet-B',  icon: '👩‍🏫', name: 'はるか', desc: '明るい女性ボイス' },
+  smart:    { voice: 'ja-JP-Neural2-D',  icon: '👩‍⚕️', name: 'みさき', desc: 'しっかり女性ボイス' },
+  calm:     { voice: 'ja-JP-Neural2-C',  icon: '👨',    name: 'けんた', desc: '落ち着いた男性ボイス' },
+  reliable: { voice: 'ja-JP-Wavenet-C',  icon: '👨‍⚕️', name: 'そうた', desc: '知的な男性ボイス' }
+};
+
+function getBuddyPersonality() {
+  try { return JSON.parse(localStorage.getItem('co_heart_buddy') || '{}').personality || 'gentle'; } catch(e) { return 'gentle'; }
+}
 function getVoiceSettings() {
+  var personality = getBuddyPersonality();
+  var mapped = _voicePersonalityMap[personality] || _voicePersonalityMap.gentle;
   try {
     var s = JSON.parse(localStorage.getItem('cowell_voice_settings') || '{}');
-    return { voice: s.voice || 'ja-JP-Neural2-B', speed: s.speed || '1.0' };
-  } catch(e) { return { voice: 'ja-JP-Neural2-B', speed: '1.0' }; }
-}
-function saveVoiceSettings(voice, speed) {
-  localStorage.setItem('cowell_voice_settings', JSON.stringify({ voice: voice, speed: speed }));
-}
-function selectVoiceType(btn) {
-  document.querySelectorAll('.voice-opt-btn').forEach(function(b) {
-    b.style.borderColor = '#e0e0e0'; b.style.background = 'white';
-  });
-  btn.style.borderColor = '#0ea5e9'; btn.style.background = '#f0f9ff';
-  var s = getVoiceSettings();
-  saveVoiceSettings(btn.getAttribute('data-voice'), s.speed);
+    return { voice: mapped.voice, speed: s.speed || '1.0' };
+  } catch(e) { return { voice: mapped.voice, speed: '1.0' }; }
 }
 function selectVoiceSpeed(btn) {
   document.querySelectorAll('.voice-speed-btn').forEach(function(b) {
     b.style.borderColor = '#e0e0e0'; b.style.background = 'white';
   });
   btn.style.borderColor = '#0ea5e9'; btn.style.background = '#f0f9ff';
-  var s = getVoiceSettings();
-  saveVoiceSettings(s.voice, btn.getAttribute('data-speed'));
+  localStorage.setItem('cowell_voice_settings', JSON.stringify({ speed: btn.getAttribute('data-speed') }));
 }
 function initVoiceSettingsUI() {
   var s = getVoiceSettings();
-  document.querySelectorAll('.voice-opt-btn').forEach(function(b) {
-    if (b.getAttribute('data-voice') === s.voice) { b.style.borderColor = '#0ea5e9'; b.style.background = '#f0f9ff'; }
-  });
+  // 速度ボタン初期化
   document.querySelectorAll('.voice-speed-btn').forEach(function(b) {
     if (b.getAttribute('data-speed') === s.speed) { b.style.borderColor = '#0ea5e9'; b.style.background = '#f0f9ff'; }
+    else { b.style.borderColor = '#e0e0e0'; b.style.background = 'white'; }
   });
+  // 性格連動の声情報を表示
+  var personality = getBuddyPersonality();
+  var mapped = _voicePersonalityMap[personality] || _voicePersonalityMap.gentle;
+  var iconEl = document.getElementById('voice-personality-icon');
+  var nameEl = document.getElementById('voice-personality-name');
+  if (iconEl) iconEl.textContent = mapped.icon;
+  if (nameEl) nameEl.textContent = mapped.name + '（' + mapped.desc + '）';
 }
 function previewVoice() {
   var s = getVoiceSettings();
-  var previewText = 'こんにちは！今日も一緒に健康を意識していこうね。';
+  var personality = getBuddyPersonality();
+  var mapped = _voicePersonalityMap[personality] || _voicePersonalityMap.gentle;
+  var texts = {
+    gentle: 'こんにちは。今日も一緒にゆっくりやっていこうね。',
+    energy: 'よっしゃ！今日も元気にいこう！一緒に頑張ろうね！',
+    smart: '実はね、今日の健康豆知識をお伝えしたくて。聞いてくれる？',
+    calm: 'そうなんだ。無理しなくていいからね。ゆっくりいこう。',
+    reliable: 'データによると、今週の調子は上向きだよ。この調子で続けよう。'
+  };
+  var previewText = texts[personality] || texts.gentle;
   var url = '/api/chat/tts?text=' + encodeURIComponent(previewText) + '&voice=' + s.voice + '&speed=' + s.speed + '&t=' + Date.now();
   var audio = new Audio();
   audio.src = url;
@@ -6497,54 +6499,19 @@ function doSpeak(text, msgEl, onDone) {
   if (bubble) bubble.classList.add('speaking');
   _isSpeaking = true;
 
-  // デバッグ表示用
-  function ttsDebug(msg) {
-    console.log('[TTS]', msg);
-    var d = document.getElementById('tts-debug');
-    if (d) d.textContent = msg;
-  }
-  // デバッグ表示エリアがなければ作成
-  if (!document.getElementById('tts-debug')) {
-    var dbg = document.createElement('div');
-    dbg.id = 'tts-debug';
-    dbg.style.cssText = 'position:fixed;bottom:70px;left:10px;right:10px;background:rgba(0,0,0,0.8);color:#0f0;font-size:11px;padding:6px 10px;border-radius:8px;z-index:99999;font-family:monospace;word-break:break-all;';
-    document.body.appendChild(dbg);
-  }
-
-  // デバッグ表示用（蓄積表示）
-  if (!document.getElementById('tts-debug')) {
-    var dbg = document.createElement('div');
-    dbg.id = 'tts-debug';
-    dbg.style.cssText = 'position:fixed;bottom:70px;left:10px;right:10px;background:rgba(0,0,0,0.85);color:#0f0;font-size:10px;padding:8px 10px;border-radius:8px;z-index:99999;font-family:monospace;word-break:break-all;max-height:120px;overflow-y:auto;line-height:1.5;';
-    document.body.appendChild(dbg);
-  }
-  document.getElementById('tts-debug').innerHTML = '';
-  function ttsDebug(msg) {
-    console.log('[TTS]', msg);
-    var d = document.getElementById('tts-debug');
-    if (d) d.innerHTML += msg + '<br>';
-  }
-
-  ttsDebug('1. 音声URL生成中... (' + cleanText.length + '文字)');
-
-  // ユーザーの音声設定を反映
+  // ユーザーの音声設定を反映してサーバーURLから直接再生
   var vs = getVoiceSettings();
   var ttsUrl = '/api/chat/tts?text=' + encodeURIComponent(cleanText) + '&voice=' + vs.voice + '&speed=' + vs.speed + '&t=' + Date.now();
   var audio = new Audio();
   window._currentTtsAudio = audio;
 
-  audio.oncanplaythrough = function() {
-    ttsDebug('3. デコード完了');
-  };
   audio.onended = function() {
-    ttsDebug('4. 再生完了');
     _isSpeaking = false;
     if (bubble) bubble.classList.remove('speaking');
     window._currentTtsAudio = null;
     if (onDone) onDone();
   };
-  audio.onerror = function(e) {
-    ttsDebug('ERR. 再生エラー code=' + (audio.error ? audio.error.code + ':' + audio.error.message : 'unknown'));
+  audio.onerror = function() {
     _isSpeaking = false;
     if (bubble) bubble.classList.remove('speaking');
     window._currentTtsAudio = null;
@@ -6552,11 +6519,8 @@ function doSpeak(text, msgEl, onDone) {
   };
 
   audio.src = ttsUrl;
-  ttsDebug('2. src設定完了 → 再生開始');
-  audio.play().then(function() {
-    ttsDebug('3. play()成功 → 再生中...');
-  }).catch(function(e) {
-    ttsDebug('ERR. play()失敗: ' + e.message);
+  audio.play().catch(function(e) {
+    console.warn('TTS play error:', e);
     _isSpeaking = false;
     if (bubble) bubble.classList.remove('speaking');
     window._currentTtsAudio = null;

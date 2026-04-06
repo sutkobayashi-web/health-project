@@ -5203,11 +5203,10 @@ async function buddyAskAI(concern, userText) {
       else if (p === 'calm') personalityPrompt = '口調は穏やかで共感的に。「そうなんだ」「無理しないでね」急がせない。';
       else if (p === 'reliable') personalityPrompt = '口調は頼もしく論理的に。「データでは」「エビデンスによると」数値で説明。';
       context += '性格: ' + personalityPrompt + '\n';
-      context += 'バディーの名前: ' + buddyData.name + '\n';
     }
 
     var buddyName = (buddyData && buddyData.name) ? buddyData.name : 'ヘルスバディー';
-    var systemPrompt = 'あなたの名前は「' + buddyName + '」です。初回の挨拶時のみ名乗り、会話の途中では名前を繰り返さないでください。\n' +
+    var systemPrompt = '★禁止: 自分の名前（「' + buddyName + '」「バディー」等）を会話中に一切出さないこと。名乗りも自己紹介もしない。友達同士の会話のように自然に。★\n' +
       '以下の原則に従って会話してください：\n' +
       '・3行以内で簡潔に返答する\n' +
       '・「〜してください」ではなく「〜してみない？」とコーチング口調\n' +
@@ -6239,6 +6238,8 @@ var _voiceModeActive = false;
 var _speechRecognition = null;
 var _isSpeaking = false;
 var _isListening = false;
+var _voiceSendTimer = null;
+var _voiceAccumulated = '';
 
 function toggleVoiceMode() {
   _voiceModeActive = !_voiceModeActive;
@@ -6346,6 +6347,9 @@ function startVoiceRecognition() {
 
   var indicator = document.getElementById('voice-listening-indicator');
   var input = document.getElementById('buddy-input');
+  var VOICE_SEND_DELAY = 1500;       // 発話完了と判定するまでの無音時間(ms)
+  _voiceAccumulated = '';
+  if (_voiceSendTimer) { clearTimeout(_voiceSendTimer); _voiceSendTimer = null; }
 
   _speechRecognition.onstart = function() {
     _isListening = true;
@@ -6359,34 +6363,56 @@ function startVoiceRecognition() {
     // TTS再生中は認識結果を無視
     if (_voicePaused) return;
 
-    var transcript = '';
-    var isFinal = false;
+    var finalText = '';
+    var interimText = '';
     for (var i = event.resultIndex; i < event.results.length; i++) {
-      transcript += event.results[i][0].transcript;
-      if (event.results[i].isFinal) isFinal = true;
+      if (event.results[i].isFinal) {
+        finalText += event.results[i][0].transcript;
+      } else {
+        interimText += event.results[i][0].transcript;
+      }
     }
-    // リアルタイムプレビュー
-    updateVoiceSubStatus(transcript || '...');
-    if (input) input.value = transcript;
 
-    if (isFinal && transcript.trim()) {
-      // 終了キーワード検知
+    // finalが来たら蓄積に追加
+    if (finalText) {
+      _voiceAccumulated += finalText;
+    }
+
+    // リアルタイムプレビュー（蓄積＋暫定を表示）
+    var preview = (_voiceAccumulated + interimText) || '...';
+    updateVoiceSubStatus(preview);
+    if (input) input.value = _voiceAccumulated + interimText;
+
+    // 暫定結果（interimResults）が来ている間 = まだ話し中なのでタイマーリセット
+    if (_voiceSendTimer) { clearTimeout(_voiceSendTimer); _voiceSendTimer = null; }
+
+    if (finalText && _voiceAccumulated.trim()) {
+      // 終了キーワード検知（即時判定）
       var endWords = ['おわり', '終わり', '終了', 'おしまい', 'バイバイ', 'ばいばい', 'またね'];
-      var trimmed = transcript.trim();
-      var isEnd = endWords.some(function(w) { return trimmed === w || trimmed === w + '。'; });
+      var trimmed = _voiceAccumulated.trim();
+      var lastSentence = trimmed.split(/[。、\s]+/).filter(Boolean).pop() || trimmed;
+      var isEnd = endWords.some(function(w) { return lastSentence === w; });
       if (isEnd) {
+        _voiceAccumulated = '';
         if (input) input.value = '';
         toggleVoiceMode();
         var _bName = 'バディ'; try { _bName = JSON.parse(localStorage.getItem('co_heart_buddy') || '{}').name || 'バディ'; } catch(e) {}
         addBuddyMessage('ai', 'またね！いつでも「バディ」って呼んでくれたら' + _bName + 'が応えるよ 😊');
         return;
       }
-      _voicePaused = true; // 送信中〜TTS完了まで認識を一時停止
-      if (indicator) indicator.style.display = 'none';
-      setMicState('processing');
-      updateVoiceStatus('送信中...');
-      updateVoiceSubStatus(transcript);
-      sendBuddyMessage();
+
+      // 発話完了待ちタイマー開始（無音が1.5秒続いたら送信）
+      _voiceSendTimer = setTimeout(function() {
+        if (!_voiceAccumulated.trim()) return;
+        if (input) input.value = _voiceAccumulated;
+        _voicePaused = true;
+        _voiceAccumulated = '';
+        if (indicator) indicator.style.display = 'none';
+        setMicState('processing');
+        updateVoiceStatus('考え中...');
+        sendBuddyMessage();
+        _voiceSendTimer = null;
+      }, VOICE_SEND_DELAY);
     }
   };
 
@@ -6432,6 +6458,8 @@ function startVoiceRecognition() {
 function stopVoiceRecognition() {
   _isListening = false;
   _voicePaused = false;
+  if (_voiceSendTimer) { clearTimeout(_voiceSendTimer); _voiceSendTimer = null; }
+  _voiceAccumulated = '';
   if (_speechRecognition) {
     try { _speechRecognition.abort(); } catch(e) {}
     _speechRecognition = null;

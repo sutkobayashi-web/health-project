@@ -6418,14 +6418,17 @@ function _ensureListening() {
 
   rec.onend = function() {
     _isListening = false;
-    // 音声モードON＆バディー応答待ちでなければ自動再起動
-    if (_voiceModeActive && !_voicePaused) {
-      setTimeout(function() {
-        if (_voiceModeActive && !_voicePaused && !_isListening) {
-          _ensureListening();
-        }
-      }, 300);
-    }
+    if (!_voiceModeActive || _voicePaused) return;
+    // 同一インスタンスで再起動（新インスタンスだと音声バッファ再処理で重複する）
+    setTimeout(function() {
+      if (!_voiceModeActive || _voicePaused || _isListening) return;
+      try {
+        rec.start();
+      } catch(e) {
+        // 同一インスタンス再起動が失敗した場合のみ新インスタンス
+        _ensureListening();
+      }
+    }, 300);
   };
 
   try { rec.start(); } catch(e) {

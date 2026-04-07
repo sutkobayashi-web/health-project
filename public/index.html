@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260407_2350">
+<html data-app-version="20260408_0010">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -6335,9 +6335,11 @@ function toggleVoiceMode() {
     // ウェイクワード検知をマイク解放まで待ってから oneshot 開始
     // (Android Chromeでは abort() が非同期で、前のSpeechRecognitionが
     //  マイクを解放する前に新しい start() をすると onend が即発火 → ループする)
-    stopWakeWordListener(function() {
-      setTimeout(function() { tapToSpeak(); }, 100);
-    });
+    // 自動録音開始はしない（タップ操作と録音タイミングが混乱する原因）
+    // ユーザーがマイクボタンをタップしたら録音開始
+    setMicState('ready');
+    updateVoiceStatus('マイクをタップして話す');
+    updateVoiceSubStatus('話し終わったらもう一度マイクをタップ');
   } else {
     // 音声モードOFF
     if (panel) panel.style.display = 'none';
@@ -6419,6 +6421,7 @@ var _isRecording = false;
 var _recorderStream = null;
 
 function tapToSpeak() {
+  console.log('[voice] tapToSpeak speaking=' + _isSpeaking + ' recording=' + _isRecording);
   ensureAudioContext();
   if (_isSpeaking) {
     stopSpeaking();
@@ -6460,6 +6463,7 @@ function startRecording() {
     _mediaRecorder.onstop = function() {
       _isRecording = false;
       var blob = new Blob(_audioChunks, { type: _mediaRecorder.mimeType || mime || 'audio/webm' });
+      console.log('[voice] recorder stopped, blob=' + blob.size + 'B type=' + blob.type);
       _audioChunks = [];
       _releaseRecorderStream();
       if (blob.size === 0) {
@@ -6471,6 +6475,7 @@ function startRecording() {
       _uploadAndTranscribe(blob);
     };
     _mediaRecorder.start();
+    console.log('[voice] recording started, mime=' + (_mediaRecorder.mimeType || mime || 'default'));
     _isRecording = true;
     setMicState('listening');
     updateVoiceStatus('録音中… (タップで停止)');
@@ -6519,6 +6524,7 @@ function _uploadAndTranscribe(blob) {
       body: JSON.stringify({ audio: base64, mimeType: blob.type || 'audio/webm' })
     }).then(function(r) { return r.json(); }).then(function(data) {
       var text = (data && data.transcript || '').trim();
+      console.log('[voice] stt response transcript="' + text + '"');
       if (!text) {
         setMicState('ready');
         updateVoiceStatus('聞き取れませんでした');

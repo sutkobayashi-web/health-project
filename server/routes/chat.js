@@ -816,6 +816,7 @@ router.post('/stt', async (req, res) => {
     if (json.candidates && json.candidates[0] && json.candidates[0].content && json.candidates[0].content.parts) {
       transcript = json.candidates[0].content.parts.map(function(p){ return p.text || ''; }).join('').trim();
     }
+    console.log('[STT] webm=' + inputBuf.length + 'B wav=' + wavBuf.length + 'B transcript="' + transcript + '"');
     res.json({ transcript });
   } catch (e) {
     console.error('STT error:', e.message);

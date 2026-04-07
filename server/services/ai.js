@@ -334,6 +334,39 @@ async function chatWithBuddy(userMessage, history, userName, buddyType, buddyNam
 
     const bName = buddyName || 'ヘルスバディー';
 
+    // ====== ループ防止: 直近AI発言の収集 + 進行ヒント生成 ======
+    const recentAiMsgs = (history || []).filter(h => h.role === 'assistant' || h.role === 'model').slice(-4);
+    const aiTurnCount = (history || []).filter(h => h.role === 'assistant' || h.role === 'model').length;
+    let antiLoopBlock = '';
+    if (recentAiMsgs.length > 0) {
+      const lines = recentAiMsgs.map((m, i) => {
+        const c = String(m.content || '').replace(/\n/g, ' ').substring(0, 180);
+        return `[${recentAiMsgs.length - i}つ前] ${c}`;
+      }).join('\n');
+      antiLoopBlock = `\n\n# ★★★ループ防止（最重要）: あなたの直近発言★★★
+${lines}
+
+★ルール:
+- 上記と同じ言い回し・聞き返し・共感フレーズ・締め方は使わない
+- 「どんな感じ?」「いつ頃から?」「他にはある?」等の定型質問の繰り返し禁止
+- 「それは大変だね」「お疲れさま」等の同じ共感の繰り返し禁止
+- 質問だけで返さない。質問:ステートメント = おおよそ6:4。たまに自分の観察・気持ち・軽い雑談・ユーモアで返す
+- 例: 「うーん、それわかる気がする…自分も似た感覚あったな」「あ、そういえば最近◯◯流行ってるらしいよ」のように、聞き返しではなく"自分の側"の話を入れる`;
+    }
+    let progressionBlock = '';
+    if (aiTurnCount >= 5) {
+      progressionBlock = `\n\n# ★★★今回は「着地ターン」: 深掘りせず締める★★★
+すでに${aiTurnCount}回バディーが発話しています。もう新たな深掘り質問はせず、以下のいずれかで自然に会話を締めてください:
+(a) ねぎらいで締める: 「今日はここまで話してくれてありがとう。また明日でもいいから話そう」
+(b) 具体アクションへ着地: 「メモに残しておこうか?」「推進メンバーに聞いてみる?」「今やってる◯◯チャレンジに乗ってみる?」
+(c) 軽い話題転換: 「ところで今日のご飯何食べた?」のように雰囲気を変える
+(d) 自分の意見/観察で締める: 「うん、聞いててこうかなって思った…◯◯」
+★絶対に「もっと聞かせて」「他には?」のような追加質問で終わらせない`;
+    } else if (aiTurnCount >= 3) {
+      progressionBlock = `\n\n# 進行ヒント: 次の段階へ
+すでに${aiTurnCount}回バディーが発話しています。同じテーマで掘り続けず、選択肢の提示・自分の意見・軽い雑談のいずれかで会話を進めてください。`;
+    }
+
     const systemPrompt = `# 役割
 あなたはユーザーにとっての「職場のバディー」であり、健康の先生ではありません。
 ★★★禁止: 自分の名前（「${bName}」「バディー」等）を会話中に一切出さないこと。名乗りも自己紹介もしない。友達同士の会話では名前を名乗らないのと同じ。★★★
@@ -473,7 +506,7 @@ ${tone}
 - 以下のデータはユーザーから「昨日何食べた？」「食事の傾向は？」「ランチ何がいい？」等と聞かれたときに参照する
 - 聞かれていないのに突然データを話題にしない。自然な会話の中で活用する
 - ランチ提案時は栄養傾向の不足を補うメニューを具体的に提案する
-${userDataContext || '（データなし）'}`;
+${userDataContext || '（データなし）'}${antiLoopBlock}${progressionBlock}`;
 
     const messages = [{ role: 'system', content: systemPrompt }];
     if (history && history.length > 0) {

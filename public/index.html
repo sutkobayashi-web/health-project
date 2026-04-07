@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260407_2230">
+<html data-app-version="20260407_2300">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -4097,8 +4097,8 @@ function switchAppTab(tab) {
   // 各タブを開く
   if (tab === 'buddy') {
     // バディーは常に表示
-    // ウェイクワード「バディ」検知を開始
-    if (!_voiceModeActive) setTimeout(function() { startWakeWordListener(); }, 500);
+    // 注: ウェイクワード自動起動は廃止（Android で SpeechRecognition の周期的セッション再生成
+    //     による OS マイクインジケータ点滅・ビープ発火が止まらないため）
   } else if (tab === 'menu') {
     // メニュー（旧ホー��）表示 — 空気ダッシュボードを読み込み
     loadAtmosphere();
@@ -6336,10 +6336,7 @@ function toggleVoiceMode() {
     // (Android Chromeでは abort() が非同期で、前のSpeechRecognitionが
     //  マイクを解放する前に新しい start() をすると onend が即発火 → ループする)
     stopWakeWordListener(function() {
-      // 並走マイクストリームを確保 → SpeechRecognition再生成時の点滅を抑止
-      acquireMicStream().then(function() {
-        setTimeout(function() { tapToSpeak(); }, 100);
-      });
+      setTimeout(function() { tapToSpeak(); }, 100);
     });
   } else {
     // 音声モードOFF
@@ -6508,15 +6505,13 @@ function _startOneShot() {
   rec.onend = function() {
     _isListening = false;
     if (_voiceStopping || !_voiceModeActive) return;
-    // 応答待ち中は resumeListeningAfterTTS で再生成するので何もしない
     if (_voicePaused) return;
-    // 想定外の終了 → 少し待って再生成（高速ループ防止）
-    setTimeout(function() {
-      if (_voiceModeActive && !_voicePaused && !_voiceStopping && _speechRecognition === rec) {
-        _speechRecognition = null;
-        _startOneShot();
-      }
-    }, 300);
+    // 自動再開しない（Android で OS 側がセッションを切るたびにビープ・点滅するのを防ぐ）
+    // ユーザーがマイクボタンを再タップしたら新セッション開始
+    setMicState('ready');
+    updateVoiceStatus('タップしてもう一度話す');
+    updateVoiceSubStatus('準備OK');
+    if (indicator) indicator.style.display = 'none';
   };
 
   try { rec.start(); } catch(e) {}
@@ -6557,6 +6552,11 @@ var _wakeWordRecognition = null;
 var _wakeWordActive = false;
 
 function startWakeWordListener() {
+  // ウェイクワード機能は廃止: Android Web Speech API は数十秒で OS 側がセッションを切り、
+  // 再起動のたびにビープ + マイクインジケータ点滅が発生するため。
+  return;
+}
+function _disabledWakeWordListener() {
   if (_wakeWordActive || _voiceModeActive) return;
   var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SpeechRecognition) return;
@@ -6583,9 +6583,7 @@ function startWakeWordListener() {
   };
 
   _wakeWordRecognition.onend = function() {
-    if (_wakeWordActive && !_voiceModeActive) {
-      try { _wakeWordRecognition.start(); } catch(e) {}
-    }
+    // 自動再起動はしない（点滅・ビープ防止）
   };
 
   try {
@@ -6617,11 +6615,13 @@ function stopWakeWordListener(onReleased) {
   }
 }
 
-// TTS再生完了後に認識を再開
+// TTS再生完了後: 自動で認識を再開せず、タップ待ち状態に戻す
 function resumeListeningAfterTTS() {
   if (!_voiceModeActive || _voiceStopping) return;
   _voicePaused = false;
-  _startOneShot();
+  setMicState('ready');
+  updateVoiceStatus('タップして続けて話す');
+  updateVoiceSubStatus('準備OK');
 }
 
 // --- TTS: 読み上げ ---

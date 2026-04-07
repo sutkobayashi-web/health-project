@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260408_0240">
+<html data-app-version="20260408_0300">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -5930,22 +5930,43 @@ function hideBuddyEntryCards() {
   window._buddyEntryCardsDismissed = true;
 }
 
-// 💬 今日のひとこと: バディーがランダムなお題を出す
-var _dailyThemeQuestions = [
-  '今日、ちょっとでも「お、いいな」って思ったことあった？☕',
-  '今週、一番疲れた瞬間って何だった？',
-  '最近モヤっとしたこと、グチでもいいから聞かせて😤',
-  'もし職場が "こうだったらいいのに" って思うこと、ある？',
-  '今日のごはん、満足した？',
-  '最近、ちゃんと眠れてる？',
-  '今週「がんばったな自分」って思うこと、ひとつ教えて✨',
-  '同僚で「あの人すごいな」って思う人いる？どんなとこ？',
-  '最近、心がほっとした瞬間ってあった？',
-  '今、一番欲しいものって何？お金以外で 😊'
-];
+// quick-reply ボタンHTMLを生成するヘルパ
+function _buildQuickButtons(items) {
+  var html = '<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;padding:4px 0;">';
+  items.forEach(function(it) {
+    html += '<button class="buddy-quick-btn" onclick="' + it.action + '" style="border-color:' + (it.color || '#0ea5e9') + ';color:' + (it.color || '#0ea5e9') + ';">' + it.label + '</button>';
+  });
+  html += '</div>';
+  return html;
+}
+
+// ========== 💬 今日のひとこと（細分化） ==========
 function entryCardDailyTheme() {
   hideBuddyEntryCards();
-  var q = _dailyThemeQuestions[Math.floor(Math.random() * _dailyThemeQuestions.length)];
+  addBuddyMessage('ai', 'いいね！どんな話題から始める？💬');
+  setTimeout(function() {
+    addBuddyInlineQuick(_buildQuickButtons([
+      { label: '🌅 朝のスタート', action: "subDailyTheme('morning')", color: '#f59e0b' },
+      { label: '🌙 夜のふりかえり', action: "subDailyTheme('night')", color: '#7c3aed' },
+      { label: '🎉 嬉しかったこと', action: "subDailyTheme('happy')", color: '#ec4899' },
+      { label: '😴 疲れたこと', action: "subDailyTheme('tired')", color: '#64748b' },
+      { label: '🤔 考えてること', action: "subDailyTheme('think')", color: '#0ea5e9' },
+      { label: '🎲 おまかせ', action: "subDailyTheme('random')", color: '#10b981' }
+    ]));
+  }, 400);
+}
+var _dailyThemeBank = {
+  morning: [ 'おはよう！今朝の気分どう？☀️', '今日、何か「これやるぞ！」って決めてることある？', '朝ごはんちゃんと食べた？☕' ],
+  night:   [ 'お疲れさま！今日いちばん印象に残ったことは？🌙', '今日「これは良かったな」って瞬間あった？', '今日のしんどさ、10段階だと何点くらい？' ],
+  happy:   [ 'いいね！何があった？聞かせて😊', 'どんなことが嬉しかったの？✨', 'それ、誰と一緒に体験した？' ],
+  tired:   [ 'お疲れさま…何で疲れた？☕', 'うんうん、それは大変だね。一番きつかったのは？', '体力的？それとも気持ち的？' ],
+  think:   [ 'お、何か考えてるんだね。なに？💭', 'ちょっと整理したいこと？それともワクワクしてること？', '言葉にしてみると整理できるよ、聞かせて' ],
+  random:  [ 'もし職場が "こうだったらいいのに" って思うこと、ある？', '今週「がんばったな自分」って思うことひとつ教えて✨', '最近、心がほっとした瞬間ってあった？', '同僚で「あの人すごいな」って思う人いる？どんなとこ？' ]
+};
+function subDailyTheme(kind) {
+  markBuddyQuickUsed();
+  var bank = _dailyThemeBank[kind] || _dailyThemeBank.random;
+  var q = bank[Math.floor(Math.random() * bank.length)];
   addBuddyMessage('ai', q);
   setTimeout(function() {
     var input = document.getElementById('buddy-input');
@@ -5953,38 +5974,142 @@ function entryCardDailyTheme() {
   }, 300);
 }
 
-// 📋 体調レポート: 既存の体調相談フローを呼ぶ
+// ========== 📋 体調レポート（細分化） ==========
 function entryCardHealthReport() {
   hideBuddyEntryCards();
-  inlineHealthConsult();
+  addBuddyMessage('ai', '今日の体調どんな感じ？📋\nサクッとタップでOK！');
+  setTimeout(function() {
+    addBuddyInlineQuick(_buildQuickButtons([
+      { label: '😊 元気', action: "subHealthReport('genki')", color: '#10b981' },
+      { label: '🙂 まあまあ', action: "subHealthReport('soso')", color: '#0ea5e9' },
+      { label: '😟 イマイチ', action: "subHealthReport('low')", color: '#f59e0b' },
+      { label: '🤒 不調', action: "subHealthReport('sick')", color: '#ef4444' },
+      { label: '😴 寝不足', action: "subHealthReport('sleepy')", color: '#7c3aed' },
+      { label: '💪 ちょっと痛い', action: "subHealthReport('pain')", color: '#dc2626' }
+    ]));
+  }, 400);
+}
+function subHealthReport(kind) {
+  markBuddyQuickUsed();
+  var msg = {
+    genki:  'いいね！🌟 何か秘訣ある？',
+    soso:   'まあまあ、了解👍 何か気になることある？',
+    low:    'お、無理してない？☕ 何が一番きつい？',
+    sick:   '大丈夫…？🤒 どこが？無理しないでね',
+    sleepy: '眠れてないんだね…😴 いつから？',
+    pain:   'どこが痛い？我慢しないでね🩹'
+  }[kind] || '体調どう？';
+  addBuddyMessage('ai', msg);
+  setTimeout(function() {
+    var input = document.getElementById('buddy-input');
+    if (input) { input.placeholder = '具体的に書いてね...'; input.focus(); }
+  }, 300);
 }
 
-// 😟 ちょっとモヤってる: グチ受け止めモード
+// ========== 😟 ちょっとモヤってる（細分化） ==========
 function entryCardVent() {
   hideBuddyEntryCards();
-  addBuddyMessage('ai', 'うんうん、何があった？☕\nここだけの話だから、思ってること全部吐き出していいよ。');
+  addBuddyMessage('ai', 'うんうん、何にモヤってる？☕\n選びにくければ「自分でも分からない」でOK');
   setTimeout(function() {
-    addBuddyMessage('ai', '言葉にしなくていいから、思いついたまま書いて。\n👇 下の入力欄にそのまま書いてね');
+    addBuddyInlineQuick(_buildQuickButtons([
+      { label: '🏢 職場の雰囲気', action: "subVent('atmosphere')", color: '#0ea5e9' },
+      { label: '👥 人間関係', action: "subVent('relation')", color: '#ec4899' },
+      { label: '😩 仕事の量', action: "subVent('workload')", color: '#f59e0b' },
+      { label: '🎯 やり方・進め方', action: "subVent('process')", color: '#7c3aed' },
+      { label: '🍱 食事のこと', action: "subVent('food')", color: '#10b981' },
+      { label: '👨‍👩‍👧 プライベート', action: "subVent('private')", color: '#dc2626' },
+      { label: '💭 自分でも分からない', action: "subVent('unknown')", color: '#64748b' }
+    ]));
+  }, 400);
+}
+function subVent(kind) {
+  markBuddyQuickUsed();
+  var msg = {
+    atmosphere: '職場の空気感ね…☕ 最近どんな感じ？小さなことでもOK',
+    relation:   'うん…誰かとのこと？言える範囲で聞かせて',
+    workload:   '量が多い？時間が足りない？どっちかな',
+    process:    '「こうじゃない方がいいのに」って思うこと、ある？',
+    food:       '食事関係でモヤってるんだね。何が困ってる？',
+    private:    'プライベートのこと…ここだけの話で聞くよ。何があった？',
+    unknown:    'うん、それでも全然OK。なんとなくでも書いてみると整理できるよ☕'
+  }[kind] || 'うんうん、聞かせて';
+  addBuddyMessage('ai', msg);
+  setTimeout(function() {
+    addBuddyMessage('ai', '👇 思いついたまま書いてね（ここだけの話です🔒）');
     var input = document.getElementById('buddy-input');
     if (input) { input.placeholder = 'モヤモヤを書いてね...'; input.focus(); }
   }, 600);
 }
 
-// 💡 こうなったらいいな: 提案モード
+// ========== 💡 こうなったらいいな（細分化） ==========
 function entryCardSuggest() {
   hideBuddyEntryCards();
-  addBuddyMessage('ai', 'いいね！💡 どんな小さなことでも、聞かせて。\n「こうだったらいいのに」「これあったら助かる」みたいな感じで。');
+  addBuddyMessage('ai', 'いいね！💡 どんなアイデア？\nどんな分野でも全然OK！');
   setTimeout(function() {
-    addBuddyMessage('ai', '👇 思いついたままで OK！');
+    addBuddyInlineQuick(_buildQuickButtons([
+      { label: '🏢 職場環境', action: "subSuggest('environment')", color: '#0ea5e9' },
+      { label: '☕ 福利厚生', action: "subSuggest('welfare')", color: '#f59e0b' },
+      { label: '🛡️ 安全面', action: "subSuggest('safety')", color: '#dc2626' },
+      { label: '💬 コミュニケーション', action: "subSuggest('comm')", color: '#ec4899' },
+      { label: '🎯 業務改善', action: "subSuggest('process')", color: '#7c3aed' },
+      { label: '🍎 健康施策', action: "subSuggest('health')", color: '#10b981' },
+      { label: '✨ その他', action: "subSuggest('other')", color: '#64748b' }
+    ]));
+  }, 400);
+}
+function subSuggest(kind) {
+  markBuddyQuickUsed();
+  var msg = {
+    environment: '職場環境ね！どんなとこを変えたい？小さいことでもOK',
+    welfare:     '福利厚生のアイデア！どんなのあったらいい？☕',
+    safety:      '安全面、大事だね🛡️ 気になってること教えて',
+    comm:        'コミュニケーションね💬 どんなやり方が理想？',
+    process:     '仕事のやり方ね🎯 「これ無駄じゃない？」って感じてること、ある？',
+    health:      '健康のこと🍎 どんな施策があったらいい？',
+    other:       'OK！どんなアイデア？聞かせて✨'
+  }[kind] || 'どんなアイデア？';
+  addBuddyMessage('ai', msg);
+  setTimeout(function() {
+    addBuddyMessage('ai', '👇 思いつくまま書いてね');
     var input = document.getElementById('buddy-input');
     if (input) { input.placeholder = '提案・アイデアを書いてね...'; input.focus(); }
   }, 600);
 }
 
-// 🤔 相談したい: 既存の推進メンバー相談フロー
+// ========== 🤔 相談したい（細分化） ==========
 function entryCardConsult() {
   hideBuddyEntryCards();
-  inlineMemberConsult();
+  addBuddyMessage('ai', 'うん、何の相談？🤔\n相談先を選んでね');
+  setTimeout(function() {
+    addBuddyInlineQuick(_buildQuickButtons([
+      { label: '🛡️ 推進メンバーに直送', action: "subConsult('member')", color: '#f39c12' },
+      { label: '🧠 メンタル・気持ち', action: "subConsult('mental')", color: '#7c3aed' },
+      { label: '💼 業務のこと', action: "subConsult('work')", color: '#0ea5e9' },
+      { label: '🩺 体調・通院', action: "subConsult('medical')", color: '#dc2626' },
+      { label: '👤 上司・同僚との関係', action: "subConsult('boss')", color: '#ec4899' },
+      { label: '🤷 まずは話だけ聞いて', action: "subConsult('listen')", color: '#10b981' }
+    ]));
+  }, 400);
+}
+function subConsult(kind) {
+  markBuddyQuickUsed();
+  if (kind === 'member') {
+    inlineMemberConsult();
+    return;
+  }
+  var msg = {
+    mental:  '気持ちのこと、聞かせて🧠 ここだけの話だから安心してね',
+    work:    '仕事のことね💼 何で迷ってる？',
+    medical: '体調のこと、心配だね🩺 どんな症状？通院してる？',
+    boss:    '人間関係…言える範囲でいいよ。何があった？',
+    listen:  'うん、ただ聞くよ☕ 何でも話して'
+  }[kind] || '聞かせて';
+  addBuddyMessage('ai', msg);
+  setTimeout(function() {
+    addBuddyMessage('ai', '👇 ゆっくりでいいよ（ここだけの話です🔒）');
+    var input = document.getElementById('buddy-input');
+    if (input) { input.placeholder = '相談を書いてね...'; input.focus(); }
+  }, 600);
 }
 
 function inlineHealthConsult() {

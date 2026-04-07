@@ -3601,8 +3601,55 @@ function renderNutrientRadar(containerId, scores) {
     '<div>▮ 基準値（食事摂取基準2025・スマートミール）</div>' +
     '<div><span style="color:#20c997;font-weight:700;">●</span>良好／適量　<span style="color:#0ea5e9;font-weight:700;">●</span>たっぷり（多い方が良い栄養）　<span style="color:#f59e0b;font-weight:700;">●</span>不足／注意　<span style="color:#ef4444;font-weight:700;">●</span>不足／取りすぎ</div>' +
     '</div>';
+  // 個人傾向バッジのプレースホルダ
+  html += '<div id="' + containerId + '-trend" style="margin-top:10px;"></div>';
   html += '</div>';
   el.innerHTML = html;
+  // 傾向バッジを非同期取得
+  loadNutritionTrendBadge(containerId + '-trend');
+}
+
+// ====== 個人栄養傾向バッジ ======
+function loadNutritionTrendBadge(containerId) {
+  var el = document.getElementById(containerId);
+  if (!el || !currentUser || !currentUser.uid) return;
+  fetch('/api/posts/nutrition-trend?uid=' + encodeURIComponent(currentUser.uid) + '&days=7', {
+    headers: { 'Authorization': 'Bearer ' + getToken() }
+  })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (!data || !data.success || !data.trend) return;
+      var t = data.trend;
+      if (!t.hasEnoughData) {
+        el.innerHTML = '<div style="font-size:0.66rem;color:#94a3b8;text-align:center;padding:6px;background:#f8fafc;border-radius:8px;">📊 食事をあと' + (3 - t.count) + '回記録すると、あなたの傾向が見えてくるよ！</div>';
+        return;
+      }
+      var sevColor = ['#20c997', '#f59e0b', '#ef4444'];
+      var kindIcon = { more: '⬆', range: '⇄', less: '⬇' };
+      var chips = (t.items || []).map(function(i) {
+        var bg = sevColor[i.severity] + '18';
+        var fg = sevColor[i.severity];
+        return '<span style="display:inline-flex;align-items:center;gap:3px;padding:3px 8px;background:' + bg + ';color:' + fg + ';border-radius:10px;font-size:0.62rem;font-weight:700;margin:2px;">' +
+          i.label + ' ' + i.arrow + ' ' + i.status +
+          '</span>';
+      }).join('');
+      var highlightTxt = '';
+      if (t.highlights && t.highlights.length > 0) {
+        highlightTxt = '<div style="font-size:0.66rem;color:#475569;margin-top:6px;line-height:1.5;">💡 <b>気になるポイント:</b> ' +
+          t.highlights.map(function(h) { return h.label + 'が' + h.status; }).join('、') + '</div>';
+      } else {
+        highlightTxt = '<div style="font-size:0.66rem;color:#15803d;margin-top:6px;">✨ 全体的に良いバランスを継続中！</div>';
+      }
+      el.innerHTML =
+        '<div style="background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border:1.5px solid #7dd3fc;border-radius:12px;padding:10px 12px;">' +
+          '<div style="font-size:0.7rem;font-weight:800;color:#0369a1;margin-bottom:6px;display:flex;align-items:center;gap:5px;">' +
+            '📊 あなたの直近' + t.count + '食の傾向 (過去' + t.period + '日)' +
+          '</div>' +
+          '<div style="display:flex;flex-wrap:wrap;gap:2px;">' + chips + '</div>' +
+          highlightTxt +
+        '</div>';
+    })
+    .catch(function() {});
 }
 
 // ====== 晩酌記録パネル ======

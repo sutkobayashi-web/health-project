@@ -5,6 +5,7 @@ const path = require('path');
 const { getDb } = require('../services/db');
 const { callGroqApi, callAIWithFallback, callGeminiVision, parsePostScore, EVIDENCE_BASE } = require('../services/ai');
 const { awardMarigan } = require('../services/marigan');
+const { getUserNutritionTrend } = require('../services/nutrition-trend');
 
 const router = express.Router();
 
@@ -220,65 +221,15 @@ router.post('/food', async (req, res) => {
       imageUrl = `/uploads/${fileName}`;
     } catch (e) { imageUrl = '(保存失敗)'; }
 
-    // ユーザーの過去食事履歴を取得（直近10食分）
+    // ユーザーの過去食事履歴を取得（直近7日 + フォールバック10件）
     let userFoodHistory = '';
     let nutrientTrend = '';
+    let trendObj = null;
     try {
-      const pastPosts = db.prepare(
-        `SELECT nutrition_scores, content, created_at FROM posts
-         WHERE user_id = ? AND category LIKE '%食事%' AND nutrition_scores IS NOT NULL
-         ORDER BY created_at DESC LIMIT 10`
-      ).all(uid);
-      if (pastPosts.length >= 2) {
-        const keys = ['calories','protein','fat','carbs','vitamin','mineral','salt'];
-        const units = {calories:'kcal',protein:'g',fat:'%',carbs:'%',vitamin:'g',mineral:'mg',salt:'g'};
-        const targets = {calories:550,protein:20,fat:25,carbs:57.5,vitamin:120,mineral:227,salt:2.5};
-        const sums = {}; const counts = {};
-        keys.forEach(k => { sums[k] = 0; counts[k] = 0; });
-        pastPosts.forEach(p => {
-          try {
-            let sc = JSON.parse(p.nutrition_scores);
-            // 旧形式(1-5スコア)→実数値に変換
-            const isLegacy = (typeof sc.protein === 'number' && sc.protein <= 5 && !sc.calories);
-            if (isLegacy) {
-              sc = {
-                calories:{value:300+(sc.protein||3)*70}, protein:{value:(sc.protein||3)*5},
-                fat:{value:15+(sc.fat||3)*3}, carbs:{value:35+(sc.carbs||sc.carb||3)*6},
-                vitamin:{value:(sc.vitamin||3)*30}, mineral:{value:(sc.mineral||3)*55},
-                fiber:{value:(sc.vitamin||3)*1.5}, salt:{value:4.0-(sc.salt||3)*0.5},
-                alcohol:{value:0}
-              };
-            }
-            keys.forEach(k => {
-              const v = sc[k];
-              const num = (v && typeof v === 'object') ? Number(v.value) : Number(v);
-              if (!isNaN(num) && num > 0) { sums[k] += num; counts[k]++; }
-            });
-          } catch(e) {}
-        });
-        const trends = [];
-        keys.forEach(k => {
-          if (counts[k] > 0) {
-            const avg = Math.round(sums[k] / counts[k] * 10) / 10;
-            const tgt = targets[k];
-            const ratio = avg / tgt;
-            let status;
-            if (k === 'salt') {
-              status = avg <= tgt * 0.8 ? '良好' : avg <= tgt ? '適量' : '過剰傾向';
-            } else if (k === 'fat' || k === 'carbs' || k === 'calories') {
-              status = ratio >= 0.85 && ratio <= 1.15 ? '適量' : ratio < 0.85 ? '不足傾向' : '過剰傾向';
-            } else {
-              status = ratio >= 0.8 ? '適量' : '不足傾向';
-            }
-            trends.push(`${k}: 平均${avg}${units[k]}(目標${tgt}${units[k]}) → ${status}`);
-          }
-        });
-        nutrientTrend = trends.join('\n');
-        const recentMenus = pastPosts.slice(0, 5).map(p => {
-          const c = (p.content || '').replace(/^【写真】/, '').substring(0, 40);
-          return c || '(写真のみ)';
-        }).join('、');
-        userFoodHistory = `\n\n【この社員の食事傾向（直近${pastPosts.length}食の平均）】\n${nutrientTrend}\n最近の食事: ${recentMenus}`;
+      trendObj = getUserNutritionTrend(uid, { days: 7, minCount: 3 });
+      if (trendObj && trendObj.count >= 2) {
+        userFoodHistory = trendObj.promptText;
+        nutrientTrend = (trendObj.highlights || []).map(h => `${h.label}:${h.status}`).join(' / ');
       }
     } catch(e) { /* 履歴取得失敗は無視 */ }
 
@@ -362,13 +313,15 @@ router.post('/food', async (req, res) => {
 【回答ルール — バディートーンで】
 - まず「お、いいじゃん！」「うまそう！」のように食事そのものへの素直な反応から入る
 - 良い点を1つ褒める（「◯◯が入ってるのがナイス」のように具体的かつ軽く）
-- ${nutrientTrend ? '過去の食事傾向から変化があれば「お、前より◯◯増えてるね」と気づきを伝える' : '改善ポイントは「◯◯足すともっといいかも？」程度に軽く1つだけ'}
+${nutrientTrend ? `- ★重要: 上記の【特に気になる傾向】に必ず1つ触れる。例えば「最近${nutrientTrend.split(' / ')[0] || ''}みたいだね、今回はどう？」のように、自然に絡める。説教くさくしない
+- 良い傾向（良好・たっぷり）なら「最近◯◯ずっとしっかり摂れてて素晴らしい！」と褒める
+- 悪い傾向（不足・取りすぎ）なら「最近◯◯が続いてるから、今日はどう？」と気づきを促す` : '- 改善ポイントは「◯◯足すともっといいかも？」程度に軽く1つだけ'}
 - 提案するときは押し付けず選択肢として:
   ・「次は【鮭の塩焼き定食】とかどう？たんぱく質もバッチリ」
   ・「コンビニなら【サラダチキン+カット野菜】の組み合わせもアリだよ」
   ・「【乾燥わかめ】を味噌汁に入れるだけでも全然違うよ」
 - 「記録してくれてありがとう！」で締める（義務感を出さない）
-- 全体で150〜200字程度。短くテンポよく。マークダウン不可。強調は【】
+- 全体で150〜220字程度。短くテンポよく。マークダウン不可。強調は【】
 - 最後に「📚 出典:」でガイドライン名を明記`;
     let nurseRes = await callAIWithFallback(nurseSys, '声かけ');
     if (!nurseRes) nurseRes = `${dName}さん、食事の投稿ありがとうございます！`;
@@ -807,6 +760,22 @@ router.get('/atmosphere', (req, res) => {
     });
   } catch (e) {
     console.error('[atmosphere]', e.message);
+    res.json({ success: false, msg: e.message });
+  }
+});
+
+// ============================================================
+// 個人栄養傾向 API（バッジ表示用）
+// GET /api/posts/nutrition-trend?uid=xxx&days=7
+// ============================================================
+router.get('/nutrition-trend', (req, res) => {
+  try {
+    const uid = req.query.uid;
+    const days = parseInt(req.query.days) || 7;
+    if (!uid) return res.json({ success: false, msg: 'uid required' });
+    const trend = getUserNutritionTrend(uid, { days, minCount: 3 });
+    res.json({ success: true, trend });
+  } catch (e) {
     res.json({ success: false, msg: e.message });
   }
 });

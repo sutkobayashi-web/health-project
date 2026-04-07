@@ -738,4 +738,55 @@ async function ttsHandler(req, res) {
   }
 }
 
+// ========================================
+// Speech-to-Text (Gemini multimodal で文字起こし)
+// Web Speech API を使わず MediaRecorder で録音した音声を Gemini に投げる。
+// Android Chrome の OS マイクセッション強制終了を回避する目的。
+// ========================================
+router.post('/stt', async (req, res) => {
+  try {
+    const { audio, mimeType } = req.body || {};
+    if (!audio) return res.status(400).json({ error: '音声データがありません' });
+    if (typeof audio !== 'string' || audio.length > 14 * 1024 * 1024) {
+      return res.status(413).json({ error: '音声データが大きすぎます' });
+    }
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) return res.status(500).json({ error: 'GEMINI_API_KEY未設定' });
+
+    const safeMime = (mimeType && /^audio\/(webm|ogg|mp4|mpeg|wav|x-m4a|aac)/.test(mimeType)) ? mimeType : 'audio/webm';
+    const model = process.env.GEMINI_TEXT_MODEL || 'gemini-2.5-flash';
+    const fetch = require('node-fetch');
+    const url = 'https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + apiKey;
+
+    const aiRes = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        system_instruction: { parts: { text: 'あなたは日本語音声の文字起こしエンジンです。入力された音声を一字一句正確に日本語のテキストに書き起こしてください。書き起こしテキストのみを返し、説明・前置き・引用符・改行装飾は一切付けないでください。発話がない / 不明瞭な場合は空文字列を返してください。' } },
+        contents: [{
+          role: 'user',
+          parts: [
+            { inline_data: { mime_type: safeMime, data: audio } },
+            { text: '文字起こし' }
+          ]
+        }],
+        generationConfig: { temperature: 0 }
+      })
+    });
+    const json = await aiRes.json();
+    if (json.error) {
+      console.error('STT API error:', json.error.message);
+      return res.status(500).json({ error: json.error.message });
+    }
+    let transcript = '';
+    if (json.candidates && json.candidates[0] && json.candidates[0].content && json.candidates[0].content.parts) {
+      transcript = json.candidates[0].content.parts.map(function(p){ return p.text || ''; }).join('').trim();
+    }
+    res.json({ transcript });
+  } catch (e) {
+    console.error('STT error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 module.exports = router;

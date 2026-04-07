@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260408_0110">
+<html data-app-version="20260408_0130">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -4097,8 +4097,8 @@ function switchAppTab(tab) {
   // 各タブを開く
   if (tab === 'buddy') {
     // バディーは常に表示
-    // ウェイクワード「バディ」検知を開始
-    if (!_voiceModeActive) setTimeout(function() { startWakeWordListener(); }, 500);
+    // ウェイクワード自動起動は廃止 (Android で SpeechRecognition の周期的セッション再生成
+    // による OS マイクインジケータ点滅が止まらないため)
   } else if (tab === 'menu') {
     // メニュー（旧ホー��）表示 — 空気ダッシュボードを読み込み
     loadAtmosphere();
@@ -6474,14 +6474,13 @@ function _startOneShot() {
 
   rec.onend = function() {
     _isListening = false;
-    // 停止済み or モードOFF or バディー応答待ち → 何もしない
     if (_voiceStopping || !_voiceModeActive || _voicePaused) return;
-    // 無音でセッション切れ → 次の発話を待つ
-    setTimeout(function() {
-      if (_voiceModeActive && !_voicePaused && !_voiceStopping) {
-        _startOneShot();
-      }
-    }, 500);
+    // 自動再開しない (Android で no-speech ループによりマイクが点滅するため)
+    // ユーザーがマイクを再タップしたら次の発話セッション開始
+    if (indicator) indicator.style.display = 'none';
+    setMicState('ready');
+    updateVoiceStatus('タップしてもう一度話す');
+    updateVoiceSubStatus('準備OK');
   };
 
   try { rec.start(); } catch(e) {}
@@ -6548,9 +6547,7 @@ function startWakeWordListener() {
   };
 
   _wakeWordRecognition.onend = function() {
-    if (_wakeWordActive && !_voiceModeActive) {
-      try { _wakeWordRecognition.start(); } catch(e) {}
-    }
+    // 自動再開しない (Android でセッション再生成のたびに OS マイク点滅が発火するため)
   };
 
   try {
@@ -6567,11 +6564,13 @@ function stopWakeWordListener() {
   }
 }
 
-// TTS再生完了後に認識を再開
+// TTS再生完了後: 自動再認識せずタップ待ち状態に戻す
 function resumeListeningAfterTTS() {
   if (!_voiceModeActive || _voiceStopping) return;
   _voicePaused = false;
-  _startOneShot();
+  setMicState('ready');
+  updateVoiceStatus('タップして続けて話す');
+  updateVoiceSubStatus('準備OK');
 }
 
 // --- TTS: 読み上げ ---

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260408_0200">
+<html data-app-version="20260408_0150">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -6315,12 +6315,11 @@ function toggleVoiceMode() {
 
   if (_voiceModeActive) {
     // 音声モードON: テキスト入力を隠して音声パネル表示
+    stopWakeWordListener(); // ウェイクワード検知停止
     if (panel) panel.style.display = 'block';
     if (textBar) textBar.style.display = 'none';
-    updateVoiceStatus('マイクをタップ または「バディ」と呼びかけ');
-    updateVoiceSubStatus('話し終わったらもう一度マイクをタップ');
-    // 音声モード中はウェイクワード検知を有効化（録音中は競合避けで自動停止される）
-    setTimeout(function() { startWakeWordListener(); }, 200);
+    updateVoiceStatus('タップしてバディーと会話モードに切替');
+    updateVoiceSubStatus('バディーの返答も読み上げます');
   } else {
     // 音声モードOFF
     if (panel) panel.style.display = 'none';
@@ -6403,9 +6402,6 @@ function _startOneShot() {
   var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SpeechRecognition || !_voiceModeActive || _voiceStopping) return;
 
-  // 録音中はウェイクワード検知を停止 (マイク競合回避)
-  stopWakeWordListener();
-
   if (_speechRecognition) {
     try { _speechRecognition.abort(); } catch(e) {}
   }
@@ -6484,12 +6480,11 @@ function _startOneShot() {
     _isListening = false;
     if (_voiceStopping || !_voiceModeActive || _voicePaused) return;
     // 自動再開しない (Android で no-speech ループによりマイクが点滅するため)
-    // 録音終了後はウェイクワード検知を再開して「バディ」呼びかけ待ち
+    // ユーザーがマイクを再タップしたら次の発話セッション開始
     if (indicator) indicator.style.display = 'none';
     setMicState('ready');
-    updateVoiceStatus('マイクをタップ または「バディ」と呼びかけ');
+    updateVoiceStatus('タップしてもう一度話す');
     updateVoiceSubStatus('準備OK');
-    setTimeout(function() { startWakeWordListener(); }, 300);
   };
 
   try { rec.start(); } catch(e) {}
@@ -6530,9 +6525,7 @@ var _wakeWordRecognition = null;
 var _wakeWordActive = false;
 
 function startWakeWordListener() {
-  if (_wakeWordActive) return;
-  // 録音中・発話中・応答待ち中はマイク競合回避
-  if (_isListening || _isSpeaking || _voicePaused) return;
+  if (_wakeWordActive || _voiceModeActive) return;
   var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SpeechRecognition) return;
 
@@ -6546,9 +6539,8 @@ function startWakeWordListener() {
       var text = event.results[i][0].transcript.toLowerCase();
       if (text.indexOf('バディ') !== -1 || text.indexOf('ばでぃ') !== -1 || text.indexOf('buddy') !== -1 || text.indexOf('ばでい') !== -1 || text.indexOf('バディー') !== -1) {
         stopWakeWordListener();
-        if (!_voiceModeActive) toggleVoiceMode();
-        // 少し待ってからマイク掴む (前のSpeechRecognitionの解放を待つ)
-        setTimeout(function() { tapToSpeak(); }, 200);
+        toggleVoiceMode();
+        tapToSpeak();
         return;
       }
     }
@@ -6559,11 +6551,7 @@ function startWakeWordListener() {
   };
 
   _wakeWordRecognition.onend = function() {
-    // 音声モード中で録音もスピーチもしていないなら自動再開
-    // (録音中は _isListening、TTS中は _isSpeaking、応答待ちは _voicePaused)
-    if (_wakeWordActive && _voiceModeActive && !_isListening && !_isSpeaking && !_voicePaused) {
-      try { _wakeWordRecognition && _wakeWordRecognition.start(); } catch(e) {}
-    }
+    // 自動再開しない (Android でセッション再生成のたびに OS マイク点滅が発火するため)
   };
 
   try {
@@ -6580,14 +6568,13 @@ function stopWakeWordListener() {
   }
 }
 
-// TTS再生完了後: タップ待ち＋ウェイクワード再開
+// TTS再生完了後: 自動再認識せずタップ待ち状態に戻す
 function resumeListeningAfterTTS() {
   if (!_voiceModeActive || _voiceStopping) return;
   _voicePaused = false;
   setMicState('ready');
-  updateVoiceStatus('マイクをタップ または「バディ」と呼びかけ');
+  updateVoiceStatus('タップして続けて話す');
   updateVoiceSubStatus('準備OK');
-  setTimeout(function() { startWakeWordListener(); }, 300);
 }
 
 // --- TTS: 読み上げ ---

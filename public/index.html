@@ -832,6 +832,7 @@
         <span id="buddy-streak-icon">🌰</span>
         <span id="buddy-streak-text">0日</span>
       </div>
+      <button id="buddy-tts-toggle" onclick="toggleBuddyTtsMode()" style="background:rgba(255,255,255,0.2);border:none;color:white;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;flex-shrink:0;position:relative;" title="読み上げモード"><i class="fas fa-volume-mute"></i></button>
       <button onclick="clearBuddyChat()" style="background:rgba(255,255,255,0.2);border:none;color:white;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;flex-shrink:0;" title="チャット履歴クリア"><i class="fas fa-trash-alt"></i></button>
     </div>
     <!-- チャットメッセージエリア -->
@@ -5125,6 +5126,16 @@ function addBuddyMessage(role, text) {
 
   _buddyHistory.push({ role: role, content: text });
 
+  // 読み上げモードON時、AIメッセージを自動再生（履歴復元中は除く）
+  if (isAI && !window._buddyRestoring && _isBuddyTtsMode()) {
+    setTimeout(function() {
+      try {
+        var btn = div.querySelector('.buddy-memo-btn[onclick*="speakBuddyText"]');
+        if (btn && typeof speakBuddyText === 'function') speakBuddyText(btn);
+      } catch(e) {}
+    }, 200);
+  }
+
   // フローティングアバター: スクロール監視を初回のみセットアップ
   if (!window._buddyScrollSetup) {
     window._buddyScrollSetup = true;
@@ -6046,15 +6057,19 @@ function showBuddyEntryCards() {
   var ord = _getEntryCardOrder();
   var greeting = _getEntryGreeting();
   var style = _getEntryStyle();
-  // お題バー HTML
+  // お題バー HTML（テキストエスケープ）
+  var topicEsc = topic.topic.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   var topicBar =
-    '<div onclick="entryCardDailyTopic()" style="max-width:420px;margin:0 auto 12px;padding:12px 14px;background:linear-gradient(135deg,#fef9c3,#fde68a);border:2px solid #fbbf24;border-radius:14px;cursor:pointer;box-shadow:0 3px 12px rgba(251,191,36,0.25);position:relative;">' +
+    '<div style="max-width:420px;margin:0 auto 12px;padding:12px 14px;background:linear-gradient(135deg,#fef9c3,#fde68a);border:2px solid #fbbf24;border-radius:14px;box-shadow:0 3px 12px rgba(251,191,36,0.25);position:relative;">' +
       '<div style="display:flex;align-items:center;gap:6px;font-size:0.7rem;font-weight:800;color:#b45309;margin-bottom:4px;">' +
         '<span>🌟 今日のお題</span>' +
         '<span style="background:#fbbf24;color:#fff;padding:1px 6px;border-radius:8px;font-size:0.6rem;">' + ['日','月','火','水','木','金','土'][new Date().getDay()] + '曜</span>' +
+        '<button onclick="event.stopPropagation();speakDailyTopic(this)" data-text="今日のお題。' + topicEsc + '" class="buddy-memo-btn" style="margin-left:auto;color:#b45309;border-color:#fbbf24;background:#fff;font-size:0.62rem;padding:2px 8px;"><i class="fas fa-volume-up"></i> 聞く</button>' +
       '</div>' +
-      '<div style="font-size:0.92rem;font-weight:800;color:#78350f;line-height:1.4;">' + topic.topic + '</div>' +
-      '<div style="text-align:right;font-size:0.66rem;color:#92400e;margin-top:4px;">タップで会話スタート →</div>' +
+      '<div onclick="entryCardDailyTopic()" style="cursor:pointer;">' +
+        '<div style="font-size:0.92rem;font-weight:800;color:#78350f;line-height:1.4;">' + topic.topic + '</div>' +
+        '<div style="text-align:right;font-size:0.66rem;color:#92400e;margin-top:4px;">タップで会話スタート →</div>' +
+      '</div>' +
     '</div>';
   // AI 呼びかけ
   var greetBox =
@@ -6106,6 +6121,11 @@ function hideBuddyEntryCards() {
   var el = document.getElementById('buddy-entry-cards');
   if (el) el.style.display = 'none';
   window._buddyEntryCardsDismissed = true;
+}
+// デイリーお題を読み上げる（単発）
+function speakDailyTopic(btnEl) {
+  try { ensureAudioContext(); } catch(e) {}
+  if (typeof speakBuddyText === 'function') speakBuddyText(btnEl);
 }
 // デイリーお題タップで会話スタート
 function entryCardDailyTopic() {
@@ -7187,6 +7207,50 @@ function speakBuddyText(btnEl) {
   ensureAudioContext();
   doSpeak(text, btnEl.closest('.buddy-msg'), null, btnEl);
 }
+
+// ========== 読み上げモード（バディーヘッダーのトグル） ==========
+function _isBuddyTtsMode() {
+  try { return localStorage.getItem('co_heart_buddy_tts_mode') === '1'; } catch(e) { return false; }
+}
+function _setBuddyTtsModeUI(on) {
+  var btn = document.getElementById('buddy-tts-toggle');
+  if (!btn) return;
+  if (on) {
+    btn.style.background = 'linear-gradient(135deg,#fbbf24,#f59e0b)';
+    btn.innerHTML = '<i class="fas fa-volume-up"></i>';
+    btn.title = '読み上げモード ON（タップでOFF）';
+  } else {
+    btn.style.background = 'rgba(255,255,255,0.2)';
+    btn.innerHTML = '<i class="fas fa-volume-mute"></i>';
+    btn.title = '読み上げモード OFF（タップでON）';
+  }
+}
+function toggleBuddyTtsMode() {
+  var on = !_isBuddyTtsMode();
+  try { localStorage.setItem('co_heart_buddy_tts_mode', on ? '1' : '0'); } catch(e) {}
+  _setBuddyTtsModeUI(on);
+  // ON時はAudioContextを起こす（iOS対策）
+  if (on) {
+    try { ensureAudioContext(); } catch(e) {}
+    // フィードバック: 直近のAIメッセージを1回読み上げ
+    var msgs = document.getElementById('buddy-messages');
+    if (msgs) {
+      var aiMsgs = msgs.querySelectorAll('.buddy-msg.ai');
+      if (aiMsgs.length > 0) {
+        var lastAi = aiMsgs[aiMsgs.length - 1];
+        var btn = lastAi.querySelector('.buddy-memo-btn[onclick*="speakBuddyText"]');
+        if (btn) setTimeout(function(){ speakBuddyText(btn); }, 100);
+      }
+    }
+  } else {
+    // OFF時は再生中を停止
+    try { stopSpeaking(); } catch(e) {}
+  }
+}
+// 初期化: 起動時にUI状態を反映
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(function() { _setBuddyTtsModeUI(_isBuddyTtsMode()); }, 100);
+});
 
 // ボタンの視覚状態を変更（idle/loading/playing）
 // 大きい円形ボタン (post-tts) と小さいメモ形 (buddy-memo-btn) 両対応

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260408_0210">
+<html data-app-version="20260408_0240">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -839,9 +839,49 @@
       <div id="buddy-float-avatar"></div>
       <!-- buddy-challenge-bar removed: チャレンジはインラインアクションバーに移行 -->
       <div id="buddy-messages" style="height:100%;overflow-y:auto;overscroll-behavior:contain;padding:12px;display:flex;flex-direction:column;gap:8px;"></div>
+      <!-- 入口カード（チャット未開始時に表示） -->
+      <div id="buddy-entry-cards" style="display:none;position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(180deg,#f0f9ff 0%,#e0f2fe 100%);overflow-y:auto;padding:18px 14px;z-index:5;">
+        <div style="text-align:center;margin-bottom:14px;">
+          <div style="font-size:1.05rem;font-weight:800;color:#0369a1;margin-bottom:4px;">今日は何から話す？</div>
+          <div style="font-size:0.72rem;color:#64748b;">気軽にどれかタップしてね</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:420px;margin:0 auto;">
+          <button onclick="entryCardDailyTheme()" class="buddy-entry-card" style="padding:14px 8px;background:linear-gradient(135deg,#fff,#f0f9ff);border:2px solid #7dd3fc;border-radius:14px;cursor:pointer;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(14,165,233,0.12);transition:all 0.15s;">
+            <div style="font-size:1.8rem;line-height:1;">💬</div>
+            <div style="font-weight:800;font-size:0.78rem;color:#0369a1;">今日のひとこと聞いて</div>
+            <div style="font-size:0.62rem;color:#64748b;">バディーがお題を出すよ</div>
+          </button>
+          <button onclick="entryCardHealthReport()" class="buddy-entry-card" style="padding:14px 8px;background:linear-gradient(135deg,#fff,#fef3c7);border:2px solid #fcd34d;border-radius:14px;cursor:pointer;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(245,158,11,0.12);transition:all 0.15s;">
+            <div style="font-size:1.8rem;line-height:1;">📋</div>
+            <div style="font-weight:800;font-size:0.78rem;color:#b45309;">体調レポート出す</div>
+            <div style="font-size:0.62rem;color:#64748b;">サクッと選ぶだけ</div>
+          </button>
+          <button onclick="entryCardVent()" class="buddy-entry-card" style="padding:14px 8px;background:linear-gradient(135deg,#fff,#fce7f3);border:2px solid #f9a8d4;border-radius:14px;cursor:pointer;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(236,72,153,0.12);transition:all 0.15s;">
+            <div style="font-size:1.8rem;line-height:1;">😟</div>
+            <div style="font-weight:800;font-size:0.78rem;color:#be185d;">ちょっとモヤってる</div>
+            <div style="font-size:0.62rem;color:#64748b;">グチでも全然OK</div>
+          </button>
+          <button onclick="entryCardSuggest()" class="buddy-entry-card" style="padding:14px 8px;background:linear-gradient(135deg,#fff,#dcfce7);border:2px solid #86efac;border-radius:14px;cursor:pointer;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(34,197,94,0.12);transition:all 0.15s;">
+            <div style="font-size:1.8rem;line-height:1;">💡</div>
+            <div style="font-weight:800;font-size:0.78rem;color:#15803d;">こうなったらいいな</div>
+            <div style="font-size:0.62rem;color:#64748b;">提案・アイデア</div>
+          </button>
+          <button onclick="entryCardConsult()" class="buddy-entry-card" style="padding:14px 8px;background:linear-gradient(135deg,#fff,#ede9fe);border:2px solid #c4b5fd;border-radius:14px;cursor:pointer;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(124,58,237,0.12);transition:all 0.15s;grid-column:span 2;">
+            <div style="font-size:1.8rem;line-height:1;">🤔</div>
+            <div style="font-weight:800;font-size:0.78rem;color:#6d28d9;">相談したいことがある</div>
+            <div style="font-size:0.62rem;color:#64748b;">推進メンバーに直接届くよ</div>
+          </button>
+        </div>
+        <div style="text-align:center;margin-top:14px;">
+          <button onclick="hideBuddyEntryCards();document.getElementById('buddy-input').focus();" style="background:none;border:none;color:#64748b;font-size:0.72rem;cursor:pointer;font-family:inherit;text-decoration:underline;">自分で書く</button>
+        </div>
+      </div>
     </div>
     <!-- インラインアクションバー -->
     <div id="buddy-action-bar" style="flex-shrink:0;background:#f0f9ff;border-top:1px solid #e0e8f0;padding:6px 10px;display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;touch-action:pan-x;-ms-touch-action:pan-x;">
+      <button onclick="window._buddyEntryCardsDismissed=false;showBuddyEntryCards();" class="buddy-action-btn" style="display:flex;align-items:center;gap:5px;padding:8px 14px;background:linear-gradient(135deg,#7c3aed,#a78bfa);color:white;border:none;border-radius:20px;font-size:0.75rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;box-shadow:0 2px 8px rgba(124,58,237,0.25);font-family:inherit;">
+        <i class="fas fa-th-large"></i> 話題から選ぶ
+      </button>
       <button onclick="inlineBuddyTalk()" class="buddy-action-btn" style="display:flex;align-items:center;gap:5px;padding:8px 14px;background:linear-gradient(135deg,#0ea5e9,#38bdf8);color:white;border:none;border-radius:20px;font-size:0.75rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;box-shadow:0 2px 8px rgba(14,165,233,0.25);font-family:inherit;">
         <i class="fas fa-comment-dots"></i> バディーに話す
       </button>
@@ -4101,8 +4141,10 @@ function switchAppTab(tab) {
   // 各タブを開く
   if (tab === 'buddy') {
     // バディーは常に表示
-    // ウェイクワード自動起動は廃止 (Android で SpeechRecognition の周期的セッション再生成
-    // による OS マイクインジケータ点滅が止まらないため)
+    // 入口カード表示（このセッションでまだ dismiss されていなければ）
+    if (!window._buddyEntryCardsDismissed && typeof showBuddyEntryCards === 'function') {
+      showBuddyEntryCards();
+    }
   } else if (tab === 'menu') {
     // メニュー（旧ホー��）表示 — 空気ダッシュボードを読み込み
     loadAtmosphere();
@@ -4687,8 +4729,10 @@ function startBuddyChat(buddyData) {
       headers: { 'Authorization': 'Bearer ' + getToken() }
     }).then(function(r) { return r.json(); }).then(function(data) {
       if (data && data.success && data.messages && data.messages.length > 0) {
-        // 当日の履歴がある → 復元
+        // 当日の履歴がある → 復元 + 入口カードは閉じる
         window._buddyRestoring = true;
+        window._buddyEntryCardsDismissed = true;
+        if (typeof hideBuddyEntryCards === 'function') hideBuddyEntryCards();
         var hasMoodLog = false;
         data.messages.forEach(function(m) {
           addBuddyMessage(m.role, m.content);
@@ -4755,6 +4799,10 @@ function getDeptGreeting(dept, hour) {
 }
 
 function startBuddyChatFresh(buddyData) {
+  // 入口カード表示（dismiss されていなければ）
+  if (!window._buddyEntryCardsDismissed && typeof showBuddyEntryCards === 'function') {
+    showBuddyEntryCards();
+  }
   // 時間帯に応じた挨拶
   var hour = new Date().getHours();
   var greeting = hour < 11 ? 'おはようございます' : hour < 17 ? 'こんにちは' : 'お疲れ様です';
@@ -5082,6 +5130,11 @@ function addBuddyMessage(role, text) {
   var msgs = document.getElementById('buddy-messages');
   var time = new Date().toLocaleTimeString('ja-JP', {hour:'2-digit', minute:'2-digit'});
   var isAI = role === 'ai' || role === 'assistant' || role === 'model';
+  // ユーザー発言が出たら入口カードを隠す（AI挨拶では隠さない）
+  if (!isAI && typeof hideBuddyEntryCards === 'function') {
+    window._buddyEntryCardsDismissed = true;
+    hideBuddyEntryCards();
+  }
 
   var bubbleContent = isAI ? formatBuddyText(text) : text.replace(/\n/g, '<br>');
 
@@ -5778,6 +5831,9 @@ function clearBuddyChat() {
       _buddyHistory = [];
       _buddyMoodChecked = false;
       _buddyTurnCount = 0;
+      // 入口カード再表示フラグ
+      window._buddyEntryCardsDismissed = false;
+      showBuddyEntryCards();
       // 新しい挨拶から再スタート
       var buddyData = null;
       try { buddyData = JSON.parse(localStorage.getItem('co_heart_buddy')); } catch(e) {}
@@ -5859,6 +5915,76 @@ function showCancelCapture() {
 function inlineBuddyTalk() {
   addBuddyMessage('ai', 'うんうん、何でも聞くよ！😊\nここでの会話はあなただけのものです🔒');
   document.getElementById('buddy-input').focus();
+}
+
+// ========================================
+// 入口カード（白い画面の撲滅）
+// ========================================
+function showBuddyEntryCards() {
+  var el = document.getElementById('buddy-entry-cards');
+  if (el) el.style.display = 'block';
+}
+function hideBuddyEntryCards() {
+  var el = document.getElementById('buddy-entry-cards');
+  if (el) el.style.display = 'none';
+  window._buddyEntryCardsDismissed = true;
+}
+
+// 💬 今日のひとこと: バディーがランダムなお題を出す
+var _dailyThemeQuestions = [
+  '今日、ちょっとでも「お、いいな」って思ったことあった？☕',
+  '今週、一番疲れた瞬間って何だった？',
+  '最近モヤっとしたこと、グチでもいいから聞かせて😤',
+  'もし職場が "こうだったらいいのに" って思うこと、ある？',
+  '今日のごはん、満足した？',
+  '最近、ちゃんと眠れてる？',
+  '今週「がんばったな自分」って思うこと、ひとつ教えて✨',
+  '同僚で「あの人すごいな」って思う人いる？どんなとこ？',
+  '最近、心がほっとした瞬間ってあった？',
+  '今、一番欲しいものって何？お金以外で 😊'
+];
+function entryCardDailyTheme() {
+  hideBuddyEntryCards();
+  var q = _dailyThemeQuestions[Math.floor(Math.random() * _dailyThemeQuestions.length)];
+  addBuddyMessage('ai', q);
+  setTimeout(function() {
+    var input = document.getElementById('buddy-input');
+    if (input) { input.placeholder = '答えを書いてね...'; input.focus(); }
+  }, 300);
+}
+
+// 📋 体調レポート: 既存の体調相談フローを呼ぶ
+function entryCardHealthReport() {
+  hideBuddyEntryCards();
+  inlineHealthConsult();
+}
+
+// 😟 ちょっとモヤってる: グチ受け止めモード
+function entryCardVent() {
+  hideBuddyEntryCards();
+  addBuddyMessage('ai', 'うんうん、何があった？☕\nここだけの話だから、思ってること全部吐き出していいよ。');
+  setTimeout(function() {
+    addBuddyMessage('ai', '言葉にしなくていいから、思いついたまま書いて。\n👇 下の入力欄にそのまま書いてね');
+    var input = document.getElementById('buddy-input');
+    if (input) { input.placeholder = 'モヤモヤを書いてね...'; input.focus(); }
+  }, 600);
+}
+
+// 💡 こうなったらいいな: 提案モード
+function entryCardSuggest() {
+  hideBuddyEntryCards();
+  addBuddyMessage('ai', 'いいね！💡 どんな小さなことでも、聞かせて。\n「こうだったらいいのに」「これあったら助かる」みたいな感じで。');
+  setTimeout(function() {
+    addBuddyMessage('ai', '👇 思いついたままで OK！');
+    var input = document.getElementById('buddy-input');
+    if (input) { input.placeholder = '提案・アイデアを書いてね...'; input.focus(); }
+  }, 600);
+}
+
+// 🤔 相談したい: 既存の推進メンバー相談フロー
+function entryCardConsult() {
+  hideBuddyEntryCards();
+  inlineMemberConsult();
 }
 
 function inlineHealthConsult() {

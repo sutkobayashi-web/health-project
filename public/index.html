@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260408_0320">
+<html data-app-version="20260408_0335">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -2623,7 +2623,7 @@ function openPostDetail(row) {
   analysisText = analysisText.replace(/\/\/\/SCORE\/\/\/[\s\S]*$/, '').trim();
   var analysisDataText = analysisText.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   var analysisHtml = analysisText ? '<div class="ai-reply" style="position:relative;"><i class="fas fa-robot text-primary"></i> ' + analysisText.replace(/\n/g, '<br>') +
-    '<button onclick="speakPostAnalysis(this)" data-text="' + analysisDataText + '" title="バディーが読み上げ" style="display:inline-flex;align-items:center;justify-content:center;margin-left:8px;width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#a78bfa,#7c3aed);color:white;border:none;cursor:pointer;font-size:13px;box-shadow:0 2px 8px rgba(124,58,237,0.3);vertical-align:middle;"><i class="fas fa-volume-up"></i></button>' +
+    '<button onclick="speakPostAnalysis(this)" data-text="' + analysisDataText + '" data-state="idle" class="post-tts-btn" title="バディーが読み上げ" style="display:inline-flex;align-items:center;justify-content:center;margin-left:8px;width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#a78bfa,#7c3aed);color:white;border:none;cursor:pointer;font-size:14px;box-shadow:0 2px 8px rgba(124,58,237,0.3);vertical-align:middle;transition:transform 0.1s;" ontouchstart="this.style.transform=\'scale(0.9)\'" ontouchend="this.style.transform=\'\'"><i class="fas fa-volume-up"></i></button>' +
     '</div>' : '';
 
   sheet.innerHTML =
@@ -7002,15 +7002,62 @@ function speakBuddyText(btnEl) {
   var text = btnEl.getAttribute('data-text');
   if (!text) return;
   ensureAudioContext();
-  doSpeak(text, btnEl.closest('.buddy-msg'), null);
+  doSpeak(text, btnEl.closest('.buddy-msg'), null, btnEl);
+}
+
+// ボタンの視覚状態を変更（idle/loading/playing）
+// 大きい円形ボタン (post-tts) と小さいメモ形 (buddy-memo-btn) 両対応
+function _setSpeakBtnState(btnEl, state) {
+  if (!btnEl) return;
+  var isCircle = btnEl.classList.contains('post-tts-btn');
+  if (state === 'loading') {
+    if (isCircle) btnEl.style.background = 'linear-gradient(135deg,#f59e0b,#d97706)';
+    else btnEl.style.color = '#f59e0b';
+    btnEl.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i>';
+    btnEl.setAttribute('data-state', 'loading');
+  } else if (state === 'playing') {
+    if (isCircle) btnEl.style.background = 'linear-gradient(135deg,#ef4444,#dc2626)';
+    else btnEl.style.color = '#ef4444';
+    btnEl.innerHTML = '<i class="fas fa-stop"></i>';
+    btnEl.setAttribute('data-state', 'playing');
+  } else { // idle
+    if (isCircle) btnEl.style.background = 'linear-gradient(135deg,#a78bfa,#7c3aed)';
+    else btnEl.style.color = '#0ea5e9';
+    btnEl.innerHTML = '<i class="fas fa-volume-up"></i>';
+    btnEl.setAttribute('data-state', 'idle');
+  }
+}
+
+// 現在アクティブな speak ボタンを追跡（リセット用）
+var _currentSpeakBtn = null;
+function _resetCurrentSpeakBtn() {
+  if (_currentSpeakBtn) {
+    _setSpeakBtnState(_currentSpeakBtn, 'idle');
+    _currentSpeakBtn = null;
+  }
 }
 
 var _speakGeneration = 0; // 輪唱防止: 各 speak リクエストに世代番号を振り、最新世代以外を破棄
-function doSpeak(text, msgEl, onDone) {
+function doSpeak(text, msgEl, onDone, btnEl) {
+  // 同じボタンが playing 状態 → 停止トグル
+  if (btnEl && btnEl.getAttribute('data-state') === 'playing') {
+    stopSpeaking();
+    return;
+  }
+  // 別の speak が走っていたら停止＆古いボタンをリセット
   stopSpeaking();
+  // 新しいボタンを loading 状態に
+  if (btnEl) {
+    _setSpeakBtnState(btnEl, 'loading');
+    _currentSpeakBtn = btnEl;
+  }
   var myGen = ++_speakGeneration;
   var cleanText = cleanTextForSpeech(text);
-  if (!cleanText) { if (onDone) onDone(); return; }
+  if (!cleanText) {
+    _resetCurrentSpeakBtn();
+    if (onDone) onDone();
+    return;
+  }
 
   var bubble = msgEl ? msgEl.querySelector('.buddy-bubble') : null;
   if (bubble) bubble.classList.add('speaking');
@@ -7045,12 +7092,15 @@ function doSpeak(text, msgEl, onDone) {
     source.connect(ctx.destination);
     window._currentTtsSource = source;
 
+    // playing 状態へ
+    if (btnEl && _currentSpeakBtn === btnEl) _setSpeakBtnState(btnEl, 'playing');
+
     source.onended = function() {
-      // この source が現役じゃなければ無視
       if (window._currentTtsSource !== source) return;
       _isSpeaking = false;
       if (bubble) bubble.classList.remove('speaking');
       window._currentTtsSource = null;
+      _resetCurrentSpeakBtn();
       if (onDone) onDone();
     };
 
@@ -7060,17 +7110,18 @@ function doSpeak(text, msgEl, onDone) {
     if (myGen === _speakGeneration) {
       _isSpeaking = false;
       if (bubble) bubble.classList.remove('speaking');
+      _resetCurrentSpeakBtn();
     }
     if (onDone) onDone();
   });
 }
 
-// 投稿のAIコメント用 TTS（輪唱防止は doSpeak 側で対応）
+// 投稿のAIコメント用 TTS
 function speakPostAnalysis(btnEl) {
   var text = btnEl.getAttribute('data-text');
   if (!text) return;
   ensureAudioContext();
-  doSpeak(text, null, null);
+  doSpeak(text, null, null, btnEl);
 }
 
 function stopSpeaking() {
@@ -7084,6 +7135,10 @@ function stopSpeaking() {
   }
   _isSpeaking = false;
   document.querySelectorAll('.buddy-bubble.speaking').forEach(function(el) { el.classList.remove('speaking'); });
+  // 進行中の世代も無効化（fetch中の応答を破棄させる）
+  _speakGeneration++;
+  // ボタン視覚状態を idle に戻す
+  if (typeof _resetCurrentSpeakBtn === 'function') _resetCurrentSpeakBtn();
 }
 
 // 音声モード: 自動読み上げ → 完了後にready状態に戻す（タップ待ち）

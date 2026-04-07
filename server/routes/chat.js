@@ -739,10 +739,33 @@ async function ttsHandler(req, res) {
 }
 
 // ========================================
-// Speech-to-Text (Google Cloud Speech-to-Text)
-// MediaRecorder の WEBM_OPUS をネイティブサポート。
-// 事前に GCP プロジェクトで Cloud Speech-to-Text API を有効化しておくこと。
+// Speech-to-Text (Gemini multimodal + ffmpeg で webm→wav 変換)
+// Cloud Speech-to-Text API がキー制限で使えないため、Gemini API に切り替え。
+// Gemini は audio/webm 非対応なので ffmpeg で 16kHz mono WAV に変換して渡す。
 // ========================================
+function transcodeToWav(inputBuffer) {
+  return new Promise(function(resolve, reject) {
+    const { spawn } = require('child_process');
+    const ff = spawn('ffmpeg', [
+      '-hide_banner', '-loglevel', 'error',
+      '-i', 'pipe:0',
+      '-ar', '16000', '-ac', '1',
+      '-f', 'wav', 'pipe:1'
+    ]);
+    const chunks = [];
+    let stderr = '';
+    ff.stdout.on('data', function(d) { chunks.push(d); });
+    ff.stderr.on('data', function(d) { stderr += d.toString(); });
+    ff.on('error', reject);
+    ff.on('close', function(code) {
+      if (code === 0) resolve(Buffer.concat(chunks));
+      else reject(new Error('ffmpeg exit ' + code + ': ' + stderr));
+    });
+    ff.stdin.on('error', function(){});
+    ff.stdin.end(inputBuffer);
+  });
+}
+
 router.post('/stt', async (req, res) => {
   try {
     const { audio, mimeType } = req.body || {};
@@ -750,39 +773,49 @@ router.post('/stt', async (req, res) => {
     if (typeof audio !== 'string' || audio.length > 14 * 1024 * 1024) {
       return res.status(413).json({ error: '音声データが大きすぎます' });
     }
-    const apiKey = process.env.GOOGLE_TTS_API_KEY || process.env.GOOGLE_STT_API_KEY;
-    if (!apiKey) return res.status(500).json({ error: 'GOOGLE_TTS_API_KEY未設定' });
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) return res.status(500).json({ error: 'GEMINI_API_KEY未設定' });
 
-    // mimeType から encoding を判定
-    const mt = (mimeType || '').toLowerCase();
-    let encoding = 'WEBM_OPUS';
-    if (mt.includes('ogg')) encoding = 'OGG_OPUS';
-    else if (mt.includes('mp4') || mt.includes('m4a') || mt.includes('aac')) encoding = 'MP3'; // fallback
-    else if (mt.includes('wav')) encoding = 'LINEAR16';
+    // base64 → Buffer → ffmpegでWAVに変換 → base64
+    const inputBuf = Buffer.from(audio, 'base64');
+    if (inputBuf.length === 0) return res.status(400).json({ error: '音声データが空です' });
+    let wavBuf;
+    try {
+      wavBuf = await transcodeToWav(inputBuf);
+    } catch (e) {
+      console.error('STT ffmpeg error:', e.message);
+      return res.status(500).json({ error: '音声変換に失敗しました' });
+    }
+    const wavBase64 = wavBuf.toString('base64');
 
+    const model = process.env.GEMINI_TEXT_MODEL || 'gemini-2.5-flash';
     const fetch = require('node-fetch');
-    const sttRes = await fetch('https://speech.googleapis.com/v1/speech:recognize?key=' + apiKey, {
+    const url = 'https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + apiKey;
+
+    const aiRes = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        config: {
-          encoding,
-          sampleRateHertz: 48000,
-          languageCode: 'ja-JP',
-          enableAutomaticPunctuation: true,
-          model: 'latest_long'
-        },
-        audio: { content: audio }
+        system_instruction: { parts: { text: 'あなたは日本語音声の文字起こしエンジンです。入力された音声を一字一句正確に日本語のテキストに書き起こしてください。書き起こしテキストのみを返し、説明・前置き・引用符・改行装飾は一切付けないでください。発話がない / 不明瞭な場合は空文字列を返してください。' } },
+        contents: [{
+          role: 'user',
+          parts: [
+            { inline_data: { mime_type: 'audio/wav', data: wavBase64 } },
+            { text: '文字起こし' }
+          ]
+        }],
+        generationConfig: { temperature: 0 }
       })
     });
-    const data = await sttRes.json();
-    if (data.error) {
-      console.error('STT API error:', data.error.message);
-      return res.status(500).json({ error: data.error.message });
+    const json = await aiRes.json();
+    if (json.error) {
+      console.error('STT API error:', json.error.message);
+      return res.status(500).json({ error: json.error.message });
     }
-    const transcript = ((data.results || []).map(function(r){
-      return (r.alternatives && r.alternatives[0] && r.alternatives[0].transcript) || '';
-    }).join(' ')).trim();
+    let transcript = '';
+    if (json.candidates && json.candidates[0] && json.candidates[0].content && json.candidates[0].content.parts) {
+      transcript = json.candidates[0].content.parts.map(function(p){ return p.text || ''; }).join('').trim();
+    }
     res.json({ transcript });
   } catch (e) {
     console.error('STT error:', e.message);

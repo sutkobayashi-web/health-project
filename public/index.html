@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260407_2140">
+<html data-app-version="20260407_2200">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -6396,23 +6396,29 @@ function tapToSpeak() {
   startVoiceRecognition();
 }
 
-// --- STT: 1発話1セッション方式（continuous=false） ---
-// 1回の発話ごとにセッションが完了。再起動時に音声バッファは消費済みなので重複しない。
+// --- STT: 連続セッション方式（continuous=true） ---
+// Android Chromeでは continuous=false だと no-speech で約5秒ごとにセッションが終了し、
+// 再起動のたびに OS のマイクインジケータが点滅する（=「マイクON/OFF発火」）。
+// continuous=true に切り替え、event.resultIndex で新規結果のみ処理する。
+var _voiceFinalConsumed = false; // この発話の確定済みフラグ
 
 function _startOneShot() {
   var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SpeechRecognition || !_voiceModeActive || _voiceStopping) return;
 
   if (_speechRecognition) {
+    try { _speechRecognition.onend = null; _speechRecognition.onresult = null; _speechRecognition.onerror = null; } catch(e) {}
     try { _speechRecognition.abort(); } catch(e) {}
+    _speechRecognition = null;
   }
 
   var rec = new SpeechRecognition();
   rec.lang = 'ja-JP';
-  rec.continuous = false;
+  rec.continuous = true;       // ★no-speech 自動終了による点滅を防ぐ
   rec.interimResults = true;
   rec.maxAlternatives = 1;
   _speechRecognition = rec;
+  _voiceFinalConsumed = false;
 
   var indicator = document.getElementById('voice-listening-indicator');
   var input = document.getElementById('buddy-input');
@@ -6426,22 +6432,23 @@ function _startOneShot() {
   };
 
   rec.onresult = function(event) {
-    if (_voicePaused || _voiceStopping) return;
+    if (_voicePaused || _voiceStopping || _voiceFinalConsumed) return;
 
     var finalText = '';
     var interimText = '';
-    for (var i = 0; i < event.results.length; i++) {
+    // continuous=true では results に履歴が蓄積されるため新規分のみ
+    for (var i = event.resultIndex; i < event.results.length; i++) {
       if (event.results[i].isFinal) {
         finalText += event.results[i][0].transcript;
       } else {
         interimText += event.results[i][0].transcript;
       }
     }
-    // プレビュー
     updateVoiceSubStatus(finalText + interimText || '...');
     if (input) input.value = finalText + interimText;
 
     if (finalText.trim()) {
+      _voiceFinalConsumed = true;
       // 終了キーワード検知
       var endWords = ['おわり', '終わり', '終了', 'おしまい', 'バイバイ', 'ばいばい', 'またね', 'ストップ', 'やめ'];
       var trimmed = finalText.trim().replace(/[。．.！!？?\s]+$/, '');
@@ -6450,7 +6457,7 @@ function _startOneShot() {
         _voiceStopping = true;
         _voicePaused = true;
         if (input) input.value = '';
-        try { rec.abort(); } catch(e) {}
+        try { rec.onend = null; rec.abort(); } catch(e) {}
         _speechRecognition = null;
         _isListening = false;
         toggleVoiceMode();
@@ -6458,7 +6465,7 @@ function _startOneShot() {
         addBuddyMessage('ai', 'またね！いつでも「バディ」って呼んでくれたら' + _bName + 'が応えるよ 😊');
         return;
       }
-      // 即送信（continuous=falseなのでブラウザが発話完了を判定済み）
+      // 発話確定 → AI応答待ちへ
       if (input) input.value = finalText;
       _voicePaused = true;
       if (indicator) indicator.style.display = 'none';
@@ -6479,14 +6486,16 @@ function _startOneShot() {
 
   rec.onend = function() {
     _isListening = false;
-    // 停止済み or モードOFF or バディー応答待ち → 何もしない
-    if (_voiceStopping || !_voiceModeActive || _voicePaused) return;
-    // 無音でセッション切れ → 次の発話を待つ
+    if (_voiceStopping || !_voiceModeActive) return;
+    // 応答待ち中は resumeListeningAfterTTS で再生成するので何もしない
+    if (_voicePaused) return;
+    // 想定外の終了 → 少し待って再生成（高速ループ防止）
     setTimeout(function() {
-      if (_voiceModeActive && !_voicePaused && !_voiceStopping) {
+      if (_voiceModeActive && !_voicePaused && !_voiceStopping && _speechRecognition === rec) {
+        _speechRecognition = null;
         _startOneShot();
       }
-    }, 500);
+    }, 300);
   };
 
   try { rec.start(); } catch(e) {}

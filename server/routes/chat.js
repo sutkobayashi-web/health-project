@@ -9,7 +9,6 @@ const router = express.Router();
 router.post('/message', authUser, async (req, res) => {
   const { userMessage, history, userName, buddyType, buddyName } = req.body;
   const uid = req.user.uid;
-  console.log('[buddy/message] uid=' + uid + ' msg="' + (userMessage || '').substring(0, 80) + '"');
 
   // ユーザーの食事・相談データを収集してコンテキストに含める
   let userDataContext = '';
@@ -738,91 +737,5 @@ async function ttsHandler(req, res) {
     res.status(500).json({ error: e.message });
   }
 }
-
-// ========================================
-// Speech-to-Text (Gemini multimodal + ffmpeg で webm→wav 変換)
-// Cloud Speech-to-Text API がキー制限で使えないため、Gemini API に切り替え。
-// Gemini は audio/webm 非対応なので ffmpeg で 16kHz mono WAV に変換して渡す。
-// ========================================
-function transcodeToWav(inputBuffer) {
-  return new Promise(function(resolve, reject) {
-    const { spawn } = require('child_process');
-    const ff = spawn('ffmpeg', [
-      '-hide_banner', '-loglevel', 'error',
-      '-i', 'pipe:0',
-      '-ar', '16000', '-ac', '1',
-      '-f', 'wav', 'pipe:1'
-    ]);
-    const chunks = [];
-    let stderr = '';
-    ff.stdout.on('data', function(d) { chunks.push(d); });
-    ff.stderr.on('data', function(d) { stderr += d.toString(); });
-    ff.on('error', reject);
-    ff.on('close', function(code) {
-      if (code === 0) resolve(Buffer.concat(chunks));
-      else reject(new Error('ffmpeg exit ' + code + ': ' + stderr));
-    });
-    ff.stdin.on('error', function(){});
-    ff.stdin.end(inputBuffer);
-  });
-}
-
-router.post('/stt', async (req, res) => {
-  try {
-    const { audio, mimeType } = req.body || {};
-    if (!audio) return res.status(400).json({ error: '音声データがありません' });
-    if (typeof audio !== 'string' || audio.length > 14 * 1024 * 1024) {
-      return res.status(413).json({ error: '音声データが大きすぎます' });
-    }
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) return res.status(500).json({ error: 'GEMINI_API_KEY未設定' });
-
-    // base64 → Buffer → ffmpegでWAVに変換 → base64
-    const inputBuf = Buffer.from(audio, 'base64');
-    if (inputBuf.length === 0) return res.status(400).json({ error: '音声データが空です' });
-    let wavBuf;
-    try {
-      wavBuf = await transcodeToWav(inputBuf);
-    } catch (e) {
-      console.error('STT ffmpeg error:', e.message);
-      return res.status(500).json({ error: '音声変換に失敗しました' });
-    }
-    const wavBase64 = wavBuf.toString('base64');
-
-    const model = process.env.GEMINI_TEXT_MODEL || 'gemini-2.5-flash';
-    const fetch = require('node-fetch');
-    const url = 'https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + apiKey;
-
-    const aiRes = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        system_instruction: { parts: { text: 'あなたは日本語音声の文字起こしエンジンです。入力された音声を一字一句正確に日本語のテキストに書き起こしてください。書き起こしテキストのみを返し、説明・前置き・引用符・改行装飾は一切付けないでください。発話がない / 不明瞭な場合は空文字列を返してください。' } },
-        contents: [{
-          role: 'user',
-          parts: [
-            { inline_data: { mime_type: 'audio/wav', data: wavBase64 } },
-            { text: '文字起こし' }
-          ]
-        }],
-        generationConfig: { temperature: 0 }
-      })
-    });
-    const json = await aiRes.json();
-    if (json.error) {
-      console.error('STT API error:', json.error.message);
-      return res.status(500).json({ error: json.error.message });
-    }
-    let transcript = '';
-    if (json.candidates && json.candidates[0] && json.candidates[0].content && json.candidates[0].content.parts) {
-      transcript = json.candidates[0].content.parts.map(function(p){ return p.text || ''; }).join('').trim();
-    }
-    console.log('[STT] webm=' + inputBuf.length + 'B wav=' + wavBuf.length + 'B transcript="' + transcript + '"');
-    res.json({ transcript });
-  } catch (e) {
-    console.error('STT error:', e.message);
-    res.status(500).json({ error: e.message });
-  }
-});
 
 module.exports = router;

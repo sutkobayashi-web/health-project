@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260408_0040">
+<html data-app-version="20260408_0110">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -4097,8 +4097,8 @@ function switchAppTab(tab) {
   // 各タブを開く
   if (tab === 'buddy') {
     // バディーは常に表示
-    // 注: ウェイクワード自動起動は廃止（Android で SpeechRecognition の周期的セッション再生成
-    //     による OS マイクインジケータ点滅・ビープ発火が止まらないため）
+    // ウェイクワード「バディ」検知を開始
+    if (!_voiceModeActive) setTimeout(function() { startWakeWordListener(); }, 500);
   } else if (tab === 'menu') {
     // メニュー（旧ホー��）表示 — 空気ダッシュボードを読み込み
     loadAtmosphere();
@@ -6302,23 +6302,6 @@ var _speechRecognition = null;
 var _isSpeaking = false;
 var _isListening = false;
 var _voiceSendTimer = null;
-var _voiceMicStream = null; // getUserMediaストリーム保持用（OSマイクインジケータの点滅防止）
-
-// SpeechRecognitionの再生成があってもOSのマイクインジケータが消えないように、
-// 並走するgetUserMediaストリームを掴みっぱなしにしておく
-function acquireMicStream() {
-  if (_voiceMicStream) return Promise.resolve(_voiceMicStream);
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return Promise.resolve(null);
-  return navigator.mediaDevices.getUserMedia({ audio: true }).then(function(stream) {
-    _voiceMicStream = stream;
-    return stream;
-  }).catch(function() { return null; });
-}
-function releaseMicStream() {
-  if (!_voiceMicStream) return;
-  try { _voiceMicStream.getTracks().forEach(function(t) { t.stop(); }); } catch(e) {}
-  _voiceMicStream = null;
-}
 
 function toggleVoiceMode() {
   _voiceModeActive = !_voiceModeActive;
@@ -6327,35 +6310,20 @@ function toggleVoiceMode() {
   var btn = document.getElementById('voice-toggle-btn');
 
   if (_voiceModeActive) {
-    // 音声モードON: テキスト入力を隠して音声パネル表示 → 即録音開始
+    // 音声モードON: テキスト入力を隠して音声パネル表示
+    stopWakeWordListener(); // ウェイクワード検知停止
     if (panel) panel.style.display = 'block';
     if (textBar) textBar.style.display = 'none';
-    updateVoiceStatus('聞いています...');
-    updateVoiceSubStatus('そのまま話しかけてください');
-    // ウェイクワード検知をマイク解放まで待ってから oneshot 開始
-    // (Android Chromeでは abort() が非同期で、前のSpeechRecognitionが
-    //  マイクを解放する前に新しい start() をすると onend が即発火 → ループする)
-    // 自動録音開始はしない（タップ操作と録音タイミングが混乱する原因）
-    // ユーザーがマイクボタンをタップしたら録音開始
-    setMicState('ready');
-    updateVoiceStatus('マイクをタップして話す');
-    updateVoiceSubStatus('話し終わったらもう一度マイクをタップ');
+    updateVoiceStatus('タップしてバディーと会話モードに切替');
+    updateVoiceSubStatus('バディーの返答も読み上げます');
   } else {
     // 音声モードOFF
     if (panel) panel.style.display = 'none';
     if (textBar) textBar.style.display = 'block';
     if (btn) { btn.style.background = 'linear-gradient(135deg,#a78bfa,#7c3aed)'; btn.style.color = 'white'; btn.style.borderColor = '#c4b5fd'; }
-    // MediaRecorder停止
-    if (_mediaRecorder && _mediaRecorder.state !== 'inactive') {
-      try { _mediaRecorder.onstop = null; _mediaRecorder.stop(); } catch(e) {}
-    }
-    _isRecording = false;
-    _audioChunks = [];
-    _releaseRecorderStream();
     stopVoiceRecognition();
     stopSpeaking();
-    stopWakeWordListener();
-    releaseMicStream();
+    stopWakeWordListener(); // 明示的に停止（再開しない）
   }
 }
 
@@ -6411,237 +6379,35 @@ function ensureAudioContext() {
 var _voicePaused = false;
 var _voiceStopping = false; // 明示的停止フラグ
 
-// ========================================
-// MediaRecorder ベースの STT（Android Chrome の Web Speech API 強制終了問題を回避）
-// 1タップ目: 録音開始 → 無音1.5秒で自動停止 → サーバSTT → AI送信
-// （手動で停止したい場合はもう一度タップでもOK）
-// ========================================
-var _mediaRecorder = null;
-var _audioChunks = [];
-var _isRecording = false;
-var _recorderStream = null;
-var _vadCtx = null;
-var _vadAnalyser = null;
-var _vadRafId = null;
-var _vadStartedAt = 0;
-var _vadLastVoiceAt = 0;
-var _vadHasVoice = false;
-
 function tapToSpeak() {
-  console.log('[voice] tapToSpeak speaking=' + _isSpeaking + ' recording=' + _isRecording);
   ensureAudioContext();
   if (_isSpeaking) {
     stopSpeaking();
+    _voicePaused = false;
+    _startOneShot();
     return;
   }
-  if (_isRecording) {
-    stopRecording();
-    return;
-  }
-  startRecording();
+  if (_isListening) { stopVoiceRecognition(); return; }
+  startVoiceRecognition();
 }
 
-function _pickAudioMime() {
-  var candidates = ['audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus','audio/ogg','audio/mp4'];
-  if (window.MediaRecorder && MediaRecorder.isTypeSupported) {
-    for (var i = 0; i < candidates.length; i++) {
-      if (MediaRecorder.isTypeSupported(candidates[i])) return candidates[i];
-    }
-  }
-  return '';
-}
-
-function startRecording() {
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) {
-    alert('このブラウザは録音に対応していません。');
-    return;
-  }
-  if (_voiceStopping || !_voiceModeActive) return;
-  navigator.mediaDevices.getUserMedia({ audio: true }).then(function(stream) {
-    _recorderStream = stream;
-    var mime = _pickAudioMime();
-    try {
-      _mediaRecorder = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
-    } catch(e) {
-      _mediaRecorder = new MediaRecorder(stream);
-    }
-    _audioChunks = [];
-    _mediaRecorder.ondataavailable = function(e) { if (e.data && e.data.size > 0) _audioChunks.push(e.data); };
-    _mediaRecorder.onstop = function() {
-      _isRecording = false;
-      var blob = new Blob(_audioChunks, { type: _mediaRecorder.mimeType || mime || 'audio/webm' });
-      console.log('[voice] recorder stopped, blob=' + blob.size + 'B type=' + blob.type);
-      _audioChunks = [];
-      _releaseRecorderStream();
-      if (blob.size === 0) {
-        setMicState('ready');
-        updateVoiceStatus('音声を取得できませんでした');
-        updateVoiceSubStatus('もう一度マイクをタップ');
-        return;
-      }
-      _uploadAndTranscribe(blob);
-    };
-    _mediaRecorder.start();
-    console.log('[voice] recording started, mime=' + (_mediaRecorder.mimeType || mime || 'default'));
-    _startVAD(stream);
-    _isRecording = true;
-    setMicState('listening');
-    updateVoiceStatus('録音中… (タップで停止)');
-    updateVoiceSubStatus('話し終わったらマイクをタップ');
-    var indicator = document.getElementById('voice-listening-indicator');
-    if (indicator) indicator.style.display = 'block';
-  }).catch(function(err) {
-    console.error('mic error', err);
-    alert('マイクへのアクセスが許可されていません。');
-    setMicState('ready');
-  });
-}
-
-function stopRecording() {
-  _stopVAD();
-  if (_mediaRecorder && _mediaRecorder.state !== 'inactive') {
-    setMicState('processing');
-    updateVoiceStatus('文字起こし中…');
-    updateVoiceSubStatus('少しお待ちください');
-    var indicator = document.getElementById('voice-listening-indicator');
-    if (indicator) indicator.style.display = 'none';
-    try { _mediaRecorder.stop(); } catch(e) {}
-  }
-}
-
-// 簡易VAD: AnalyserNodeでRMSを監視し、無音1.5秒で自動停止
-function _startVAD(stream) {
-  try {
-    _vadCtx = new (window.AudioContext || window.webkitAudioContext)();
-    var source = _vadCtx.createMediaStreamSource(stream);
-    _vadAnalyser = _vadCtx.createAnalyser();
-    _vadAnalyser.fftSize = 1024;
-    source.connect(_vadAnalyser);
-    var buf = new Uint8Array(_vadAnalyser.fftSize);
-    _vadStartedAt = Date.now();
-    _vadLastVoiceAt = 0;
-    _vadHasVoice = false;
-    var SILENCE_MS = 1500;     // この時間無音が続いたら停止
-    var MAX_RECORD_MS = 30000; // 安全装置：最大30秒
-    var THRESHOLD = 0.025;     // 音量しきい値（0..1）
-    var loop = function() {
-      if (!_vadAnalyser || !_isRecording) return;
-      _vadAnalyser.getByteTimeDomainData(buf);
-      // RMS計算
-      var sum = 0;
-      for (var i = 0; i < buf.length; i++) {
-        var v = (buf[i] - 128) / 128;
-        sum += v * v;
-      }
-      var rms = Math.sqrt(sum / buf.length);
-      var now = Date.now();
-      var elapsed = now - _vadStartedAt;
-      if (rms > THRESHOLD) {
-        _vadHasVoice = true;
-        _vadLastVoiceAt = now;
-      }
-      // 発話検知済 & 一定時間無音 → 自動停止
-      if (_vadHasVoice && _vadLastVoiceAt && (now - _vadLastVoiceAt) > SILENCE_MS) {
-        console.log('[voice] auto-stop on silence');
-        stopRecording();
-        return;
-      }
-      // 安全装置：最大録音時間超過
-      if (elapsed > MAX_RECORD_MS) {
-        console.log('[voice] auto-stop on max duration');
-        stopRecording();
-        return;
-      }
-      _vadRafId = requestAnimationFrame(loop);
-    };
-    _vadRafId = requestAnimationFrame(loop);
-  } catch (e) {
-    console.warn('[voice] VAD init failed', e);
-  }
-}
-function _stopVAD() {
-  if (_vadRafId) { cancelAnimationFrame(_vadRafId); _vadRafId = null; }
-  if (_vadAnalyser) { try { _vadAnalyser.disconnect(); } catch(e) {} _vadAnalyser = null; }
-  if (_vadCtx) { try { _vadCtx.close(); } catch(e) {} _vadCtx = null; }
-}
-
-function _releaseRecorderStream() {
-  if (_recorderStream) {
-    try { _recorderStream.getTracks().forEach(function(t){ t.stop(); }); } catch(e) {}
-    _recorderStream = null;
-  }
-}
-
-function _uploadAndTranscribe(blob) {
-  var reader = new FileReader();
-  reader.onloadend = function() {
-    var dataUrl = reader.result || '';
-    var base64 = dataUrl.split(',')[1] || '';
-    if (!base64) {
-      setMicState('ready');
-      updateVoiceStatus('文字起こし失敗');
-      updateVoiceSubStatus('もう一度マイクをタップ');
-      return;
-    }
-    fetch('/api/chat/stt', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (typeof getToken === 'function' ? getToken() : '') },
-      body: JSON.stringify({ audio: base64, mimeType: blob.type || 'audio/webm' })
-    }).then(function(r) { return r.json(); }).then(function(data) {
-      var text = (data && data.transcript || '').trim();
-      console.log('[voice] stt response transcript="' + text + '"');
-      if (!text) {
-        setMicState('ready');
-        updateVoiceStatus('聞き取れませんでした');
-        updateVoiceSubStatus('もう一度マイクをタップ');
-        return;
-      }
-      // 終了キーワード検知
-      var endWords = ['おわり','終わり','終了','おしまい','バイバイ','ばいばい','またね','ストップ','やめ'];
-      var trimmed = text.replace(/[。．.！!？?\s]+$/, '');
-      if (endWords.some(function(w){ return trimmed === w || trimmed.endsWith(w); })) {
-        var _bName = 'バディ'; try { _bName = JSON.parse(localStorage.getItem('co_heart_buddy') || '{}').name || 'バディ'; } catch(e) {}
-        addBuddyMessage('ai', 'またね！いつでもまたマイクをタップしてね 😊');
-        toggleVoiceMode();
-        return;
-      }
-      var input = document.getElementById('buddy-input');
-      if (input) input.value = text;
-      console.log('[voice] calling sendBuddyMessage with text="' + text + '"');
-      try { sendBuddyMessage(); } catch(e) { console.error('[voice] sendBuddyMessage error', e); }
-    }).catch(function(e) {
-      console.error('stt fetch error', e);
-      setMicState('ready');
-      updateVoiceStatus('通信エラー');
-      updateVoiceSubStatus('もう一度マイクをタップ');
-    });
-  };
-  reader.readAsDataURL(blob);
-}
-
-// --- STT: 連続セッション方式（continuous=true） ---
-// Android Chromeでは continuous=false だと no-speech で約5秒ごとにセッションが終了し、
-// 再起動のたびに OS のマイクインジケータが点滅する（=「マイクON/OFF発火」）。
-// continuous=true に切り替え、event.resultIndex で新規結果のみ処理する。
-var _voiceFinalConsumed = false; // この発話の確定済みフラグ
+// --- STT: 1発話1セッション方式（continuous=false） ---
+// 1回の発話ごとにセッションが完了。再起動時に音声バッファは消費済みなので重複しない。
 
 function _startOneShot() {
   var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SpeechRecognition || !_voiceModeActive || _voiceStopping) return;
 
   if (_speechRecognition) {
-    try { _speechRecognition.onend = null; _speechRecognition.onresult = null; _speechRecognition.onerror = null; } catch(e) {}
     try { _speechRecognition.abort(); } catch(e) {}
-    _speechRecognition = null;
   }
 
   var rec = new SpeechRecognition();
   rec.lang = 'ja-JP';
-  rec.continuous = true;       // ★no-speech 自動終了による点滅を防ぐ
+  rec.continuous = false;
   rec.interimResults = true;
   rec.maxAlternatives = 1;
   _speechRecognition = rec;
-  _voiceFinalConsumed = false;
 
   var indicator = document.getElementById('voice-listening-indicator');
   var input = document.getElementById('buddy-input');
@@ -6655,23 +6421,22 @@ function _startOneShot() {
   };
 
   rec.onresult = function(event) {
-    if (_voicePaused || _voiceStopping || _voiceFinalConsumed) return;
+    if (_voicePaused || _voiceStopping) return;
 
     var finalText = '';
     var interimText = '';
-    // continuous=true では results に履歴が蓄積されるため新規分のみ
-    for (var i = event.resultIndex; i < event.results.length; i++) {
+    for (var i = 0; i < event.results.length; i++) {
       if (event.results[i].isFinal) {
         finalText += event.results[i][0].transcript;
       } else {
         interimText += event.results[i][0].transcript;
       }
     }
+    // プレビュー
     updateVoiceSubStatus(finalText + interimText || '...');
     if (input) input.value = finalText + interimText;
 
     if (finalText.trim()) {
-      _voiceFinalConsumed = true;
       // 終了キーワード検知
       var endWords = ['おわり', '終わり', '終了', 'おしまい', 'バイバイ', 'ばいばい', 'またね', 'ストップ', 'やめ'];
       var trimmed = finalText.trim().replace(/[。．.！!？?\s]+$/, '');
@@ -6680,7 +6445,7 @@ function _startOneShot() {
         _voiceStopping = true;
         _voicePaused = true;
         if (input) input.value = '';
-        try { rec.onend = null; rec.abort(); } catch(e) {}
+        try { rec.abort(); } catch(e) {}
         _speechRecognition = null;
         _isListening = false;
         toggleVoiceMode();
@@ -6688,7 +6453,7 @@ function _startOneShot() {
         addBuddyMessage('ai', 'またね！いつでも「バディ」って呼んでくれたら' + _bName + 'が応えるよ 😊');
         return;
       }
-      // 発話確定 → AI応答待ちへ
+      // 即送信（continuous=falseなのでブラウザが発話完了を判定済み）
       if (input) input.value = finalText;
       _voicePaused = true;
       if (indicator) indicator.style.display = 'none';
@@ -6709,14 +6474,14 @@ function _startOneShot() {
 
   rec.onend = function() {
     _isListening = false;
-    if (_voiceStopping || !_voiceModeActive) return;
-    if (_voicePaused) return;
-    // 自動再開しない（Android で OS 側がセッションを切るたびにビープ・点滅するのを防ぐ）
-    // ユーザーがマイクボタンを再タップしたら新セッション開始
-    setMicState('ready');
-    updateVoiceStatus('タップしてもう一度話す');
-    updateVoiceSubStatus('準備OK');
-    if (indicator) indicator.style.display = 'none';
+    // 停止済み or モードOFF or バディー応答待ち → 何もしない
+    if (_voiceStopping || !_voiceModeActive || _voicePaused) return;
+    // 無音でセッション切れ → 次の発話を待つ
+    setTimeout(function() {
+      if (_voiceModeActive && !_voicePaused && !_voiceStopping) {
+        _startOneShot();
+      }
+    }, 500);
   };
 
   try { rec.start(); } catch(e) {}
@@ -6757,11 +6522,6 @@ var _wakeWordRecognition = null;
 var _wakeWordActive = false;
 
 function startWakeWordListener() {
-  // ウェイクワード機能は廃止: Android Web Speech API は数十秒で OS 側がセッションを切り、
-  // 再起動のたびにビープ + マイクインジケータ点滅が発生するため。
-  return;
-}
-function _disabledWakeWordListener() {
   if (_wakeWordActive || _voiceModeActive) return;
   var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SpeechRecognition) return;
@@ -6788,7 +6548,9 @@ function _disabledWakeWordListener() {
   };
 
   _wakeWordRecognition.onend = function() {
-    // 自動再起動はしない（点滅・ビープ防止）
+    if (_wakeWordActive && !_voiceModeActive) {
+      try { _wakeWordRecognition.start(); } catch(e) {}
+    }
   };
 
   try {
@@ -6797,36 +6559,19 @@ function _disabledWakeWordListener() {
   } catch(e) {}
 }
 
-function stopWakeWordListener(onReleased) {
+function stopWakeWordListener() {
   _wakeWordActive = false;
-  var rec = _wakeWordRecognition;
-  _wakeWordRecognition = null;
-  if (!rec) {
-    if (onReleased) onReleased();
-    return;
-  }
-  if (onReleased) {
-    // マイク解放（onend発火）を待ってからコールバック
-    var done = false;
-    var fire = function() { if (done) return; done = true; onReleased(); };
-    rec.onend = fire;
-    rec.onerror = fire;
-    rec.onresult = null;
-    try { rec.abort(); } catch(e) { fire(); return; }
-    setTimeout(fire, 800); // セーフティ
-  } else {
-    rec.onend = null; rec.onerror = null; rec.onresult = null;
-    try { rec.abort(); } catch(e) {}
+  if (_wakeWordRecognition) {
+    try { _wakeWordRecognition.abort(); } catch(e) {}
+    _wakeWordRecognition = null;
   }
 }
 
-// TTS再生完了後: 自動で認識を再開せず、タップ待ち状態に戻す
+// TTS再生完了後に認識を再開
 function resumeListeningAfterTTS() {
   if (!_voiceModeActive || _voiceStopping) return;
   _voicePaused = false;
-  setMicState('ready');
-  updateVoiceStatus('タップして続けて話す');
-  updateVoiceSubStatus('準備OK');
+  _startOneShot();
 }
 
 // --- TTS: 読み上げ ---
@@ -7087,7 +6832,6 @@ if (typeof speechSynthesis !== 'undefined') {
 function sendBuddyMessage() {
   var input = document.getElementById('buddy-input');
   var msg = input.value.trim();
-  console.log('[buddy] sendBuddyMessage msg="' + msg + '" (input.value len=' + input.value.length + ')');
   if (!msg) return;
   input.value = '';
 

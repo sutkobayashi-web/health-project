@@ -739,9 +739,9 @@ async function ttsHandler(req, res) {
 }
 
 // ========================================
-// Speech-to-Text (Gemini multimodal で文字起こし)
-// Web Speech API を使わず MediaRecorder で録音した音声を Gemini に投げる。
-// Android Chrome の OS マイクセッション強制終了を回避する目的。
+// Speech-to-Text (Google Cloud Speech-to-Text)
+// MediaRecorder の WEBM_OPUS をネイティブサポート。
+// 事前に GCP プロジェクトで Cloud Speech-to-Text API を有効化しておくこと。
 // ========================================
 router.post('/stt', async (req, res) => {
   try {
@@ -750,38 +750,39 @@ router.post('/stt', async (req, res) => {
     if (typeof audio !== 'string' || audio.length > 14 * 1024 * 1024) {
       return res.status(413).json({ error: '音声データが大きすぎます' });
     }
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) return res.status(500).json({ error: 'GEMINI_API_KEY未設定' });
+    const apiKey = process.env.GOOGLE_TTS_API_KEY || process.env.GOOGLE_STT_API_KEY;
+    if (!apiKey) return res.status(500).json({ error: 'GOOGLE_TTS_API_KEY未設定' });
 
-    const safeMime = (mimeType && /^audio\/(webm|ogg|mp4|mpeg|wav|x-m4a|aac)/.test(mimeType)) ? mimeType : 'audio/webm';
-    const model = process.env.GEMINI_TEXT_MODEL || 'gemini-2.5-flash';
+    // mimeType から encoding を判定
+    const mt = (mimeType || '').toLowerCase();
+    let encoding = 'WEBM_OPUS';
+    if (mt.includes('ogg')) encoding = 'OGG_OPUS';
+    else if (mt.includes('mp4') || mt.includes('m4a') || mt.includes('aac')) encoding = 'MP3'; // fallback
+    else if (mt.includes('wav')) encoding = 'LINEAR16';
+
     const fetch = require('node-fetch');
-    const url = 'https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + apiKey;
-
-    const aiRes = await fetch(url, {
+    const sttRes = await fetch('https://speech.googleapis.com/v1/speech:recognize?key=' + apiKey, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        system_instruction: { parts: { text: 'あなたは日本語音声の文字起こしエンジンです。入力された音声を一字一句正確に日本語のテキストに書き起こしてください。書き起こしテキストのみを返し、説明・前置き・引用符・改行装飾は一切付けないでください。発話がない / 不明瞭な場合は空文字列を返してください。' } },
-        contents: [{
-          role: 'user',
-          parts: [
-            { inline_data: { mime_type: safeMime, data: audio } },
-            { text: '文字起こし' }
-          ]
-        }],
-        generationConfig: { temperature: 0 }
+        config: {
+          encoding,
+          sampleRateHertz: 48000,
+          languageCode: 'ja-JP',
+          enableAutomaticPunctuation: true,
+          model: 'latest_long'
+        },
+        audio: { content: audio }
       })
     });
-    const json = await aiRes.json();
-    if (json.error) {
-      console.error('STT API error:', json.error.message);
-      return res.status(500).json({ error: json.error.message });
+    const data = await sttRes.json();
+    if (data.error) {
+      console.error('STT API error:', data.error.message);
+      return res.status(500).json({ error: data.error.message });
     }
-    let transcript = '';
-    if (json.candidates && json.candidates[0] && json.candidates[0].content && json.candidates[0].content.parts) {
-      transcript = json.candidates[0].content.parts.map(function(p){ return p.text || ''; }).join('').trim();
-    }
+    const transcript = ((data.results || []).map(function(r){
+      return (r.alternatives && r.alternatives[0] && r.alternatives[0].transcript) || '';
+    }).join(' ')).trim();
     res.json({ transcript });
   } catch (e) {
     console.error('STT error:', e.message);

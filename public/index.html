@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260408_0010">
+<html data-app-version="20260408_0030">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -6413,12 +6413,19 @@ var _voiceStopping = false; // 明示的停止フラグ
 
 // ========================================
 // MediaRecorder ベースの STT（Android Chrome の Web Speech API 強制終了問題を回避）
-// 1タップ目: 録音開始 / 2タップ目: 録音停止 → サーバSTT → AI送信
+// 1タップ目: 録音開始 → 無音1.5秒で自動停止 → サーバSTT → AI送信
+// （手動で停止したい場合はもう一度タップでもOK）
 // ========================================
 var _mediaRecorder = null;
 var _audioChunks = [];
 var _isRecording = false;
 var _recorderStream = null;
+var _vadCtx = null;
+var _vadAnalyser = null;
+var _vadRafId = null;
+var _vadStartedAt = 0;
+var _vadLastVoiceAt = 0;
+var _vadHasVoice = false;
 
 function tapToSpeak() {
   console.log('[voice] tapToSpeak speaking=' + _isSpeaking + ' recording=' + _isRecording);
@@ -6476,6 +6483,7 @@ function startRecording() {
     };
     _mediaRecorder.start();
     console.log('[voice] recording started, mime=' + (_mediaRecorder.mimeType || mime || 'default'));
+    _startVAD(stream);
     _isRecording = true;
     setMicState('listening');
     updateVoiceStatus('録音中… (タップで停止)');
@@ -6490,6 +6498,7 @@ function startRecording() {
 }
 
 function stopRecording() {
+  _stopVAD();
   if (_mediaRecorder && _mediaRecorder.state !== 'inactive') {
     setMicState('processing');
     updateVoiceStatus('文字起こし中…');
@@ -6498,6 +6507,62 @@ function stopRecording() {
     if (indicator) indicator.style.display = 'none';
     try { _mediaRecorder.stop(); } catch(e) {}
   }
+}
+
+// 簡易VAD: AnalyserNodeでRMSを監視し、無音1.5秒で自動停止
+function _startVAD(stream) {
+  try {
+    _vadCtx = new (window.AudioContext || window.webkitAudioContext)();
+    var source = _vadCtx.createMediaStreamSource(stream);
+    _vadAnalyser = _vadCtx.createAnalyser();
+    _vadAnalyser.fftSize = 1024;
+    source.connect(_vadAnalyser);
+    var buf = new Uint8Array(_vadAnalyser.fftSize);
+    _vadStartedAt = Date.now();
+    _vadLastVoiceAt = 0;
+    _vadHasVoice = false;
+    var SILENCE_MS = 1500;     // この時間無音が続いたら停止
+    var MAX_RECORD_MS = 30000; // 安全装置：最大30秒
+    var THRESHOLD = 0.025;     // 音量しきい値（0..1）
+    var loop = function() {
+      if (!_vadAnalyser || !_isRecording) return;
+      _vadAnalyser.getByteTimeDomainData(buf);
+      // RMS計算
+      var sum = 0;
+      for (var i = 0; i < buf.length; i++) {
+        var v = (buf[i] - 128) / 128;
+        sum += v * v;
+      }
+      var rms = Math.sqrt(sum / buf.length);
+      var now = Date.now();
+      var elapsed = now - _vadStartedAt;
+      if (rms > THRESHOLD) {
+        _vadHasVoice = true;
+        _vadLastVoiceAt = now;
+      }
+      // 発話検知済 & 一定時間無音 → 自動停止
+      if (_vadHasVoice && _vadLastVoiceAt && (now - _vadLastVoiceAt) > SILENCE_MS) {
+        console.log('[voice] auto-stop on silence');
+        stopRecording();
+        return;
+      }
+      // 安全装置：最大録音時間超過
+      if (elapsed > MAX_RECORD_MS) {
+        console.log('[voice] auto-stop on max duration');
+        stopRecording();
+        return;
+      }
+      _vadRafId = requestAnimationFrame(loop);
+    };
+    _vadRafId = requestAnimationFrame(loop);
+  } catch (e) {
+    console.warn('[voice] VAD init failed', e);
+  }
+}
+function _stopVAD() {
+  if (_vadRafId) { cancelAnimationFrame(_vadRafId); _vadRafId = null; }
+  if (_vadAnalyser) { try { _vadAnalyser.disconnect(); } catch(e) {} _vadAnalyser = null; }
+  if (_vadCtx) { try { _vadCtx.close(); } catch(e) {} _vadCtx = null; }
 }
 
 function _releaseRecorderStream() {
@@ -6542,7 +6607,8 @@ function _uploadAndTranscribe(blob) {
       }
       var input = document.getElementById('buddy-input');
       if (input) input.value = text;
-      sendBuddyMessage();
+      console.log('[voice] calling sendBuddyMessage with text="' + text + '"');
+      try { sendBuddyMessage(); } catch(e) { console.error('[voice] sendBuddyMessage error', e); }
     }).catch(function(e) {
       console.error('stt fetch error', e);
       setMicState('ready');

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260407_2200">
+<html data-app-version="20260407_2230">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -6302,6 +6302,23 @@ var _speechRecognition = null;
 var _isSpeaking = false;
 var _isListening = false;
 var _voiceSendTimer = null;
+var _voiceMicStream = null; // getUserMediaストリーム保持用（OSマイクインジケータの点滅防止）
+
+// SpeechRecognitionの再生成があってもOSのマイクインジケータが消えないように、
+// 並走するgetUserMediaストリームを掴みっぱなしにしておく
+function acquireMicStream() {
+  if (_voiceMicStream) return Promise.resolve(_voiceMicStream);
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return Promise.resolve(null);
+  return navigator.mediaDevices.getUserMedia({ audio: true }).then(function(stream) {
+    _voiceMicStream = stream;
+    return stream;
+  }).catch(function() { return null; });
+}
+function releaseMicStream() {
+  if (!_voiceMicStream) return;
+  try { _voiceMicStream.getTracks().forEach(function(t) { t.stop(); }); } catch(e) {}
+  _voiceMicStream = null;
+}
 
 function toggleVoiceMode() {
   _voiceModeActive = !_voiceModeActive;
@@ -6319,7 +6336,10 @@ function toggleVoiceMode() {
     // (Android Chromeでは abort() が非同期で、前のSpeechRecognitionが
     //  マイクを解放する前に新しい start() をすると onend が即発火 → ループする)
     stopWakeWordListener(function() {
-      setTimeout(function() { tapToSpeak(); }, 100);
+      // 並走マイクストリームを確保 → SpeechRecognition再生成時の点滅を抑止
+      acquireMicStream().then(function() {
+        setTimeout(function() { tapToSpeak(); }, 100);
+      });
     });
   } else {
     // 音声モードOFF
@@ -6329,6 +6349,7 @@ function toggleVoiceMode() {
     stopVoiceRecognition();
     stopSpeaking();
     stopWakeWordListener(); // 明示的に停止（再開しない）
+    releaseMicStream();
   }
 }
 

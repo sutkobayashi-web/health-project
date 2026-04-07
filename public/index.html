@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260408_0030">
+<html data-app-version="20260408_0040">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -7087,6 +7087,7 @@ if (typeof speechSynthesis !== 'undefined') {
 function sendBuddyMessage() {
   var input = document.getElementById('buddy-input');
   var msg = input.value.trim();
+  console.log('[buddy] sendBuddyMessage msg="' + msg + '" (input.value len=' + input.value.length + ')');
   if (!msg) return;
   input.value = '';
 

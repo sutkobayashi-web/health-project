@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260408_0300">
+<html data-app-version="20260408_0320">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -2621,7 +2621,10 @@ function openPostDetail(row) {
   }
   // ///SCORE///も除去
   analysisText = analysisText.replace(/\/\/\/SCORE\/\/\/[\s\S]*$/, '').trim();
-  var analysisHtml = analysisText ? '<div class="ai-reply"><i class="fas fa-robot text-primary"></i> ' + analysisText.replace(/\n/g, '<br>') + '</div>' : '';
+  var analysisDataText = analysisText.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  var analysisHtml = analysisText ? '<div class="ai-reply" style="position:relative;"><i class="fas fa-robot text-primary"></i> ' + analysisText.replace(/\n/g, '<br>') +
+    '<button onclick="speakPostAnalysis(this)" data-text="' + analysisDataText + '" title="バディーが読み上げ" style="display:inline-flex;align-items:center;justify-content:center;margin-left:8px;width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#a78bfa,#7c3aed);color:white;border:none;cursor:pointer;font-size:13px;box-shadow:0 2px 8px rgba(124,58,237,0.3);vertical-align:middle;"><i class="fas fa-volume-up"></i></button>' +
+    '</div>' : '';
 
   sheet.innerHTML =
     '<div style="padding:12px 18px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #eee;flex-shrink:0;">' +
@@ -3346,6 +3349,8 @@ function loadEmpathyAnswered() {
 }
 
 function closePostDetail() {
+  // モーダル閉じる時に読み上げを止める（バックグラウンド再生防止）
+  if (typeof stopSpeaking === 'function') stopSpeaking();
   document.getElementById('post-detail-modal').classList.remove('active');
   unlockScroll();
 }
@@ -7000,8 +7005,10 @@ function speakBuddyText(btnEl) {
   doSpeak(text, btnEl.closest('.buddy-msg'), null);
 }
 
+var _speakGeneration = 0; // 輪唱防止: 各 speak リクエストに世代番号を振り、最新世代以外を破棄
 function doSpeak(text, msgEl, onDone) {
   stopSpeaking();
+  var myGen = ++_speakGeneration;
   var cleanText = cleanTextForSpeech(text);
   if (!cleanText) { if (onDone) onDone(); return; }
 
@@ -7027,12 +7034,20 @@ function doSpeak(text, msgEl, onDone) {
   }).then(function(buf) {
     return ctx.decodeAudioData(buf);
   }).then(function(audioBuffer) {
+    // この間に新しい speak が呼ばれていたら破棄（輪唱防止）
+    if (myGen !== _speakGeneration) {
+      if (bubble) bubble.classList.remove('speaking');
+      if (onDone) onDone();
+      return;
+    }
     var source = ctx.createBufferSource();
     source.buffer = audioBuffer;
     source.connect(ctx.destination);
     window._currentTtsSource = source;
 
     source.onended = function() {
+      // この source が現役じゃなければ無視
+      if (window._currentTtsSource !== source) return;
       _isSpeaking = false;
       if (bubble) bubble.classList.remove('speaking');
       window._currentTtsSource = null;
@@ -7042,10 +7057,20 @@ function doSpeak(text, msgEl, onDone) {
     source.start(0);
   }).catch(function(e) {
     console.warn('TTS error:', e);
-    _isSpeaking = false;
-    if (bubble) bubble.classList.remove('speaking');
+    if (myGen === _speakGeneration) {
+      _isSpeaking = false;
+      if (bubble) bubble.classList.remove('speaking');
+    }
     if (onDone) onDone();
   });
+}
+
+// 投稿のAIコメント用 TTS（輪唱防止は doSpeak 側で対応）
+function speakPostAnalysis(btnEl) {
+  var text = btnEl.getAttribute('data-text');
+  if (!text) return;
+  ensureAudioContext();
+  doSpeak(text, null, null);
 }
 
 function stopSpeaking() {

@@ -2583,6 +2583,8 @@ function toggleBpEnabled(on) {
   });
 }
 function inlineBpView() {
+  // バディータブに切り替え
+  if (typeof switchAppTab === 'function') switchAppTab('buddy');
   var msgs = document.getElementById('buddy-messages');
   if (!msgs) return;
   var loadDiv = document.createElement('div');
@@ -2657,19 +2659,26 @@ function inlineBpView() {
     else bpSummary += '正常範囲です。';
     bpSummary += ' 記録数: ' + rows.length + '件。';
 
-    // バディーにコメントさせる
+    // バディーにコメントさせる（AIまたはフォールバック）
     setTimeout(function() {
-      if (typeof chatWithBuddyLocal === 'function') {
-        chatWithBuddyLocal('以下のユーザーの血圧データを踏まえて、短く（2-3文）健康アドバイスしてください。専門的すぎず親しみやすく。\n' + bpSummary);
-      } else {
-        // フォールバック: ローカルコメント
-        var comment = '';
-        if (avg.sys >= 140 || avg.dia >= 90) comment = '血圧が少し高めだね…😟 塩分控えめにしたり、軽い運動を心がけてみて。気になるなら一度お医者さんに相談するのもいいかも！';
-        else if (avg.sys >= 130 || avg.dia >= 85) comment = 'ちょっとだけ高めかな🤔 睡眠をしっかりとって、ストレス溜め込まないようにね。記録を続けて変化を見ていこう！';
-        else comment = '血圧は良い感じ！👍 この調子で規則正しい生活を続けていこうね。記録の習慣、えらい！✨';
-        addBuddyMessage('ai', comment);
+      try {
+        if (typeof buddyAskAI === 'function') {
+          buddyAskAI('free', '[システム] 以下の血圧データについて短く（2-3文）アドバイスして: ' + bpSummary);
+        } else {
+          var comment = '';
+          if (avg.sys >= 140 || avg.dia >= 90) comment = '血圧が少し高めだね…😟 塩分控えめにしたり、軽い運動を心がけてみて。気になるなら一度お医者さんに相談するのもいいかも！';
+          else if (avg.sys >= 130 || avg.dia >= 85) comment = 'ちょっとだけ高めかな🤔 睡眠をしっかりとって、ストレス溜め込まないようにね。記録を続けて変化を見ていこう！';
+          else comment = '血圧は良い感じ！👍 この調子で規則正しい生活を続けていこうね。記録の習慣、えらい！✨';
+          addBuddyMessage('ai', comment);
+        }
+      } catch(e) {
+        console.error('BP buddy comment error:', e);
       }
     }, 800);
+  }).catch(function(e) {
+    console.error('BP view error:', e);
+    try { msgs.removeChild(loadDiv); } catch(ex) {}
+    addBuddyMessage('ai', '血圧データの取得に失敗しました。もう一度試してみてね。');
   });
 }
 

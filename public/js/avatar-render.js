@@ -4028,8 +4028,8 @@ function renderAnimalAvatar(size, species, bgColor, eyeType, mouthType, accessor
   // 背景円
   ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fillStyle = bgColor; ctx.fill();
 
-  var sizeAdj = 1 + (sizeFaceVal || 0) * 0.08;
-  var faceR = r * 0.52 * sizeAdj;
+  var sizeAdj = 1 + (sizeFaceVal || 0) * 0.12;
+  var faceR = r * 0.55 * sizeAdj;
   var faceY = cy + r * 0.06;
 
   // 動物ごとの特徴描画

@@ -1440,35 +1440,28 @@ function abRenderBuilderUI(containerId, previewCanvasId) {
       '</div>';
   }
 
-  // ★ キャラクタータイプ（にんげん or 動物）
-  var animalEmojis = ['👤','🐥','🐱','🐶','🐰','🐻','🐼','🐧','🦝','🦊','🐸','🐹','🦉'];
-  html += '<div style="margin-bottom:12px; padding:10px; background:linear-gradient(135deg,#FFF8E1,#F3E5F5); border-radius:12px;">';
-  html += '<label style="display:block;font-size:0.82rem;font-weight:700;color:#6a1b9a;margin-bottom:8px;">🐾 キャラクタータイプ</label>';
+  var isAnimal = abState.species > 0;
+  var animalEmojis = ['🐥','🐱','🐶','🐰','🐻','🐼','🐧','🦝','🦊','🐸','🐹','🦉'];
+
+  // 輪郭（人間の輪郭＋動物を統合）
+  html += '<div class="avatar-builder-row"><label>🫥 輪郭</label><div class="avatar-builder-options" style="flex-wrap:wrap;">';
+  // 人間の輪郭
+  AB_FACE_SHAPE_NAMES.forEach(function(name, i) {
+    var sel = !isAnimal && abState.faceShape === i;
+    html += '<div class="ab-icon-btn' + (sel ? ' selected' : '') + '" onclick="abSelectSpecies(0,\'' + previewCanvasId + '\'); abSelect(\'faceShape\',' + i + ',\'' + previewCanvasId + '\')">' + name + '</div>';
+  });
+  html += '</div>';
+  // 動物アバター
+  html += '<label style="display:block;font-size:0.72rem;color:#6a1b9a;margin:6px 0 4px;font-weight:600;">🐾 どうぶつ</label>';
   html += '<div class="avatar-builder-options" style="flex-wrap:wrap;">';
   AB_ANIMAL_NAMES.forEach(function(name, i) {
-    html += '<div class="ab-icon-btn' + (abState.species === i ? ' selected' : '') + '" style="' + (abState.species === i ? 'background:#6a1b9a;color:#fff;border-color:#6a1b9a;' : '') + '" onclick="abSelectSpecies(' + i + ',\'' + previewCanvasId + '\')">' + animalEmojis[i] + ' ' + name + '</div>';
-  });
-  html += '</div></div>';
-
-  var isAnimal = abState.species > 0;
-
-  if (isAnimal) {
-  // 動物サイズスライダー
-  html += '<div class="avatar-builder-row"><label>📐 大きさ</label>';
-  html += abSlider('sizeFace', '大きさ', -3, 3);
-  html += '</div>';
-  }
-
-  if (!isAnimal) {
-  // 輪郭（最初に選択）
-  html += '<div class="avatar-builder-row"><label>🫥 輪郭</label><div class="avatar-builder-options">';
-  AB_FACE_SHAPE_NAMES.forEach(function(name, i) {
-    html += '<div class="ab-icon-btn' + (abState.faceShape === i ? ' selected' : '') + '" onclick="abSelect(\'faceShape\',' + i + ',\'' + previewCanvasId + '\')">' + name + '</div>';
+    if (i === 0) return; // にんげんはスキップ（上の輪郭で選択）
+    var sel = abState.species === i;
+    html += '<div class="ab-icon-btn' + (sel ? ' selected' : '') + '" style="' + (sel ? 'background:#6a1b9a;color:#fff;border-color:#6a1b9a;' : '') + '" onclick="abSelectSpecies(' + i + ',\'' + previewCanvasId + '\')">' + animalEmojis[i - 1] + ' ' + name + '</div>';
   });
   html += '</div>';
   html += abSlider('sizeFace', '大きさ', -3, 3);
   html += '</div>';
-  } // end !isAnimal
 
   if (!isAnimal) {
   // 肌の色
@@ -1654,10 +1647,18 @@ function abSelect(prop, val, previewCanvasId) {
   selectedAvatar = abBuildString();
 }
 function abSelectSpecies(val, previewCanvasId) {
+  var wasAnimal = abState.species > 0;
+  var isNowAnimal = val > 0;
   abState.species = val;
+  // 動物に切替時はsizeFaceをデフォルト調整、人間に戻す時は0に
+  if (isNowAnimal && !wasAnimal) abState.sizeFace = -3;
+  if (!isNowAnimal && wasAnimal) abState.sizeFace = 0;
   _avatarCache = {};
-  abRenderBuilderUI(_getContainerId(previewCanvasId), previewCanvasId);
-  selectedAvatar = abBuildString();
+  // 人間輪郭クリック時はabSelectが続けて呼ばれるのでUI再描画はそちらに任せる
+  if (isNowAnimal) {
+    abRenderBuilderUI(_getContainerId(previewCanvasId), previewCanvasId);
+    selectedAvatar = abBuildString();
+  }
 }
 
 function abToggleAcc(idx, previewCanvasId) {

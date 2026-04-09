@@ -290,6 +290,8 @@
   .buddy-avatar { width:52px; height:52px; border-radius:50%; background:transparent; display:flex; align-items:center; justify-content:center; color:white; font-size:20px; flex-shrink:0; align-self:flex-start; }
   #buddy-float-avatar { display:none; position:absolute; top:12px; left:12px; width:38px; height:38px; border-radius:50%; background:linear-gradient(135deg,#0ea5e9,#0284c7); align-items:center; justify-content:center; color:white; font-size:16px; z-index:10; box-shadow:0 2px 8px rgba(0,0,0,0.2); }
   .buddy-msg.user .buddy-avatar { background:transparent; }
+  #bp-toggle:checked + span { background:#e91e63 !important; }
+  #bp-toggle:checked + span + span { transform:translateX(22px); }
   .buddy-bubble { padding:10px 14px; border-radius:16px; font-size:0.85rem; line-height:1.6; word-break:break-word; display:inline-block; background:white; color:#333; box-shadow:0 1px 3px rgba(0,0,0,0.08); }
   .buddy-msg.ai .buddy-bubble { border-bottom-left-radius:4px; }
   .buddy-msg.user .buddy-bubble { border-bottom-right-radius:4px; border-bottom-left-radius:16px; }
@@ -583,6 +585,21 @@
       <div style="display:flex; align-items:center; gap:12px;">
         <div id="profile-edit-avatar" style="width:60px; height:60px; border-radius:50%; overflow:hidden; border:2px solid #fff; box-shadow:0 3px 10px rgba(0,0,0,0.1); display:flex; align-items:center; justify-content:center; font-size:1.8rem; background:#f0f0f0; flex-shrink:0;"></div>
         <button onclick="openAbEditor(currentUser.avatar, saveAvatarChange)" style="flex:1; background:linear-gradient(135deg,#667eea,#764ba2); color:white; border:none; border-radius:10px; padding:12px; font-weight:700; font-size:0.85rem; cursor:pointer;"><i class="fas fa-edit me-1"></i>アバターを編集</button>
+      </div>
+    </div>
+
+    <!-- 血圧記録ON/OFF -->
+    <div style="margin-top:16px; padding:14px; background:#fce4ec; border-radius:12px; border:1px solid #f8bbd0;">
+      <div style="display:flex; align-items:center; justify-content:space-between;">
+        <div>
+          <div style="font-size:0.8rem; font-weight:700; color:#c2185b;"><i class="fas fa-heartbeat" style="margin-right:4px;"></i>血圧記録</div>
+          <div style="font-size:0.68rem; color:#999; margin-top:2px;">ONにするとホームに血圧記録カードが表示されます</div>
+        </div>
+        <label style="position:relative; display:inline-block; width:48px; height:26px; cursor:pointer;">
+          <input type="checkbox" id="bp-toggle" onchange="toggleBpEnabled(this.checked)" style="opacity:0; width:0; height:0;">
+          <span style="position:absolute; top:0; left:0; right:0; bottom:0; background:#ccc; border-radius:26px; transition:0.3s;"></span>
+          <span style="position:absolute; top:2px; left:2px; width:22px; height:22px; background:white; border-radius:50%; transition:0.3s; box-shadow:0 1px 3px rgba(0,0,0,0.2);"></span>
+        </label>
       </div>
     </div>
 
@@ -1049,6 +1066,57 @@
       </div>
     </div>
 
+    <!-- 血圧記録（希望者のみ） -->
+    <div id="bp-card" class="card-section" style="display:none; background:linear-gradient(135deg,#fce4ec,#f3e5f5); border:2px solid #e91e63; box-shadow:0 4px 16px rgba(233,30,99,0.12);">
+      <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="toggleAccordion('bp-body','bp-chevron')">
+        <div style="display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#e91e63,#c2185b);flex-shrink:0;"><i class="fas fa-heartbeat" style="font-size:22px;color:#fff;"></i></div>
+        <div style="flex:1; min-width:0;">
+          <div class="section-title" style="margin-bottom:2px; padding-bottom:3px; border-bottom:2px solid rgba(233,30,99,0.2);"><i class="fas fa-heartbeat"></i> 血圧を記録する</div>
+          <div style="font-size:0.75rem; color:#999;">血圧計を撮影するだけ。推移グラフで見える化</div>
+        </div>
+      </div>
+      <div id="bp-body" style="display:none; margin-top:12px; padding-top:12px; border-top:1px solid rgba(233,30,99,0.2);">
+        <!-- 撮影エリア -->
+        <div id="bp-upload-area" style="border:2px dashed #f48fb1; border-radius:16px; padding:20px; cursor:pointer; text-align:center; background:linear-gradient(135deg,#fff0f3,#fce4ec);" onclick="document.getElementById('bp-file-input').click()">
+          <i class="fas fa-camera" style="font-size:2rem; color:#e91e63;"></i>
+          <div style="margin-top:8px; font-size:0.85rem; color:#666; font-weight:600;">血圧計の画面を撮影</div>
+          <div style="margin-top:4px; font-size:0.72rem; color:#e91e63;">数値が見えるように撮ってください</div>
+        </div>
+        <input type="file" id="bp-file-input" accept="image/*" capture="environment" style="display:none;" onchange="handleBpFileSelect(this)">
+        <!-- プレビュー＋読取り結果 -->
+        <div id="bp-preview-area" style="display:none; margin-top:12px;">
+          <img id="bp-preview-img" src="" style="max-width:100%; max-height:160px; border-radius:12px; display:block; margin:0 auto 12px;">
+          <div id="bp-ocr-status" style="text-align:center; font-size:0.8rem; color:#999;"></div>
+        </div>
+        <!-- 入力フォーム -->
+        <div id="bp-form" style="display:none; margin-top:12px;">
+          <div style="display:flex; gap:8px; align-items:center; justify-content:center; flex-wrap:wrap;">
+            <div style="text-align:center;">
+              <label style="font-size:0.7rem; color:#e91e63; font-weight:700;">上 (収縮期)</label>
+              <input type="number" id="bp-systolic" style="width:70px; text-align:center; font-size:1.2rem; font-weight:700; border:2px solid #f48fb1; border-radius:10px; padding:8px; color:#c2185b;" placeholder="120">
+            </div>
+            <span style="font-size:1.5rem; color:#ccc; margin-top:14px;">/</span>
+            <div style="text-align:center;">
+              <label style="font-size:0.7rem; color:#7b1fa2; font-weight:700;">下 (拡張期)</label>
+              <input type="number" id="bp-diastolic" style="width:70px; text-align:center; font-size:1.2rem; font-weight:700; border:2px solid #ce93d8; border-radius:10px; padding:8px; color:#7b1fa2;" placeholder="80">
+            </div>
+            <div style="text-align:center;">
+              <label style="font-size:0.7rem; color:#666; font-weight:700;">脈拍</label>
+              <input type="number" id="bp-pulse" style="width:60px; text-align:center; font-size:1.2rem; font-weight:700; border:2px solid #e0e0e0; border-radius:10px; padding:8px; color:#555;" placeholder="72">
+            </div>
+          </div>
+          <div style="margin-top:10px;">
+            <input type="text" id="bp-memo" style="width:100%; border:1px solid #e0e0e0; border-radius:10px; padding:8px 12px; font-size:0.8rem; box-sizing:border-box;" placeholder="メモ（任意）起床時、就寝前 など">
+          </div>
+          <button onclick="saveBpRecord()" style="width:100%; margin-top:10px; padding:12px; background:linear-gradient(135deg,#e91e63,#c2185b); color:white; border:none; border-radius:12px; font-weight:700; font-size:0.85rem; cursor:pointer; box-shadow:0 3px 10px rgba(233,30,99,0.3);"><i class="fas fa-save" style="margin-right:6px;"></i>記録する</button>
+          <div style="text-align:center; margin-top:6px;">
+            <span onclick="toggleBpHistory()" style="font-size:0.75rem; color:#e91e63; cursor:pointer; text-decoration:underline;">過去の記録を見る</span>
+          </div>
+        </div>
+        <!-- 履歴 -->
+        <div id="bp-history" style="display:none; margin-top:12px;"></div>
+      </div>
+    </div>
 
     <!-- みんなの投稿を見る -->
     <div class="card-section" style="background:linear-gradient(135deg,#ede7f6,#e8eaf6); border:2px solid #6c5ce7; box-shadow:0 4px 16px rgba(108,92,231,0.12);">
@@ -2210,6 +2278,7 @@ function onLoginSuccess() {
   setInterval(checkUnreadNotices, 60000);
   loadMyUnread();
   setInterval(loadMyUnread, 60000);
+  initBpCard();
   // オンライン状態をサーバーに送信（60秒ごと）
   startUserHeartbeat();
   // タブ状態復元
@@ -2375,6 +2444,147 @@ function saveAvatarChange(newAvatarFromEditor) {
       alert('更新失敗: ' + (res.msg || '不明なエラー'));
     }
   });
+}
+
+// ====== 血圧記録 ======
+var _bpImageBase64 = null;
+var _bpImageMime = null;
+
+function handleBpFileSelect(input) {
+  if (!input.files || !input.files[0]) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var img = new Image();
+    img.onload = function() {
+      var canvas = document.createElement('canvas');
+      var maxSize = 1024;
+      var w = img.width, h = img.height;
+      if (w > maxSize || h > maxSize) {
+        if (w > h) { h = h * maxSize / w; w = maxSize; }
+        else { w = w * maxSize / h; h = maxSize; }
+      }
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      var dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+      _bpImageBase64 = dataUrl.split(',')[1];
+      _bpImageMime = 'image/jpeg';
+
+      document.getElementById('bp-preview-img').src = dataUrl;
+      document.getElementById('bp-preview-area').style.display = 'block';
+      document.getElementById('bp-ocr-status').innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> 数値を読み取り中...';
+      document.getElementById('bp-form').style.display = 'block';
+
+      // OCR
+      api('/bp/ocr', { imageBase64: _bpImageBase64, mimeType: _bpImageMime }, getToken()).then(function(res) {
+        if (res && res.success && res.data) {
+          if (res.data.systolic) document.getElementById('bp-systolic').value = res.data.systolic;
+          if (res.data.diastolic) document.getElementById('bp-diastolic').value = res.data.diastolic;
+          if (res.data.pulse) document.getElementById('bp-pulse').value = res.data.pulse;
+          var conf = res.data.confidence === 'high' ? '高精度' : res.data.confidence === 'medium' ? '中精度' : '低精度';
+          document.getElementById('bp-ocr-status').innerHTML = '<i class="fas fa-check-circle" style="color:#4caf50;"></i> 読取り完了（' + conf + '）<span style="font-size:0.7rem;color:#999;">数値を確認してください</span>';
+        } else {
+          document.getElementById('bp-ocr-status').innerHTML = '<i class="fas fa-exclamation-triangle" style="color:#ff9800;"></i> 自動読取りできませんでした。手入力してください';
+        }
+      });
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+
+function saveBpRecord() {
+  var sys = parseInt(document.getElementById('bp-systolic').value);
+  var dia = parseInt(document.getElementById('bp-diastolic').value);
+  var pulse = parseInt(document.getElementById('bp-pulse').value) || null;
+  var memo = document.getElementById('bp-memo').value || '';
+  if (!sys || !dia) { alert('上と下の血圧値を入力してください'); return; }
+  if (sys < 50 || sys > 300 || dia < 20 || dia > 200) { alert('血圧値が正常範囲外です。確認してください'); return; }
+
+  api('/bp/save', {
+    uid: currentUser.uid, systolic: sys, diastolic: dia, pulse: pulse, memo: memo,
+    imageBase64: _bpImageBase64, mimeType: _bpImageMime
+  }, getToken()).then(function(res) {
+    if (res && res.success) {
+      alert('血圧を記録しました');
+      // リセット
+      document.getElementById('bp-systolic').value = '';
+      document.getElementById('bp-diastolic').value = '';
+      document.getElementById('bp-pulse').value = '';
+      document.getElementById('bp-memo').value = '';
+      document.getElementById('bp-preview-area').style.display = 'none';
+      document.getElementById('bp-ocr-status').innerHTML = '';
+      _bpImageBase64 = null; _bpImageMime = null;
+      document.getElementById('bp-file-input').value = '';
+    } else {
+      alert('保存失敗: ' + (res.msg || ''));
+    }
+  });
+}
+
+function toggleBpHistory() {
+  var el = document.getElementById('bp-history');
+  if (el.style.display !== 'none') { el.style.display = 'none'; return; }
+  el.innerHTML = '<div style="text-align:center;padding:12px;"><i class="fas fa-circle-notch fa-spin"></i></div>';
+  el.style.display = 'block';
+  api('/bp/history/' + currentUser.uid, undefined, getToken()).then(function(res) {
+    if (!res || !res.success || !res.data || res.data.length === 0) {
+      el.innerHTML = '<div style="text-align:center; font-size:0.8rem; color:#999; padding:12px;">まだ記録がありません</div>';
+      return;
+    }
+    var rows = res.data;
+    // 簡易グラフ（直近20件を棒グラフ風表示）
+    var recent = rows.slice(0, 20).reverse();
+    var maxVal = 180;
+    var html = '<div style="font-size:0.78rem; font-weight:700; color:#c2185b; margin-bottom:8px;"><i class="fas fa-chart-line"></i> 血圧推移（直近' + recent.length + '件）</div>';
+    html += '<div style="overflow-x:auto; padding-bottom:8px;">';
+    html += '<div style="display:flex; gap:3px; align-items:flex-end; min-width:' + (recent.length * 32) + 'px; height:120px;">';
+    recent.forEach(function(r) {
+      var sH = Math.round(r.systolic / maxVal * 100);
+      var dH = Math.round(r.diastolic / maxVal * 100);
+      var sColor = r.systolic >= 140 ? '#e53935' : r.systolic >= 130 ? '#ff9800' : '#4caf50';
+      var dColor = r.diastolic >= 90 ? '#e53935' : r.diastolic >= 85 ? '#ff9800' : '#4caf50';
+      var date = (r.measured_at || r.created_at || '').substring(5, 10);
+      html += '<div style="display:flex; flex-direction:column; align-items:center; gap:1px; flex:1; min-width:28px;">';
+      html += '<div style="font-size:0.55rem; color:#c2185b; font-weight:700;">' + r.systolic + '</div>';
+      html += '<div style="width:14px; height:' + sH + 'px; background:' + sColor + '; border-radius:3px 3px 0 0;"></div>';
+      html += '<div style="width:14px; height:' + dH + 'px; background:' + dColor + '; border-radius:3px 3px 0 0; opacity:0.6;"></div>';
+      html += '<div style="font-size:0.5rem; color:#999; margin-top:2px;">' + date + '</div>';
+      html += '</div>';
+    });
+    html += '</div></div>';
+    // 一覧
+    html += '<div style="margin-top:8px; max-height:200px; overflow-y:auto;">';
+    rows.slice(0, 30).forEach(function(r) {
+      var dt = (r.measured_at || r.created_at || '').substring(0, 16).replace('T', ' ');
+      var sClass = r.systolic >= 140 ? 'color:#e53935;font-weight:700;' : r.systolic >= 130 ? 'color:#ff9800;' : 'color:#4caf50;';
+      var dClass = r.diastolic >= 90 ? 'color:#e53935;font-weight:700;' : r.diastolic >= 85 ? 'color:#ff9800;' : 'color:#7b1fa2;';
+      html += '<div style="display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:1px solid #f0f0f0; font-size:0.78rem;">';
+      html += '<span style="color:#999; flex-shrink:0; width:90px;">' + dt + '</span>';
+      html += '<span style="' + sClass + '">' + r.systolic + '</span><span style="color:#ccc;">/</span><span style="' + dClass + '">' + r.diastolic + '</span>';
+      if (r.pulse) html += '<span style="color:#888; font-size:0.7rem;">♡' + r.pulse + '</span>';
+      if (r.memo) html += '<span style="color:#aaa; font-size:0.7rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">' + r.memo + '</span>';
+      html += '</div>';
+    });
+    html += '</div>';
+    el.innerHTML = html;
+  });
+}
+
+// 血圧カード表示制御
+function initBpCard() {
+  var bpEnabled = localStorage.getItem('co_heart_bp_enabled');
+  if (bpEnabled === '1') {
+    var el = document.getElementById('bp-card');
+    if (el) el.style.display = 'block';
+  }
+  // 設定画面のトグルも同期
+  var toggle = document.getElementById('bp-toggle');
+  if (toggle) toggle.checked = bpEnabled === '1';
+}
+function toggleBpEnabled(on) {
+  localStorage.setItem('co_heart_bp_enabled', on ? '1' : '0');
+  var el = document.getElementById('bp-card');
+  if (el) el.style.display = on ? 'block' : 'none';
 }
 
 // ====== ヘッダー更新 ======

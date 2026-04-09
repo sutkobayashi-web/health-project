@@ -765,7 +765,6 @@
   <div class="app-header">
     <div class="logo"><div class="logo-icon"><i class="fas fa-handshake"></i></div><div><div class="logo-text">CoWell</div><div class="logo-sub">みんなの声で、職場をもっと元気に</div></div></div>
     <div class="header-stats" style="gap:6px;">
-      <span id="header-voice-btn" style="cursor:pointer;color:white;background:rgba(255,255,255,0.2);height:32px;padding:0 10px;border-radius:16px;display:flex;align-items:center;justify-content:center;gap:4px;font-size:0.68rem;font-weight:700;" onclick="toggleVoiceMode()"><i class="fas fa-microphone"></i>音声</span>
       <span id="font-size-btn" style="cursor:pointer;color:white;background:rgba(255,255,255,0.2);width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.85rem;" onclick="toggleFontSize()"><i class="fas fa-font"></i></span>
       <span style="cursor:pointer;color:white;background:rgba(255,255,255,0.2);width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.85rem;" onclick="doUserLogout()"><i class="fas fa-sign-out-alt"></i></span>
     </div>
@@ -904,6 +903,7 @@
     <!-- 入力バー -->
     <div id="text-input-bar" style="flex-shrink:0;background:linear-gradient(180deg,#b8d4ed,#9fc2e0);border-top:2px solid #7baed4;padding:8px 12px;">
       <div style="display:flex;align-items:center;gap:8px;">
+        <span id="header-voice-btn" style="cursor:pointer;color:white;background:linear-gradient(135deg,#a78bfa,#7c3aed);height:38px;padding:0 12px;border-radius:19px;display:flex;align-items:center;justify-content:center;gap:4px;font-size:0.72rem;font-weight:700;flex-shrink:0;box-shadow:0 2px 8px rgba(124,58,237,0.3);" onclick="toggleVoiceMode()"><i class="fas fa-microphone"></i>音声</span>
         <input type="text" id="buddy-input" placeholder="メッセージを入力..." style="flex:1;border:2px solid #7baed4;border-radius:20px;padding:10px 14px;font-size:0.88rem;outline:none;background:#d0e6f7;color:#1a2e4a;" onkeydown="if(event.key==='Enter')sendBuddyMessage()" onfocus="onBuddyInputFocus()" onblur="onBuddyInputBlur()">
         <button onclick="sendBuddyMessage()" style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#0ea5e9,#0284c7);color:white;border:none;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fas fa-paper-plane"></i></button>
       </div>

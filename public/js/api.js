@@ -21,19 +21,23 @@ async function api(path, data, token) {
     if (!res.ok) {
       console.error('API error:', path, res.status, res.statusText);
       if (res.status === 401) {
-        try {
-          var errData = await res.json();
-          if (errData.code === 'SESSION_EXPIRED') {
-            alert('別の端末でログインされたため、セッションが無効になりました。再ログインしてください。');
-          } else {
+        // 管理画面のAPI呼び出しではリロードしない（管理画面独自のハンドリングに任せる）
+        var isAdminApi = path.indexOf('/admin') !== -1;
+        if (!isAdminApi) {
+          try {
+            var errData = await res.json();
+            if (errData.code === 'SESSION_EXPIRED') {
+              alert('別の端末でログインされたため、セッションが無効になりました。再ログインしてください。');
+            } else {
+              alert('セッションが期限切れです。再ログインしてください。');
+            }
+          } catch (e) {
             alert('セッションが期限切れです。再ログインしてください。');
           }
-        } catch (e) {
-          alert('セッションが期限切れです。再ログインしてください。');
+          localStorage.removeItem('co_heart_token');
+          location.reload();
+          return { success: false, msg: '認証エラー' };
         }
-        localStorage.removeItem('co_heart_token');
-        location.reload();
-        return { success: false, msg: '認証エラー' };
       }
       return { success: false, msg: 'HTTP ' + res.status };
     }

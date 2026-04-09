@@ -725,21 +725,26 @@ router.get('/users-all', (req, res) => {
     db.prepare('SELECT user_id, COUNT(*) as cnt FROM posts GROUP BY user_id').all()
       .forEach(r => { postCounts[r.user_id] = r.cnt; });
 
-    // AI利用統計（ユーザー別）
+    // AI利用統計（buddy_messagesのAI返答数 = AI呼び出し回数）
     const aiStats = {};
     try {
-      db.prepare(`SELECT user_id,
+      db.prepare(`SELECT uid as user_id,
         COUNT(*) as ai_calls,
-        SUM(tokens_in) as total_tokens_in,
-        SUM(tokens_out) as total_tokens_out,
         MAX(created_at) as last_ai_use,
         COUNT(CASE WHEN created_at >= date('now', '-1 day') THEN 1 END) as ai_calls_today,
         COUNT(CASE WHEN created_at >= date('now', '-7 day') THEN 1 END) as ai_calls_week
-        FROM ai_usage_log WHERE user_id != '' GROUP BY user_id`).all()
+        FROM buddy_messages WHERE role = 'ai' GROUP BY uid`).all()
         .forEach(r => { aiStats[r.user_id] = r; });
     } catch(e) {}
 
-    // バディーチャット回数
+    // 食事分析回数（AI呼び出し）
+    const foodAiCounts = {};
+    try {
+      db.prepare(`SELECT user_id, COUNT(*) as cnt FROM posts WHERE category LIKE '%食事%' AND analysis IS NOT NULL GROUP BY user_id`).all()
+        .forEach(r => { foodAiCounts[r.user_id] = r.cnt; });
+    } catch(e) {}
+
+    // ユーザーのチャット発言数
     const chatCounts = {};
     try {
       db.prepare(`SELECT uid as user_id, COUNT(*) as chat_count, MAX(created_at) as last_chat
@@ -747,19 +752,30 @@ router.get('/users-all', (req, res) => {
         .forEach(r => { chatCounts[r.user_id] = r; });
     } catch(e) {}
 
+    // ai_usage_logからトークン集計（user_idが記録されている分のみ）
+    const tokenStats = {};
+    try {
+      db.prepare(`SELECT user_id, SUM(tokens_in) as tin, SUM(tokens_out) as tout
+        FROM ai_usage_log WHERE user_id != '' GROUP BY user_id`).all()
+        .forEach(r => { tokenStats[r.user_id] = r; });
+    } catch(e) {}
+
     res.json(users.map(u => {
       var ai = aiStats[u.id] || {};
       var chat = chatCounts[u.id] || {};
+      var tokens = tokenStats[u.id] || {};
+      var foodAi = foodAiCounts[u.id] || 0;
+      var totalAi = (ai.ai_calls || 0) + foodAi;
       return {
         ...u,
         real_name: (canSeeRealNames || u.show_real_name) ? u.real_name : null,
         birth_date: (canSeeRealNames || u.show_real_name) ? u.birth_date : null,
         post_count: postCounts[u.id] || 0,
-        ai_calls: ai.ai_calls || 0,
+        ai_calls: totalAi,
         ai_calls_today: ai.ai_calls_today || 0,
         ai_calls_week: ai.ai_calls_week || 0,
-        ai_tokens_in: ai.total_tokens_in || 0,
-        ai_tokens_out: ai.total_tokens_out || 0,
+        ai_tokens_in: tokens.tin || 0,
+        ai_tokens_out: tokens.tout || 0,
         last_ai_use: ai.last_ai_use || null,
         chat_count: chat.chat_count || 0,
         last_chat: chat.last_chat || null

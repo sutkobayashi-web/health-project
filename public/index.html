@@ -4512,10 +4512,7 @@ function switchAppTab(tab) {
   // 各タブを開く
   if (tab === 'buddy') {
     // バディーは常に表示
-    // 入口カード表示（このセッションでまだ dismiss されていなければ）
-    if (!window._buddyEntryCardsDismissed && typeof showBuddyEntryCards === 'function') {
-      showBuddyEntryCards();
-    }
+    // 入口カードは廃止 → インラインメニューから選択
   } else if (tab === 'menu') {
     // メニュー（旧ホー��）表示 — 空気ダッシュボードを読み込み
     loadAtmosphere();
@@ -5170,10 +5167,6 @@ function getDeptGreeting(dept, hour) {
 }
 
 function startBuddyChatFresh(buddyData) {
-  // 入口カード表示（dismiss されていなければ）
-  if (!window._buddyEntryCardsDismissed && typeof showBuddyEntryCards === 'function') {
-    showBuddyEntryCards();
-  }
   // 時間帯に応じた挨拶
   var hour = new Date().getHours();
   var greeting = hour < 11 ? 'おはようございます' : hour < 17 ? 'こんにちは' : 'お疲れ様です';
@@ -6212,9 +6205,7 @@ function clearBuddyChat() {
       _buddyHistory = [];
       _buddyMoodChecked = false;
       _buddyTurnCount = 0;
-      // 入口カード再表示フラグ
-      window._buddyEntryCardsDismissed = false;
-      showBuddyEntryCards();
+      // 入口カードは廃止 → インラインメニューから選択
       // 新しい挨拶から再スタート
       var buddyData = null;
       try { buddyData = JSON.parse(localStorage.getItem('co_heart_buddy')); } catch(e) {}

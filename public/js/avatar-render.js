@@ -101,13 +101,6 @@ function renderCustomAvatar(avatarStr, size) {
     // v6: 動物キャラ（後方互換: 未指定は0=にんげん）
     var species = parseInt(parts[44]) || 0;
 
-    // 動物キャラの場合は専用レンダラーへ分岐
-    if (species > 0 && species < AB_ANIMAL_NAMES.length) {
-      var animalResult = renderAnimalAvatar(size, species, bgColor, eyeType, mouthType, accessories, cheekType, sizeFaceVal);
-      if (animalResult) { _avatarCache[cacheKey] = animalResult; }
-      return animalResult;
-    }
-
     var canvas = document.createElement('canvas');
     canvas.width = size; canvas.height = size;
     var ctx = canvas.getContext('2d');
@@ -115,6 +108,30 @@ function renderCustomAvatar(avatarStr, size) {
 
     // 背景円
     ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fillStyle = bgColor; ctx.fill();
+
+    // 動物キャラの場合: ボディを最大サイズで描画（顔なし）、その上に人間顔を重ねる
+    var isAnimalCostume = species > 0 && species < AB_ANIMAL_NAMES.length;
+    if (isAnimalCostume) {
+      var animalColors = AB_ANIMAL_COLORS[species] || AB_ANIMAL_COLORS[1];
+      var animalSizeAdj = 1 + 3 * 0.12; // 常に最大サイズ
+      var animalFaceR = r * 0.55 * animalSizeAdj;
+      var animalFaceY = cy + r * 0.06;
+      // 動物ボディだけ描画（目・口・ほっぺ・アクセサリーは描かない）
+      switch (species) {
+        case 1: drawAnimalChick(ctx, cx, animalFaceY, animalFaceR, animalColors); break;
+        case 2: drawAnimalCat(ctx, cx, animalFaceY, animalFaceR, animalColors); break;
+        case 3: drawAnimalDog(ctx, cx, animalFaceY, animalFaceR, animalColors); break;
+        case 4: drawAnimalRabbit(ctx, cx, animalFaceY, animalFaceR, animalColors); break;
+        case 5: drawAnimalBear(ctx, cx, animalFaceY, animalFaceR, animalColors); break;
+        case 6: drawAnimalPanda(ctx, cx, animalFaceY, animalFaceR, animalColors); break;
+        case 7: drawAnimalPenguin(ctx, cx, animalFaceY, animalFaceR, animalColors); break;
+        case 8: drawAnimalTanuki(ctx, cx, animalFaceY, animalFaceR, animalColors); break;
+        case 9: drawAnimalFox(ctx, cx, animalFaceY, animalFaceR, animalColors); break;
+        case 10: drawAnimalFrog(ctx, cx, animalFaceY, animalFaceR, animalColors); break;
+        case 11: drawAnimalHamster(ctx, cx, animalFaceY, animalFaceR, animalColors); break;
+        case 12: drawAnimalOwl(ctx, cx, animalFaceY, animalFaceR, animalColors); break;
+      }
+    }
 
     // 顔（輪郭形状反映）- 少し下寄せで髪との間隔を確保
     var faceR = r * faceSize / 24 * (1 + sizeFaceVal * 0.06);
@@ -131,8 +148,8 @@ function renderCustomAvatar(avatarStr, size) {
     drawHairBack(ctx, cx, faceY + hairYOff, faceR * hairScale, hairType, hairColor);
     ctx.restore();
 
-    // 顔（後ろ髪の上に描画）
-    drawFace(ctx, cx, faceY, faceR, faceShapeType, skinColor, earType, posEarVal, sizeEarVal, earSpacingVal);
+    // 顔（後ろ髪の上に描画）— 動物コスチューム時は首・肩・耳をスキップ
+    drawFace(ctx, cx, faceY, faceR, faceShapeType, skinColor, earType, posEarVal, sizeEarVal, earSpacingVal, isAnimalCostume);
 
     // 位置オフセット計算（1単位 = faceR * 0.04）
     var eyeYOff = posEyeVal * faceR * 0.06;
@@ -351,7 +368,7 @@ function _facePath(ctx, cx, faceY, faceR, shapeType) {
       ctx.beginPath(); ctx.arc(cx, faceY, faceR, 0, Math.PI * 2);
   }
 }
-function drawFace(ctx, cx, faceY, faceR, shapeType, skinColor, earType, posEarVal, sizeEarVal, earSpacingVal) {
+function drawFace(ctx, cx, faceY, faceR, shapeType, skinColor, earType, posEarVal, sizeEarVal, earSpacingVal, skipBodyParts) {
   earType = earType || 0;
   posEarVal = posEarVal || 0;
   sizeEarVal = sizeEarVal || 0;
@@ -362,6 +379,7 @@ function drawFace(ctx, cx, faceY, faceR, shapeType, skinColor, earType, posEarVa
   var blush = _skinLighter(skinColor, 10);
   var detail = faceR >= 20; // ディテール描画ガード
 
+  if (!skipBodyParts) {
   // 首
   ctx.save();
   var neckW = faceR * 0.28, neckH = faceR * 0.4;
@@ -402,7 +420,9 @@ function drawFace(ctx, cx, faceY, faceR, shapeType, skinColor, earType, posEarVa
     ctx.stroke();
     ctx.restore();
   }
+  } // end !skipBodyParts
 
+  if (!skipBodyParts) {
   // 耳（種類・サイズ・位置カスタマイズ対応）
   var earSizeScale = [1.0, 0.7, 1.35, 1.1, 1.15, 1.25][earType] || 1.0;
   earSizeScale *= (1 + sizeEarVal * 0.12);
@@ -446,6 +466,7 @@ function drawFace(ctx, cx, faceY, faceR, shapeType, skinColor, earType, posEarVa
     }
   });
   ctx.restore();
+  } // end !skipBodyParts (ears)
 
   // 顔本体（精密グラデーション）
   // ベースのラジアルグラデーション（額が明るく、顎下が暗い）

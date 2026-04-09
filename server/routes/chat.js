@@ -9,6 +9,7 @@ const router = express.Router();
 router.post('/message', authUser, async (req, res) => {
   const { userMessage, history, userName, buddyType, buddyName } = req.body;
   const uid = req.user.uid;
+  console.log('[buddy/message] uid=' + uid + ' msg="' + (userMessage || '').substring(0, 100) + '"');
 
   // ユーザーの食事・相談データを収集してコンテキストに含める
   let userDataContext = '';

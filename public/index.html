@@ -1234,12 +1234,12 @@ if (typeof getAvatarHtml !== 'function') {
 }
 
 // ====== アバタービルダー状態 ======
-var abState = { skin: 2, hair: 1, hairColor: 0, eye: 0, mouth: 0, accessories: [0], bg: 0, faceSize: 0, eyebrow: 0, nose: 0, beard: 0, cheek: 0, faceShape: 0, eyeColor: 0, posEye: 0, posMouth: 0, posNose: 0, posBrow: 0, eyeSpacing: 0, sizeEye: 0, sizeNose: 0, sizeMouth: 0, posHair: 0, sizeHair: 0, widthHair: 0, sizeFace: 0, ear: 0, posEar: 0, sizeEar: 0, earSpacing: 0, lipColor: 0, eyeshadow: 0, lash: 0, cheekColor: 0, posAcc: 0, sizeAcc: 0, sizeBrow: 0, posBeard: 0, sizeBeard: 0, posCheek: 0, sizeCheek: 0, posLip: 0, sizeLip: 0, cheekSpacing: 0 };
+var abState = { skin: 2, hair: 1, hairColor: 0, eye: 0, mouth: 0, accessories: [0], bg: 0, faceSize: 0, eyebrow: 0, nose: 0, beard: 0, cheek: 0, faceShape: 0, eyeColor: 0, posEye: 0, posMouth: 0, posNose: 0, posBrow: 0, eyeSpacing: 0, sizeEye: 0, sizeNose: 0, sizeMouth: 0, posHair: 0, sizeHair: 0, widthHair: 0, sizeFace: 0, ear: 0, posEar: 0, sizeEar: 0, earSpacing: 0, lipColor: 0, eyeshadow: 0, lash: 0, cheekColor: 0, posAcc: 0, sizeAcc: 0, sizeBrow: 0, posBeard: 0, sizeBeard: 0, posCheek: 0, sizeCheek: 0, posLip: 0, sizeLip: 0, cheekSpacing: 0, species: 0 };
 
 function abBuildString() {
   var accs = abState.accessories.filter(function(a) { return a > 0; });
   if (accs.length === 0) accs = [0];
-  return 'custom:' + AB_SKINS[abState.skin] + '|' + AB_HAIRS[abState.hairColor] + '|' + AB_BGS[abState.bg] + '|' + AB_FACES[abState.faceSize] + '|' + abState.eye + '|' + abState.mouth + '|' + accs.join(',') + '|' + abState.hair + '|' + abState.eyebrow + '|' + abState.nose + '|' + abState.beard + '|' + abState.cheek + '|' + abState.faceShape + '|' + abState.eyeColor + '|' + abState.posEye + '|' + abState.posMouth + '|' + abState.posNose + '|' + abState.posBrow + '|' + abState.eyeSpacing + '|' + abState.sizeEye + '|' + abState.sizeNose + '|' + abState.sizeMouth + '|' + abState.posHair + '|' + abState.sizeHair + '|' + abState.sizeFace + '|' + abState.widthHair + '|' + abState.ear + '|' + abState.posEar + '|' + abState.sizeEar + '|' + abState.earSpacing + '|' + abState.lipColor + '|' + abState.eyeshadow + '|' + abState.lash + '|' + abState.cheekColor + '|' + abState.posAcc + '|' + abState.sizeAcc + '|' + abState.sizeBrow + '|' + abState.posBeard + '|' + abState.sizeBeard + '|' + abState.posCheek + '|' + abState.sizeCheek + '|' + abState.posLip + '|' + abState.sizeLip + '|' + abState.cheekSpacing;
+  return 'custom:' + AB_SKINS[abState.skin] + '|' + AB_HAIRS[abState.hairColor] + '|' + AB_BGS[abState.bg] + '|' + AB_FACES[abState.faceSize] + '|' + abState.eye + '|' + abState.mouth + '|' + accs.join(',') + '|' + abState.hair + '|' + abState.eyebrow + '|' + abState.nose + '|' + abState.beard + '|' + abState.cheek + '|' + abState.faceShape + '|' + abState.eyeColor + '|' + abState.posEye + '|' + abState.posMouth + '|' + abState.posNose + '|' + abState.posBrow + '|' + abState.eyeSpacing + '|' + abState.sizeEye + '|' + abState.sizeNose + '|' + abState.sizeMouth + '|' + abState.posHair + '|' + abState.sizeHair + '|' + abState.sizeFace + '|' + abState.widthHair + '|' + abState.ear + '|' + abState.posEar + '|' + abState.sizeEar + '|' + abState.earSpacing + '|' + abState.lipColor + '|' + abState.eyeshadow + '|' + abState.lash + '|' + abState.cheekColor + '|' + abState.posAcc + '|' + abState.sizeAcc + '|' + abState.sizeBrow + '|' + abState.posBeard + '|' + abState.sizeBeard + '|' + abState.posCheek + '|' + abState.sizeCheek + '|' + abState.posLip + '|' + abState.sizeLip + '|' + abState.cheekSpacing + '|' + abState.species;
 }
 
 function abParseString(str) {
@@ -1291,6 +1291,7 @@ function abParseString(str) {
     abState.posLip = parseInt(parts[41]) || 0;
     abState.sizeLip = parseInt(parts[42]) || 0;
     abState.cheekSpacing = parseInt(parts[43]) || 0;
+    abState.species = parseInt(parts[44]) || 0;
   } catch(e) {}
 }
 
@@ -1439,6 +1440,19 @@ function abRenderBuilderUI(containerId, previewCanvasId) {
       '</div>';
   }
 
+  // ★ キャラクタータイプ（にんげん or 動物）
+  var animalEmojis = ['👤','🐥','🐱','🐶','🐰','🐻','🐼','🐧','🦝','🦊','🐸','🐹','🦉'];
+  html += '<div style="margin-bottom:12px; padding:10px; background:linear-gradient(135deg,#FFF8E1,#F3E5F5); border-radius:12px;">';
+  html += '<label style="display:block;font-size:0.82rem;font-weight:700;color:#6a1b9a;margin-bottom:8px;">🐾 キャラクタータイプ</label>';
+  html += '<div class="avatar-builder-options" style="flex-wrap:wrap;">';
+  AB_ANIMAL_NAMES.forEach(function(name, i) {
+    html += '<div class="ab-icon-btn' + (abState.species === i ? ' selected' : '') + '" style="' + (abState.species === i ? 'background:#6a1b9a;color:#fff;border-color:#6a1b9a;' : '') + '" onclick="abSelectSpecies(' + i + ',\'' + previewCanvasId + '\')">' + animalEmojis[i] + ' ' + name + '</div>';
+  });
+  html += '</div></div>';
+
+  var isAnimal = abState.species > 0;
+
+  if (!isAnimal) {
   // 輪郭（最初に選択）
   html += '<div class="avatar-builder-row"><label>🫥 輪郭</label><div class="avatar-builder-options">';
   AB_FACE_SHAPE_NAMES.forEach(function(name, i) {
@@ -1447,7 +1461,9 @@ function abRenderBuilderUI(containerId, previewCanvasId) {
   html += '</div>';
   html += abSlider('sizeFace', '大きさ', -3, 3);
   html += '</div>';
+  } // end !isAnimal
 
+  if (!isAnimal) {
   // 肌の色
   html += '<div class="avatar-builder-row"><label>🎨 肌の色</label><div class="avatar-builder-options">';
   AB_SKINS.forEach(function(col, i) {
@@ -1493,6 +1509,7 @@ function abRenderBuilderUI(containerId, previewCanvasId) {
   html += abSlider('posBrow', '高さ', -4, 4);
   html += abSlider('sizeBrow', '大きさ', -3, 3);
   html += '</div>';
+  } // end !isAnimal (skin/hair/ears/brow)
 
   // 目
   html += '<div class="avatar-builder-row"><label>👀 目</label><div class="avatar-builder-options">';
@@ -1505,13 +1522,16 @@ function abRenderBuilderUI(containerId, previewCanvasId) {
   html += abSlider('sizeEye', '大きさ', -3, 3);
   html += '</div>';
 
+  if (!isAnimal) {
   // 瞳の色
   html += '<div class="avatar-builder-row"><label>👁 瞳の色</label><div class="avatar-builder-options">';
   AB_EYE_COLORS.forEach(function(col, i) {
     html += '<div class="ab-color-circle' + (abState.eyeColor === i ? ' selected' : '') + '" style="background:' + col + ';" onclick="abSelect(\'eyeColor\',' + i + ',\'' + previewCanvasId + '\')"></div>';
   });
   html += '</div></div>';
+  } // end !isAnimal (eyeColor)
 
+  if (!isAnimal) {
   // 鼻
   html += '<div class="avatar-builder-row"><label>👃 鼻</label><div class="avatar-builder-options">';
   AB_NOSE_NAMES.forEach(function(name, i) {
@@ -1521,6 +1541,7 @@ function abRenderBuilderUI(containerId, previewCanvasId) {
   html += abSlider('posNose', '高さ', -3, 3);
   html += abSlider('sizeNose', '大きさ', -2, 2);
   html += '</div>';
+  } // end !isAnimal (nose)
 
   // 口
   html += '<div class="avatar-builder-row"><label>👄 口</label><div class="avatar-builder-options">';
@@ -1532,6 +1553,7 @@ function abRenderBuilderUI(containerId, previewCanvasId) {
   html += abSlider('sizeMouth', '大きさ', -2, 2);
   html += '</div>';
 
+  if (!isAnimal) {
   // ヒゲ
   html += '<div class="avatar-builder-row"><label>🧔 ヒゲ</label><div class="avatar-builder-options">';
   AB_BEARD_NAMES.forEach(function(name, i) {
@@ -1541,6 +1563,7 @@ function abRenderBuilderUI(containerId, previewCanvasId) {
   html += abSlider('posBeard', '高さ', -4, 4);
   html += abSlider('sizeBeard', '大きさ', -3, 3);
   html += '</div>';
+  } // end !isAnimal (beard)
 
   // ほっぺた
   html += '<div class="avatar-builder-row"><label>🩷 ほっぺた</label><div class="avatar-builder-options">';
@@ -1553,6 +1576,7 @@ function abRenderBuilderUI(containerId, previewCanvasId) {
   html += abSlider('cheekSpacing', '間隔', -3, 3);
   html += '</div>';
 
+  if (!isAnimal) {
   // --- 化粧セクション ---
   html += '<div style="margin:10px 0 6px; padding:6px 10px; background:linear-gradient(135deg,#fce4ec,#f3e5f5); border-radius:10px; font-size:0.75rem; font-weight:700; color:#c2185b; text-align:center;">💄 メイク</div>';
 
@@ -1586,6 +1610,7 @@ function abRenderBuilderUI(containerId, previewCanvasId) {
     html += '<div class="ab-icon-btn' + (abState.cheekColor === i ? ' selected' : '') + '" onclick="abSelect(\'cheekColor\',' + i + ',\'' + previewCanvasId + '\')">' + name + '</div>';
   });
   html += '</div></div>';
+  } // end !isAnimal (makeup)
 
   // アクセサリー
   html += '<div class="avatar-builder-row"><label>✨ アクセサリー（複数選択OK）</label><div class="avatar-builder-options">';
@@ -1617,6 +1642,12 @@ function _getContainerId(previewCanvasId) {
 }
 function abSelect(prop, val, previewCanvasId) {
   abState[prop] = val;
+  _avatarCache = {};
+  abRenderBuilderUI(_getContainerId(previewCanvasId), previewCanvasId);
+  selectedAvatar = abBuildString();
+}
+function abSelectSpecies(val, previewCanvasId) {
+  abState.species = val;
   _avatarCache = {};
   abRenderBuilderUI(_getContainerId(previewCanvasId), previewCanvasId);
   selectedAvatar = abBuildString();

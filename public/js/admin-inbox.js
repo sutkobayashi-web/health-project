@@ -199,6 +199,7 @@ function renderReportList(data) {
     data.forEach(function(r) {
         var pid = r[1]; var rawContent = String(r[INBOX_COLS.CONTENT]||""); var analysisText = String(r[INBOX_COLS.ANALYSIS]||"");
         var dbCat = String(r[INBOX_COLS.CAT]||"");
+        var isAlert = dbCat.includes("要対応");
         var isTarget = false;
         if(analysisText.includes("///SCORE///")) { try { var s = JSON.parse(analysisText.split("///SCORE///")[1]); if(s.is_target) isTarget = true; } catch(e){} analysisText = analysisText.split("///SCORE///")[0]; }
         rawContent = rawContent.replace(/^【写真】/, '').split("///SCORE///")[0];
@@ -207,12 +208,13 @@ function renderReportList(data) {
         var likeBadge = likeCount > 0 ? '<span class="like-badge"><i class="fas fa-heart"></i> ' + likeCount + '</span>' : '';
         var dateStr = String(r[INBOX_COLS.DATE]||"");
         var headerClass, icon, catName, cardCat;
-        if(dbCat.includes("要対応")) { headerClass="header-alert"; icon="fas fa-exclamation-triangle"; catName="要対応アラート"; cardCat="alert"; }
+        if(isAlert) { headerClass="header-alert"; icon="fas fa-exclamation-triangle"; catName="要対応アラート"; cardCat="alert"; }
         else if(isTarget) { headerClass="header-target"; icon="fas fa-star"; catName="重点検討案件"; cardCat="target";
             // 重点案件の賛同進捗バッジを後で設定するためのフラグ
         }
         else if(dbCat.includes("食事") || dbCat.includes("栄養")) { headerClass="header-food"; icon="fas fa-utensils"; catName="食事チェック"; cardCat="food"; }
         else { headerClass="header-consult"; icon="far fa-comment-dots"; catName="相談・提案"; cardCat="consult"; }
+        var isFood = (cardCat === 'food');
         var imgUrl = r[INBOX_COLS.IMG]; var displayUrl = getPostImageUrl(imgUrl);
         var thumbTag = displayUrl ? '<img src="'+displayUrl+'" class="post-thumb" onclick="event.stopPropagation();" onerror="this.style.display=\'none\'">' : '';
         var imgTag = displayUrl ? '<img src="'+displayUrl+'" class="post-img" loading="lazy" onclick="event.stopPropagation(); window.open(\''+displayUrl+'\', \'_blank\');">' : '';
@@ -289,6 +291,8 @@ function renderReportList(data) {
                     (thumbTag ? thumbTag : '') +
                     '<div style="flex:1; min-width:0; font-size:0.85rem; line-height:1.5; color:#444; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">'+escapeHtml(rawContent)+'</div>' +
                 '</div>' +
+                // 食事投稿: ミニ栄養バー＋読取度
+                (function(){ var ns = r[INBOX_COLS.NUTRITION]; if (!ns || !isFood) return ''; try { var sc = typeof ns === 'string' ? JSON.parse(ns) : ns; return buildMiniNutritionPreview(sc); } catch(e){ return ''; } })() +
                 // 共感サマリー（開くボタンの上）
                 '<div id="empathy-mini-'+pid+'" style="margin-top:6px; max-height:150px; overflow-y:auto;"></div>' +
                 // 操作ボタン行
@@ -1066,4 +1070,61 @@ function markAdminRead(pid) {
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getAdminToken() },
         body: JSON.stringify({ postId: pid })
     }).catch(function() {});
+}
+
+/* ── ミニ栄養プレビュー（カード一覧用） ── */
+function buildMiniNutritionPreview(sc) {
+    if (!sc) return '';
+    var isLegacy = (typeof sc.protein === 'number' && sc.protein <= 5 && !sc.calories);
+    if (isLegacy) {
+        sc = {
+            calories:{value:300+(sc.protein||3)*70,unit:'kcal'}, protein:{value:(sc.protein||3)*5,unit:'g'},
+            fat:{value:5+(sc.fat||3)*2.5,unit:'g'}, carbs:{value:40+(sc.carbs||sc.carb||3)*10,unit:'g'},
+            vitamin:{value:(sc.vitamin||3)*30,unit:'g'}, mineral:{value:(sc.mineral||3)*55,unit:'mg'},
+            fiber:{value:(sc.vitamin||3)*1.5,unit:'g'}, salt:{value:4.0-(sc.salt||3)*0.5,unit:'g'},
+            alcohol:{value:0,unit:'g'}
+        };
+    }
+    var items = [
+        {key:'calories',icon:'🔥',label:'カロリー',unit:'kcal',target:550,min:450,max:650,range:true},
+        {key:'protein',icon:'🍖',label:'たんぱく質',unit:'g',target:20},
+        {key:'fat',icon:'🫒',label:'脂質',unit:'g',target:15,min:12,max:18,range:true},
+        {key:'carbs',icon:'🍚',label:'炭水化物',unit:'g',target:79,min:69,max:89,range:true},
+        {key:'vitamin',icon:'🥬',label:'野菜量',unit:'g',target:120},
+        {key:'fiber',icon:'🌾',label:'食物繊維',unit:'g',target:7},
+        {key:'salt',icon:'🧂',label:'塩分',unit:'g',target:2.5,reverse:true}
+    ];
+    var html = '<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px;align-items:center;">';
+    items.forEach(function(item) {
+        var raw = sc[item.key]; var val = 0;
+        if (raw && typeof raw === 'object' && raw.value !== undefined) val = Number(raw.value);
+        else if (typeof raw === 'number') val = raw;
+        var calRaw = sc.calories;
+        var calV = (calRaw && typeof calRaw === 'object') ? Number(calRaw.value) : (typeof calRaw === 'number' ? calRaw : 550);
+        if (item.key === 'fat' && val > 0 && val <= 50) val = Math.round(val * calV / 100 / 9 * 10) / 10;
+        if (item.key === 'carbs' && val > 0 && val <= 70) val = Math.round(val * calV / 100 / 4 * 10) / 10;
+        var color;
+        if (item.reverse) {
+            color = val <= item.target * 0.8 ? '#20c997' : val <= item.target ? '#f59e0b' : '#ef4444';
+        } else if (item.range) {
+            color = (val >= item.min && val <= item.max) ? '#20c997' : val < item.min ? '#f59e0b' : '#ef4444';
+        } else {
+            var ratio = val / item.target;
+            color = (ratio >= 0.8 && ratio <= 1.3) ? '#20c997' : ratio < 0.8 ? '#f59e0b' : '#ef4444';
+        }
+        var dispVal = item.key === 'calories' ? Math.round(val) : (val % 1 === 0 ? val : val.toFixed(1));
+        var unitStr = item.unit || '';
+        html += '<span style="font-size:0.58rem;padding:2px 5px;border-radius:5px;background:'+color+'18;color:'+color+';font-weight:700;white-space:nowrap;">'+item.icon+' '+item.label+' '+dispVal+unitStr+'</span>';
+    });
+    // 読取度（信憑性）星マーク
+    var conf = sc.confidence;
+    if (conf && conf.level) {
+        var stars = '';
+        for (var i = 0; i < 3; i++) stars += i < conf.level ? '★' : '☆';
+        var confColor = conf.level === 3 ? '#20c997' : conf.level === 2 ? '#f59e0b' : '#ef4444';
+        var confLabel = conf.reason || (conf.level === 3 ? '成分表示' : conf.level === 2 ? '定番料理' : '目視推定');
+        html += '<span style="font-size:0.58rem;padding:2px 5px;border-radius:5px;background:'+confColor+'18;color:'+confColor+';font-weight:700;white-space:nowrap;">🔍'+stars+' '+confLabel+'</span>';
+    }
+    html += '</div>';
+    return html;
 }

@@ -2651,9 +2651,9 @@ function inlineBpView() {
     avg.sys = Math.round(avg.sys / avg.count);
     avg.dia = Math.round(avg.dia / avg.count);
 
-    var bpSummary = '直近の血圧: ' + latest.systolic + '/' + latest.diastolic;
-    if (latest.pulse) bpSummary += ' 脈拍' + latest.pulse;
-    bpSummary += '。直近' + avg.count + '回の平均: ' + avg.sys + '/' + avg.dia + '。';
+    var bpSummary = '直近の血圧: 最高血圧' + latest.systolic + '、最低血圧' + latest.diastolic;
+    if (latest.pulse) bpSummary += '、脈拍' + latest.pulse;
+    bpSummary += '。直近' + avg.count + '回の平均: 最高血圧' + avg.sys + '、最低血圧' + avg.dia + '。';
     if (avg.sys >= 140 || avg.dia >= 90) bpSummary += '高血圧域です。';
     else if (avg.sys >= 130 || avg.dia >= 85) bpSummary += 'やや高めです。';
     else bpSummary += '正常範囲です。';

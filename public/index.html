@@ -6285,45 +6285,45 @@ function _getDailyTopic() {
 }
 // カードメタ定義
 var _entryCardMeta = {
-  daily:   { icon: '💬', title: '今日のひとこと聞いて',     sub: 'バディーがお題を出すよ',      color: '#0369a1', bg: '#f0f9ff', border: '#7dd3fc', shadow: 'rgba(14,165,233,0.12)',  fn: 'entryCardDailyTheme()' },
-  health:  { icon: '📋', title: '体調レポート出す',         sub: 'サクッと選ぶだけ',            color: '#b45309', bg: '#fef3c7', border: '#fcd34d', shadow: 'rgba(245,158,11,0.12)',  fn: 'entryCardHealthReport()' },
-  vent:    { icon: '😟', title: 'ちょっとモヤってる',       sub: 'グチでも全然OK',              color: '#be185d', bg: '#fce7f3', border: '#f9a8d4', shadow: 'rgba(236,72,153,0.12)',  fn: 'entryCardVent()' },
-  suggest: { icon: '💡', title: 'こうなったらいいな',       sub: '提案・アイデア',              color: '#15803d', bg: '#dcfce7', border: '#86efac', shadow: 'rgba(34,197,94,0.12)',   fn: 'entryCardSuggest()' },
-  consult: { icon: '🤔', title: '相談したいことがある',     sub: '推進メンバーに直接届くよ',    color: '#6d28d9', bg: '#ede9fe', border: '#c4b5fd', shadow: 'rgba(124,58,237,0.12)',  fn: 'entryCardConsult()' }
+  daily:      { icon: '💬', title: 'ひとこと聞いて',       sub: 'バディーがお題を出すよ',      color: '#0369a1', bg: '#f0f9ff', border: '#7dd3fc', shadow: 'rgba(14,165,233,0.12)',  fn: 'entryCardDailyTheme()' },
+  health:     { icon: '📋', title: '体調レポート',         sub: 'サクッと選ぶだけ',            color: '#b45309', bg: '#fef3c7', border: '#fcd34d', shadow: 'rgba(245,158,11,0.12)',  fn: 'entryCardHealthReport()' },
+  vent:       { icon: '😟', title: 'モヤっとを聞いて',     sub: 'グチでも全然OK',              color: '#be185d', bg: '#fce7f3', border: '#f9a8d4', shadow: 'rgba(236,72,153,0.12)',  fn: 'entryCardVent()' },
+  suggest:    { icon: '💡', title: 'こうなったらいいな',   sub: '提案・アイデア',              color: '#15803d', bg: '#dcfce7', border: '#86efac', shadow: 'rgba(34,197,94,0.12)',   fn: 'entryCardSuggest()' },
+  consult:    { icon: '🛡', title: '推進メンバーに相談',   sub: '直接届くよ',                  color: '#6d28d9', bg: '#ede9fe', border: '#c4b5fd', shadow: 'rgba(124,58,237,0.12)',  fn: 'entryCardConsult()' },
+  food:       { icon: '🍱', title: 'ごはん見せる',         sub: '写真撮るだけ',                color: '#059669', bg: '#ecfdf5', border: '#6ee7b7', shadow: 'rgba(16,185,129,0.12)',  fn: 'hideBuddyEntryCards();inlineFoodCheck()' },
+  challenge:  { icon: '🔥', title: 'チャレンジ参加',       sub: '今週のお題に挑戦',            color: '#c2410c', bg: '#fff7ed', border: '#fdba74', shadow: 'rgba(251,146,60,0.12)',  fn: 'hideBuddyEntryCards();inlineChallengeJoin()' },
+  atmosphere: { icon: '🌤', title: 'みんなの空気',         sub: '職場の今日の雰囲気',          color: '#047857', bg: '#ecfdf5', border: '#86efac', shadow: 'rgba(52,211,153,0.12)',  fn: 'hideBuddyEntryCards();inlineAtmosphere()' },
+  timeline:   { icon: '📰', title: 'みんなの投稿',         sub: '声＆ごはんを見る',            color: '#6d28d9', bg: '#f5f3ff', border: '#c4b5fd', shadow: 'rgba(139,92,246,0.12)',  fn: 'hideBuddyEntryCards();inlineTimelineView()' }
 };
 // 属性別並び順 + 推奨カード
 function _getEntryCardOrder() {
   var style = _getEntryStyle();
   var age = _getUserAge();
-  // デフォルト（auto）: 中庸
-  var order = ['daily', 'health', 'vent', 'suggest', 'consult'];
+  // 上段: 会話系、下段: アクション＋情報系
+  var talkCards = ['daily', 'health', 'vent', 'suggest', 'consult'];
+  var actionCards = ['food', 'challenge', 'atmosphere', 'timeline'];
   var recommended = 'daily';
   if (style === 'female') {
-    order = ['daily', 'vent', 'suggest', 'health', 'consult'];
-    recommended = 'daily';
+    talkCards = ['daily', 'vent', 'suggest', 'health', 'consult'];
   } else if (style === 'male') {
-    order = ['health', 'suggest', 'daily', 'consult', 'vent'];
+    talkCards = ['health', 'suggest', 'daily', 'consult', 'vent'];
     recommended = 'health';
   }
   // 年代補正
   if (age !== null) {
     if (age >= 60) {
-      // ベテラン: 体調・相談を上位に
-      order = order.filter(function(k) { return k !== 'health' && k !== 'consult'; });
-      order = ['health', 'consult'].concat(order);
+      talkCards = talkCards.filter(function(k) { return k !== 'health' && k !== 'consult'; });
+      talkCards = ['health', 'consult'].concat(talkCards);
       recommended = 'health';
     } else if (age >= 40 && style !== 'female') {
-      // 中堅男性: 提案・相談を上位に
-      order = order.filter(function(k) { return k !== 'suggest'; });
-      order.splice(1, 0, 'suggest');
-    } else if (age < 30) {
-      // 若手: モヤ・ひとことを上位に
-      if (style === 'male') {
-        order = order.filter(function(k) { return k !== 'vent' && k !== 'daily'; });
-        order = ['daily', 'vent'].concat(order);
-      }
+      talkCards = talkCards.filter(function(k) { return k !== 'suggest'; });
+      talkCards.splice(1, 0, 'suggest');
+    } else if (age < 30 && style === 'male') {
+      talkCards = talkCards.filter(function(k) { return k !== 'vent' && k !== 'daily'; });
+      talkCards = ['daily', 'vent'].concat(talkCards);
     }
   }
+  var order = talkCards.concat(actionCards);
   return { order: order, recommended: recommended };
 }
 function showBuddyEntryCards() {
@@ -6353,25 +6353,40 @@ function showBuddyEntryCards() {
       '<div style="font-size:0.92rem;font-weight:800;color:#0369a1;margin-bottom:3px;">' + greeting + '</div>' +
       '<div style="font-size:0.7rem;color:#64748b;">無理しなくていいよ。1タップで終わってもOK☺️</div>' +
     '</div>';
-  // カード群
-  var cardsHtml = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:420px;margin:0 auto;">';
-  ord.order.forEach(function(key, idx) {
-    var m = _entryCardMeta[key];
-    if (!m) return;
-    var isRec = (key === ord.recommended);
-    var isLastOdd = (idx === ord.order.length - 1) && (ord.order.length % 2 === 1);
-    var span = isLastOdd ? 'grid-column:span 2;' : '';
-    var badge = isRec ? '<div style="position:absolute;top:-7px;right:-7px;background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#fff;font-size:0.55rem;font-weight:800;padding:2px 7px;border-radius:10px;box-shadow:0 2px 6px rgba(251,191,36,0.5);">✨おすすめ</div>' : '';
-    var recBorder = isRec ? '3px' : '2px';
-    cardsHtml +=
-      '<button onclick="' + m.fn + '" class="buddy-entry-card" style="position:relative;padding:14px 8px;background:linear-gradient(135deg,#fff,' + m.bg + ');border:' + recBorder + ' solid ' + m.border + ';border-radius:14px;cursor:pointer;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:6px;box-shadow:0 2px 8px ' + m.shadow + ';transition:all 0.15s;' + span + '">' +
-        badge +
-        '<div style="font-size:1.8rem;line-height:1;">' + m.icon + '</div>' +
-        '<div style="font-weight:800;font-size:0.78rem;color:' + m.color + ';">' + m.title + '</div>' +
-        '<div style="font-size:0.62rem;color:#64748b;">' + m.sub + '</div>' +
-      '</button>';
-  });
-  cardsHtml += '</div>';
+  // 会話系カード
+  var talkKeys = ['daily','health','vent','suggest','consult'];
+  var actionKeys = ['food','challenge','atmosphere','timeline'];
+  var talkOrder = ord.order.filter(function(k) { return talkKeys.indexOf(k) !== -1; });
+  var actionOrder = ord.order.filter(function(k) { return actionKeys.indexOf(k) !== -1; });
+
+  function _renderCardGrid(keys, rec) {
+    var h = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;max-width:420px;margin:0 auto;">';
+    keys.forEach(function(key, idx) {
+      var m = _entryCardMeta[key];
+      if (!m) return;
+      var isRec = (key === rec);
+      var isLastOdd = (idx === keys.length - 1) && (keys.length % 2 === 1);
+      var span = isLastOdd ? 'grid-column:span 2;' : '';
+      var badge = isRec ? '<div style="position:absolute;top:-6px;right:-6px;background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#fff;font-size:0.52rem;font-weight:800;padding:2px 6px;border-radius:8px;box-shadow:0 2px 6px rgba(251,191,36,0.5);">✨おすすめ</div>' : '';
+      var bw = isRec ? '3px' : '1.5px';
+      h += '<button onclick="' + m.fn + '" class="buddy-entry-card" style="position:relative;padding:12px 6px;background:linear-gradient(135deg,#fff,' + m.bg + ');border:' + bw + ' solid ' + m.border + ';border-radius:12px;cursor:pointer;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:4px;box-shadow:0 2px 8px ' + m.shadow + ';transition:all 0.15s;' + span + '">' +
+          badge +
+          '<div style="font-size:1.5rem;line-height:1;">' + m.icon + '</div>' +
+          '<div style="font-weight:800;font-size:0.74rem;color:' + m.color + ';">' + m.title + '</div>' +
+          '<div style="font-size:0.58rem;color:#64748b;">' + m.sub + '</div>' +
+        '</button>';
+    });
+    h += '</div>';
+    return h;
+  }
+
+  var cardsHtml = '';
+  // 会話セクション
+  cardsHtml += '<div style="font-size:0.68rem;font-weight:800;color:#0369a1;text-align:center;margin-bottom:6px;"><i class="fas fa-comment-dots" style="margin-right:3px;"></i>バディーと話す</div>';
+  cardsHtml += _renderCardGrid(talkOrder, ord.recommended);
+  // アクションセクション
+  cardsHtml += '<div style="font-size:0.68rem;font-weight:800;color:#059669;text-align:center;margin:12px 0 6px;"><i class="fas fa-bolt" style="margin-right:3px;"></i>やってみる・見る</div>';
+  cardsHtml += _renderCardGrid(actionOrder, null);
   // フッター: 自分で書く / 全部スキップ / スタイル切替
   var styleBtn = function(s, label) {
     var active = (style === s);

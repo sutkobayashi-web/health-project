@@ -873,6 +873,7 @@
         <button onclick="inlineTimelineView()" class="buddy-action-btn" style="display:flex;align-items:center;gap:4px;padding:7px 12px;background:linear-gradient(135deg,#6c5ce7,#a29bfe);color:white;border:none;border-radius:18px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;box-shadow:0 2px 6px rgba(108,92,231,0.25);font-family:inherit;"><i class="fas fa-stream"></i> みんなの投稿</button>
         <button onclick="inlineAtmosphere()" class="buddy-action-btn" style="display:flex;align-items:center;gap:4px;padding:7px 12px;background:linear-gradient(135deg,#059669,#34d399);color:white;border:none;border-radius:18px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;box-shadow:0 2px 6px rgba(52,211,153,0.25);font-family:inherit;"><i class="fas fa-cloud-sun"></i> みんなの空気</button>
         <button id="bp-inline-btn" onclick="inlineBpRecord()" class="buddy-action-btn" style="display:none;align-items:center;gap:4px;padding:7px 12px;background:linear-gradient(135deg,#e91e63,#c2185b);color:white;border:none;border-radius:18px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;box-shadow:0 2px 6px rgba(233,30,99,0.25);font-family:inherit;"><i class="fas fa-stethoscope"></i> 血圧を測る</button>
+        <button id="bp-view-inline-btn" onclick="inlineBpView()" class="buddy-action-btn" style="display:none;align-items:center;gap:4px;padding:7px 12px;background:linear-gradient(135deg,#ad1457,#880e4f);color:white;border:none;border-radius:18px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;box-shadow:0 2px 6px rgba(136,14,79,0.25);font-family:inherit;"><i class="fas fa-chart-line"></i> 血圧を見る</button>
         <button onclick="inlineHelp()" class="buddy-action-btn" style="display:flex;align-items:center;gap:4px;padding:7px 12px;background:linear-gradient(135deg,#78909c,#90a4ae);color:white;border:none;border-radius:18px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;box-shadow:0 2px 6px rgba(120,144,156,0.25);font-family:inherit;"><i class="fas fa-question-circle"></i> 使い方</button>
       </div>
     </div>
@@ -2565,8 +2566,10 @@ function initBpCard() {
   var bpEnabled = localStorage.getItem('co_heart_bp_enabled') === '1';
   var card = document.getElementById('bp-card');
   if (card) card.style.display = bpEnabled ? 'block' : 'none';
-  var inlineBtn = document.getElementById('bp-inline-btn');
-  if (inlineBtn) inlineBtn.style.display = bpEnabled ? 'flex' : 'none';
+  ['bp-inline-btn','bp-view-inline-btn'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.style.display = bpEnabled ? 'flex' : 'none';
+  });
   var toggle = document.getElementById('bp-toggle');
   if (toggle) toggle.checked = bpEnabled;
 }
@@ -2574,9 +2577,102 @@ function toggleBpEnabled(on) {
   localStorage.setItem('co_heart_bp_enabled', on ? '1' : '0');
   var card = document.getElementById('bp-card');
   if (card) card.style.display = on ? 'block' : 'none';
-  var inlineBtn = document.getElementById('bp-inline-btn');
-  if (inlineBtn) inlineBtn.style.display = on ? 'flex' : 'none';
+  ['bp-inline-btn','bp-view-inline-btn'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.style.display = on ? 'flex' : 'none';
+  });
 }
+function inlineBpView() {
+  var msgs = document.getElementById('buddy-messages');
+  if (!msgs) return;
+  var loadDiv = document.createElement('div');
+  loadDiv.className = 'buddy-msg ai';
+  var aiAvatar = typeof buddyData !== 'undefined' && buddyData ? getAvatarHtml(buddyData.avatar, 42) : '<i class="fas fa-robot"></i>';
+  loadDiv.innerHTML = '<div class="buddy-avatar">' + aiAvatar + '</div><div><div class="buddy-bubble"><i class="fas fa-circle-notch fa-spin"></i> 血圧データを確認中...</div></div>';
+  msgs.appendChild(loadDiv);
+  msgs.scrollTop = msgs.scrollHeight;
+
+  api('/bp/history/' + currentUser.uid, undefined, getToken()).then(function(res) {
+    msgs.removeChild(loadDiv);
+    if (!res || !res.success || !res.data || res.data.length === 0) {
+      addBuddyMessage('ai', 'まだ血圧の記録がないよ。「血圧を測る」から記録してみてね！📋');
+      return;
+    }
+    var rows = res.data;
+    var recent = rows.slice(0, 20).reverse();
+    var maxVal = 180;
+
+    // グラフカード
+    var html = '<div style="background:linear-gradient(135deg,#fce4ec,#f3e5f5);border-radius:14px;padding:14px;border:1.5px solid #f48fb1;">';
+    html += '<div style="text-align:center;font-weight:900;font-size:0.85rem;color:#c2185b;margin-bottom:8px;"><i class="fas fa-chart-line" style="margin-right:4px;"></i>血圧の推移（直近' + recent.length + '件）</div>';
+    // 棒グラフ
+    html += '<div style="overflow-x:auto;padding-bottom:4px;"><div style="display:flex;gap:3px;align-items:flex-end;min-width:' + (recent.length * 32) + 'px;height:100px;">';
+    recent.forEach(function(r) {
+      var sH = Math.round(r.systolic / maxVal * 85);
+      var dH = Math.round(r.diastolic / maxVal * 85);
+      var sColor = r.systolic >= 140 ? '#e53935' : r.systolic >= 130 ? '#ff9800' : '#4caf50';
+      var dColor = r.diastolic >= 90 ? '#e53935' : r.diastolic >= 85 ? '#ff9800' : '#7b1fa2';
+      var date = (r.measured_at || r.created_at || '').substring(5, 10);
+      html += '<div style="display:flex;flex-direction:column;align-items:center;gap:1px;flex:1;min-width:28px;">';
+      html += '<div style="font-size:0.5rem;color:#c2185b;font-weight:700;">' + r.systolic + '</div>';
+      html += '<div style="width:12px;height:' + sH + 'px;background:' + sColor + ';border-radius:3px 3px 0 0;"></div>';
+      html += '<div style="width:12px;height:' + dH + 'px;background:' + dColor + ';border-radius:3px 3px 0 0;opacity:0.6;"></div>';
+      html += '<div style="font-size:0.45rem;color:#999;margin-top:1px;">' + date + '</div>';
+      html += '</div>';
+    });
+    html += '</div></div>';
+    // 直近3件の一覧
+    html += '<div style="margin-top:8px;">';
+    rows.slice(0, 5).forEach(function(r) {
+      var dt = (r.measured_at || r.created_at || '').substring(0, 16).replace('T', ' ');
+      var sStyle = r.systolic >= 140 ? 'color:#e53935;font-weight:700;' : r.systolic >= 130 ? 'color:#ff9800;' : 'color:#4caf50;';
+      var dStyle = r.diastolic >= 90 ? 'color:#e53935;font-weight:700;' : r.diastolic >= 85 ? 'color:#ff9800;' : 'color:#7b1fa2;';
+      html += '<div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid rgba(0,0,0,0.06);font-size:0.72rem;">';
+      html += '<span style="color:#999;width:80px;flex-shrink:0;">' + dt + '</span>';
+      html += '<span style="' + sStyle + '">' + r.systolic + '</span><span style="color:#ccc;">/</span><span style="' + dStyle + '">' + r.diastolic + '</span>';
+      if (r.pulse) html += '<span style="color:#888;font-size:0.65rem;">♡' + r.pulse + '</span>';
+      html += '</div>';
+    });
+    html += '</div></div>';
+
+    // チャットにカード表示
+    var div = document.createElement('div');
+    div.className = 'buddy-msg ai';
+    div.innerHTML = '<div class="buddy-avatar">' + aiAvatar + '</div><div style="flex:1;min-width:0;"><div class="buddy-bubble" style="padding:4px;">' + html + '</div></div>';
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+
+    // バディーが血圧についてコメント
+    var latest = rows[0];
+    var avg = { sys: 0, dia: 0, count: Math.min(rows.length, 7) };
+    for (var i = 0; i < avg.count; i++) { avg.sys += rows[i].systolic; avg.dia += rows[i].diastolic; }
+    avg.sys = Math.round(avg.sys / avg.count);
+    avg.dia = Math.round(avg.dia / avg.count);
+
+    var bpSummary = '直近の血圧: ' + latest.systolic + '/' + latest.diastolic;
+    if (latest.pulse) bpSummary += ' 脈拍' + latest.pulse;
+    bpSummary += '。直近' + avg.count + '回の平均: ' + avg.sys + '/' + avg.dia + '。';
+    if (avg.sys >= 140 || avg.dia >= 90) bpSummary += '高血圧域です。';
+    else if (avg.sys >= 130 || avg.dia >= 85) bpSummary += 'やや高めです。';
+    else bpSummary += '正常範囲です。';
+    bpSummary += ' 記録数: ' + rows.length + '件。';
+
+    // バディーにコメントさせる
+    setTimeout(function() {
+      if (typeof chatWithBuddyLocal === 'function') {
+        chatWithBuddyLocal('以下のユーザーの血圧データを踏まえて、短く（2-3文）健康アドバイスしてください。専門的すぎず親しみやすく。\n' + bpSummary);
+      } else {
+        // フォールバック: ローカルコメント
+        var comment = '';
+        if (avg.sys >= 140 || avg.dia >= 90) comment = '血圧が少し高めだね…😟 塩分控えめにしたり、軽い運動を心がけてみて。気になるなら一度お医者さんに相談するのもいいかも！';
+        else if (avg.sys >= 130 || avg.dia >= 85) comment = 'ちょっとだけ高めかな🤔 睡眠をしっかりとって、ストレス溜め込まないようにね。記録を続けて変化を見ていこう！';
+        else comment = '血圧は良い感じ！👍 この調子で規則正しい生活を続けていこうね。記録の習慣、えらい！✨';
+        addBuddyMessage('ai', comment);
+      }
+    }, 800);
+  });
+}
+
 function inlineBpRecord() {
   switchAppTab('menu');
   var body = document.getElementById('bp-body');

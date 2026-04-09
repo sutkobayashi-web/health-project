@@ -95,6 +95,26 @@ router.post('/message', authUser, async (req, res) => {
       userDataContext += (weeklyReport.report_text || '').substring(0, 300) + '\n';
     }
 
+    // 血圧データ
+    try {
+      const bpRows = db.prepare(`SELECT systolic, diastolic, pulse, measured_at FROM blood_pressure WHERE user_id = ? ORDER BY created_at DESC LIMIT 10`).all(uid);
+      if (bpRows.length > 0) {
+        userDataContext += `\n# 血圧記録（直近${bpRows.length}件）\n`;
+        let sSum = 0, dSum = 0;
+        bpRows.forEach(r => {
+          const d = (r.measured_at || '').substring(0, 10);
+          userDataContext += `- ${d}: ${r.systolic}/${r.diastolic}${r.pulse ? ' 脈拍'+r.pulse : ''}\n`;
+          sSum += r.systolic; dSum += r.diastolic;
+        });
+        const sAvg = Math.round(sSum / bpRows.length);
+        const dAvg = Math.round(dSum / bpRows.length);
+        let level = '正常範囲';
+        if (sAvg >= 140 || dAvg >= 90) level = '高血圧域（要注意）';
+        else if (sAvg >= 130 || dAvg >= 85) level = 'やや高め';
+        userDataContext += `平均: ${sAvg}/${dAvg} → ${level}\n`;
+      }
+    } catch(e) {}
+
   } catch(e) { /* データ取得失敗しても会話は続行 */ }
 
   const result = await chatWithBuddy(userMessage, history, userName, buddyType || 'gentle', buddyName || '', userDataContext);

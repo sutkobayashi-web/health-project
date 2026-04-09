@@ -113,9 +113,8 @@ function renderCustomAvatar(avatarStr, size) {
     var isAnimalCostume = species > 0 && species < AB_ANIMAL_NAMES.length;
     if (isAnimalCostume) {
       var animalColors = AB_ANIMAL_COLORS[species] || AB_ANIMAL_COLORS[1];
-      var animalSizeAdj = 1 + 3 * 0.12; // 常に最大サイズ
-      var animalFaceR = r * 0.55 * animalSizeAdj;
-      var animalFaceY = cy + r * 0.06;
+      var animalFaceR = r * 0.92; // 枠いっぱい
+      var animalFaceY = cy + r * 0.04;
       // 動物ボディだけ描画（目・口・ほっぺ・アクセサリーは描かない）
       switch (species) {
         case 1: drawAnimalChick(ctx, cx, animalFaceY, animalFaceR, animalColors); break;

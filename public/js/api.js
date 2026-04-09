@@ -25,11 +25,15 @@ async function api(path, data, token) {
           var errData = await res.json();
           if (errData.code === 'SESSION_EXPIRED') {
             alert('別の端末でログインされたため、セッションが無効になりました。再ログインしてください。');
-            localStorage.removeItem('co_heart_token');
-            location.reload();
-            return { success: false, msg: errData.msg };
+          } else {
+            alert('セッションが期限切れです。再ログインしてください。');
           }
-        } catch (e) {}
+        } catch (e) {
+          alert('セッションが期限切れです。再ログインしてください。');
+        }
+        localStorage.removeItem('co_heart_token');
+        location.reload();
+        return { success: false, msg: '認証エラー' };
       }
       return { success: false, msg: 'HTTP ' + res.status };
     }

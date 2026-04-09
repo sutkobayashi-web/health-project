@@ -728,12 +728,12 @@ router.get('/users-all', (req, res) => {
     // AI利用統計（buddy_messagesのAI返答数 = AI呼び出し回数）
     const aiStats = {};
     try {
-      db.prepare(`SELECT uid as user_id,
+      db.prepare(`SELECT user_id,
         COUNT(*) as ai_calls,
         MAX(created_at) as last_ai_use,
         COUNT(CASE WHEN created_at >= date('now', '-1 day') THEN 1 END) as ai_calls_today,
         COUNT(CASE WHEN created_at >= date('now', '-7 day') THEN 1 END) as ai_calls_week
-        FROM buddy_messages WHERE role = 'ai' GROUP BY uid`).all()
+        FROM buddy_messages WHERE role = 'ai' GROUP BY user_id`).all()
         .forEach(r => { aiStats[r.user_id] = r; });
     } catch(e) {}
 
@@ -747,8 +747,8 @@ router.get('/users-all', (req, res) => {
     // ユーザーのチャット発言数
     const chatCounts = {};
     try {
-      db.prepare(`SELECT uid as user_id, COUNT(*) as chat_count, MAX(created_at) as last_chat
-        FROM buddy_messages WHERE role = 'user' GROUP BY uid`).all()
+      db.prepare(`SELECT user_id, COUNT(*) as chat_count, MAX(created_at) as last_chat
+        FROM buddy_messages WHERE role = 'user' GROUP BY user_id`).all()
         .forEach(r => { chatCounts[r.user_id] = r; });
     } catch(e) {}
 

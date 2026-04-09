@@ -2663,7 +2663,7 @@ function inlineBpView() {
     setTimeout(function() {
       try {
         if (typeof buddyAskAI === 'function') {
-          buddyAskAI('free', '[システム] 以下の血圧データについて短く（2-3文）アドバイスして: ' + bpSummary);
+          buddyAskAI('free', '[システム] 以下の血圧データについて短く（2-3文）アドバイスして。重要: 血圧の数値は「最高血圧○○、最低血圧○○」と表記すること。「/」（スラッシュ）は絶対に使わないこと。\n' + bpSummary);
         } else {
           var comment = '';
           if (avg.sys >= 140 || avg.dia >= 90) comment = '血圧が少し高めだね…😟 塩分控えめにしたり、軽い運動を心がけてみて。気になるなら一度お医者さんに相談するのもいいかも！';

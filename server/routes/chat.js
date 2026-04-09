@@ -103,7 +103,7 @@ router.post('/message', authUser, async (req, res) => {
         let sSum = 0, dSum = 0;
         bpRows.forEach(r => {
           const d = (r.measured_at || '').substring(0, 10);
-          userDataContext += `- ${d}: ${r.systolic}/${r.diastolic}${r.pulse ? ' 脈拍'+r.pulse : ''}\n`;
+          userDataContext += `- ${d}: 最高血圧${r.systolic} 最低血圧${r.diastolic}${r.pulse ? ' 脈拍'+r.pulse : ''}\n`;
           sSum += r.systolic; dSum += r.diastolic;
         });
         const sAvg = Math.round(sSum / bpRows.length);
@@ -111,7 +111,8 @@ router.post('/message', authUser, async (req, res) => {
         let level = '正常範囲';
         if (sAvg >= 140 || dAvg >= 90) level = '高血圧域（要注意）';
         else if (sAvg >= 130 || dAvg >= 85) level = 'やや高め';
-        userDataContext += `平均: ${sAvg}/${dAvg} → ${level}\n`;
+        userDataContext += `平均: 最高血圧${sAvg} 最低血圧${dAvg} → ${level}\n`;
+        userDataContext += `※血圧を言及する際は「最高血圧○○、最低血圧○○」と表記し、スラッシュ(/)を使わないこと\n`;
       }
     } catch(e) {}
 

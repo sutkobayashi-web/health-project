@@ -5142,7 +5142,7 @@ function showBuddySetupPromptWithDismiss() {
   div.style.maxWidth = '85%';
   var buddyData = null;
   try { buddyData = JSON.parse(localStorage.getItem('co_heart_buddy')); } catch(e) {}
-  var aiAvatar = buddyData ? getAvatarHtml(buddyData.avatar, 48) : '<i class="fas fa-robot"></i>';
+  var aiAvatar = buddyData ? getAvatarHtml(buddyData.avatar, 42) : '<i class="fas fa-robot"></i>';
   var dismissId = 'buddy-dismiss-' + Date.now();
   div.innerHTML = '<div class="buddy-avatar">' + aiAvatar + '</div>' +
     '<div style="flex:1;min-width:0;">' +
@@ -5188,13 +5188,13 @@ function addBuddyMessage(role, text) {
 
   var buddyData = null;
   try { buddyData = JSON.parse(localStorage.getItem('co_heart_buddy')); } catch(e) {}
-  var aiAvatar = buddyData ? getAvatarHtml(buddyData.avatar, 48) : '<i class="fas fa-robot"></i>';
+  var aiAvatar = buddyData ? getAvatarHtml(buddyData.avatar, 42) : '<i class="fas fa-robot"></i>';
 
   var div = document.createElement('div');
   div.className = 'buddy-msg ' + (isAI ? 'ai' : 'user');
   var memoBtn = isAI ? '<button class="buddy-memo-btn" onclick="saveBuddyMemo(this)" data-text="' + text.replace(/"/g, '&quot;').replace(/'/g, '&#39;') + '"><i class="far fa-bookmark"></i> メモ</button>' : '';
   var speakBtn = isAI ? ' <button class="buddy-memo-btn" onclick="speakBuddyText(this)" data-text="' + text.replace(/"/g, '&quot;').replace(/'/g, '&#39;') + '" style="color:#0ea5e9;"><i class="fas fa-volume-up"></i></button>' : '';
-  div.innerHTML = '<div class="buddy-avatar">' + (isAI ? aiAvatar : getAvatarHtml(currentUser.avatar, 48)) + '</div>' +
+  div.innerHTML = '<div class="buddy-avatar">' + (isAI ? aiAvatar : getAvatarHtml(currentUser.avatar, 42)) + '</div>' +
     '<div style="flex:1;min-width:0;"><div class="buddy-bubble">' + bubbleContent + '</div>' +
     '<div class="buddy-time">' + time + memoBtn + speakBtn + '</div></div>';
 
@@ -5353,7 +5353,7 @@ async function buddyAskAI(concern, userText) {
   loadDiv.className = 'buddy-msg ai';
   var _buddyDataForLoading = null;
   try { _buddyDataForLoading = JSON.parse(localStorage.getItem('co_heart_buddy')); } catch(e) {}
-  var _loadingAvatar = _buddyDataForLoading ? getAvatarHtml(_buddyDataForLoading.avatar, 38) : '<i class="fas fa-robot"></i>';
+  var _loadingAvatar = _buddyDataForLoading ? getAvatarHtml(_buddyDataForLoading.avatar, 32) : '<i class="fas fa-robot"></i>';
   loadDiv.innerHTML = '<div class="buddy-avatar">' + _loadingAvatar + '</div><div><div class="buddy-bubble"><i class="fas fa-circle-notch fa-spin"></i> 考え中...</div></div>';
   msgs.appendChild(loadDiv);
   msgs.scrollTop = msgs.scrollHeight;
@@ -6511,7 +6511,7 @@ function handleFoodPhotoCapture(input) {
       var msgs = document.getElementById('buddy-messages');
       var div = document.createElement('div');
       div.className = 'buddy-msg user';
-      div.innerHTML = '<div class="buddy-avatar">' + getAvatarHtml(currentUser.avatar, 48) + '</div><div><div class="buddy-bubble"><img src="' + dataUrl + '" style="max-width:200px;border-radius:10px;display:block;margin-bottom:4px;">📸 この食事を診断して！</div></div>';
+      div.innerHTML = '<div class="buddy-avatar">' + getAvatarHtml(currentUser.avatar, 42) + '</div><div><div class="buddy-bubble"><img src="' + dataUrl + '" style="max-width:200px;border-radius:10px;display:block;margin-bottom:4px;">📸 この食事を診断して！</div></div>';
       msgs.appendChild(div);
       msgs.scrollTop = msgs.scrollHeight;
       // バディーが確認
@@ -6822,7 +6822,7 @@ function inlineChallengeView() {
     div.style.maxWidth = '85%';
     var buddyData = null;
     try { buddyData = JSON.parse(localStorage.getItem('co_heart_buddy')); } catch(e) {}
-    var aiAvatar = buddyData ? getAvatarHtml(buddyData.avatar, 48) : '<i class="fas fa-robot"></i>';
+    var aiAvatar = buddyData ? getAvatarHtml(buddyData.avatar, 42) : '<i class="fas fa-robot"></i>';
     var btns = data.challenges.map(function(c) {
       return '<button onclick="selectConcern(\'challenge_detail_' + c.challenge_id + '\')" class="buddy-quick-btn" style="margin:3px;">' + (c.icon || '💪') + ' ' + c.title + 'の詳細</button>';
     }).join('');

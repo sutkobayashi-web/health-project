@@ -725,16 +725,33 @@ router.get('/users-all', (req, res) => {
     db.prepare('SELECT user_id, COUNT(*) as cnt FROM posts GROUP BY user_id').all()
       .forEach(r => { postCounts[r.user_id] = r.cnt; });
 
-    // AI利用統計（buddy_messagesのAI返答数 = AI呼び出し回数）
+    // AI利用統計（buddy_messages現在数 + chat_stats累計）
     const aiStats = {};
     try {
-      db.prepare(`SELECT user_id,
-        COUNT(*) as ai_calls,
-        MAX(created_at) as last_ai_use,
-        COUNT(CASE WHEN created_at >= date('now', '-1 day') THEN 1 END) as ai_calls_today,
-        COUNT(CASE WHEN created_at >= date('now', '-7 day') THEN 1 END) as ai_calls_week
+      // 現在のbuddy_messages
+      const currentAi = {};
+      db.prepare(`SELECT user_id, COUNT(*) as c, MAX(created_at) as last_use,
+        COUNT(CASE WHEN created_at >= date('now', '-1 day') THEN 1 END) as today,
+        COUNT(CASE WHEN created_at >= date('now', '-7 day') THEN 1 END) as week
         FROM buddy_messages WHERE role = 'ai' GROUP BY user_id`).all()
-        .forEach(r => { aiStats[r.user_id] = r; });
+        .forEach(r => { currentAi[r.user_id] = r; });
+      // 累計（クリア済み分）
+      const archivedAi = {};
+      try {
+        db.prepare(`SELECT user_id, count FROM chat_stats WHERE role = 'ai'`).all()
+          .forEach(r => { archivedAi[r.user_id] = r.count; });
+      } catch(e) {}
+      // 合算
+      const allUids = new Set([...Object.keys(currentAi), ...Object.keys(archivedAi)]);
+      allUids.forEach(uid => {
+        const cur = currentAi[uid] || {};
+        aiStats[uid] = {
+          ai_calls: (cur.c || 0) + (archivedAi[uid] || 0),
+          last_ai_use: cur.last_use || null,
+          ai_calls_today: cur.today || 0,
+          ai_calls_week: cur.week || 0
+        };
+      });
     } catch(e) {}
 
     // 食事分析回数（AI呼び出し）
@@ -744,12 +761,26 @@ router.get('/users-all', (req, res) => {
         .forEach(r => { foodAiCounts[r.user_id] = r.cnt; });
     } catch(e) {}
 
-    // ユーザーのチャット発言数
+    // ユーザーのチャット発言数（現在 + 累計）
     const chatCounts = {};
     try {
+      const currentChat = {};
       db.prepare(`SELECT user_id, COUNT(*) as chat_count, MAX(created_at) as last_chat
         FROM buddy_messages WHERE role = 'user' GROUP BY user_id`).all()
-        .forEach(r => { chatCounts[r.user_id] = r; });
+        .forEach(r => { currentChat[r.user_id] = r; });
+      const archivedChat = {};
+      try {
+        db.prepare(`SELECT user_id, count FROM chat_stats WHERE role = 'user'`).all()
+          .forEach(r => { archivedChat[r.user_id] = r.count; });
+      } catch(e) {}
+      const allChatUids = new Set([...Object.keys(currentChat), ...Object.keys(archivedChat)]);
+      allChatUids.forEach(uid => {
+        const cur = currentChat[uid] || {};
+        chatCounts[uid] = {
+          chat_count: (cur.chat_count || 0) + (archivedChat[uid] || 0),
+          last_chat: cur.last_chat || null
+        };
+      });
     } catch(e) {}
 
     // ai_usage_logからトークン集計（user_idが記録されている分のみ）

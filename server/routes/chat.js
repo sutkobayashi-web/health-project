@@ -378,6 +378,14 @@ router.post('/buddy-history/clear', (req, res) => {
     const { uid } = req.body;
     if (!uid) return res.json({ success: false, msg: 'uid required' });
     const db = getDb();
+    // 統計用: 削除前のメッセージ数を累計カウンターに加算
+    try {
+      const counts = db.prepare("SELECT role, COUNT(*) as c FROM buddy_messages WHERE user_id = ? GROUP BY role").all(uid);
+      counts.forEach(r => {
+        db.prepare("INSERT INTO chat_stats (user_id, role, count) VALUES (?,?,?) ON CONFLICT(user_id, role) DO UPDATE SET count = count + ?")
+          .run(uid, r.role, r.c, r.c);
+      });
+    } catch(e) { /* 統計テーブル未作成時はスキップ */ }
     db.prepare("DELETE FROM buddy_messages WHERE user_id = ?").run(uid);
     res.json({ success: true });
   } catch (e) {

@@ -48,6 +48,16 @@ function getDb() {
       success INTEGER DEFAULT 1,
       created_at TEXT DEFAULT (datetime('now'))
     )`);
+    // チャット統計（履歴クリア時の累計保持）
+    try {
+      db.exec(`CREATE TABLE IF NOT EXISTS chat_stats (
+        user_id TEXT NOT NULL,
+        role TEXT NOT NULL,
+        count INTEGER DEFAULT 0,
+        PRIMARY KEY (user_id, role)
+      )`);
+    } catch(e) {}
+
     // マイグレーション: ai_usage_log に user_id カラム追加
     try { db.exec("ALTER TABLE ai_usage_log ADD COLUMN user_id TEXT DEFAULT ''"); } catch(e) {}
 

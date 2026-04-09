@@ -867,7 +867,7 @@
         <button onclick="inlineFoodCheck()" class="buddy-action-btn" style="display:flex;align-items:center;gap:4px;padding:7px 12px;background:linear-gradient(135deg,#20c997,#38d9a9);color:white;border:none;border-radius:18px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;box-shadow:0 2px 6px rgba(32,201,151,0.25);font-family:inherit;"><i class="fas fa-utensils"></i> ごはん見せる</button>
         <button onclick="inlineHealthConsult()" class="buddy-action-btn" style="display:flex;align-items:center;gap:4px;padding:7px 12px;background:linear-gradient(135deg,#e91e63,#f06292);color:white;border:none;border-radius:18px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;box-shadow:0 2px 6px rgba(233,30,99,0.25);font-family:inherit;"><i class="fas fa-heartbeat"></i> 体調相談</button>
         <button onclick="inlineMemberConsult()" class="buddy-action-btn" style="display:flex;align-items:center;gap:4px;padding:7px 12px;background:linear-gradient(135deg,#f39c12,#f1c40f);color:white;border:none;border-radius:18px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;box-shadow:0 2px 6px rgba(243,156,18,0.25);font-family:inherit;"><i class="fas fa-shield-alt"></i> 推進メンバーに相談</button>
-        <button onclick="window._buddyEntryCardsDismissed=false;showBuddyEntryCards();" class="buddy-action-btn" style="display:flex;align-items:center;gap:4px;padding:7px 12px;background:linear-gradient(135deg,#7c3aed,#a78bfa);color:white;border:none;border-radius:18px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;box-shadow:0 2px 6px rgba(124,58,237,0.25);font-family:inherit;"><i class="fas fa-th-large"></i> 話題から選ぶ</button>
+        <button onclick="inlineTopicMenu()" class="buddy-action-btn" style="display:flex;align-items:center;gap:4px;padding:7px 12px;background:linear-gradient(135deg,#7c3aed,#a78bfa);color:white;border:none;border-radius:18px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;box-shadow:0 2px 6px rgba(124,58,237,0.25);font-family:inherit;"><i class="fas fa-th-large"></i> 話題から選ぶ</button>
       </div>
       <div style="display:flex;gap:5px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;touch-action:pan-x;">
         <button onclick="inlineChallengeJoin()" class="buddy-action-btn" style="display:flex;align-items:center;gap:4px;padding:7px 12px;background:linear-gradient(135deg,#ff6b35,#ff9a5c);color:white;border:none;border-radius:18px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;box-shadow:0 2px 6px rgba(255,107,53,0.25);font-family:inherit;"><i class="fas fa-fire"></i> チャレンジ参加！</button>
@@ -6927,6 +6927,46 @@ var HELP_TOPICS = {
     answer: 'CoWellコインは、アプリを使うだけで貯まるポイントだよ！\n\n🪙 もらえるコイン：\n✍️ 投稿する → +10コイン\n📸 食事写真を投稿 → +8コイン\n💗 共感+3問回答 → +5コイン\n💬 書き込み → +3コイン\n📊 チャレンジKPI記録 → 毎日+2コイン\n\n🏅 貯まるとバッジがもらえる：\n🥉 50pt ブロンズ\n🥈 150pt シルバー\n🥇 300pt ゴールド → 🎁 QUOカード500円\n👑 500pt プラチナ → 🎁 QUOカード1,000円\n\n📊 残高はアバタータップで確認できるよ！'
   }
 };
+
+function inlineTopicMenu() {
+  var topic = _getDailyTopic();
+  addBuddyMessage('ai', '🌟 今日のお題\n「' + topic.topic + '」\n\n何について話す？タップして選んでね！');
+  setTimeout(function() {
+    // 会話系
+    var html = '<div style="padding:4px 0;">';
+    html += '<div style="font-size:0.62rem;font-weight:800;color:#0369a1;margin-bottom:4px;text-align:center;">💬 バディーと話す</div>';
+    html += '<div style="display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin-bottom:8px;">';
+    var talkItems = [
+      { label: '💬 ひとこと聞いて', action: "entryCardDailyTheme()", color: '#0369a1' },
+      { label: '📋 体調レポート', action: "entryCardHealthReport()", color: '#b45309' },
+      { label: '😟 モヤっとを聞いて', action: "entryCardVent()", color: '#be185d' },
+      { label: '💡 こうなったらいいな', action: "entryCardSuggest()", color: '#15803d' },
+      { label: '🛡 推進メンバーに相談', action: "entryCardConsult()", color: '#6d28d9' }
+    ];
+    talkItems.forEach(function(it) {
+      html += '<div class="buddy-quick-btn" onclick="markBuddyQuickUsed();' + it.action + '" style="border-color:' + it.color + ';color:' + it.color + ';font-size:0.72rem;padding:6px 10px;">' + it.label + '</div>';
+    });
+    html += '</div>';
+    // アクション系
+    html += '<div style="font-size:0.62rem;font-weight:800;color:#059669;margin-bottom:4px;text-align:center;">⚡ やってみる・見る</div>';
+    html += '<div style="display:flex;flex-wrap:wrap;gap:5px;justify-content:center;">';
+    var actionItems = [
+      { label: '🍱 ごはん見せる', action: "inlineFoodCheck()", color: '#059669' },
+      { label: '🔥 チャレンジ参加', action: "inlineChallengeJoin()", color: '#c2410c' },
+      { label: '🌤 みんなの空気', action: "inlineAtmosphere()", color: '#047857' },
+      { label: '📰 みんなの投稿', action: "inlineTimelineView()", color: '#6d28d9' }
+    ];
+    actionItems.forEach(function(it) {
+      html += '<div class="buddy-quick-btn" onclick="markBuddyQuickUsed();' + it.action + '" style="border-color:' + it.color + ';color:' + it.color + ';font-size:0.72rem;padding:6px 10px;">' + it.label + '</div>';
+    });
+    html += '</div>';
+    html += '<div style="text-align:center;margin-top:6px;"><div class="buddy-quick-btn" onclick="cancelCaptureMode()" style="border-color:#999;color:#999;font-size:0.68rem;">✕ 閉じる</div></div>';
+    html += '</div>';
+    addBuddyInlineQuick(html);
+    var msgs = document.getElementById('buddy-messages');
+    if (msgs) msgs.scrollTop = msgs.scrollHeight;
+  }, 400);
+}
 
 function inlineHelp() {
   hideActionBar();

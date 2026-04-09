@@ -161,8 +161,8 @@ function loadData() {
     // メンバーリスト＆ハートビート開始
     startHeartbeat();
     loadSidebarMembers();
-    // オンラインユーザーヒート表示
-    loadOnlineHeat();
+    // オンラインユーザーヒート表示（ハートビート送信後に取得）
+    setTimeout(loadOnlineHeat, 2000);
     setInterval(loadOnlineHeat, 30000);
     // CoWellコインランキング
     loadMariganRanking();

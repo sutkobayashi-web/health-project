@@ -1452,6 +1452,13 @@ function abRenderBuilderUI(containerId, previewCanvasId) {
 
   var isAnimal = abState.species > 0;
 
+  if (isAnimal) {
+  // 動物サイズスライダー
+  html += '<div class="avatar-builder-row"><label>📐 大きさ</label>';
+  html += abSlider('sizeFace', '大きさ', -3, 3);
+  html += '</div>';
+  }
+
   if (!isAnimal) {
   // 輪郭（最初に選択）
   html += '<div class="avatar-builder-row"><label>🫥 輪郭</label><div class="avatar-builder-options">';

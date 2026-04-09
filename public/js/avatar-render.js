@@ -103,7 +103,7 @@ function renderCustomAvatar(avatarStr, size) {
 
     // 動物キャラの場合は専用レンダラーへ分岐
     if (species > 0 && species < AB_ANIMAL_NAMES.length) {
-      var animalResult = renderAnimalAvatar(size, species, bgColor, eyeType, mouthType, accessories, cheekType);
+      var animalResult = renderAnimalAvatar(size, species, bgColor, eyeType, mouthType, accessories, cheekType, sizeFaceVal);
       if (animalResult) { _avatarCache[cacheKey] = animalResult; }
       return animalResult;
     }
@@ -4018,7 +4018,7 @@ function drawAccessory(ctx, cx, faceY, eyeY, faceR, eyeSpacing, acc, hairColor, 
 }
 
 // ====== 動物キャラ描画 ======
-function renderAnimalAvatar(size, species, bgColor, eyeType, mouthType, accessories, cheekType) {
+function renderAnimalAvatar(size, species, bgColor, eyeType, mouthType, accessories, cheekType, sizeFaceVal) {
   var canvas = document.createElement('canvas');
   canvas.width = size; canvas.height = size;
   var ctx = canvas.getContext('2d');
@@ -4028,7 +4028,8 @@ function renderAnimalAvatar(size, species, bgColor, eyeType, mouthType, accessor
   // 背景円
   ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fillStyle = bgColor; ctx.fill();
 
-  var faceR = r * 0.62;
+  var sizeAdj = 1 + (sizeFaceVal || 0) * 0.08;
+  var faceR = r * 0.62 * sizeAdj;
   var faceY = cy + r * 0.06;
 
   // 動物ごとの特徴描画

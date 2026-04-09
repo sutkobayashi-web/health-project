@@ -1196,14 +1196,28 @@ router.get('/ai-usage', (req, res) => {
   try {
     const db = getDb();
     // 今日
-    const today = db.prepare("SELECT provider, function_name, COUNT(*) as count, SUM(tokens_in) as tokens_in, SUM(tokens_out) as tokens_out, SUM(CASE WHEN success=1 THEN 1 ELSE 0 END) as ok, SUM(CASE WHEN success=0 THEN 1 ELSE 0 END) as fail FROM ai_usage_log WHERE created_at >= date('now') GROUP BY provider, function_name ORDER BY count DESC").all();
+    const today = db.prepare("SELECT provider, model, function_name, COUNT(*) as count, SUM(tokens_in) as tokens_in, SUM(tokens_out) as tokens_out, SUM(CASE WHEN success=1 THEN 1 ELSE 0 END) as ok, SUM(CASE WHEN success=0 THEN 1 ELSE 0 END) as fail FROM ai_usage_log WHERE created_at >= date('now') GROUP BY provider, function_name ORDER BY count DESC").all();
+    // 今週
+    const week = db.prepare("SELECT provider, model, function_name, COUNT(*) as count, SUM(tokens_in) as tokens_in, SUM(tokens_out) as tokens_out FROM ai_usage_log WHERE created_at >= date('now','-7 days') GROUP BY provider, function_name ORDER BY count DESC").all();
     // 今月
-    const month = db.prepare("SELECT provider, function_name, COUNT(*) as count, SUM(tokens_in) as tokens_in, SUM(tokens_out) as tokens_out FROM ai_usage_log WHERE created_at >= date('now','start of month') GROUP BY provider, function_name ORDER BY count DESC").all();
+    const month = db.prepare("SELECT provider, model, function_name, COUNT(*) as count, SUM(tokens_in) as tokens_in, SUM(tokens_out) as tokens_out FROM ai_usage_log WHERE created_at >= date('now','start of month') GROUP BY provider, function_name ORDER BY count DESC").all();
     // 日別推移（過去30日）
-    const daily = db.prepare("SELECT date(created_at) as date, provider, COUNT(*) as count, SUM(tokens_in+tokens_out) as tokens FROM ai_usage_log WHERE created_at >= date('now','-30 days') GROUP BY date(created_at), provider ORDER BY date").all();
+    const daily = db.prepare("SELECT date(created_at) as date, provider, COUNT(*) as count, SUM(tokens_in) as tin, SUM(tokens_out) as tout FROM ai_usage_log WHERE created_at >= date('now','-30 days') GROUP BY date(created_at), provider ORDER BY date").all();
     // 合計
     const totals = db.prepare("SELECT provider, COUNT(*) as count, SUM(tokens_in) as tokens_in, SUM(tokens_out) as tokens_out FROM ai_usage_log GROUP BY provider").all();
-    res.json({ success: true, today, month, daily, totals });
+    // 期間別サマリー（トークン合計）
+    const todaySum = db.prepare("SELECT COALESCE(SUM(tokens_in),0) as tin, COALESCE(SUM(tokens_out),0) as tout, COUNT(*) as calls FROM ai_usage_log WHERE created_at >= date('now')").get();
+    const weekSum = db.prepare("SELECT COALESCE(SUM(tokens_in),0) as tin, COALESCE(SUM(tokens_out),0) as tout, COUNT(*) as calls FROM ai_usage_log WHERE created_at >= date('now','-7 days')").get();
+    const monthSum = db.prepare("SELECT COALESCE(SUM(tokens_in),0) as tin, COALESCE(SUM(tokens_out),0) as tout, COUNT(*) as calls FROM ai_usage_log WHERE created_at >= date('now','start of month')").get();
+    const allSum = db.prepare("SELECT COALESCE(SUM(tokens_in),0) as tin, COALESCE(SUM(tokens_out),0) as tout, COUNT(*) as calls FROM ai_usage_log").get();
+    // モデル別集計
+    const byModel = db.prepare("SELECT model, COUNT(*) as calls, SUM(tokens_in) as tin, SUM(tokens_out) as tout FROM ai_usage_log GROUP BY model ORDER BY calls DESC").all();
+    // ユーザー別TOP10
+    const topUsers = db.prepare(`SELECT a.user_id, u.nickname, COUNT(*) as calls, SUM(a.tokens_in) as tin, SUM(a.tokens_out) as tout
+      FROM ai_usage_log a LEFT JOIN users u ON a.user_id = u.id
+      WHERE a.user_id != '' GROUP BY a.user_id ORDER BY calls DESC LIMIT 10`).all();
+
+    res.json({ success: true, today, week, month, daily, totals, todaySum, weekSum, monthSum, allSum, byModel, topUsers });
   } catch (e) {
     res.json({ success: false, error: e.message });
   }

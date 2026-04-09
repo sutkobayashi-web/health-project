@@ -211,70 +211,153 @@ function loadAiUsage() {
     body.innerHTML = '<div class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm"></div> 読み込み中...</div>';
     api('/admin/ai-usage', undefined, getAdminToken()).then(function(res) {
         if (!res || !res.success) { body.innerHTML = '<div class="text-muted text-center p-4">データを取得できませんでした</div>'; return; }
+
+        // 課金推定（Gemini Flash: 入力$0.075/100万トークン, 出力$0.30/100万トークン）
+        // Gemini Pro: 入力$1.25/100万, 出力$5.00/100万
+        // 1ドル=150円で換算
+        function estimateCost(tin, tout) {
+            var inCost = (tin || 0) / 1000000 * 0.075;
+            var outCost = (tout || 0) / 1000000 * 0.30;
+            var usd = inCost + outCost;
+            var jpy = Math.round(usd * 150);
+            return { usd: usd.toFixed(4), jpy: jpy };
+        }
+
         var html = '';
-        // 合計サマリー
-        html += '<div class="row g-3 mb-4">';
-        (res.totals || []).forEach(function(t) {
-            var color = t.provider === 'groq' ? '#667eea' : '#4caf50';
-            var icon = t.provider === 'groq' ? 'fa-brain' : 'fa-eye';
-            html += '<div class="col-6"><div style="background:white; border-radius:16px; padding:16px; box-shadow:0 2px 10px rgba(0,0,0,0.06); border-top:4px solid ' + color + ';">' +
-                '<div style="font-size:0.75rem; color:#999; font-weight:700;"><i class="fas ' + icon + '" style="color:' + color + ';"></i> ' + t.provider.toUpperCase() + ' 全期間</div>' +
-                '<div style="font-size:1.8rem; font-weight:900; color:#2c3e50;">' + t.count + '<span style="font-size:0.7rem; color:#999;"> 回</span></div>' +
-                '<div style="font-size:0.7rem; color:#888;">トークン: ' + ((t.tokens_in || 0) + (t.tokens_out || 0)).toLocaleString() + '</div>' +
-                '</div></div>';
+        // ========== 期間別サマリー ==========
+        var periods = [
+            { label: '今日', icon: 'fa-calendar-day', color: '#3b82f6', bg: '#eff6ff', data: res.todaySum },
+            { label: '今週', icon: 'fa-calendar-week', color: '#8b5cf6', bg: '#f5f3ff', data: res.weekSum },
+            { label: '今月', icon: 'fa-calendar-alt', color: '#059669', bg: '#ecfdf5', data: res.monthSum },
+            { label: '累計', icon: 'fa-database', color: '#dc2626', bg: '#fef2f2', data: res.allSum }
+        ];
+        html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">';
+        periods.forEach(function(p) {
+            var d = p.data || {};
+            var cost = estimateCost(d.tin, d.tout);
+            var tokens = (d.tin || 0) + (d.tout || 0);
+            var tokensStr = tokens > 1000000 ? (tokens/1000000).toFixed(1)+'M' : tokens > 1000 ? (tokens/1000).toFixed(0)+'K' : tokens;
+            html += '<div style="background:' + p.bg + ';border-radius:14px;padding:14px;border:1.5px solid ' + p.color + '22;">';
+            html += '<div style="font-size:0.68rem;color:' + p.color + ';font-weight:700;margin-bottom:4px;"><i class="fas ' + p.icon + ' me-1"></i>' + p.label + '</div>';
+            html += '<div style="font-size:1.5rem;font-weight:900;color:#1e293b;">' + (d.calls || 0) + '<span style="font-size:0.65rem;color:#999;"> 回</span></div>';
+            html += '<div style="font-size:0.65rem;color:#666;margin-top:2px;">トークン: ' + tokensStr + '</div>';
+            html += '<div style="font-size:0.72rem;font-weight:800;color:' + p.color + ';margin-top:4px;">¥' + cost.jpy.toLocaleString() + ' <span style="font-size:0.58rem;color:#999;">($' + cost.usd + ')</span></div>';
+            html += '</div>';
         });
         html += '</div>';
-        // 今日の使用量
-        html += '<div class="card mb-3 shadow-sm"><div class="card-header fw-bold" style="background:#f8f9fa; font-size:0.85rem;"><i class="fas fa-calendar-day text-primary me-2"></i>今日の使用量</div>';
+
+        // ========== モデル別 ==========
+        if (res.byModel && res.byModel.length > 0) {
+            html += '<div class="card mb-3 shadow-sm"><div class="card-header fw-bold" style="background:#f8f9fa;font-size:0.85rem;"><i class="fas fa-microchip text-info me-2"></i>モデル別</div>';
+            html += '<div class="card-body p-0"><table class="table table-sm mb-0" style="font-size:0.8rem;"><thead><tr><th>モデル</th><th>回数</th><th>トークン</th><th>推定コスト</th></tr></thead><tbody>';
+            res.byModel.forEach(function(m) {
+                var cost = estimateCost(m.tin, m.tout);
+                var tokens = ((m.tin||0) + (m.tout||0));
+                html += '<tr><td class="fw-bold">' + (m.model||'不明') + '</td><td>' + m.calls + '</td><td>' + tokens.toLocaleString() + '</td><td style="color:#dc2626;font-weight:700;">¥' + cost.jpy.toLocaleString() + '</td></tr>';
+            });
+            html += '</tbody></table></div></div>';
+        }
+
+        // ========== 今日の詳細 ==========
+        html += '<div class="card mb-3 shadow-sm"><div class="card-header fw-bold" style="background:#f8f9fa;font-size:0.85rem;"><i class="fas fa-calendar-day text-primary me-2"></i>今日の詳細</div>';
         html += '<div class="card-body p-0">';
         if (!res.today || res.today.length === 0) {
             html += '<div class="text-muted text-center p-3 small">今日はまだ使用されていません</div>';
         } else {
-            html += '<table class="table table-sm mb-0" style="font-size:0.8rem;"><thead><tr><th>Provider</th><th>機能</th><th>回数</th><th>成功</th><th>失敗</th><th>トークン</th></tr></thead><tbody>';
+            html += '<table class="table table-sm mb-0" style="font-size:0.78rem;"><thead><tr><th>Provider</th><th>機能</th><th>回数</th><th>成功</th><th>失敗</th><th>トークン</th><th>コスト</th></tr></thead><tbody>';
             res.today.forEach(function(r) {
-                html += '<tr><td><span class="badge" style="background:' + (r.provider === 'groq' ? '#667eea' : '#4caf50') + ';">' + r.provider + '</span></td>' +
+                var cost = estimateCost(r.tokens_in, r.tokens_out);
+                html += '<tr><td><span class="badge" style="background:#4caf50;">' + r.provider + '</span></td>' +
                     '<td>' + r.function_name + '</td><td class="fw-bold">' + r.count + '</td>' +
-                    '<td class="text-success">' + (r.ok || 0) + '</td><td class="text-danger">' + (r.fail || 0) + '</td>' +
-                    '<td>' + ((r.tokens_in || 0) + (r.tokens_out || 0)).toLocaleString() + '</td></tr>';
+                    '<td class="text-success">' + (r.ok||0) + '</td><td class="text-danger">' + (r.fail||0) + '</td>' +
+                    '<td>' + ((r.tokens_in||0)+(r.tokens_out||0)).toLocaleString() + '</td>' +
+                    '<td style="color:#dc2626;">¥' + cost.jpy + '</td></tr>';
             });
             html += '</tbody></table>';
         }
         html += '</div></div>';
-        // 今月の使用量
-        html += '<div class="card mb-3 shadow-sm"><div class="card-header fw-bold" style="background:#f8f9fa; font-size:0.85rem;"><i class="fas fa-calendar-alt text-success me-2"></i>今月の使用量</div>';
+
+        // ========== 今週の詳細 ==========
+        html += '<div class="card mb-3 shadow-sm"><div class="card-header fw-bold" style="background:#f8f9fa;font-size:0.85rem;"><i class="fas fa-calendar-week text-purple me-2" style="color:#8b5cf6;"></i>今週の詳細</div>';
+        html += '<div class="card-body p-0">';
+        if (!res.week || res.week.length === 0) {
+            html += '<div class="text-muted text-center p-3 small">今週はまだ使用されていません</div>';
+        } else {
+            html += '<table class="table table-sm mb-0" style="font-size:0.78rem;"><thead><tr><th>Provider</th><th>機能</th><th>回数</th><th>トークン</th><th>コスト</th></tr></thead><tbody>';
+            res.week.forEach(function(r) {
+                var cost = estimateCost(r.tokens_in, r.tokens_out);
+                html += '<tr><td><span class="badge" style="background:#4caf50;">' + r.provider + '</span></td>' +
+                    '<td>' + r.function_name + '</td><td class="fw-bold">' + r.count + '</td>' +
+                    '<td>' + ((r.tokens_in||0)+(r.tokens_out||0)).toLocaleString() + '</td>' +
+                    '<td style="color:#dc2626;">¥' + cost.jpy + '</td></tr>';
+            });
+            html += '</tbody></table>';
+        }
+        html += '</div></div>';
+
+        // ========== 今月の詳細 ==========
+        html += '<div class="card mb-3 shadow-sm"><div class="card-header fw-bold" style="background:#f8f9fa;font-size:0.85rem;"><i class="fas fa-calendar-alt text-success me-2"></i>今月の詳細</div>';
         html += '<div class="card-body p-0">';
         if (!res.month || res.month.length === 0) {
             html += '<div class="text-muted text-center p-3 small">今月はまだ使用されていません</div>';
         } else {
-            html += '<table class="table table-sm mb-0" style="font-size:0.8rem;"><thead><tr><th>Provider</th><th>機能</th><th>回数</th><th>トークン</th></tr></thead><tbody>';
+            html += '<table class="table table-sm mb-0" style="font-size:0.78rem;"><thead><tr><th>Provider</th><th>機能</th><th>回数</th><th>トークン</th><th>コスト</th></tr></thead><tbody>';
             res.month.forEach(function(r) {
-                html += '<tr><td><span class="badge" style="background:' + (r.provider === 'groq' ? '#667eea' : '#4caf50') + ';">' + r.provider + '</span></td>' +
+                var cost = estimateCost(r.tokens_in, r.tokens_out);
+                html += '<tr><td><span class="badge" style="background:#4caf50;">' + r.provider + '</span></td>' +
                     '<td>' + r.function_name + '</td><td class="fw-bold">' + r.count + '</td>' +
-                    '<td>' + ((r.tokens_in || 0) + (r.tokens_out || 0)).toLocaleString() + '</td></tr>';
+                    '<td>' + ((r.tokens_in||0)+(r.tokens_out||0)).toLocaleString() + '</td>' +
+                    '<td style="color:#dc2626;">¥' + cost.jpy + '</td></tr>';
             });
             html += '</tbody></table>';
         }
         html += '</div></div>';
-        // 日別推移
-        html += '<div class="card shadow-sm"><div class="card-header fw-bold" style="background:#f8f9fa; font-size:0.85rem;"><i class="fas fa-chart-line text-warning me-2"></i>日別推移（過去30日）</div>';
+
+        // ========== 日別推移 ==========
+        html += '<div class="card mb-3 shadow-sm"><div class="card-header fw-bold" style="background:#f8f9fa;font-size:0.85rem;"><i class="fas fa-chart-line text-warning me-2"></i>日別推移（30日）</div>';
         html += '<div class="card-body p-2">';
         if (!res.daily || res.daily.length === 0) {
             html += '<div class="text-muted text-center p-3 small">データなし</div>';
         } else {
-            var maxCount = Math.max.apply(null, res.daily.map(function(d) { return d.count; })) || 1;
-            html += '<div style="display:flex; align-items:flex-end; gap:2px; height:120px; overflow-x:auto; padding:4px;">';
+            // 日付ごとに集約
+            var dayMap = {};
             res.daily.forEach(function(d) {
-                var h = Math.max(4, (d.count / maxCount) * 100);
-                var color = d.provider === 'groq' ? '#667eea' : '#4caf50';
-                html += '<div style="display:flex; flex-direction:column; align-items:center; flex-shrink:0; width:20px;" title="' + d.date + ' ' + d.provider + ': ' + d.count + '回">' +
-                    '<div style="font-size:0.5rem; color:#999;">' + d.count + '</div>' +
-                    '<div style="width:14px; height:' + h + 'px; background:' + color + '; border-radius:3px 3px 0 0;"></div>' +
-                    '</div>';
+                if (!dayMap[d.date]) dayMap[d.date] = { calls: 0, tin: 0, tout: 0 };
+                dayMap[d.date].calls += d.count;
+                dayMap[d.date].tin += (d.tin || 0);
+                dayMap[d.date].tout += (d.tout || 0);
+            });
+            var days = Object.keys(dayMap).sort();
+            var maxCalls = Math.max.apply(null, days.map(function(d) { return dayMap[d].calls; })) || 1;
+            html += '<div style="display:flex;align-items:flex-end;gap:2px;height:100px;overflow-x:auto;padding:4px;">';
+            days.forEach(function(d) {
+                var dd = dayMap[d];
+                var h = Math.max(4, (dd.calls / maxCalls) * 85);
+                var cost = estimateCost(dd.tin, dd.tout);
+                html += '<div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0;min-width:18px;" title="' + d + ': ' + dd.calls + '回 ¥' + cost.jpy + '">' +
+                    '<div style="font-size:0.45rem;color:#999;">' + dd.calls + '</div>' +
+                    '<div style="width:14px;height:' + h + 'px;background:linear-gradient(180deg,#4caf50,#2e7d32);border-radius:3px 3px 0 0;"></div>' +
+                    '<div style="font-size:0.4rem;color:#bbb;margin-top:1px;">' + d.substring(5) + '</div></div>';
             });
             html += '</div>';
-            html += '<div style="font-size:0.6rem; color:#aaa; text-align:center; margin-top:4px;"><span style="display:inline-block; width:10px; height:10px; background:#667eea; border-radius:2px; margin-right:2px;"></span>Groq <span style="display:inline-block; width:10px; height:10px; background:#4caf50; border-radius:2px; margin:0 2px 0 8px;"></span>Gemini</div>';
         }
         html += '</div></div>';
+
+        // ========== ユーザー別TOP10 ==========
+        if (res.topUsers && res.topUsers.length > 0) {
+            html += '<div class="card shadow-sm"><div class="card-header fw-bold" style="background:#f8f9fa;font-size:0.85rem;"><i class="fas fa-users text-danger me-2"></i>ユーザー別 AI利用 TOP10</div>';
+            html += '<div class="card-body p-0"><table class="table table-sm mb-0" style="font-size:0.78rem;"><thead><tr><th>#</th><th>ユーザー</th><th>回数</th><th>トークン</th><th>推定コスト</th></tr></thead><tbody>';
+            res.topUsers.forEach(function(u, i) {
+                var cost = estimateCost(u.tin, u.tout);
+                html += '<tr><td>' + (i+1) + '</td><td class="fw-bold">' + (u.nickname || u.user_id.substring(0,8)) + '</td><td>' + u.calls + '</td><td>' + ((u.tin||0)+(u.tout||0)).toLocaleString() + '</td><td style="color:#dc2626;font-weight:700;">¥' + cost.jpy.toLocaleString() + '</td></tr>';
+            });
+            html += '</tbody></table></div></div>';
+        }
+
+        // 料金注記
+        html += '<div style="font-size:0.62rem;color:#999;text-align:center;margin-top:12px;padding:8px;background:#f8f9fa;border-radius:8px;">' +
+            '※ 推定コストはGemini Flash料金（入力$0.075/100万トークン, 出力$0.30/100万トークン）× 150円/ドルで算出。実際の請求額とは異なる場合があります。</div>';
+
         body.innerHTML = html;
     });
 }

@@ -956,9 +956,10 @@ function sendBroadcastNotice() {
 var _onlineHeatExpanded = false;
 
 function loadOnlineHeat() {
+    var ts = Date.now();
     Promise.all([
-        api('/admin/members-status', undefined, getAdminToken()).catch(function() { return []; }),
-        fetch('/api/auth/online-users', { headers: { 'Authorization': 'Bearer ' + getAdminToken() } }).then(function(r) { return r.json(); }).catch(function() { return { online: [] }; })
+        api('/admin/members-status?_t=' + ts, undefined, getAdminToken()).catch(function() { return []; }),
+        fetch('/api/auth/online-users?_t=' + ts, { headers: { 'Authorization': 'Bearer ' + getAdminToken() } }).then(function(r) { return r.json(); }).catch(function() { return { online: [] }; })
     ]).then(function(results) {
         var coreMembers = Array.isArray(results[0]) ? results[0] : [];
         var userData = results[1] || {};

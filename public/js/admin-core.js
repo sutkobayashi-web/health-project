@@ -1125,45 +1125,112 @@ function toggleShowRealName(table, id, value) {
     });
 }
 
-// 推進メンバー使い方ガイドパネル
-// AI利用サマリー
+// AI利用サマリー（メンバー管理タブ上部）
 function toggleAiSummary() {
     var body = document.getElementById('ai-summary-body');
     if (!body) return;
     if (body.style.display !== 'none') { body.style.display = 'none'; return; }
     body.style.display = 'block';
     body.innerHTML = '<div class="text-center p-3"><div class="spinner-border text-warning" role="status"></div></div>';
-    api('/admin/ai-usage-summary', undefined, getAdminToken()).then(function(res) {
+
+    // Gemini Flash料金: 入力$0.075/100万トークン, 出力$0.30/100万トークン, 1$=150円
+    function estCost(tin, tout) {
+        var usd = (tin||0)/1e6*0.075 + (tout||0)/1e6*0.30;
+        return { usd: usd.toFixed(4), jpy: Math.round(usd*150) };
+    }
+    function fmtTokens(n) { return n>1e6?(n/1e6).toFixed(1)+'M':n>1000?(n/1000).toFixed(0)+'K':n; }
+
+    api('/admin/ai-usage?_t='+Date.now(), undefined, getAdminToken()).then(function(res) {
         if (!res || !res.success) { body.innerHTML = '<div class="text-muted text-center p-3">データ取得失敗</div>'; return; }
-        var t = res.total || {}, d = res.today || {}, w = res.week || {};
-        var html = '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">';
-        html += '<div style="flex:1;min-width:120px;background:linear-gradient(135deg,#fff3e0,#ffe0b2);border-radius:12px;padding:12px;text-align:center;"><div style="font-size:0.65rem;color:#e65100;font-weight:700;">今日</div><div style="font-size:1.3rem;font-weight:900;color:#e65100;">' + (d.calls || 0) + '</div><div style="font-size:0.6rem;color:#999;">回</div></div>';
-        html += '<div style="flex:1;min-width:120px;background:linear-gradient(135deg,#e3f2fd,#bbdefb);border-radius:12px;padding:12px;text-align:center;"><div style="font-size:0.65rem;color:#1565c0;font-weight:700;">今週</div><div style="font-size:1.3rem;font-weight:900;color:#1565c0;">' + (w.calls || 0) + '</div><div style="font-size:0.6rem;color:#999;">回</div></div>';
-        html += '<div style="flex:1;min-width:120px;background:linear-gradient(135deg,#f3e5f5,#e1bee7);border-radius:12px;padding:12px;text-align:center;"><div style="font-size:0.65rem;color:#7b1fa2;font-weight:700;">累計</div><div style="font-size:1.3rem;font-weight:900;color:#7b1fa2;">' + (t.calls || 0) + '</div><div style="font-size:0.6rem;color:#999;">回</div></div>';
-        var totalTokens = (t.tin || 0) + (t.tout || 0);
-        html += '<div style="flex:1;min-width:120px;background:linear-gradient(135deg,#e8f5e9,#c8e6c9);border-radius:12px;padding:12px;text-align:center;"><div style="font-size:0.65rem;color:#2e7d32;font-weight:700;">累計トークン</div><div style="font-size:1.1rem;font-weight:900;color:#2e7d32;">' + (totalTokens > 1000000 ? (totalTokens / 1000000).toFixed(1) + 'M' : totalTokens > 1000 ? (totalTokens / 1000).toFixed(1) + 'K' : totalTokens) + '</div><div style="font-size:0.6rem;color:#999;">in:' + ((t.tin||0)/1000).toFixed(0) + 'K / out:' + ((t.tout||0)/1000).toFixed(0) + 'K</div></div>';
+        var html = '';
+
+        // ===== 期間別カード（今日/週/月/累計） =====
+        var periods = [
+            { label:'今日', icon:'fa-calendar-day', color:'#e65100', bg:'linear-gradient(135deg,#fff3e0,#ffe0b2)', data: res.todaySum },
+            { label:'今週', icon:'fa-calendar-week', color:'#1565c0', bg:'linear-gradient(135deg,#e3f2fd,#bbdefb)', data: res.weekSum },
+            { label:'今月', icon:'fa-calendar-alt', color:'#2e7d32', bg:'linear-gradient(135deg,#e8f5e9,#c8e6c9)', data: res.monthSum },
+            { label:'累計', icon:'fa-database', color:'#7b1fa2', bg:'linear-gradient(135deg,#f3e5f5,#e1bee7)', data: res.allSum }
+        ];
+        html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">';
+        periods.forEach(function(p) {
+            var d = p.data || {};
+            var cost = estCost(d.tin, d.tout);
+            var tokens = (d.tin||0)+(d.tout||0);
+            html += '<div style="background:'+p.bg+';border-radius:12px;padding:12px;text-align:center;">';
+            html += '<div style="font-size:0.62rem;color:'+p.color+';font-weight:700;"><i class="fas '+p.icon+' me-1"></i>'+p.label+'</div>';
+            html += '<div style="font-size:1.4rem;font-weight:900;color:#1e293b;">'+( d.calls||0)+'<span style="font-size:0.6rem;color:#999;"> 回</span></div>';
+            html += '<div style="font-size:0.58rem;color:#888;">トークン: '+fmtTokens(tokens)+'</div>';
+            html += '<div style="font-size:0.72rem;font-weight:800;color:'+p.color+';margin-top:2px;">¥'+cost.jpy.toLocaleString()+' <span style="font-size:0.52rem;color:#999;">($'+cost.usd+')</span></div>';
+            html += '</div>';
+        });
         html += '</div>';
-        // モデル別
+
+        // ===== モデル別 =====
         if (res.byModel && res.byModel.length > 0) {
-            html += '<div style="font-size:0.75rem;font-weight:700;color:#555;margin-bottom:6px;"><i class="fas fa-microchip me-1"></i>モデル別</div>';
-            html += '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;">';
+            html += '<div style="font-size:0.72rem;font-weight:700;color:#555;margin-bottom:4px;"><i class="fas fa-microchip me-1"></i>モデル別</div>';
+            html += '<table style="width:100%;font-size:0.7rem;border-collapse:collapse;margin-bottom:12px;">';
+            html += '<tr style="background:#f5f5f5;"><th style="padding:4px 6px;text-align:left;">モデル</th><th style="padding:4px 6px;">回数</th><th style="padding:4px 6px;">トークン</th><th style="padding:4px 6px;">コスト</th></tr>';
             res.byModel.forEach(function(m) {
-                html += '<span style="background:#f5f5f5;border-radius:8px;padding:4px 10px;font-size:0.7rem;"><strong>' + (m.model||'?') + '</strong>: ' + m.calls + '回</span>';
+                var c = estCost(m.tin, m.tout);
+                html += '<tr style="border-bottom:1px solid #eee;"><td style="padding:4px 6px;font-weight:700;">'+(m.model||'?')+'</td><td style="padding:4px 6px;text-align:center;">'+m.calls+'</td><td style="padding:4px 6px;text-align:center;">'+fmtTokens((m.tin||0)+(m.tout||0))+'</td><td style="padding:4px 6px;text-align:center;color:#dc2626;font-weight:700;">¥'+c.jpy.toLocaleString()+'</td></tr>';
             });
-            html += '</div>';
+            html += '</table>';
         }
-        // 日別推移（簡易棒グラフ）
+
+        // ===== ユーザー別TOP10 =====
+        if (res.topUsers && res.topUsers.length > 0) {
+            html += '<div style="font-size:0.72rem;font-weight:700;color:#555;margin-bottom:4px;"><i class="fas fa-users me-1"></i>ユーザー別TOP10</div>';
+            html += '<table style="width:100%;font-size:0.7rem;border-collapse:collapse;margin-bottom:12px;">';
+            html += '<tr style="background:#f5f5f5;"><th style="padding:4px 6px;">#</th><th style="padding:4px 6px;text-align:left;">ユーザー</th><th style="padding:4px 6px;">回数</th><th style="padding:4px 6px;">コスト</th></tr>';
+            res.topUsers.forEach(function(u, i) {
+                var c = estCost(u.tin, u.tout);
+                html += '<tr style="border-bottom:1px solid #eee;"><td style="padding:4px 6px;text-align:center;">'+(i+1)+'</td><td style="padding:4px 6px;font-weight:700;">'+(u.nickname||u.user_id.substring(0,8))+'</td><td style="padding:4px 6px;text-align:center;">'+u.calls+'</td><td style="padding:4px 6px;text-align:center;color:#dc2626;font-weight:700;">¥'+c.jpy.toLocaleString()+'</td></tr>';
+            });
+            html += '</table>';
+        }
+
+        // ===== 日別推移 =====
         if (res.daily && res.daily.length > 0) {
-            var maxCalls = Math.max.apply(null, res.daily.map(function(d) { return d.calls; }));
-            html += '<div style="font-size:0.75rem;font-weight:700;color:#555;margin-bottom:6px;"><i class="fas fa-chart-bar me-1"></i>日別推移（30日）</div>';
-            html += '<div style="display:flex;align-items:flex-end;gap:2px;height:60px;overflow-x:auto;">';
+            var dayMap = {};
             res.daily.forEach(function(d) {
-                var h = maxCalls > 0 ? Math.round(d.calls / maxCalls * 50) : 0;
-                var date = d.day.substring(5);
-                html += '<div style="display:flex;flex-direction:column;align-items:center;min-width:16px;"><div style="width:12px;height:' + Math.max(2, h) + 'px;background:linear-gradient(180deg,#f59e0b,#d97706);border-radius:2px 2px 0 0;"></div><div style="font-size:0.4rem;color:#999;margin-top:1px;">' + date + '</div></div>';
+                if (!dayMap[d.date]) dayMap[d.date] = { calls:0, tin:0, tout:0 };
+                dayMap[d.date].calls += d.count; dayMap[d.date].tin += (d.tin||0); dayMap[d.date].tout += (d.tout||0);
+            });
+            var days = Object.keys(dayMap).sort();
+            var maxC = Math.max.apply(null, days.map(function(d){ return dayMap[d].calls; })) || 1;
+            html += '<div style="font-size:0.72rem;font-weight:700;color:#555;margin-bottom:4px;"><i class="fas fa-chart-bar me-1"></i>日別推移（30日）</div>';
+            html += '<div style="display:flex;align-items:flex-end;gap:2px;height:60px;overflow-x:auto;">';
+            days.forEach(function(d) {
+                var dd = dayMap[d]; var h = Math.max(2, Math.round(dd.calls/maxC*50));
+                var c = estCost(dd.tin, dd.tout);
+                html += '<div style="display:flex;flex-direction:column;align-items:center;min-width:14px;" title="'+d+': '+dd.calls+'回 ¥'+c.jpy+'"><div style="font-size:0.4rem;color:#999;">'+dd.calls+'</div><div style="width:10px;height:'+h+'px;background:linear-gradient(180deg,#f59e0b,#d97706);border-radius:2px 2px 0 0;"></div><div style="font-size:0.35rem;color:#bbb;">'+d.substring(5)+'</div></div>';
             });
             html += '</div>';
         }
+
+        // ===== 課金シミュレーション =====
+        var allD = res.allSum || {};
+        var monthD = res.monthSum || {};
+        var monthCost = estCost(monthD.tin, monthD.tout);
+        var monthCalls = monthD.calls || 0;
+        var daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth()+1, 0).getDate();
+        var daysPassed = new Date().getDate();
+        var projectedCalls = daysPassed > 0 ? Math.round(monthCalls / daysPassed * daysInMonth) : 0;
+        var projectedTokensIn = daysPassed > 0 ? Math.round((monthD.tin||0) / daysPassed * daysInMonth) : 0;
+        var projectedTokensOut = daysPassed > 0 ? Math.round((monthD.tout||0) / daysPassed * daysInMonth) : 0;
+        var projectedCost = estCost(projectedTokensIn, projectedTokensOut);
+        var yearlyCost = { jpy: projectedCost.jpy * 12, usd: (parseFloat(projectedCost.usd)*12).toFixed(2) };
+
+        html += '<div style="margin-top:14px;padding:14px;background:linear-gradient(135deg,#fef2f2,#fce4ec);border-radius:12px;border:1.5px solid #f48fb1;">';
+        html += '<div style="font-size:0.78rem;font-weight:800;color:#c2185b;margin-bottom:10px;"><i class="fas fa-calculator me-1"></i>課金シミュレーション</div>';
+        html += '<table style="width:100%;font-size:0.72rem;border-collapse:collapse;">';
+        html += '<tr style="border-bottom:1px solid #f8bbd0;"><td style="padding:5px 0;color:#666;">今月実績（'+daysPassed+'日経過）</td><td style="padding:5px 0;text-align:right;font-weight:700;">'+monthCalls+'回</td><td style="padding:5px 0;text-align:right;font-weight:800;color:#c2185b;">¥'+monthCost.jpy.toLocaleString()+'</td></tr>';
+        html += '<tr style="border-bottom:1px solid #f8bbd0;"><td style="padding:5px 0;color:#666;">今月予測（'+daysInMonth+'日換算）</td><td style="padding:5px 0;text-align:right;font-weight:700;">≈'+projectedCalls+'回</td><td style="padding:5px 0;text-align:right;font-weight:800;color:#e91e63;">¥'+projectedCost.jpy.toLocaleString()+'</td></tr>';
+        html += '<tr><td style="padding:5px 0;color:#666;">年間予測</td><td style="padding:5px 0;text-align:right;font-weight:700;">≈'+(projectedCalls*12).toLocaleString()+'回</td><td style="padding:5px 0;text-align:right;font-weight:900;color:#b71c1c;font-size:0.82rem;">¥'+yearlyCost.jpy.toLocaleString()+'</td></tr>';
+        html += '</table>';
+        html += '<div style="font-size:0.55rem;color:#999;margin-top:8px;">※ Gemini Flash料金（入力$0.075/M, 出力$0.30/Mトークン）× 150円/$で算出。実際の請求額と異なる場合があります。</div>';
+        html += '</div>';
+
         body.innerHTML = html;
     });
 }

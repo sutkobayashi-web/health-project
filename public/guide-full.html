@@ -797,18 +797,70 @@ body {
       </tbody>
     </table>
 
-    <h4 style="color:#667eea; margin-top:20px;"><i class="fas fa-bolt me-2"></i>インラインアクションバー（チャット画面）</h4>
-    <p>チャット画面の入力欄の上部に、主要機能への直接アクセスボタンが常時表示されます。全てタブ切替なしでチャットの会話フローで完結します。</p>
+    <h4 style="color:#667eea; margin-top:20px;"><i class="fas fa-bolt me-2"></i>インラインアクションバー（チャット画面・2行構成）</h4>
+    <p>チャット画面の入力欄の上に2行のメニューボタンが常時表示されます。横スクロールで全ボタンにアクセスできます。キーボード表示中は自動的に非表示になり、チャット領域を確保します。</p>
 
     <table class="guide-table">
-      <thead><tr><th>ボタン</th><th>内容</th></tr></thead>
+      <thead><tr><th>行</th><th>ボタン</th><th>内容</th></tr></thead>
       <tbody>
-        <tr><td><strong>🗨 みんなに相談・提案</strong></td><td>バディーが誘導→カテゴリ選択→入力→匿名で投稿。AIがコメント</td></tr>
-        <tr><td><strong>🍽 食事診断・投稿</strong></td><td>バディーが誘導→写真撮影→プレビュー→AI食事アドバイザーが簡潔に分析（推定カロリー＋良い点＋改善点）→<strong>5軸レーダーチャート</strong>（たんぱく質・脂質・炭水化物・ビタミン・ミネラル）＋<strong>塩分バー</strong>（良好/適量/注意）で視覚表示。投稿一覧の詳細画面でもチャート再表示</td></tr>
-        <tr><td><strong>🛡 推進メンバーに相談・提案</strong></td><td>バディーが誘導→入力→推進メンバーに直接送信（非公開）</td></tr>
-        <tr><td><strong>🔥 チャレンジに挑戦する</strong></td><td>バディーがチャレンジ一覧を紹介→選択→詳細画面へ遷移</td></tr>
-        <tr><td><strong>📋 みんなの投稿を見る</strong></td><td>メニュータブの統合投稿一覧へ遷移（すべて/相談/食事フィルター）</td></tr>
-        <tr><td><strong>❓ 使い方</strong></td><td>8カテゴリのヘルプをチャット内で即回答（AI不使用・定型応答）</td></tr>
+        <tr><td rowspan="5"><strong>1行目</strong></td><td><strong>💬 バディーに話す</strong></td><td>フリートークで何でも相談</td></tr>
+        <tr><td><strong>🍱 ごはん見せる</strong></td><td>食事写真撮影→AI9項目栄養分析＋レーダーチャート</td></tr>
+        <tr><td><strong>❤️ 体調相談</strong></td><td>体調の悩みを相談→バディーがアドバイス</td></tr>
+        <tr><td><strong>🛡️ 推進メンバーに相談</strong></td><td>推進メンバーに直接送信（非公開）</td></tr>
+        <tr><td><strong>🟣 話題から選ぶ</strong></td><td>全メニュー一覧（会話系5種＋アクション系4種）をチャット内に表示</td></tr>
+        <tr><td rowspan="6"><strong>2行目</strong></td><td><strong>🔥 チャレンジ参加！</strong></td><td>健康チャレンジ一覧→参加→KPI記録</td></tr>
+        <tr><td><strong>📰 みんなの投稿</strong></td><td>統合タイムライン（すべて/相談/食事フィルター）</td></tr>
+        <tr><td><strong>🌤 みんなの空気</strong></td><td>参加率・食事投稿数・共感数・ごはん番長をチャット内に表示</td></tr>
+        <tr><td><strong>🩺 血圧を測る</strong></td><td>血圧計をカメラ撮影→AI OCR読取り→記録（※設定ON時のみ表示）</td></tr>
+        <tr><td><strong>📈 血圧を見る</strong></td><td>血圧推移グラフ＋バディーアドバイスをチャット内に表示（※設定ON時のみ）</td></tr>
+        <tr><td><strong>❓ 使い方</strong></td><td>各機能のヘルプをチャット内で即回答</td></tr>
+      </tbody>
+    </table>
+
+    <h4 style="color:#667eea; margin-top:20px;"><i class="fas fa-microphone me-2"></i>音声モード</h4>
+    <p>入力欄左の「🎤音声」ボタンから音声会話モードに切り替えられます。</p>
+    <table class="guide-table">
+      <thead><tr><th>機能</th><th>内容</th></tr></thead>
+      <tbody>
+        <tr><td><strong>マイクボタン</strong></td><td>タップして話す→自動送信→バディーが声で返事</td></tr>
+        <tr><td><strong>連続会話モード</strong></td><td>緑の「連続」ボタンを1タップで開始。バディーの返答後に自動で聞き取り再開。ハンズフリーで会話が続く</td></tr>
+        <tr><td><strong>声の設定</strong></td><td>12種類の声・速さ（ゆっくり/普通/早い）をマイページで設定可能</td></tr>
+        <tr><td><strong>終了</strong></td><td>赤い✕ボタンをタップ</td></tr>
+      </tbody>
+    </table>
+
+    <h4 style="color:#e91e63; margin-top:20px;"><i class="fas fa-heartbeat me-2"></i>血圧記録</h4>
+    <p>設定画面で「血圧記録」をONにすると利用できます（希望者のみ）。</p>
+    <table class="guide-table">
+      <thead><tr><th>機能</th><th>内容</th></tr></thead>
+      <tbody>
+        <tr><td><strong>カメラ読取り</strong></td><td>血圧計の液晶を撮影→Gemini Vision AIが上/下/脈拍を自動読取り</td></tr>
+        <tr><td><strong>手入力</strong></td><td>読取り失敗時や手動で入力する場合のフォーム</td></tr>
+        <tr><td><strong>推移グラフ</strong></td><td>「血圧を見る」で棒グラフ＋一覧表示。色分け（緑=正常、橙=注意、赤=高値）</td></tr>
+        <tr><td><strong>バディー連携</strong></td><td>バディーが血圧データを把握し、会話の中で健康アドバイス</td></tr>
+      </tbody>
+    </table>
+
+    <h4 style="color:#7c3aed; margin-top:20px;"><i class="fas fa-comment-dots me-2"></i>投稿への「声を届ける」</h4>
+    <p>みんなの投稿に対して感想を送れます。共感だけでなく反対意見も送れるので、多様な声が集まります。</p>
+    <table class="guide-table">
+      <thead><tr><th>種類</th><th>選択肢例</th></tr></thead>
+      <tbody>
+        <tr><td><strong>食事投稿</strong></td><td>美味しそう！/ 参考になる！/ 健康的！/ 一緒に改善したい / ちょっと違うかも / マネするのは難しい</td></tr>
+        <tr><td><strong>相談投稿</strong></td><td>わかる自分も / 応援してる！/ 会社が動けば変わる / 対策が必要 / 共感できない / ちょっと大げさかも</td></tr>
+      </tbody>
+    </table>
+
+    <h4 style="color:#0ea5e9; margin-top:20px;"><i class="fas fa-bars me-2"></i>ボトムナビゲーション</h4>
+    <p>画面下部のタブメニュー（左から順に）：</p>
+    <table class="guide-table">
+      <thead><tr><th>タブ</th><th>内容</th></tr></thead>
+      <tbody>
+        <tr><td><strong>🤖 バディー</strong></td><td>メインのチャット画面（シアン色）</td></tr>
+        <tr><td><strong>📱 メニュー</strong></td><td>食事投稿・みんなの声・健診・設定等（グリーン色）</td></tr>
+        <tr><td><strong>🔔 お知らせ</strong></td><td>通知・お知らせ一覧（イエロー色）</td></tr>
+        <tr><td><strong>🔥 チャレンジ</strong></td><td>健康チャレンジ画面（オレンジ色）</td></tr>
+        <tr><td><strong>👤 マイページ</strong></td><td>プロフィール・設定・コイン（パープル色）</td></tr>
       </tbody>
     </table>
 

@@ -874,6 +874,7 @@
         <button onclick="inlineTimelineView()" class="buddy-action-btn" style="display:flex;align-items:center;gap:4px;padding:7px 12px;background:linear-gradient(135deg,#6c5ce7,#a29bfe);color:white;border:none;border-radius:18px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;box-shadow:0 2px 6px rgba(108,92,231,0.25);font-family:inherit;"><i class="fas fa-stream"></i> みんなの投稿</button>
         <button onclick="inlineAtmosphere()" class="buddy-action-btn" style="display:flex;align-items:center;gap:4px;padding:7px 12px;background:linear-gradient(135deg,#059669,#34d399);color:white;border:none;border-radius:18px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;box-shadow:0 2px 6px rgba(52,211,153,0.25);font-family:inherit;"><i class="fas fa-cloud-sun"></i> みんなの空気</button>
         <button onclick="inlineHelp()" class="buddy-action-btn" style="display:flex;align-items:center;gap:4px;padding:7px 12px;background:linear-gradient(135deg,#78909c,#90a4ae);color:white;border:none;border-radius:18px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;box-shadow:0 2px 6px rgba(120,144,156,0.25);font-family:inherit;"><i class="fas fa-question-circle"></i> 使い方</button>
+        <button id="bp-inline-btn" onclick="inlineBpRecord()" class="buddy-action-btn" style="display:none;align-items:center;gap:4px;padding:7px 12px;background:linear-gradient(135deg,#e91e63,#c2185b);color:white;border:none;border-radius:18px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;box-shadow:0 2px 6px rgba(233,30,99,0.25);font-family:inherit;"><i class="fas fa-stethoscope"></i> 血圧を測る</button>
       </div>
     </div>
     <!-- 音声モードパネル（タップで話す方式） -->
@@ -2561,19 +2562,27 @@ function toggleBpHistory() {
 
 // 血圧カード表示制御
 function initBpCard() {
-  var bpEnabled = localStorage.getItem('co_heart_bp_enabled');
-  if (bpEnabled === '1') {
-    var el = document.getElementById('bp-card');
-    if (el) el.style.display = 'block';
-  }
-  // 設定画面のトグルも同期
+  var bpEnabled = localStorage.getItem('co_heart_bp_enabled') === '1';
+  var card = document.getElementById('bp-card');
+  if (card) card.style.display = bpEnabled ? 'block' : 'none';
+  var inlineBtn = document.getElementById('bp-inline-btn');
+  if (inlineBtn) inlineBtn.style.display = bpEnabled ? 'flex' : 'none';
   var toggle = document.getElementById('bp-toggle');
-  if (toggle) toggle.checked = bpEnabled === '1';
+  if (toggle) toggle.checked = bpEnabled;
 }
 function toggleBpEnabled(on) {
   localStorage.setItem('co_heart_bp_enabled', on ? '1' : '0');
-  var el = document.getElementById('bp-card');
-  if (el) el.style.display = on ? 'block' : 'none';
+  var card = document.getElementById('bp-card');
+  if (card) card.style.display = on ? 'block' : 'none';
+  var inlineBtn = document.getElementById('bp-inline-btn');
+  if (inlineBtn) inlineBtn.style.display = on ? 'flex' : 'none';
+}
+function inlineBpRecord() {
+  switchAppTab('menu');
+  var body = document.getElementById('bp-body');
+  if (body && body.style.display === 'none') body.style.display = 'block';
+  var card = document.getElementById('bp-card');
+  if (card) setTimeout(function() { card.scrollIntoView({ behavior:'smooth', block:'start' }); }, 200);
 }
 
 // ====== ヘッダー更新 ======

@@ -118,7 +118,7 @@ router.post('/message', authUser, async (req, res) => {
 
   } catch(e) { /* データ取得失敗しても会話は続行 */ }
 
-  const result = await chatWithBuddy(userMessage, history, userName, buddyType || 'gentle', buddyName || '', userDataContext);
+  const result = await chatWithBuddy(userMessage, history, userName, buddyType || 'gentle', buddyName || '', userDataContext, uid);
   // アクティブなチャレンジ情報を付与（フロントでチャレンジ言及検知に使用）
   try {
     const db = getDb();

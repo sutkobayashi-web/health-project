@@ -724,13 +724,61 @@ router.get('/users-all', (req, res) => {
     const postCounts = {};
     db.prepare('SELECT user_id, COUNT(*) as cnt FROM posts GROUP BY user_id').all()
       .forEach(r => { postCounts[r.user_id] = r.cnt; });
-    res.json(users.map(u => ({
-      ...u,
-      real_name: (canSeeRealNames || u.show_real_name) ? u.real_name : null,
-      birth_date: (canSeeRealNames || u.show_real_name) ? u.birth_date : null,
-      post_count: postCounts[u.id] || 0
-    })));
+
+    // AI利用統計（ユーザー別）
+    const aiStats = {};
+    try {
+      db.prepare(`SELECT user_id,
+        COUNT(*) as ai_calls,
+        SUM(tokens_in) as total_tokens_in,
+        SUM(tokens_out) as total_tokens_out,
+        MAX(created_at) as last_ai_use,
+        COUNT(CASE WHEN created_at >= date('now', '-1 day') THEN 1 END) as ai_calls_today,
+        COUNT(CASE WHEN created_at >= date('now', '-7 day') THEN 1 END) as ai_calls_week
+        FROM ai_usage_log WHERE user_id != '' GROUP BY user_id`).all()
+        .forEach(r => { aiStats[r.user_id] = r; });
+    } catch(e) {}
+
+    // バディーチャット回数
+    const chatCounts = {};
+    try {
+      db.prepare(`SELECT uid as user_id, COUNT(*) as chat_count, MAX(created_at) as last_chat
+        FROM buddy_messages WHERE role = 'user' GROUP BY uid`).all()
+        .forEach(r => { chatCounts[r.user_id] = r; });
+    } catch(e) {}
+
+    res.json(users.map(u => {
+      var ai = aiStats[u.id] || {};
+      var chat = chatCounts[u.id] || {};
+      return {
+        ...u,
+        real_name: (canSeeRealNames || u.show_real_name) ? u.real_name : null,
+        birth_date: (canSeeRealNames || u.show_real_name) ? u.birth_date : null,
+        post_count: postCounts[u.id] || 0,
+        ai_calls: ai.ai_calls || 0,
+        ai_calls_today: ai.ai_calls_today || 0,
+        ai_calls_week: ai.ai_calls_week || 0,
+        ai_tokens_in: ai.total_tokens_in || 0,
+        ai_tokens_out: ai.total_tokens_out || 0,
+        last_ai_use: ai.last_ai_use || null,
+        chat_count: chat.chat_count || 0,
+        last_chat: chat.last_chat || null
+      };
+    }));
   } catch (e) { res.json([]); }
+});
+
+// AI利用サマリー（全体統計）
+router.get('/ai-usage-summary', (req, res) => {
+  try {
+    const db = getDb();
+    const total = db.prepare(`SELECT COUNT(*) as calls, SUM(tokens_in) as tin, SUM(tokens_out) as tout FROM ai_usage_log`).get();
+    const today = db.prepare(`SELECT COUNT(*) as calls, SUM(tokens_in) as tin, SUM(tokens_out) as tout FROM ai_usage_log WHERE created_at >= date('now', '-1 day')`).get();
+    const week = db.prepare(`SELECT COUNT(*) as calls, SUM(tokens_in) as tin, SUM(tokens_out) as tout FROM ai_usage_log WHERE created_at >= date('now', '-7 day')`).get();
+    const byModel = db.prepare(`SELECT model, COUNT(*) as calls, SUM(tokens_in) as tin, SUM(tokens_out) as tout FROM ai_usage_log GROUP BY model ORDER BY calls DESC`).all();
+    const daily = db.prepare(`SELECT date(created_at) as day, COUNT(*) as calls FROM ai_usage_log WHERE created_at >= date('now', '-30 day') GROUP BY date(created_at) ORDER BY day`).all();
+    res.json({ success: true, total, today, week, byModel, daily });
+  } catch (e) { res.json({ success: false, msg: e.message }); }
 });
 
 // コアメンバー追加

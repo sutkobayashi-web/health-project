@@ -733,6 +733,14 @@ if(localStorage.getItem('co_heart_admin_token') && localStorage.getItem('co_hear
         <div><div class="section-title">メンバー管理</div><div class="section-subtitle">コアメンバーと一般ユーザーの管理</div></div>
       </div>
 
+      <!-- AI利用サマリー -->
+      <div class="card mb-4 shadow-sm">
+        <div class="card-header" style="background:linear-gradient(135deg,#f59e0b,#d97706); color:white; cursor:pointer;" onclick="toggleAiSummary()">
+          <div class="fw-bold"><i class="fas fa-robot me-2"></i>AI利用状況 <span style="font-size:0.72rem;opacity:0.8;">（タップで展開）</span></div>
+        </div>
+        <div class="card-body" id="ai-summary-body" style="display:none;padding:16px;"></div>
+      </div>
+
       <!-- コアメンバー -->
       <div class="card mb-4 shadow-sm">
         <div class="card-header d-flex justify-content-between align-items-center" style="background:linear-gradient(135deg,#667eea,#764ba2); color:white;">

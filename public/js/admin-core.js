@@ -486,7 +486,7 @@ function renderGeneralUsers(users, onlineMap) {
         return;
     }
     area.innerHTML = '<table class="table table-hover mb-0" style="font-size:0.85rem;">' +
-        '<thead style="background:#f8f9fa;"><tr><th style="width:50px;"></th><th>ニックネーム</th><th>本名</th><th>部署</th><th>投稿数</th><th>登録日</th><th>実名</th><th style="width:160px;">操作</th></tr></thead>' +
+        '<thead style="background:#f8f9fa;"><tr><th style="width:50px;"></th><th>ニックネーム</th><th>本名</th><th>部署</th><th>投稿数</th><th>AI利用</th><th>チャット</th><th>登録日</th><th>実名</th><th style="width:160px;">操作</th></tr></thead>' +
         '<tbody>' + users.map(function(u) {
             var avatarHtml = _renderMemberAvatar(u.avatar, '😀', 32);
             var isOnline = onlineMap && onlineMap[u.id];
@@ -502,6 +502,8 @@ function renderGeneralUsers(users, onlineMap) {
                 '<td>' + displayRealName + '</td>' +
                 '<td>' + escapeHtml(u.department || '') + '</td>' +
                 '<td class="text-center"><span class="badge bg-primary rounded-pill">' + (u.post_count || 0) + '</span></td>' +
+                '<td class="text-center" style="font-size:0.72rem;"><span class="badge bg-warning text-dark rounded-pill" title="今日/週/累計">' + (u.ai_calls_today || 0) + '/' + (u.ai_calls_week || 0) + '/' + (u.ai_calls || 0) + '</span></td>' +
+                '<td class="text-center" style="font-size:0.72rem;"><span class="badge bg-info rounded-pill">' + (u.chat_count || 0) + '</span></td>' +
                 '<td class="text-muted small">' + dateStr + '</td>' +
                 '<td class="text-center"><button class="btn btn-sm" style="font-size:0.75rem; color:' + toggleColor + ';" onclick="toggleShowRealName(\'users\',\'' + u.id + '\',' + (showName ? 0 : 1) + ')" title="' + (showName ? '実名非表示にする' : '実名表示にする') + '"><i class="fas ' + toggleIcon + '"></i></button></td>' +
                 '<td><button class="btn btn-outline-success btn-sm me-1" style="font-size:0.7rem;" onclick="sendPersonalMessage(\'' + u.id + '\',\'' + escapeHtml(u.nickname) + '\')" title="お知らせ"><i class="fas fa-envelope"></i></button>' +
@@ -1040,6 +1042,48 @@ function toggleShowRealName(table, id, value) {
 }
 
 // 推進メンバー使い方ガイドパネル
+// AI利用サマリー
+function toggleAiSummary() {
+    var body = document.getElementById('ai-summary-body');
+    if (!body) return;
+    if (body.style.display !== 'none') { body.style.display = 'none'; return; }
+    body.style.display = 'block';
+    body.innerHTML = '<div class="text-center p-3"><div class="spinner-border text-warning" role="status"></div></div>';
+    api('/admin/ai-usage-summary', undefined, getAdminToken()).then(function(res) {
+        if (!res || !res.success) { body.innerHTML = '<div class="text-muted text-center p-3">データ取得失敗</div>'; return; }
+        var t = res.total || {}, d = res.today || {}, w = res.week || {};
+        var html = '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">';
+        html += '<div style="flex:1;min-width:120px;background:linear-gradient(135deg,#fff3e0,#ffe0b2);border-radius:12px;padding:12px;text-align:center;"><div style="font-size:0.65rem;color:#e65100;font-weight:700;">今日</div><div style="font-size:1.3rem;font-weight:900;color:#e65100;">' + (d.calls || 0) + '</div><div style="font-size:0.6rem;color:#999;">回</div></div>';
+        html += '<div style="flex:1;min-width:120px;background:linear-gradient(135deg,#e3f2fd,#bbdefb);border-radius:12px;padding:12px;text-align:center;"><div style="font-size:0.65rem;color:#1565c0;font-weight:700;">今週</div><div style="font-size:1.3rem;font-weight:900;color:#1565c0;">' + (w.calls || 0) + '</div><div style="font-size:0.6rem;color:#999;">回</div></div>';
+        html += '<div style="flex:1;min-width:120px;background:linear-gradient(135deg,#f3e5f5,#e1bee7);border-radius:12px;padding:12px;text-align:center;"><div style="font-size:0.65rem;color:#7b1fa2;font-weight:700;">累計</div><div style="font-size:1.3rem;font-weight:900;color:#7b1fa2;">' + (t.calls || 0) + '</div><div style="font-size:0.6rem;color:#999;">回</div></div>';
+        var totalTokens = (t.tin || 0) + (t.tout || 0);
+        html += '<div style="flex:1;min-width:120px;background:linear-gradient(135deg,#e8f5e9,#c8e6c9);border-radius:12px;padding:12px;text-align:center;"><div style="font-size:0.65rem;color:#2e7d32;font-weight:700;">累計トークン</div><div style="font-size:1.1rem;font-weight:900;color:#2e7d32;">' + (totalTokens > 1000000 ? (totalTokens / 1000000).toFixed(1) + 'M' : totalTokens > 1000 ? (totalTokens / 1000).toFixed(1) + 'K' : totalTokens) + '</div><div style="font-size:0.6rem;color:#999;">in:' + ((t.tin||0)/1000).toFixed(0) + 'K / out:' + ((t.tout||0)/1000).toFixed(0) + 'K</div></div>';
+        html += '</div>';
+        // モデル別
+        if (res.byModel && res.byModel.length > 0) {
+            html += '<div style="font-size:0.75rem;font-weight:700;color:#555;margin-bottom:6px;"><i class="fas fa-microchip me-1"></i>モデル別</div>';
+            html += '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;">';
+            res.byModel.forEach(function(m) {
+                html += '<span style="background:#f5f5f5;border-radius:8px;padding:4px 10px;font-size:0.7rem;"><strong>' + (m.model||'?') + '</strong>: ' + m.calls + '回</span>';
+            });
+            html += '</div>';
+        }
+        // 日別推移（簡易棒グラフ）
+        if (res.daily && res.daily.length > 0) {
+            var maxCalls = Math.max.apply(null, res.daily.map(function(d) { return d.calls; }));
+            html += '<div style="font-size:0.75rem;font-weight:700;color:#555;margin-bottom:6px;"><i class="fas fa-chart-bar me-1"></i>日別推移（30日）</div>';
+            html += '<div style="display:flex;align-items:flex-end;gap:2px;height:60px;overflow-x:auto;">';
+            res.daily.forEach(function(d) {
+                var h = maxCalls > 0 ? Math.round(d.calls / maxCalls * 50) : 0;
+                var date = d.day.substring(5);
+                html += '<div style="display:flex;flex-direction:column;align-items:center;min-width:16px;"><div style="width:12px;height:' + Math.max(2, h) + 'px;background:linear-gradient(180deg,#f59e0b,#d97706);border-radius:2px 2px 0 0;"></div><div style="font-size:0.4rem;color:#999;margin-top:1px;">' + date + '</div></div>';
+            });
+            html += '</div>';
+        }
+        body.innerHTML = html;
+    });
+}
+
 function toggleAdminHelp() {
     var panel = document.getElementById('admin-help-panel');
     var backdrop = document.getElementById('admin-help-backdrop');

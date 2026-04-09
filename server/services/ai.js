@@ -1,10 +1,10 @@
 const fetch = require('node-fetch');
 const { getDb } = require('./db');
 
-function logAiUsage(provider, model, functionName, tokensIn, tokensOut, success) {
+function logAiUsage(provider, model, functionName, tokensIn, tokensOut, success, userId) {
   try {
-    getDb().prepare('INSERT INTO ai_usage_log (provider, model, function_name, tokens_in, tokens_out, success) VALUES (?,?,?,?,?,?)')
-      .run(provider, model, functionName, tokensIn || 0, tokensOut || 0, success ? 1 : 0);
+    getDb().prepare('INSERT INTO ai_usage_log (provider, model, function_name, tokens_in, tokens_out, success, user_id) VALUES (?,?,?,?,?,?,?)')
+      .run(provider, model, functionName, tokensIn || 0, tokensOut || 0, success ? 1 : 0, userId || '');
   } catch (e) { /* ログ失敗は無視 */ }
 }
 
@@ -293,7 +293,7 @@ function getBuddyName(buddyType) {
 }
 
 // ヘルスバディーチャット
-async function chatWithBuddy(userMessage, history, userName, buddyType, buddyName, userDataContext) {
+async function chatWithBuddy(userMessage, history, userName, buddyType, buddyName, userDataContext, userId) {
   try {
     const tone = getBuddyTone(buddyType);
 
@@ -515,7 +515,7 @@ ${userDataContext || '（データなし）'}${antiLoopBlock}${progressionBlock}
     }
     messages.push({ role: 'user', content: userMessage });
 
-    const result = await callGeminiText(null, null, { messages, temperature: 0.8, max_tokens: 3000, _fn: 'chat' });
+    const result = await callGeminiText(null, null, { messages, temperature: 0.8, max_tokens: 3000, _fn: 'chat', _userId: userId || '' });
 
     if (result) {
       // ///VOICE_SUGGEST/// タグを検出してフロントに通知
@@ -736,15 +736,16 @@ async function callGeminiText(systemPrompt, userMessage, options = {}) {
     var fnName = options._fn || _detectFnName(systemPrompt, userMessage);
     var tokensIn = (json.usageMetadata && json.usageMetadata.promptTokenCount) || 0;
     var tokensOut = (json.usageMetadata && json.usageMetadata.candidatesTokenCount) || 0;
+    var _uid = options._userId || '';
     if (json.candidates && json.candidates[0] && json.candidates[0].content) {
-      logAiUsage('gemini', model, fnName, tokensIn, tokensOut, true);
+      logAiUsage('gemini', model, fnName, tokensIn, tokensOut, true, _uid);
       return json.candidates[0].content.parts[0].text;
     }
-    logAiUsage('gemini', model, fnName, tokensIn, tokensOut, false);
+    logAiUsage('gemini', model, fnName, tokensIn, tokensOut, false, _uid);
     return null;
   } catch (e) {
     console.error('Gemini Text error:', e.message);
-    logAiUsage('gemini', GEMINI_TEXT_MODEL(), options._fn || 'gemini_error', 0, 0, false);
+    logAiUsage('gemini', GEMINI_TEXT_MODEL(), options._fn || 'gemini_error', 0, 0, false, options._userId || '');
     return null;
   }
 }

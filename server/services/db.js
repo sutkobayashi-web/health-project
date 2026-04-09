@@ -48,6 +48,9 @@ function getDb() {
       success INTEGER DEFAULT 1,
       created_at TEXT DEFAULT (datetime('now'))
     )`);
+    // マイグレーション: ai_usage_log に user_id カラム追加
+    try { db.exec("ALTER TABLE ai_usage_log ADD COLUMN user_id TEXT DEFAULT ''"); } catch(e) {}
+
     // マイグレーション: users に session_token カラム追加（同時ログイン防止）
     const userCols = db.prepare("PRAGMA table_info(users)").all();
     if (!userCols.find(c => c.name === 'session_token')) {

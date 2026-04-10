@@ -947,7 +947,17 @@ function sendBroadcastNotice() {
         body = '【BUDDY】' + body;
     }
     showLoading("送信中...");
-    saveAdminNotice({ content: body, isBroadcast: true }).then(function(res) { hideLoading(); alert(res.msg); closeBroadcastModal(); bodyEl.value = ""; if(viaBuddy) viaBuddy.checked = false; });
+    saveAdminNotice({ content: body, isBroadcast: true }).then(function(res) {
+        hideLoading();
+        if (res && res.success) {
+            alert(res.msg || '送信完了');
+            closeBroadcastModal();
+            bodyEl.value = "";
+            if(viaBuddy) viaBuddy.checked = false;
+        } else {
+            alert('送信エラー: ' + (res ? res.msg : '不明'));
+        }
+    }).catch(function(err) { hideLoading(); alert('通信エラー: ' + (err.message || '不明')); });
 }
 
 // =============================================

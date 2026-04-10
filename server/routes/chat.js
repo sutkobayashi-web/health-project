@@ -99,18 +99,17 @@ router.post('/message', authUser, async (req, res) => {
     try {
       const bpRows = db.prepare(`SELECT systolic, diastolic, pulse, measured_at FROM blood_pressure WHERE user_id = ? ORDER BY created_at DESC LIMIT 10`).all(uid);
       if (bpRows.length > 0) {
-        userDataContext += `\n# 血圧記録（直近${bpRows.length}件）\n`;
+        const latest = bpRows[0];
+        const latestDate = (latest.measured_at || '').substring(0, 10);
         let sSum = 0, dSum = 0;
-        bpRows.forEach(r => {
-          const d = (r.measured_at || '').substring(0, 10);
-          userDataContext += `- ${d}: 最高血圧${r.systolic} 最低血圧${r.diastolic}${r.pulse ? ' 脈拍'+r.pulse : ''}\n`;
-          sSum += r.systolic; dSum += r.diastolic;
-        });
+        bpRows.forEach(r => { sSum += r.systolic; dSum += r.diastolic; });
         const sAvg = Math.round(sSum / bpRows.length);
         const dAvg = Math.round(dSum / bpRows.length);
         let level = '正常範囲';
         if (sAvg >= 140 || dAvg >= 90) level = '高血圧域（要注意）';
         else if (sAvg >= 130 || dAvg >= 85) level = 'やや高め';
+        userDataContext += `\n# 血圧（直近${bpRows.length}件の要約）\n`;
+        userDataContext += `直近(${latestDate}): 最高血圧${latest.systolic} 最低血圧${latest.diastolic}${latest.pulse ? ' 脈拍'+latest.pulse : ''}\n`;
         userDataContext += `平均: 最高血圧${sAvg} 最低血圧${dAvg} → ${level}\n`;
         userDataContext += `※血圧を言及する際は「最高血圧○○、最低血圧○○」と表記し、スラッシュ(/)を使わないこと\n`;
       }

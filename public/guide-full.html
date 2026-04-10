@@ -1218,7 +1218,7 @@ body {
     <div class="guide-card-title">セクション9: AI 7軸評価</div>
   </div>
   <div class="guide-card-body">
-    <p>AIが投稿・共感データ・メンバーコメント・チャット・エビデンス18領域を総合的に分析し、<br>7つの軸でテーマ候補を自動評価します。</p>
+    <p>AIが投稿・共感データ・メンバーコメント・チャット・エビデンス20領域を総合的に分析し、<br>7つの軸でテーマ候補を自動評価します。</p>
 
     <div class="radar-container">
       <div class="radar-axis">
@@ -1288,7 +1288,7 @@ body {
     </table>
 
     <div class="highlight-box">
-      <strong>入力ソース:</strong> 共感データ + メンバーコメント + チャット議論 + エビデンス18領域の公的ガイドライン
+      <strong>入力ソース:</strong> 共感データ + メンバーコメント + チャット議論 + エビデンス20領域の公的ガイドライン
     </div>
 
     <h4 style="margin-top:20px; font-weight:800; color:#1565c0; font-size:0.95rem;"><i class="fas fa-cogs" style="margin-right:6px;"></i>凝集前の自動7軸評価</h4>
@@ -1714,13 +1714,13 @@ body {
 <!-- ============================================================ -->
 
 <!-- ====== セクション16: エビデンスベース ====== -->
-<div class="guide-card theme-green" data-keywords="エビデンス ガイドライン 公的 18領域 学習">
+<div class="guide-card theme-green" data-keywords="エビデンス ガイドライン 公的 20領域 学習">
   <div class="guide-card-header">
     <div class="guide-card-icon"><i class="fas fa-graduation-cap"></i></div>
     <div class="guide-card-title">セクション16: エビデンスベース</div>
   </div>
   <div class="guide-card-body">
-    <p>AI評価の基盤となる全18領域の公的ガイドラインです。</p>
+    <p>AI評価の基盤となる全20領域の公的ガイドラインです。</p>
 
     <div class="evidence-tags">
       <div class="evidence-tag">腰痛</div>
@@ -1741,6 +1741,8 @@ body {
       <div class="evidence-tag">感染症</div>
       <div class="evidence-tag">特定健診</div>
       <div class="evidence-tag">運転者健康管理</div>
+      <div class="evidence-tag">健康起因事故防止</div>
+      <div class="evidence-tag">荷役作業安全</div>
     </div>
 
     <p style="margin-top:18px;"><strong>行動変容フレームワーク（帝京大学 提供資料）</strong></p>
@@ -1778,7 +1780,7 @@ body {
   <div class="guide-card-body">
     <p>本システムでは<strong>22種のAIプロンプト</strong>を使用しています。<br>
     テキスト処理には<strong>Gemini 2.5 Flash</strong>、画像分析には<strong>Gemini Flash（Vision）</strong>を使用。全AIをGeminiに統一。<br>
-    全プロンプトは<strong>18領域の公的ガイドライン</strong>をエビデンス基盤として参照しています。</p>
+    全プロンプトは<strong>20領域の公的ガイドライン</strong>をエビデンス基盤として参照しています。</p>
 
     <div class="highlight-box">
       <strong>共通ルール（全プロンプト）</strong><br>
@@ -1829,7 +1831,7 @@ body {
 
     <div class="tip-box" style="margin-top:16px;">
       <i class="fas fa-lightbulb" style="color:#4caf50;"></i>
-      全プロンプトは厚労省ガイドライン・日本糖尿病学会・日本高血圧学会等の<strong>18領域の公的エビデンス</strong>を共通基盤として参照しています。
+      全プロンプトは厚労省ガイドライン・日本糖尿病学会・日本高血圧学会等の<strong>20領域の公的エビデンス</strong>を共通基盤として参照しています。
       詳細は <a href="/knowledge" style="color:#764ba2; font-weight:700;">学習ページ</a> をご覧ください。
     </div>
   </div>
@@ -1925,7 +1927,7 @@ body {
         <tr><td><strong>データソース</strong></td><td>エルスケアネットワーク提供の健診データ（xlsm形式）をBox Cloudから取得</td></tr>
         <tr><td><strong>判定記号</strong></td><td>●=要受診、▲=要注意、★=要経過観察、空=異常なし</td></tr>
         <tr><td><strong>分析項目</strong></td><td>肥満・高血圧・脂質異常・高血糖・肝機能・腎機能・貧血</td></tr>
-        <tr><td><strong>AI提案</strong></td><td>エビデンス18領域に基づき、優先度付きの3パターン提案（EAST設計含む）</td></tr>
+        <tr><td><strong>AI提案</strong></td><td>エビデンス20領域に基づき、優先度付きの3パターン提案（EAST設計含む）</td></tr>
         <tr><td><strong>専門家連携</strong></td><td>AIが「下書き」を高速作成 → 専門家アドバイザーが「承認・修正・補足」する役割分担</td></tr>
       </tbody>
     </table>

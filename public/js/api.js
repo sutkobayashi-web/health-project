@@ -21,8 +21,8 @@ async function api(path, data, token) {
     if (!res.ok) {
       console.error('API error:', path, res.status, res.statusText);
       if (res.status === 401) {
-        // 管理画面のAPI呼び出しではリロードしない（管理画面独自のハンドリングに任せる）
-        var isAdminApi = path.indexOf('/admin') !== -1;
+        // 管理画面からのAPI呼び出しではリロードしない
+        var isAdminApi = path.indexOf('/admin') !== -1 || (token && token === getAdminToken());
         if (!isAdminApi) {
           try {
             var errData = await res.json();

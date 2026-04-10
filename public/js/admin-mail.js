@@ -158,7 +158,8 @@ function markAdminRead(nid) {
 
 // ---- 一斉通知送信 (broadcastモーダル用) ----
 function openBroadcastModal() {
-  document.getElementById('broadcast-msg').value = '';
+  var el = document.getElementById('broadcast-body') || document.getElementById('broadcast-msg');
+  if (el) el.value = '';
   const modal = document.getElementById('broadcast-modal');
   if (modal) modal.style.display = 'flex';
 }

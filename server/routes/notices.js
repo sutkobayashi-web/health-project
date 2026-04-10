@@ -163,6 +163,34 @@ router.get('/admin-list', (req, res) => {
   } catch (e) { res.json({ list: [], unreadCount: 0 }); }
 });
 
+// ユーザーの未読お知らせ件数（バディー通知用）
+router.get('/unread-count/:uid', (req, res) => {
+  try {
+    const db = getDb();
+    const uid = req.params.uid;
+    // 個別通知の未読数
+    const personalUnread = db.prepare("SELECT COUNT(*) as cnt FROM notices WHERE target_id = ? AND content NOT LIKE '【BUDDY】%' AND status != 'read'").get(uid);
+    // 全体通知のうち未読数（notice_readsに記録がないもの）
+    const broadcastUnread = db.prepare(`
+      SELECT COUNT(*) as cnt FROM notices n
+      WHERE n.target_id = 'ALL' AND n.content NOT LIKE '【BUDDY】%'
+      AND NOT EXISTS (SELECT 1 FROM notice_reads nr WHERE nr.notice_id = n.notice_id AND nr.user_id = ?)
+    `).get(uid);
+    const total = (personalUnread ? personalUnread.cnt : 0) + (broadcastUnread ? broadcastUnread.cnt : 0);
+    // 最新の未読お知らせの概要も返す
+    const latest = db.prepare(`
+      SELECT content, sender, created_at FROM notices
+      WHERE (target_id = ? OR target_id = 'ALL') AND content NOT LIKE '【BUDDY】%'
+      AND (
+        (target_id = ? AND status != 'read')
+        OR (target_id = 'ALL' AND NOT EXISTS (SELECT 1 FROM notice_reads nr WHERE nr.notice_id = notices.notice_id AND nr.user_id = ?))
+      )
+      ORDER BY created_at DESC LIMIT 1
+    `).get(uid, uid, uid);
+    res.json({ count: total, latest: latest ? { sender: latest.sender, preview: (latest.content || '').substring(0, 40) } : null });
+  } catch (e) { res.json({ count: 0, latest: null }); }
+});
+
 // バディー経由送信履歴（Admin用）
 router.get('/buddy-sent-history', (req, res) => {
   try {

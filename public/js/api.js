@@ -307,6 +307,9 @@ function saveAdminNotice(data) {
 function getAllNotices(uid) {
   return api('/notices/all/' + uid);
 }
+function getUnreadNoticeCount(uid) {
+  return api('/notices/unread-count/' + uid);
+}
 function getUnreadPersonalNotice(uid) {
   return api('/notices/unread/' + uid);
 }

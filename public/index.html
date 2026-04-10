@@ -539,6 +539,7 @@
 </div>
 <style>
 @keyframes badgePopIn { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+@keyframes buddyNewsPulse { 0% { transform:scale(1); } 50% { transform:scale(1.4); } 100% { transform:scale(1); } }
 </style>
 
 <!-- プロフィール編集モーダル -->
@@ -851,6 +852,7 @@
         <span id="buddy-streak-icon">🌰</span>
         <span id="buddy-streak-text">0日</span>
       </div>
+      <button onclick="openInbox()" style="background:rgba(255,255,255,0.2);border:none;color:white;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;flex-shrink:0;position:relative;" title="お知らせ" id="buddy-inbox-btn"><i class="fas fa-bell"></i><span id="buddy-news-badge" style="display:none;position:absolute;top:-2px;right:-2px;background:#ef4444;color:white;font-size:0.6rem;font-weight:800;min-width:16px;height:16px;border-radius:8px;display:none;align-items:center;justify-content:center;padding:0 4px;border:2px solid #0284c7;line-height:1;">0</span></button>
       <button onclick="clearBuddyChat()" style="background:rgba(255,255,255,0.2);border:none;color:white;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;flex-shrink:0;" title="チャット履歴クリア"><i class="fas fa-trash-alt"></i></button>
     </div>
     <!-- チャットメッセージエリア -->
@@ -5114,6 +5116,8 @@ function startBuddyChat(buddyData) {
         _buddyMoodChecked = true;
         // バディー経由メッセージも読み込む
         loadBuddyNotices();
+        // お知らせ未読チェック（バディーが教える）
+        setTimeout(function() { checkBuddyNewsAlert(); }, 3000);
         // カスタマイズ案内（非表示設定されていなければ）
         if (!localStorage.getItem(getBuddySetupKey())) {
           setTimeout(function() {
@@ -5229,10 +5233,12 @@ function startBuddyChatFresh(buddyData) {
     }
     loadBuddyNotices();
     setTimeout(function() { checkBuddyTopic(); }, 800);
+    setTimeout(function() { checkBuddyNewsAlert(); }, 4000);
   }).catch(function() {
     addBuddyMessage('ai', greeting + '、' + nickname + 'さん！\n📅 ' + fullDate + '\n\nまず、今の調子はどう？');
     loadBuddyNotices();
     setTimeout(function() { checkBuddyTopic(); }, 800);
+    setTimeout(function() { checkBuddyNewsAlert(); }, 4000);
   });
 }
 
@@ -5244,8 +5250,59 @@ function startBuddyPoll() {
     if (currentUser && document.visibilityState === 'visible') {
       loadBuddyNotices();
       checkBuddyTopicPoll();
+      checkBuddyNewsAlert();
     }
   }, 30000);
+}
+
+// === バディーがお知らせ未読を教える機能 ===
+var _buddyLastNewsCount = -1; // 初回判定用
+var _buddyNewsAlerted = false; // セッション中1回だけバディーが喋る（ポーリングではバッジのみ更新）
+function checkBuddyNewsAlert() {
+  if (!currentUser) return;
+  getUnreadNoticeCount(currentUser.uid).then(function(data) {
+    if (!data) return;
+    var count = data.count || 0;
+    // バッジ更新
+    updateBuddyNewsBadge(count);
+    // 初回 or 新規増加時にバディーが教える（セッション中初回のみ喋る）
+    if (count > 0 && !_buddyNewsAlerted) {
+      _buddyNewsAlerted = true;
+      var preview = data.latest ? data.latest.preview : '';
+      var sender = data.latest ? (data.latest.sender || '事務局') : '事務局';
+      setTimeout(function() {
+        var msg = '📬 ' + sender + 'から';
+        if (count === 1) {
+          msg += '新しいお知らせが届いてるよ！';
+          if (preview) msg += '\n「' + preview + '…」';
+        } else {
+          msg += ' ' + count + '件の未読お知らせがあるよ！';
+        }
+        msg += '\n\n👆 上のベルマークか、お知らせ画面からチェックしてね';
+        addBuddyMessage('ai', msg);
+      }, 2000);
+    } else if (count > _buddyLastNewsCount && _buddyLastNewsCount >= 0 && count > 0) {
+      // ポーリングで増えた場合はバッジ更新のみ（バディーは喋らない→うるさくない）
+      // ただしバッジが光るアニメーションで気付かせる
+      var badge = document.getElementById('buddy-news-badge');
+      if (badge) {
+        badge.style.animation = 'none';
+        setTimeout(function() { badge.style.animation = 'buddyNewsPulse 0.6s ease 3'; }, 10);
+      }
+    }
+    _buddyLastNewsCount = count;
+  }).catch(function() {});
+}
+
+function updateBuddyNewsBadge(count) {
+  var badge = document.getElementById('buddy-news-badge');
+  if (!badge) return;
+  if (count > 0) {
+    badge.style.display = 'flex';
+    badge.innerText = count > 9 ? '9+' : count;
+  } else {
+    badge.style.display = 'none';
+  }
 }
 
 var _buddyNoticeShown = {};
@@ -8285,6 +8342,12 @@ function closeInbox() {
   var nf = document.getElementById('nurse-fab'); if (nf) nf.style.display = 'flex';
   unlockScroll();
   checkInboxBadge();
+  // バディーヘッダーのお知らせバッジも更新
+  if (currentUser) {
+    getUnreadNoticeCount(currentUser.uid).then(function(data) {
+      if (data) updateBuddyNewsBadge(data.count || 0);
+    }).catch(function(){});
+  }
 }
 
 function updateInboxBadge(count) {

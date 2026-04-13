@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>3分でわかる CoWell</title>
+<title>CoWell 使い方ガイド</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
@@ -23,9 +23,8 @@ body {
 .header a { background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 20px; padding: 5px 14px; font-size: 0.75rem; font-weight: 700; text-decoration: none; }
 .header .title { font-weight: 900; color: #fff; font-size: 0.9rem; }
 .header .sub { color: rgba(255,255,255,0.75); font-size: 0.6rem; }
-.wrap { max-width: 500px; margin: 0 auto; padding: 16px 14px 80px; }
+.wrap { max-width: 520px; margin: 0 auto; padding: 16px 14px 80px; }
 
-/* カード */
 .card-s {
   background: white; border-radius: 18px; margin-bottom: 16px;
   box-shadow: 0 4px 16px rgba(0,0,0,0.06); overflow: hidden;
@@ -40,9 +39,8 @@ body {
   font-size: 1.3rem; color: #fff; flex-shrink: 0;
 }
 .card-title { font-weight: 900; font-size: 0.95rem; color: #2c3e50; }
-.card-body { padding: 16px 18px 20px; font-size: 0.88rem; line-height: 1.9; color: #555; }
+.card-body { padding: 16px 18px 20px; font-size: 0.86rem; line-height: 1.9; color: #555; }
 
-/* ステップ */
 .step { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 14px; }
 .step-num {
   width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
@@ -52,7 +50,6 @@ body {
 .step-text { flex: 1; }
 .step-text strong { color: #2c3e50; }
 
-/* フロー */
 .flow { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; padding: 8px 0; }
 .flow-box {
   background: white; border-radius: 12px; padding: 10px 8px; text-align: center;
@@ -63,31 +60,44 @@ body {
 .flow-box .label { font-size: 0.65rem; font-weight: 700; color: #2c3e50; margin-top: 4px; }
 .flow-arrow { font-size: 1rem; color: #764ba2; font-weight: 900; align-self: center; }
 
-/* ハイライト */
 .hl { background: #f8f5ff; border-left: 4px solid #764ba2; border-radius: 0 12px 12px 0; padding: 12px 14px; margin: 10px 0; font-size: 0.85rem; line-height: 1.7; }
 .hl strong { color: #764ba2; }
 .tip { background: #e8f5e9; border-left: 4px solid #4caf50; border-radius: 0 12px 12px 0; padding: 12px 14px; margin: 10px 0; font-size: 0.85rem; line-height: 1.7; }
+.warn { background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 0 12px 12px 0; padding: 12px 14px; margin: 10px 0; font-size: 0.85rem; line-height: 1.7; }
 
-/* 目次 */
 .toc { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
 .toc a {
   display: flex; align-items: center; gap: 6px;
   background: white; border-radius: 12px; padding: 10px 14px;
-  font-size: 0.82rem; font-weight: 700; color: #667eea;
+  font-size: 0.8rem; font-weight: 700; color: #667eea;
   text-decoration: none; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
   flex: 1; min-width: 140px;
 }
 .toc a:active { transform: scale(0.97); }
+
+.nav-bar-demo {
+  display: flex; justify-content: space-around; background: #1a1e2e; border-radius: 14px;
+  padding: 10px 4px; margin: 12px 0;
+}
+.nav-bar-demo .nb {
+  text-align: center; font-size: 0.6rem; color: rgba(255,255,255,0.5); font-weight: 700;
+}
+.nav-bar-demo .nb.active { color: #667eea; }
+.nav-bar-demo .nb .ni { font-size: 1.1rem; display: block; margin-bottom: 2px; }
+
+.pt-table { width: 100%; font-size: 0.82rem; border-collapse: collapse; margin-bottom: 12px; }
+.pt-table td { padding: 8px; border-bottom: 1px solid #f0f0f0; }
+.pt-table tr:nth-child(odd) { background: #fffbeb; }
+.pt-table .pt { text-align: right; font-weight: 700; color: #d97706; }
 </style>
 </head>
 <body>
 
-<!-- ヘッダー -->
 <div class="header">
   <a href="/" onclick="if(window.parent!==window){window.parent.switchAppTab('buddy');return false;}"><i class="fas fa-arrow-left"></i> 戻る</a>
   <div>
-    <div class="title">3分でわかる CoWell</div>
-    <div class="sub">使い方ガイド</div>
+    <div class="title">CoWell 使い方ガイド</div>
+    <div class="sub">推進メンバー＆利用者向け</div>
   </div>
 </div>
 
@@ -95,51 +105,106 @@ body {
 
   <!-- イントロ -->
   <div style="background:linear-gradient(135deg,#667eea,#764ba2);border-radius:18px;padding:24px 20px;color:white;margin-bottom:16px;">
-    <div style="font-size:1.1rem;font-weight:900;margin-bottom:8px;">CoWell</div>
-    <div style="font-size:0.85rem;opacity:0.9;line-height:1.7;">あなたの声で職場を元気にするアプリ。<br>バディーと一緒に、毎日をちょっとだけ健康に。</div>
+    <div style="font-size:1.1rem;font-weight:900;margin-bottom:8px;">CoWell へようこそ</div>
+    <div style="font-size:0.85rem;opacity:0.9;line-height:1.7;">バディーと話す。ごはんを見せる。チャレンジに参加する。<br>それだけで、職場がちょっとずつ元気になるアプリです。</div>
+  </div>
+
+  <!-- 画面の構成 -->
+  <div class="card-s">
+    <div class="card-head">
+      <div class="card-icon" style="background:linear-gradient(135deg,#667eea,#764ba2);"><i class="fas fa-mobile-alt"></i></div>
+      <div class="card-title">画面の構成</div>
+    </div>
+    <div class="card-body">
+      <p>画面下のアイコンで切り替えます。</p>
+      <div class="nav-bar-demo">
+        <div class="nb active"><span class="ni">🤖</span>バディー</div>
+        <div class="nb"><span class="ni">📋</span>メニュー</div>
+        <div class="nb"><span class="ni">🔔</span>お知らせ</div>
+        <div class="nb"><span class="ni">🔥</span>チャレンジ</div>
+        <div class="nb"><span class="ni">👤</span>マイページ</div>
+      </div>
+      <div style="font-size:0.82rem;color:#888;line-height:1.7;">
+        <strong style="color:#667eea;">バディー</strong> … ふだんの会話はここ<br>
+        <strong style="color:#667eea;">メニュー</strong> … ごはん投稿・血圧・投票・みんなの声など<br>
+        <strong style="color:#667eea;">お知らせ</strong> … 会社からのお知らせ<br>
+        <strong style="color:#667eea;">チャレンジ</strong> … 参加中のチャレンジ確認<br>
+        <strong style="color:#667eea;">マイページ</strong> … コイン・ランキング・ショップ・設定
+      </div>
+    </div>
   </div>
 
   <!-- 目次 -->
+  <div style="font-weight:900;font-size:0.9rem;color:#2c3e50;margin:16px 0 8px;">もくじ</div>
   <div class="toc">
-    <a href="#sec1"><span style="font-size:1.1rem;">🤖</span> バディーって何？</a>
-    <a href="#sec2"><span style="font-size:1.1rem;">🍽️</span> ごはんを投稿</a>
-    <a href="#sec3"><span style="font-size:1.1rem;">💬</span> 話すだけで届く</a>
-    <a href="#sec4"><span style="font-size:1.1rem;">💪</span> チャレンジ</a>
-    <a href="#sec5"><span style="font-size:1.1rem;">🪙</span> コイン＆ショップ</a>
+    <a href="#sec1"><span style="font-size:1.1rem;">🤖</span> バディーと話す</a>
+    <a href="#sec2"><span style="font-size:1.1rem;">🎙️</span> 声で会話する</a>
+    <a href="#sec3"><span style="font-size:1.1rem;">🍽️</span> ごはんを投稿</a>
+    <a href="#sec4"><span style="font-size:1.1rem;">💬</span> 声が届くしくみ</a>
+    <a href="#sec5"><span style="font-size:1.1rem;">💪</span> チャレンジ</a>
+    <a href="#sec6"><span style="font-size:1.1rem;">🪙</span> コイン＆ショップ</a>
+    <a href="#sec7"><span style="font-size:1.1rem;">❤️</span> 血圧・健診</a>
+    <a href="#sec8"><span style="font-size:1.1rem;">🛡️</span> 推進メンバーの役割</a>
   </div>
 
-  <!-- ========== セクション1: バディー ========== -->
+  <!-- ===== 1. バディー ===== -->
   <div class="card-s" id="sec1">
     <div class="card-head">
       <div class="card-icon" style="background:linear-gradient(135deg,#0ea5e9,#0284c7);"><i class="fas fa-robot"></i></div>
-      <div class="card-title">バディーって何？</div>
+      <div class="card-title">バディーと話す</div>
     </div>
     <div class="card-body">
-      <p>アプリを開くと最初にいるのが<strong>ヘルスバディー</strong>。あなた専用のバディーです。</p>
+      <p>アプリを開くと最初にいるのが<strong>ヘルスバディー</strong>。あなた専用の相棒です。</p>
 
       <div class="step">
         <div class="step-num" style="background:#0ea5e9;">1</div>
-        <div class="step-text"><strong>話しかける</strong><br>体調のこと、愚痴、雑談、なんでもOK。気軽に話しかけてね。</div>
+        <div class="step-text"><strong>気軽に話しかける</strong><br>体調、愚痴、雑談、なんでもOK。下の入力欄にテキストを打つか、カードをタップ。</div>
       </div>
       <div class="step">
         <div class="step-num" style="background:#0ea5e9;">2</div>
-        <div class="step-text"><strong>バディーが覚えてくれる</strong><br>前に話したこと、食事の傾向、バディーはちゃんと覚えてるよ。</div>
+        <div class="step-text"><strong>カードから始めてもOK</strong><br>「ひとこと聞いて」「モヤっと」「こうなったらいいな」など、話題カードをタップすると会話が始まります。</div>
       </div>
       <div class="step">
         <div class="step-num" style="background:#0ea5e9;">3</div>
-        <div class="step-text"><strong>声で話せる</strong><br>マイクボタンをタップすれば音声で会話できる。バディーも声で返事してくれるよ。</div>
+        <div class="step-text"><strong>バディーが覚えてくれる</strong><br>前に話したこと、食事の傾向、ちゃんと覚えています。</div>
       </div>
       <div class="step">
         <div class="step-num" style="background:#0ea5e9;">4</div>
-        <div class="step-text"><strong>カスタマイズ</strong><br>名前、見た目、性格、声（12種類から選べる）を自分好みに変えられる。</div>
+        <div class="step-text"><strong>カスタマイズ</strong><br>名前、アバター、性格、声（12種類）を自分好みに。バディーの画像をタップすると設定画面に。</div>
       </div>
 
-      <div class="tip"><strong>ポイント：</strong> バディーは先生じゃなくて友達。聞かれたときだけアドバイスします。気軽にどうぞ！</div>
+      <div class="tip"><strong>ポイント：</strong> バディーは先生じゃなくて友達。聞かれたときだけアドバイス。気軽にどうぞ！</div>
     </div>
   </div>
 
-  <!-- ========== セクション2: ごはん投稿 ========== -->
+  <!-- ===== 2. 音声会話 ===== -->
   <div class="card-s" id="sec2">
+    <div class="card-head">
+      <div class="card-icon" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);"><i class="fas fa-microphone"></i></div>
+      <div class="card-title">声で会話する</div>
+    </div>
+    <div class="card-body">
+      <p>テキストを打たなくても、<strong>声だけ</strong>でバディーと会話できます。</p>
+
+      <div class="step">
+        <div class="step-num" style="background:#8b5cf6;">1</div>
+        <div class="step-text"><strong>マイクボタンをタップ</strong><br>画面下のマイクアイコンを押して、話しかけてください。</div>
+      </div>
+      <div class="step">
+        <div class="step-num" style="background:#8b5cf6;">2</div>
+        <div class="step-text"><strong>バディーが声で返事</strong><br>テキストと同時に音声でも返事してくれます。</div>
+      </div>
+      <div class="step">
+        <div class="step-num" style="background:#8b5cf6;">3</div>
+        <div class="step-text"><strong>話す速さを変えられる</strong><br>🐢ゆっくり ▶ ふつう ⚡はやい の3段階。</div>
+      </div>
+
+      <div class="tip"><strong>コツ：</strong> 静かな場所だと認識精度UP。短めに区切って話すとスムーズです。</div>
+    </div>
+  </div>
+
+  <!-- ===== 3. ごはん ===== -->
+  <div class="card-s" id="sec3">
     <div class="card-head">
       <div class="card-icon" style="background:linear-gradient(135deg,#20c997,#38d9a9);"><i class="fas fa-utensils"></i></div>
       <div class="card-title">ごはんを投稿しよう</div>
@@ -149,25 +214,24 @@ body {
 
       <div class="step">
         <div class="step-num" style="background:#20c997;">1</div>
-        <div class="step-text"><strong>メニュータブ →「今日のごはん見せて！」</strong><br>カメラで食事を撮影。成分表示ラベルがあれば一緒に撮ると精度UP。</div>
+        <div class="step-text"><strong>メニュー →「今日のごはん見せて！」</strong><br>カメラで食事を撮影。成分表示ラベルがあれば一緒に撮ると精度UP。</div>
       </div>
       <div class="step">
         <div class="step-num" style="background:#20c997;">2</div>
-        <div class="step-text"><strong>AIが分析</strong><br>カロリー、栄養バランスを自動で分析してくれるよ。</div>
+        <div class="step-text"><strong>AIが分析</strong><br>カロリー、たんぱく質、食物繊維など9項目を自動で分析。エビデンス対比チャートも出ます。</div>
       </div>
       <div class="step">
         <div class="step-num" style="background:#20c997;">3</div>
-        <div class="step-text"><strong>みんなの反応</strong><br>「食べたい！」「おいしそう！」「真似する！」のリアクションが届くよ。</div>
+        <div class="step-text"><strong>みんなの反応</strong><br>「食べたい！」「おいしそう！」「真似する！」のリアクションが届きます。</div>
       </div>
 
-      <div class="hl"><strong>連続投稿で木が育つ！</strong> マイページで自分だけの木を育てよう。食事傾向で花の色が変わるよ。</div>
-
-      <div class="tip"><strong>ごはん番長：</strong> 今週一番「食べたい！」をもらった人が「ごはん番長」としてメニュー画面に表示されるよ！</div>
+      <div class="hl"><strong>連続投稿で木が育つ！</strong> マイページで自分だけの木を育てよう。食事傾向で種類が変わります。</div>
+      <div class="tip"><strong>ごはん番長：</strong> 今週一番「食べたい！」をもらった人がメニュー画面に表示されます！</div>
     </div>
   </div>
 
-  <!-- ========== セクション3: 声が届く仕組み ========== -->
-  <div class="card-s" id="sec3">
+  <!-- ===== 4. 声が届くしくみ ===== -->
+  <div class="card-s" id="sec4">
     <div class="card-head">
       <div class="card-icon" style="background:linear-gradient(135deg,#d63384,#e91e8c);"><i class="far fa-comment-dots"></i></div>
       <div class="card-title">話すだけで、声が届く</div>
@@ -181,11 +245,11 @@ body {
       </div>
       <div class="step">
         <div class="step-num" style="background:#d63384;">2</div>
-        <div class="step-text"><strong>バディーが聞いてくれる</strong><br>「いつ頃から？」「他にも同じ人いる？」と深掘り。</div>
+        <div class="step-text"><strong>バディーが聞いてくれる</strong><br>「いつ頃から？」「他にも同じ人いる？」と深掘りします。</div>
       </div>
       <div class="step">
         <div class="step-num" style="background:#d63384;">3</div>
-        <div class="step-text"><strong>「みんなにも聞いてみる？」</strong><br>バディーが提案。OKなら匿名で要約して共有。名前は出ないよ。</div>
+        <div class="step-text"><strong>「みんなにも聞いてみる？」</strong><br>バディーが提案。OKなら匿名で要約して共有。名前は出ません。</div>
       </div>
 
       <div style="font-weight:800;font-size:0.85rem;color:#2c3e50;margin:16px 0 8px;">あなたの声が届く流れ</div>
@@ -205,14 +269,14 @@ body {
     </div>
   </div>
 
-  <!-- ========== セクション4: チャレンジ ========== -->
-  <div class="card-s" id="sec4">
+  <!-- ===== 5. チャレンジ ===== -->
+  <div class="card-s" id="sec5">
     <div class="card-head">
       <div class="card-icon" style="background:linear-gradient(135deg,#ff6b35,#ff9a5c);"><i class="fas fa-fire"></i></div>
       <div class="card-title">チャレンジに参加しよう</div>
     </div>
     <div class="card-body">
-      <p>みんなの投票で決まったテーマが「チャレンジ」になる。参加は自由！</p>
+      <p>みんなの投票で決まったテーマが「チャレンジ」になります。参加は自由！</p>
 
       <div class="step">
         <div class="step-num" style="background:#ff6b35;">1</div>
@@ -220,51 +284,146 @@ body {
       </div>
       <div class="step">
         <div class="step-num" style="background:#ff6b35;">2</div>
-        <div class="step-text"><strong>毎日30秒でKPI記録</strong><br>「今日の歩数は？」「野菜食べた？」など、1タップで記録。</div>
+        <div class="step-text"><strong>毎日30秒でKPI記録</strong><br>「今日の歩数は？」「野菜食べた？」「睡眠どうだった？」など、1タップで記録。</div>
       </div>
       <div class="step">
         <div class="step-num" style="background:#ff6b35;">3</div>
-        <div class="step-text"><strong>バッジをゲット</strong><br>達成するとバッジがもらえる。途中参加・途中離脱もOK。</div>
+        <div class="step-text"><strong>アバターが成長する</strong><br>記録を続けるとアバターチャレンジのステージが進む。自己ベスト更新も。</div>
+      </div>
+      <div class="step">
+        <div class="step-num" style="background:#ff6b35;">4</div>
+        <div class="step-text"><strong>バッジ＆コイン獲得</strong><br>達成するとバッジとCoWellコインがもらえます。</div>
       </div>
 
-      <div class="tip"><strong>やめてもOK：</strong> 無理はしなくていい。「やってみようかな」と思ったときに参加してね。</div>
+      <div class="tip"><strong>やめてもOK：</strong> 無理はしなくていい。「やってみようかな」と思ったときに参加してください。途中参加・途中離脱もOK。</div>
     </div>
   </div>
 
-  <!-- ========== セクション5: コイン＆ショップ ========== -->
-  <div class="card-s" id="sec5">
+  <!-- ===== 6. コイン＆ショップ ===== -->
+  <div class="card-s" id="sec6">
     <div class="card-head">
       <div class="card-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706);"><i class="fas fa-coins"></i></div>
       <div class="card-title">コイン＆ショップ</div>
     </div>
     <div class="card-body">
-      <p>アプリを使うだけでCoWellコインが貯まる。ショップで使おう！</p>
+      <p>アプリを使うだけでCoWellコインが貯まる。マイページのショップで使えます！</p>
 
       <div style="font-weight:800;font-size:0.85rem;color:#2c3e50;margin:8px 0;">コインの貯め方</div>
-      <table style="width:100%;font-size:0.82rem;border-collapse:collapse;margin-bottom:12px;">
-        <tr style="background:#fffbeb;"><td style="padding:8px;border-bottom:1px solid #f0f0f0;">🍽️ ごはん投稿</td><td style="padding:8px;border-bottom:1px solid #f0f0f0;text-align:right;font-weight:700;color:#d97706;">+8pt</td></tr>
-        <tr><td style="padding:8px;border-bottom:1px solid #f0f0f0;">📢 声の投稿</td><td style="padding:8px;border-bottom:1px solid #f0f0f0;text-align:right;font-weight:700;color:#d97706;">+10pt</td></tr>
-        <tr style="background:#fffbeb;"><td style="padding:8px;border-bottom:1px solid #f0f0f0;">❤️ 共感リアクション</td><td style="padding:8px;border-bottom:1px solid #f0f0f0;text-align:right;font-weight:700;color:#d97706;">+5pt</td></tr>
-        <tr><td style="padding:8px;border-bottom:1px solid #f0f0f0;">💪 チャレンジKPI記録</td><td style="padding:8px;border-bottom:1px solid #f0f0f0;text-align:right;font-weight:700;color:#d97706;">+2pt</td></tr>
+      <table class="pt-table">
+        <tr><td>📢 声の投稿（バディーからの共有）</td><td class="pt">+10pt</td></tr>
+        <tr><td>🍽️ ごはん投稿</td><td class="pt">+8pt</td></tr>
+        <tr><td>❤️ 共感リアクション</td><td class="pt">+5pt</td></tr>
+        <tr><td>💪 チャレンジKPI記録（1日1回）</td><td class="pt">+2pt</td></tr>
       </table>
 
       <div style="font-weight:800;font-size:0.85rem;color:#2c3e50;margin:8px 0;">ショップで交換</div>
-      <table style="width:100%;font-size:0.82rem;border-collapse:collapse;">
-        <tr style="background:#fffbeb;"><td style="padding:8px;border-bottom:1px solid #f0f0f0;">🎰 月イチ抽選券</td><td style="padding:8px;border-bottom:1px solid #f0f0f0;text-align:right;font-weight:700;">500pt</td></tr>
-        <tr><td style="padding:8px;border-bottom:1px solid #f0f0f0;">☕ おごりコーヒー</td><td style="padding:8px;border-bottom:1px solid #f0f0f0;text-align:right;font-weight:700;">1,000pt</td></tr>
-        <tr style="background:#fffbeb;"><td style="padding:8px;border-bottom:1px solid #f0f0f0;">🧢 アバターパーツ</td><td style="padding:8px;border-bottom:1px solid #f0f0f0;text-align:right;font-weight:700;">200〜400pt</td></tr>
-        <tr><td style="padding:8px;">💝 寄付（交通遺児支援）</td><td style="padding:8px;text-align:right;font-weight:700;">2,000pt</td></tr>
+      <table class="pt-table">
+        <tr><td>🎰 月イチ抽選券</td><td style="text-align:right;font-weight:700;">500pt</td></tr>
+        <tr><td>☕ おごりコーヒー</td><td style="text-align:right;font-weight:700;">1,000pt</td></tr>
+        <tr><td>🧢 アバターパーツ</td><td style="text-align:right;font-weight:700;">200〜400pt</td></tr>
+        <tr><td>💝 寄付（交通遺児支援）</td><td style="text-align:right;font-weight:700;">2,000pt</td></tr>
       </table>
 
-      <div class="tip" style="margin-top:12px;"><strong>おごりコーヒー：</strong> 同僚にコーヒーを1杯おごれる！相手にバディーから通知が届くよ。</div>
+      <div class="tip"><strong>おごりコーヒー：</strong> 同僚にコーヒーを1杯おごれる！相手にバディーから通知が届きます。</div>
+    </div>
+  </div>
+
+  <!-- ===== 7. 血圧・健診 ===== -->
+  <div class="card-s" id="sec7">
+    <div class="card-head">
+      <div class="card-icon" style="background:linear-gradient(135deg,#ef4444,#dc2626);"><i class="fas fa-heartbeat"></i></div>
+      <div class="card-title">血圧記録・健診結果</div>
+    </div>
+    <div class="card-body">
+      <div style="font-weight:800;font-size:0.85rem;color:#2c3e50;margin-bottom:8px;">血圧を記録する</div>
+      <p>メニューの「血圧を記録する」から、血圧計の写真を撮るだけ。数値をAIが自動読み取りします。</p>
+      <div class="step">
+        <div class="step-num" style="background:#ef4444;">1</div>
+        <div class="step-text"><strong>血圧計の画面を撮影</strong><br>数値が見える状態でカメラで撮影。手入力もできます。</div>
+      </div>
+      <div class="step">
+        <div class="step-num" style="background:#ef4444;">2</div>
+        <div class="step-text"><strong>履歴グラフで推移を確認</strong><br>過去の記録がグラフで見られます。メモ（起床時・就寝前など）も残せます。</div>
+      </div>
+
+      <div style="font-weight:800;font-size:0.85rem;color:#2c3e50;margin:16px 0 8px;">健診結果を見る</div>
+      <p>メニューの「健診結果を見てみる」から確認できます。本人確認（生年月日）の後、食事との因果関係分析も見られます。</p>
+      <div class="warn"><strong>プライバシー：</strong> 健診データはその場で表示するだけ。スマホに保存されません。</div>
+    </div>
+  </div>
+
+  <!-- ===== 8. 推進メンバーの役割 ===== -->
+  <div class="card-s" id="sec8">
+    <div class="card-head">
+      <div class="card-icon" style="background:linear-gradient(135deg,#4caf50,#2e7d32);"><i class="fas fa-shield-alt"></i></div>
+      <div class="card-title">推進メンバーの役割</div>
+    </div>
+    <div class="card-body">
+      <p>推進メンバーは<strong>「使い方を教える人」ではなく「一緒に楽しむ人」</strong>です。</p>
+
+      <div style="font-weight:800;font-size:0.85rem;color:#2c3e50;margin:8px 0;">やってほしいこと</div>
+      <div class="step">
+        <div class="step-num" style="background:#4caf50;">1</div>
+        <div class="step-text"><strong>まず自分が使う</strong><br>ごはん投稿、バディー会話、チャレンジ参加。自分が楽しんでいる姿がいちばんの推進力。</div>
+      </div>
+      <div class="step">
+        <div class="step-num" style="background:#4caf50;">2</div>
+        <div class="step-text"><strong>困っている人に声をかける</strong><br>「ログインできない」「使い方がわからない」など、近くにいるからこそ気づける。バディーの「推進メンバーに相談」から相談も届きます。</div>
+      </div>
+      <div class="step">
+        <div class="step-num" style="background:#4caf50;">3</div>
+        <div class="step-text"><strong>リアクションする</strong><br>ごはん投稿に「食べたい！」、みんなの声に「わかる！」。リアクションが増えると全体が活性化します。</div>
+      </div>
+      <div class="step">
+        <div class="step-num" style="background:#4caf50;">4</div>
+        <div class="step-text"><strong>管理画面を見る</strong><br>管理画面のダッシュボードで全体の活動状況を確認。投稿一覧で新着の声をチェック。</div>
+      </div>
+
+      <div class="hl"><strong>推進のコツ：</strong> 「やってください」ではなく「これ面白いよ」の空気をつくること。強制しない。面白がる。それだけでOK。</div>
+
+      <div style="font-weight:800;font-size:0.85rem;color:#2c3e50;margin:16px 0 8px;">管理画面でできること</div>
+      <div style="font-size:0.82rem;line-height:1.9;color:#555;">
+        <strong>日常</strong> … ダッシュボード / 投稿一覧 / 食事<br>
+        <strong>運営</strong> … チャレンジ管理 / アバター投票 / KPI成果<br>
+        <strong>対話</strong> … メール / 話題共感 / 専門家連携<br>
+        <strong>管理</strong> … メンバー管理 / バックアップ
+      </div>
+    </div>
+  </div>
+
+  <!-- よくある質問 -->
+  <div class="card-s">
+    <div class="card-head">
+      <div class="card-icon" style="background:linear-gradient(135deg,#78909c,#546e7a);"><i class="fas fa-question-circle"></i></div>
+      <div class="card-title">よくある質問</div>
+    </div>
+    <div class="card-body" style="font-size:0.84rem;">
+      <div style="margin-bottom:14px;">
+        <strong style="color:#2c3e50;">Q. バディーに話した内容は誰かに見られる？</strong><br>
+        見られません。バディーとの会話はあなただけのもの。「みんなに聞いてみる？」にOKした場合のみ、匿名で要約が共有されます。
+      </div>
+      <div style="margin-bottom:14px;">
+        <strong style="color:#2c3e50;">Q. ごはん投稿は必須？</strong><br>
+        任意です。気が向いたときだけでOK。ただし投稿するとコインが貯まり、木も育ちます。
+      </div>
+      <div style="margin-bottom:14px;">
+        <strong style="color:#2c3e50;">Q. チャレンジに参加しないとダメ？</strong><br>
+        参加は完全に自由。途中参加も途中離脱もOKです。
+      </div>
+      <div style="margin-bottom:14px;">
+        <strong style="color:#2c3e50;">Q. 文字が小さい</strong><br>
+        マイページ → 設定から文字サイズを「大」「特大」に変更できます。
+      </div>
+      <div>
+        <strong style="color:#2c3e50;">Q. スマホのホーム画面に追加したい</strong><br>
+        ブラウザのメニュー →「ホーム画面に追加」でアプリのように使えます。
+      </div>
     </div>
   </div>
 
   <!-- フッター -->
   <div style="text-align:center;padding:20px;font-size:0.75rem;color:#aaa;">
     CoWell<br>
-    <a href="/guide-full" style="color:#667eea;text-decoration:none;">詳しいシステムガイドはこちら</a>
-    &nbsp;|&nbsp;
     <a href="/knowledge" style="color:#667eea;text-decoration:none;">健康ナレッジベース</a>
     &nbsp;|&nbsp;
     <a href="/whitepaper" style="color:#667eea;text-decoration:none;">設計思想書</a>

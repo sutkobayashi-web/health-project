@@ -108,6 +108,7 @@ app.use('/api/buddy-topics', require('./routes/buddy-topics'));
 // 採用チャットBOTは公開エンドポイント（CORSはnginxで処理）
 app.use('/api/recruit-chat', require('./routes/recruit-chat'));
 app.use('/api/box', require('./routes/box-manager'));
+app.use('/api/aquarium', require('./routes/aquarium'));
 
 // ヘルスチェック
 app.get('/api/health', (req, res) => {

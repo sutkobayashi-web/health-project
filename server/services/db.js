@@ -262,6 +262,23 @@ function getDb() {
   try { db.exec("ALTER TABLE users ADD COLUMN tree_stage INTEGER DEFAULT 0"); } catch(e) {}
   try { db.exec("ALTER TABLE users ADD COLUMN tree_type TEXT DEFAULT ''"); } catch(e) {}
 
+  // マイグレーション: アクセスログテーブル（ペット育成・研究データ用）
+  db.exec(`CREATE TABLE IF NOT EXISTS user_access_log (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id TEXT NOT NULL,
+    access_date TEXT NOT NULL,
+    access_count INTEGER DEFAULT 1,
+    first_access TEXT DEFAULT (datetime('now')),
+    last_access TEXT DEFAULT (datetime('now')),
+    UNIQUE(user_id, access_date)
+  )`);
+
+  // usersにアクセスカウンターカラム追加
+  try { db.exec("ALTER TABLE users ADD COLUMN total_access_count INTEGER DEFAULT 0"); } catch(e) {}
+  try { db.exec("ALTER TABLE users ADD COLUMN last_access_at TEXT DEFAULT ''"); } catch(e) {}
+  try { db.exec("ALTER TABLE users ADD COLUMN consecutive_access_days INTEGER DEFAULT 0"); } catch(e) {}
+  try { db.exec("ALTER TABLE users ADD COLUMN best_consecutive_days INTEGER DEFAULT 0"); } catch(e) {}
+
   // マイグレーション: 個人情報保護フラグ（show_real_name）
   try { db.exec("ALTER TABLE core_members ADD COLUMN show_real_name INTEGER DEFAULT 0"); } catch(e) {}
   try { db.exec("ALTER TABLE users ADD COLUMN show_real_name INTEGER DEFAULT 0"); } catch(e) {}

@@ -71,6 +71,13 @@
     }
     .nav-icon { font-size: 1.15rem; display: block; margin-bottom: 3px; }
     .nav-label { font-size: 0.55rem; font-weight: 700; line-height: 1.2; }
+    .nav-group-label {
+      font-size: 0.4rem; font-weight: 600; color: rgba(255,255,255,0.25);
+      text-transform: uppercase; letter-spacing: 0.5px; padding: 8px 0 2px;
+      border-top: 1px solid rgba(255,255,255,0.08); margin-top: 4px;
+      width: 62px; text-align: center;
+    }
+    .nav-group-label:first-child { border-top: none; margin-top: 0; }
 
     /* ====== Content Area ====== */
     .content-area { flex: 1; padding: 20px; overflow-y: auto; }
@@ -326,8 +333,9 @@
       .theme-left-col, .theme-right-col { width: 100%; }
       .meeting-split { flex-direction: column; }
       .meeting-left { width: 100%; }
-      /* 区切り線を非表示 */
+      /* 区切り線・グループラベルを非表示 */
       .sidebar > div[style*="border-top"] { display: none; }
+      .nav-group-label { display: none; }
       /* 投稿詳細の左右分割を縦並びに */
       .inbox-detail-split { flex-direction: column !important; min-height: auto !important; }
       .inbox-detail-split > div { border-right: none !important; border-bottom: 1px solid #eee; max-height: none !important; }
@@ -389,60 +397,61 @@ if(localStorage.getItem('co_heart_admin_token') && localStorage.getItem('co_hear
 
 <div class="main-container">
   <div class="sidebar">
-    <!-- 投稿一覧（最上部） -->
+    <!-- ── A. 日常 ── -->
+    <div class="nav-group-label">日常</div>
+    <div class="nav-item active" onclick="switchTab('v2dash')" id="nav-v2dash">
+      <i class="fas fa-chart-pie nav-icon" style="color:#667eea;"></i><div class="nav-label">ダッシュ<br>ボード</div>
+    </div>
     <div class="nav-item position-relative" onclick="switchTab('evaluation')" id="nav-eval">
-      <i class="fas fa-inbox nav-icon"></i><div class="nav-label" style="font-size:0.55rem; line-height:1.2;">投稿<br>一覧</div>
+      <i class="fas fa-inbox nav-icon"></i><div class="nav-label">投稿一覧</div>
       <span id="chat-notify-nav-badge" class="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-danger border border-light" style="display:none; font-size:0.55rem;">0</span>
     </div>
-    <!-- 区切り -->
-    <div style="border-top:1px solid rgba(255,255,255,0.1); margin:4px 0;"></div>
-    <!-- v2: 凝集型スキーム -->
-    <div class="nav-item active" onclick="switchTab('v2dash')" id="nav-v2dash">
-      <i class="fas fa-chart-pie nav-icon" style="color:#667eea;"></i><div class="nav-label" style="font-size:0.55rem; line-height:1.2;">ダッシュ<br>ボード</div>
+    <div class="nav-item" onclick="switchTab('food')" id="nav-food">
+      <i class="fas fa-utensils nav-icon" style="color:#20c997;"></i><div class="nav-label">食事</div>
     </div>
+
+    <!-- ── B. サイクル運営 ── -->
+    <div class="nav-group-label">運営</div>
     <div class="nav-item" onclick="switchTab('v2challenge')" id="nav-v2challenge">
-      <i class="fas fa-fire nav-icon" style="color:#ff6b35;"></i><div class="nav-label" style="font-size:0.55rem; line-height:1.2;">チャレンジ<br>管理</div>
+      <i class="fas fa-fire nav-icon" style="color:#ff6b35;"></i><div class="nav-label">チャレンジ</div>
     </div>
     <div class="nav-item" onclick="switchTab('avatarchallenge')" id="nav-avatarchallenge">
-      <i class="fas fa-palette nav-icon" style="color:#ff9800;"></i><div class="nav-label" style="font-size:0.55rem; line-height:1.2;">アバター<br>投票</div>
+      <i class="fas fa-palette nav-icon" style="color:#ff9800;"></i><div class="nav-label">アバター<br>投票</div>
     </div>
     <div class="nav-item" onclick="switchTab('v2kpi')" id="nav-v2kpi">
-      <i class="fas fa-chart-line nav-icon" style="color:#20c997;"></i><div class="nav-label" style="font-size:0.55rem; line-height:1.2;">KPI<br>成果</div>
+      <i class="fas fa-chart-line nav-icon" style="color:#20c997;"></i><div class="nav-label">KPI成果</div>
     </div>
-    <div class="nav-item" onclick="switchTab('v2ambassador')" id="nav-v2ambassador">
-      <i class="fas fa-user-md nav-icon" style="color:#9c27b0;"></i><div class="nav-label" style="font-size:0.55rem; line-height:1.2;">専門家<br>連携</div>
-    </div>
-    <!-- 区切り -->
-    <div style="border-top:1px solid rgba(255,255,255,0.1); margin:4px 0;"></div>
+
+    <!-- ── C. コミュニケーション ── -->
+    <div class="nav-group-label">対話</div>
     <div class="nav-item position-relative" onclick="switchTab('personal')" id="nav-personal">
-      <i class="fas fa-envelope-open-text nav-icon"></i><div class="nav-label" style="font-size:0.55rem;">メール</div>
+      <i class="fas fa-envelope-open-text nav-icon"></i><div class="nav-label">メール</div>
       <span id="personal-badge" class="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-danger border border-light" style="display:none; font-size:0.6rem;">!</span>
     </div>
     <div class="nav-item" onclick="switchTab('buddytopic')" id="nav-buddytopic">
-      <i class="fas fa-comments nav-icon" style="color:#ff7043;"></i><div class="nav-label" style="font-size:0.55rem; line-height:1.2;">話題<br>共感</div>
+      <i class="fas fa-comments nav-icon" style="color:#ff7043;"></i><div class="nav-label">話題共感</div>
     </div>
-    <div class="nav-item" onclick="switchTab('food')" id="nav-food">
-      <i class="fas fa-utensils nav-icon" style="color:#20c997;"></i><div class="nav-label" style="font-size:0.55rem;">食事</div>
+    <div class="nav-item" onclick="switchTab('v2ambassador')" id="nav-v2ambassador">
+      <i class="fas fa-user-md nav-icon" style="color:#9c27b0;"></i><div class="nav-label">専門家</div>
     </div>
-    <div class="nav-item" onclick="window.location.href='/knowledge'" id="nav-knowledge">
-      <i class="fas fa-book-open nav-icon" style="color:#f39c12;"></i><div class="nav-label" style="font-size:0.55rem;">学習</div>
-    </div>
-    <div class="nav-item" onclick="window.location.href='/guide'" id="nav-guide">
-      <i class="fas fa-map-signs nav-icon" style="color:#667eea;"></i><div class="nav-label" style="font-size:0.55rem;">ガイド</div>
-    </div>
-    <!-- 管理系 -->
-    <div class="nav-item" onclick="switchTab('members')" id="nav-members" style="border-top:1px solid rgba(255,255,255,0.1); margin-top:auto; padding-top:10px; position:relative;">
-      <i class="fas fa-users-cog nav-icon" style="color:#4caf50;"></i>
-      <div class="nav-label" style="font-size:0.55rem; line-height:1.2;">メンバー<br>管理</div>
+
+    <!-- ── D. システム管理 ── -->
+    <div class="nav-group-label" style="margin-top:auto;">管理</div>
+    <div class="nav-item position-relative" onclick="switchTab('members')" id="nav-members">
+      <i class="fas fa-users-cog nav-icon" style="color:#4caf50;"></i><div class="nav-label">メンバー</div>
       <span id="online-count-badge" style="position:absolute; top:4px; right:8px; background:#4caf50; color:white; font-size:0.5rem; font-weight:800; width:16px; height:16px; border-radius:50%; display:none; justify-content:center; align-items:center; border:2px solid #1a1e2e;"></span>
     </div>
     <div class="nav-item" onclick="switchTab('backup')" id="nav-backup">
-      <i class="fas fa-database nav-icon" style="color:#f59e0b;"></i>
-      <div class="nav-label" style="font-size:0.55rem; line-height:1.2;">バック<br>アップ</div>
+      <i class="fas fa-database nav-icon" style="color:#f59e0b;"></i><div class="nav-label">バック<br>アップ</div>
+    </div>
+    <div class="nav-item" onclick="window.location.href='/knowledge'" id="nav-knowledge">
+      <i class="fas fa-book-open nav-icon" style="color:#f39c12;"></i><div class="nav-label">学習</div>
+    </div>
+    <div class="nav-item" onclick="window.location.href='/guide'" id="nav-guide">
+      <i class="fas fa-map-signs nav-icon" style="color:#667eea;"></i><div class="nav-label">ガイド</div>
     </div>
     <div class="nav-item" onclick="window.location.href='/whitepaper'" id="nav-whitepaper">
-      <i class="fas fa-file-alt nav-icon" style="color:#78909c;"></i>
-      <div class="nav-label" style="font-size:0.55rem; line-height:1.2;">ホワイト<br>ペーパー</div>
+      <i class="fas fa-file-alt nav-icon" style="color:#78909c;"></i><div class="nav-label">白書</div>
     </div>
   </div>
 
@@ -1210,13 +1219,13 @@ if(localStorage.getItem('co_heart_admin_token') && localStorage.getItem('co_hear
 
 <script src="/js/api.js?v=20260410c"></script>
 <script src="/js/avatar-render.js?v=20260410a"></script>
-<script src="/js/admin-core.js?v=20260410e"></script>
+<script src="/js/admin-core.js?v=20260410g"></script>
 <script src="/js/admin-inbox.js?v=20260410d"></script>
 <script src="/js/admin-matrix.js?v=20260410a"></script>
 <script src="/js/admin-proposal.js?v=20260410a"></script>
 <script src="/js/admin-meeting.js?v=20260410a"></script>
 <script src="/js/admin-mail.js?v=20260410b"></script>
-<script src="/js/admin-chat-notify.js?v=20260410a"></script>
+<script src="/js/admin-chat-notify.js?v=20260410b"></script>
 <script src="/js/admin-buddytopic.js?v=20260410a"></script>
 <script src="/js/admin-food.js?v=20260410g"></script>
 <script src="/js/admin-v2.js?v=20260410a"></script>

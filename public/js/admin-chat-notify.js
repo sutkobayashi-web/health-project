@@ -90,12 +90,13 @@
       }
     });
 
-    // ナビのInboxタブに全体未読数バッジ
+    // ナビのInboxタブに全体未読数バッジ（投稿一覧タブを見ている間は非表示）
     var totalUnread = 0;
     for (var k in unreadMap) totalUnread += unreadMap[k].unread;
     var navBadge = document.getElementById('chat-notify-nav-badge');
     if (navBadge) {
-      if (totalUnread > 0) {
+      var onEvalTab = (typeof currentActiveTab !== 'undefined' && currentActiveTab === 'evaluation');
+      if (totalUnread > 0 && !onEvalTab) {
         navBadge.innerText = totalUnread;
         navBadge.style.display = '';
       } else {
@@ -135,6 +136,12 @@
   /* ── カード描画後に呼び出す（タブ切替時にバッジを再適用） ── */
   window.applyChatUnreadBadges = function () {
     applyBadgesToDOM(currentUnreadMap);
+  };
+
+  /* ── 投稿一覧タブを開いた時にナビバッジだけ消す ── */
+  window.dismissNavUnreadBadge = function () {
+    var navBadge = document.getElementById('chat-notify-nav-badge');
+    if (navBadge) navBadge.style.display = 'none';
   };
 
   /* ── 既読マーク（モーダルを開いた時に呼ぶ） ── */

@@ -77,7 +77,7 @@ function doAdminAuth() {
             document.getElementById('admin-auth-overlay').style.display = 'none';
             renderHeaderInfo();
             loadData();
-            switchTab('evaluation');
+            switchTab('v2dash');
         } else { alert("認証失敗: " + res.msg); }
     }).catch(function(err) { hideLoading(); alert("通信エラー: " + err.message); });
 }
@@ -124,7 +124,7 @@ window.onload = function() {
         const el = document.getElementById('ts'+i);
         if(el) el.addEventListener('input', function() { document.getElementById('tv'+i).innerText = this.value; if(typeof updThemeRadar === 'function') updThemeRadar(); });
     }
-    switchTab('evaluation');
+    switchTab('v2dash');
     const loader = document.getElementById('global-loading-overlay');
     if(loader) loader.style.display = 'none';
 };
@@ -778,7 +778,7 @@ function switchTab(t) {
     var navEl = document.getElementById(navMap[t] || 'nav-eval');
     if(navEl) navEl.classList.add('active');
 
-    if(t==='evaluation') { renderInbox(currentInboxFilter); setTimeout(function(){ if(typeof renderInboxCustomAvatars==='function') renderInboxCustomAvatars(); if(typeof applyChatUnreadBadges==='function') applyChatUnreadBadges(); }, 500); }
+    if(t==='evaluation') { renderInbox(currentInboxFilter); if(typeof dismissNavUnreadBadge==='function') dismissNavUnreadBadge(); setTimeout(function(){ if(typeof renderInboxCustomAvatars==='function') renderInboxCustomAvatars(); if(typeof applyChatUnreadBadges==='function') applyChatUnreadBadges(); }, 500); }
     if(t==='current') loadCurrentAnalysis();
     if(t==='candidates') loadCandidates();
     if(t==='resolved') loadResolved();
@@ -1096,7 +1096,7 @@ function loadMariganRanking() {
     var area = document.getElementById('marigan-ranking-area');
     if (!area) return;
     area.innerHTML = '<div class="text-center py-3"><div class="spinner-border spinner-border-sm text-warning"></div></div>';
-    fetch('/admin/marigan-ranking', {
+    fetch('/api/admin/marigan-ranking', {
         headers: { 'Authorization': 'Bearer ' + localStorage.getItem('co_heart_admin_token') }
     }).then(function(r) { return r.json(); }).then(function(data) {
         if (!data.success || !data.ranking || data.ranking.length === 0) {

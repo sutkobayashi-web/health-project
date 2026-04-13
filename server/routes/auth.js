@@ -570,6 +570,45 @@ router.post('/user-heartbeat', authUser, (req, res) => {
   const { uid, nickname, avatar, department } = req.body;
   if (!uid) return res.json({ success: false });
   onlineUsers[uid] = { nickname: nickname || '', avatar: avatar || '😀', department: department || '', lastSeen: Date.now() };
+
+  // アクセスログ記録
+  try {
+    const db = require('../services/db').getDb();
+    const today = new Date().toISOString().split('T')[0];
+    const now = new Date().toISOString();
+
+    // 本日のアクセスをUPSERT
+    db.prepare(`INSERT INTO user_access_log (user_id, access_date, access_count, first_access, last_access)
+      VALUES (?, ?, 1, ?, ?)
+      ON CONFLICT(user_id, access_date) DO UPDATE SET
+        access_count = access_count + 1,
+        last_access = ?`).run(uid, today, now, now, now);
+
+    // usersテーブルのカウンター更新
+    db.prepare(`UPDATE users SET
+      total_access_count = COALESCE(total_access_count, 0) + 1,
+      last_access_at = ?
+      WHERE id = ?`).run(now, uid);
+
+    // 連続アクセス日数の計算
+    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+    const hadYesterday = db.prepare('SELECT 1 FROM user_access_log WHERE user_id = ? AND access_date = ?').get(uid, yesterday);
+    const user = db.prepare('SELECT consecutive_access_days, best_consecutive_days FROM users WHERE id = ?').get(uid);
+
+    if (user) {
+      // 今日が初回アクセスかチェック
+      const todayLog = db.prepare('SELECT access_count FROM user_access_log WHERE user_id = ? AND access_date = ?').get(uid, today);
+      if (todayLog && todayLog.access_count === 1) {
+        // 今日の初回アクセス → 連続日数を更新
+        const consecutive = hadYesterday ? (user.consecutive_access_days || 0) + 1 : 1;
+        const best = Math.max(consecutive, user.best_consecutive_days || 0);
+        db.prepare('UPDATE users SET consecutive_access_days = ?, best_consecutive_days = ? WHERE id = ?').run(consecutive, best, uid);
+      }
+    }
+  } catch(e) {
+    console.error('[access-log]', e.message);
+  }
+
   res.json({ success: true });
 });
 
@@ -589,6 +628,95 @@ router.get('/online-users', authAdmin, (req, res) => {
     if ((now - onlineUsers[uid].lastSeen) > 10 * 60 * 1000) delete onlineUsers[uid];
   }
   res.json({ success: true, online: users, count: users.length });
+});
+
+// アクセス統計API（管理者向け）
+router.get('/access-stats', authAdmin, (req, res) => {
+  try {
+    const db = require('../services/db').getDb();
+    const { period, user_id } = req.query;
+
+    // 全ユーザーのアクセスサマリー
+    const userStats = db.prepare(`
+      SELECT u.id, u.nickname, u.department,
+        u.total_access_count, u.consecutive_access_days, u.best_consecutive_days,
+        u.last_access_at,
+        (SELECT COUNT(DISTINCT access_date) FROM user_access_log WHERE user_id = u.id) as total_days,
+        (SELECT SUM(access_count) FROM user_access_log WHERE user_id = u.id
+          AND access_date >= date('now', '-30 days')) as last_30_days
+      FROM users u
+      ORDER BY u.total_access_count DESC
+    `).all();
+
+    // 本日のアクティブユーザー数
+    const today = new Date().toISOString().split('T')[0];
+    const todayActive = db.prepare('SELECT COUNT(DISTINCT user_id) as cnt FROM user_access_log WHERE access_date = ?').get(today);
+
+    // 過去30日の日別アクセス数
+    const dailyTrend = db.prepare(`
+      SELECT access_date, COUNT(DISTINCT user_id) as unique_users, SUM(access_count) as total_hits
+      FROM user_access_log
+      WHERE access_date >= date('now', '-30 days')
+      GROUP BY access_date
+      ORDER BY access_date
+    `).all();
+
+    // 個別ユーザーの詳細（指定時）
+    let userDetail = null;
+    if (user_id) {
+      userDetail = db.prepare(`
+        SELECT access_date, access_count, first_access, last_access
+        FROM user_access_log
+        WHERE user_id = ?
+        ORDER BY access_date DESC
+        LIMIT 90
+      `).all(user_id);
+    }
+
+    res.json({
+      success: true,
+      today_active: todayActive ? todayActive.cnt : 0,
+      users: userStats,
+      daily_trend: dailyTrend,
+      user_detail: userDetail
+    });
+  } catch(e) {
+    res.json({ success: false, error: e.message });
+  }
+});
+
+// 個別ユーザーのアクセス情報（ユーザー自身用）
+router.get('/my-access', authUser, (req, res) => {
+  try {
+    const db = require('../services/db').getDb();
+    const uid = req.query.uid;
+    if (!uid) return res.json({ success: false });
+
+    const user = db.prepare(`
+      SELECT total_access_count, consecutive_access_days, best_consecutive_days, last_access_at
+      FROM users WHERE id = ?
+    `).get(uid);
+
+    const recent = db.prepare(`
+      SELECT access_date, access_count
+      FROM user_access_log WHERE user_id = ?
+      ORDER BY access_date DESC LIMIT 30
+    `).all(uid);
+
+    const totalDays = db.prepare('SELECT COUNT(DISTINCT access_date) as cnt FROM user_access_log WHERE user_id = ?').get(uid);
+
+    res.json({
+      success: true,
+      total_access: user ? user.total_access_count : 0,
+      consecutive_days: user ? user.consecutive_access_days : 0,
+      best_consecutive: user ? user.best_consecutive_days : 0,
+      last_access: user ? user.last_access_at : null,
+      total_days: totalDays ? totalDays.cnt : 0,
+      recent: recent
+    });
+  } catch(e) {
+    res.json({ success: false, error: e.message });
+  }
 });
 
 module.exports = router;

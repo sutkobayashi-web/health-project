@@ -10283,6 +10283,51 @@ function submitSteps() {
   }).catch(function() {});
 }
 
+function giveHealthAdvice() {
+  var d = window._aqStatusData;
+  if (!d) return;
+
+  var advice = [];
+
+  // 最も深刻な問題から順にアドバイス
+  if (d.clarity < 20) {
+    advice.push('💧 水がかなり汚れてるよ...\n→ まず「💧水換」ボタンで水を換えてあげて\n→ 野菜の多い食事を投稿すると水がきれいに');
+  }
+  if (d.health < 40) {
+    advice.push('❤️ 元気がないよ...\n→ 毎日「🐟餌」ボタンで餌をあげて\n→ 食事の写真を撮ると栄養たっぷりの餌に');
+  }
+  if (d.obesity > 50) {
+    advice.push('⚖️ ちょっと太ってきたかも...\n→ 揚げ物を減らして野菜を増やすと体が軽くなるよ\n→ 歩数を記録すると肥満リスクが下がる');
+  }
+  if (d.hp > 50) {
+    advice.push('🩺 血圧が心配...\n→ 塩分の少ない食事にすると楽になるよ\n→ 「🔬検査」で早期発見を');
+  }
+  if (d.liver > 40) {
+    advice.push('🍺 肝臓が疲れてるかも...\n→ お酒を控えると水がきれいになるよ\n→ 休肝日を作ってあげて');
+  }
+  if (d.mental > 40) {
+    advice.push('😢 ちょっと寂しい...\n→ 毎日アプリに来て話しかけてくれると元気になるよ\n→ 連続日数が増えるとメンタルが回復');
+  }
+  if (d.checkups === 0 && d.days > 5) {
+    advice.push('🔬 まだ検査したことないね\n→ 魚名の横の「📊状態」から見えない病気が分かるよ\n→ 早期発見が大事！');
+  }
+
+  // 3要素アドバイス
+  advice.push('🌟 水を最高にきれいにする方法:\n✅ 食事の写真を投稿する\n✅ 歩数3,000歩以上を記録する\n✅ 野菜を含む食事にする\n→ 3つ揃うと水質が最高ランクに回復✨');
+
+  // 良い状態なら褒める
+  if (d.health > 70 && d.clarity > 60 && d.obesity < 30 && d.hp < 30) {
+    advice = ['🎉 すごい！とても元気だよ！\n水もきれいだし、リスクも低い。\nこの調子で続けてね！\n\n🏆 仲間の中でもトップクラスだよ'];
+  }
+
+  // チャットにアドバイスを順番に表示
+  advice.forEach(function(msg, i) {
+    setTimeout(function() {
+      addBuddyMessage('ai', msg);
+    }, i * 1500);
+  });
+}
+
 function showStatusPanel() {
   var existing = document.getElementById('status-panel');
   if (existing) { existing.remove(); return; }
@@ -10335,7 +10380,8 @@ function showStatusPanel() {
         '<span>🔬検査' + d.checkups + '回</span>' +
       '</div>' +
 
-      '<button onclick="this.closest(\'#status-panel\').remove()" style="width:100%;margin-top:12px;padding:8px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:8px;color:rgba(255,255,255,0.7);cursor:pointer;font-size:11px;">閉じる</button>' +
+      '<button onclick="giveHealthAdvice();document.getElementById(\'status-panel\').remove()" style="width:100%;margin-top:10px;padding:10px;background:linear-gradient(135deg,#4ade80,#22c55e);border:none;border-radius:8px;color:#fff;cursor:pointer;font-size:12px;font-weight:700;">💡 元気にするには？</button>' +
+      '<button onclick="this.closest(\'#status-panel\').remove()" style="width:100%;margin-top:6px;padding:8px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:8px;color:rgba(255,255,255,0.7);cursor:pointer;font-size:11px;">閉じる</button>' +
     '</div></div>';
 
   document.body.insertAdjacentHTML('beforeend', html);

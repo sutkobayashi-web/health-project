@@ -11398,12 +11398,20 @@ function initSharedTankCanvas(data) {
     for (var ei = 0; ei < eggObjs.length; ei++) {
       var eg = eggObjs[ei];
       var eY = eg.y + Math.sin(frame * 0.025 + eg.phase) * 3;
-      // 卵本体（小さめで砂利の上に）
+      // 卵本体
       var eggSize = eg.isMine ? 1.0 : 0.7;
-      ctx.fillStyle = eg.isMine ? '#fff5e0' : '#f0ece0';
+      // 自分の卵: 光るエフェクト
+      if (eg.isMine) {
+        ctx.save();
+        ctx.globalAlpha = 0.15 + Math.sin(frame*0.05)*0.1;
+        ctx.fillStyle = '#4ade80';
+        ctx.beginPath(); ctx.ellipse(eg.x, eY, 14*eggSize, 18*eggSize, 0, 0, Math.PI*2); ctx.fill();
+        ctx.restore();
+      }
+      ctx.fillStyle = eg.isMine ? '#e8ffd4' : '#f0ece0';
       ctx.beginPath(); ctx.ellipse(eg.x, eY, 10*eggSize, 14*eggSize, 0, 0, Math.PI*2); ctx.fill();
-      ctx.strokeStyle = eg.isMine ? 'rgba(74,222,128,0.6)' : 'rgba(200,190,160,0.5)';
-      ctx.lineWidth = eg.isMine ? 1.5 : 1;
+      ctx.strokeStyle = eg.isMine ? '#4ade80' : 'rgba(200,190,160,0.5)';
+      ctx.lineWidth = eg.isMine ? 2 : 1;
       ctx.beginPath(); ctx.ellipse(eg.x, eY, 10*eggSize, 14*eggSize, 0, 0, Math.PI*2); ctx.stroke();
       // 卵の中にニックネームの頭文字
       if (!eg.name) {

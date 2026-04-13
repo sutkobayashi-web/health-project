@@ -686,7 +686,7 @@ router.get('/shared-tank', authUser, (req, res) => {
       WHERE ua.status = 'alive' AND ua.fish_species_id > 0
       ORDER BY ua.fish_health DESC`).all();
 
-    const eggs = db.prepare(`SELECT ua.*, u.nickname FROM user_aquarium ua
+    const eggRows = db.prepare(`SELECT ua.*, u.nickname FROM user_aquarium ua
       JOIN users u ON ua.user_id = u.id
       WHERE ua.status = 'egg'`).all();
 
@@ -700,6 +700,7 @@ router.get('/shared-tank', authUser, (req, res) => {
     const fish = allFish.map(f => {
       const species = FISH_SPECIES.find(s => s.id === f.fish_species_id);
       return {
+        type: 'fish',
         user_id: f.user_id,
         nickname: f.nickname || '???',
         fish_name: f.fish_name || '名前なし',
@@ -717,11 +718,20 @@ router.get('/shared-tank', authUser, (req, res) => {
       };
     });
 
+    const eggs = eggRows.map(e => ({
+      type: 'egg',
+      user_id: e.user_id,
+      nickname: e.nickname || '???',
+      fish_name: e.fish_name || '',
+      total_feeds: e.total_feeds || 0,
+      is_mine: e.user_id === req.uid,
+    }));
+
     res.json({
       success: true,
       fish,
-      eggs: eggs.length,
-      total: allFish.length + eggs.length,
+      eggs,
+      total: allFish.length + eggRows.length,
       avg_clarity: avgClarity,
       avg_health: avgHealth,
       healthy_count: allFish.filter(f => f.fish_health > 70).length,

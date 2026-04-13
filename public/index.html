@@ -820,7 +820,7 @@
         <button onclick="inlineTopicMenu()" class="buddy-action-btn" style="display:flex;align-items:center;gap:4px;padding:7px 12px;background:rgba(124,58,237,0.2);border:1px solid rgba(124,58,237,0.3);color:rgba(255,255,255,0.9);border-radius:18px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;"><i class="fas fa-th-large"></i> メニュー</button>
       </div>
       <div style="display:flex;gap:5px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;touch-action:pan-x;">
-        <button onclick="openSharedTank()" class="buddy-action-btn" style="display:flex;align-items:center;gap:4px;padding:7px 12px;background:rgba(26,122,181,0.25);border:1px solid rgba(26,122,181,0.4);color:rgba(255,255,255,0.9);border-radius:18px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;"><i class="fas fa-water"></i> みんなの水槽</button>
+        <button onclick="openSharedTank()" class="buddy-action-btn" style="display:flex;align-items:center;gap:4px;padding:7px 12px;background:rgba(26,122,181,0.25);border:1px solid rgba(26,122,181,0.4);color:rgba(255,255,255,0.9);border-radius:18px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;"><i class="fas fa-water"></i> 仲間を見る</button>
         <button onclick="openFishBook()" class="buddy-action-btn" style="display:flex;align-items:center;gap:4px;padding:7px 12px;background:rgba(74,222,128,0.15);border:1px solid rgba(74,222,128,0.3);color:rgba(255,255,255,0.9);border-radius:18px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;"><i class="fas fa-book"></i> 図鑑</button>
         <button onclick="openFishHistory()" class="buddy-action-btn" style="display:flex;align-items:center;gap:4px;padding:7px 12px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.7);border-radius:18px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;"><i class="fas fa-monument"></i> 歴代</button>
         <button onclick="inlineChallengeJoin()" class="buddy-action-btn" style="display:flex;align-items:center;gap:4px;padding:7px 12px;background:rgba(255,107,53,0.2);border:1px solid rgba(255,107,53,0.35);color:rgba(255,255,255,0.9);border-radius:18px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;"><i class="fas fa-fire"></i> チャレンジ</button>
@@ -10648,7 +10648,7 @@ function drawGuests(ctx) {
   }
 }
 
-// みんなの水槽
+// 仲間を見る
 function closeSharedTank() {
   var el = document.getElementById('shared-tank-overlay');
   if (el) el.remove();
@@ -10667,8 +10667,8 @@ function openSharedTank() {
       // ヘッダー
       var header = '<div style="padding:10px 16px;background:rgba(10,40,70,0.95);display:flex;align-items:center;gap:10px;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,0.1);">' +
         '<button onclick="closeSharedTank()" style="background:rgba(255,255,255,0.15);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:14px;"><i class="fas fa-arrow-left"></i></button>' +
-        '<div style="flex:1;"><div style="font-weight:800;font-size:14px;color:#fff;">🌊 みんなの水槽</div>' +
-        '<div style="font-size:10px;color:rgba(255,255,255,0.5);">' + d.total + '匹の仲間（卵' + d.eggs + '個含む）</div></div>' +
+        '<div style="flex:1;"><div style="font-weight:800;font-size:14px;color:#fff;">🌊 仲間を見る</div>' +
+        '<div style="font-size:10px;color:rgba(255,255,255,0.5);">' + d.fish.length + '匹 + 卵' + d.eggs.length + '個</div></div>' +
         '<div style="text-align:right;font-size:10px;color:rgba(255,255,255,0.6);">水質 ' + d.avg_clarity + '% / 元気 ' + d.avg_health + '%</div>' +
         '</div>';
 
@@ -10721,6 +10721,19 @@ function initSharedTankCanvas(data) {
     };
   });
 
+  // 卵オブジェクト
+  var eggObjs = (data.eggs || []).map(function(e, i) {
+    return {
+      x: 50 + Math.random() * (W - 100),
+      y: H * 0.5 + Math.random() * (H * 0.12),
+      phase: Math.random() * Math.PI * 2,
+      name: e.fish_name || '',
+      nickname: e.nickname,
+      feeds: e.total_feeds,
+      isMine: e.is_mine,
+    };
+  });
+
   // 水草
   var plants = [];
   for (var p = 0; p < 8; p++) {
@@ -10738,6 +10751,14 @@ function initSharedTankCanvas(data) {
         '<span style="color:' + rc + ';">●</span>' +
         '<span>' + (f.is_mine ? '⭐' : '') + f.nickname + '</span>' +
         '<span style="color:rgba(255,255,255,0.4);">' + f.fish_name + '</span>' +
+        '</div>';
+    }).join('') +
+    (data.eggs || []).map(function(e) {
+      var border = e.is_mine ? 'border:2px solid #4ade80;' : 'border:1px solid rgba(255,255,255,0.15);';
+      return '<div style="' + border + 'background:rgba(255,255,255,0.06);border-radius:8px;padding:4px 8px;font-size:10px;color:rgba(255,255,255,0.6);display:flex;align-items:center;gap:4px;">' +
+        '<span>🥚</span>' +
+        '<span>' + (e.is_mine ? '⭐' : '') + e.nickname + '</span>' +
+        '<span style="color:rgba(255,255,255,0.3);">' + (e.fish_name || '卵') + ' (' + e.total_feeds + '/3)</span>' +
         '</div>';
     }).join('') + '</div>';
 
@@ -10834,6 +10855,38 @@ function initSharedTankCanvas(data) {
       ctx.textAlign = 'center';
       ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 2;
       ctx.fillText(f.name, f.x, f.y - f.size*14 - 3);
+      ctx.shadowBlur = 0;
+      ctx.restore();
+    }
+
+    // 卵を描画
+    for (var ei = 0; ei < eggObjs.length; ei++) {
+      var eg = eggObjs[ei];
+      var eY = eg.y + Math.sin(frame * 0.025 + eg.phase) * 3;
+      // 卵本体
+      ctx.fillStyle = eg.isMine ? '#fff5e0' : '#f5f0e0';
+      ctx.beginPath(); ctx.ellipse(eg.x, eY, 16, 22, 0, 0, Math.PI*2); ctx.fill();
+      ctx.strokeStyle = eg.isMine ? 'rgba(74,222,128,0.6)' : '#d4c9a8';
+      ctx.lineWidth = eg.isMine ? 2 : 1.5;
+      ctx.beginPath(); ctx.ellipse(eg.x, eY, 16, 22, 0, 0, Math.PI*2); ctx.stroke();
+      // 揺れエフェクト
+      if (frame % 120 > 105) {
+        ctx.fillStyle = 'rgba(255,255,200,0.3)';
+        ctx.beginPath(); ctx.arc(eg.x+Math.random()*6-3, eY+Math.random()*6-3, 2, 0, Math.PI*2); ctx.fill();
+      }
+      // 名前（卵の上）
+      ctx.save();
+      ctx.globalAlpha = eg.isMine ? 0.9 : 0.6;
+      ctx.fillStyle = eg.isMine ? '#4ade80' : 'rgba(255,255,255,0.8)';
+      ctx.font = (eg.isMine ? 'bold ' : '') + '10px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 2;
+      var eLabel = (eg.name || eg.nickname) + (eg.name ? '' : 'の卵');
+      ctx.fillText(eLabel, eg.x, eY - 28);
+      // 記録回数
+      ctx.font = '8px sans-serif';
+      ctx.fillStyle = 'rgba(255,255,255,0.5)';
+      ctx.fillText(eg.feeds + '/3', eg.x, eY + 30);
       ctx.shadowBlur = 0;
       ctx.restore();
     }

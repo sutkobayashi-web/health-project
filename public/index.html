@@ -9902,14 +9902,11 @@ function resizeAquarium() {
   window._aqGravel = null;
 }
 
-var _aqInitialH = 0; // 初回の高さを記憶
 function initAqPlants() {
   _aqPlants = [];
-  _aqInitialH = _aqH > _aqInitialH ? _aqH : _aqInitialH;
-  var baseH = _aqInitialH || _aqH || 300;
-  var plantH = baseH * 0.25;
+  // 固定の高さ（画面サイズに依存しない）
   for (var i = 0; i < 6; i++) {
-    _aqPlants.push({ x: 10 + Math.random()*(_aqW-20), segs: 3+Math.floor(Math.random()*3), h: plantH+Math.random()*plantH*0.8, w: 2+Math.random()*3, phase: Math.random()*Math.PI*2, hue: 100+Math.random()*40 });
+    _aqPlants.push({ x: 10 + Math.random()*(_aqW-20), segs: 3+Math.floor(Math.random()*3), h: 60+Math.random()*50, w: 2+Math.random()*3, phase: Math.random()*Math.PI*2, hue: 100+Math.random()*40 });
   }
 }
 

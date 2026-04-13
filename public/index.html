@@ -9880,11 +9880,7 @@ function initAquarium() {
   window.addEventListener('resize', resizeAquarium);
   loadAquariumData();
   requestAnimationFrame(drawAquarium);
-  // 仲間の魚を起動時にロード、以降5分ごと更新
-  setTimeout(function() {
-    loadCommunityFish();
-    setInterval(loadCommunityFish, 300000);
-  }, 2000);
+  // ゲスト魚は無効化（自分の水槽は自分の魚だけ）
 }
 
 function resizeAquarium() {
@@ -10810,6 +10806,7 @@ function initSharedTankCanvas(data) {
       stage: f.growth_stage,
       days: f.days_alive,
       isMine: f.is_mine,
+      isFry: !f.species_id,
     };
   });
 
@@ -10901,9 +10898,30 @@ function initSharedTankCanvas(data) {
       if (f.y<15) { f.y=15; f.vy*=-0.5; } if (f.y>H*0.65) { f.y=H*0.65; f.vy*=-0.5; }
       f.tailPhase += 0.03 + f.speed*0.03;
 
-      // 描画（自分の水槽と同じスタイル）
+      // 描画
       ctx.save();
       ctx.translate(f.x, f.y);
+
+      if (f.isFry) {
+        // ===== 稚魚デザイン（自分の水槽と同じ） =====
+        var fScale = f.isMine ? 1.2 : 0.9;
+        ctx.scale(fScale, fScale);
+        ctx.globalAlpha = 0.7;
+        var fryG2 = ctx.createRadialGradient(0,0,0,0,0,10);
+        fryG2.addColorStop(0,'rgba(200,230,255,0.4)');fryG2.addColorStop(0.6,'rgba(180,220,255,0.2)');fryG2.addColorStop(1,'rgba(160,210,255,0.05)');
+        ctx.fillStyle=fryG2;ctx.beginPath();ctx.ellipse(0,0,10,5,0,0,Math.PI*2);ctx.fill();
+        ctx.strokeStyle='rgba(200,230,255,0.35)';ctx.lineWidth=0.8;
+        ctx.beginPath();ctx.moveTo(-8,0);ctx.lineTo(7,0);ctx.stroke();
+        var ftw2=Math.sin(f.tailPhase)*3;
+        ctx.fillStyle='rgba(180,220,255,0.25)';ctx.beginPath();ctx.moveTo(-8,0);ctx.lineTo(-13,-3+ftw2);ctx.lineTo(-13,3+ftw2);ctx.closePath();ctx.fill();
+        ctx.fillStyle='rgba(0,0,0,0.6)';ctx.beginPath();ctx.arc(5,-1,2.5,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='rgba(255,255,255,0.8)';ctx.beginPath();ctx.arc(5.5,-1.8,0.8,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='rgba(255,180,80,0.4)';ctx.beginPath();ctx.ellipse(-1,2,3,1.5,0,0,Math.PI*2);ctx.fill();
+        if(frame%10<3){ctx.fillStyle='rgba(255,255,220,'+(0.3+Math.random()*0.4)+')';ctx.beginPath();ctx.arc(Math.random()*12-6,Math.random()*8-4,0.8,0,Math.PI*2);ctx.fill();}
+        if(f.isMine){ctx.strokeStyle='rgba(74,222,128,0.5)';ctx.lineWidth=1.5;ctx.beginPath();ctx.ellipse(0,0,14,8,0,0,Math.PI*2);ctx.stroke();}
+        ctx.globalAlpha=1;ctx.restore();
+      } else {
+      // ===== 成魚デザイン =====
       var flip = f.vx > 0.03 ? 1 : f.vx < -0.03 ? -1 : 1;
       ctx.scale(flip * f.size, f.size);
       var sat = 40+f.color*55, light = 35+f.color*20;
@@ -10938,6 +10956,7 @@ function initSharedTankCanvas(data) {
       // 自分の魚はハイライト
       if (f.isMine) { ctx.strokeStyle='rgba(74,222,128,0.6)';ctx.lineWidth=2.5;ctx.beginPath();ctx.ellipse(0,0,22,13,0,0,Math.PI*2);ctx.stroke(); }
       ctx.restore();
+      } // end else (成魚デザイン)
 
       // 名前
       ctx.save();

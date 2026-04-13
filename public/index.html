@@ -10179,20 +10179,52 @@ function checkFullRecovery() {
   }).catch(function() {});
 }
 
-// アクセス時に餌をまだあげてないか確認して促す
+// アクセス時にナビゲーション（魚の状態に応じた提案）
 function checkDailyFeed() {
   if (!currentUser || !_aq || _aq.status !== 'alive') return;
-  var today = new Date().toISOString().split('T')[0];
-  if (_aq.last_feed_date === today) {
-    // 今日は済み
-    var btn = document.getElementById('feed-btn');
-    if (btn) { btn.innerHTML = '<i class="fas fa-check"></i> 済み'; btn.style.opacity = '0.5'; }
-  } else {
-    // まだ餌をあげてない → 促す
-    setTimeout(function() {
-      addBuddyMessage('ai', 'お腹空いたな...今日のごはん、まだかな？🐟\n\n上のバーの「🐟餌」ボタンをタップしてね。\n食事の写真を撮ってくれたらもっと嬉しいな！');
-    }, 3000);
-  }
+  var todayStr = new Date().toISOString().split('T')[0];
+  var fedToday = _aq.last_feed_date === todayStr;
+
+  setTimeout(function() {
+    // 魚の状態を分析して最適な提案を出す
+    var tips = [];
+    var health = _aq.fish_health || 0;
+    var clarity = _aq.water_clarity || 0;
+    var obesity = _aq.obesity_risk || 0;
+    var hp = _aq.hypertension_risk || 0;
+    var liver = _aq.liver_risk || 0;
+    var mental = _aq.mental_risk || 0;
+    var consec = _aq.consecutive_feed_days || 0;
+    var checkups = _aq.checkup_count || 0;
+    var days = _aq.days_alive || 0;
+
+    // 優先度の高い順にチェック
+    if (!fedToday) {
+      tips.push('お腹空いたな...🐟\n上のバーの「🐟餌」をタップしてね。\n食事の写真を撮ってくれたらもっと嬉しいな！');
+    } else if (clarity < 20) {
+      tips.push('水がすごく汚れてる...💧\n「💧水換」ボタンで水を換えてくれない？\nあと、野菜を食べてくれると水がきれいになるよ');
+    } else if (clarity < 40) {
+      tips.push('水がちょっと濁ってるかも...💧\n「💧水換」で少しきれいになるよ。\n食事・歩数・野菜の3つが揃うと水がキラキラに✨');
+    } else if (obesity > 60) {
+      tips.push('最近お腹が重い...🐟\n揚げ物が続いてるからかな。\n野菜やサラダを食べると体が軽くなるかも');
+    } else if (hp > 60) {
+      tips.push('なんだか顔が赤い気がする...😰\n塩辛いもの多くなかった？\n薄味のごはんだと楽になるかも');
+    } else if (liver > 50) {
+      tips.push('水が黄色っぽい...🍺\nお酒の後は水が汚れやすいんだ。\n今日は休肝日にしてくれると助かるな');
+    } else if (mental > 50) {
+      tips.push('最近ちょっと寂しかったよ...😢\n毎日来てくれると元気になるんだ。\n話しかけてくれるだけでも嬉しいよ');
+    } else if (checkups === 0 && days > 7) {
+      tips.push('そういえば、まだ検査してもらったことないな...🔬\n上のメニューの「🔬検査」で水質を調べてくれない？\n早めに気づけると安心だよ');
+    } else if (consec >= 7) {
+      tips.push(consec + '日連続！すごいね！🎉\nあなたのおかげで毎日元気だよ。\nこの調子で続けてくれたら嬉しいな');
+    } else if (health > 70 && clarity > 70) {
+      tips.push('今日も元気！水もきれい！🌟\nあなたのごはんのおかげだね。\n他の仲間の様子も「仲間を見る」で見てみない？');
+    }
+
+    if (tips.length > 0) {
+      addBuddyMessage('ai', tips[0]);
+    }
+  }, 3000);
 }
 
 // 歩数入力

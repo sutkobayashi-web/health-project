@@ -10084,13 +10084,16 @@ function updateAquariumUI() {
     var species = _aq.fish_species_id ? '🐟' : '';
     var clarity = Math.round(_aq.water_clarity || 0);
     var clarityLabel = clarity > 70 ? '○良好' : clarity > 40 ? '△注意' : '✕危険';
-    var clarityColor = clarity > 70 ? '#16a34a' : clarity > 40 ? '#d97706' : '#ef4444';
-    info.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;">' +
-      '<div><span style="font-size:13px;font-weight:700;color:#333;">' + (_aq.fish_name || '名前なし') + '</span>' +
-      '<span style="font-size:10px;color:#888;margin-left:6px;">Stage ' + (_aq.growth_stage || 1) + '</span></div>' +
-      '<div style="font-size:11px;"><span style="color:' + clarityColor + ';font-weight:600;">水質 ' + clarityLabel + '</span>' +
-      '<span style="color:#888;margin-left:6px;">' + (_aq.days_alive || 0) + '日目</span></div>' +
-      '</div>';
+    var clarityColor = clarity > 70 ? '#4ade80' : clarity > 40 ? '#fbbf24' : '#ef4444';
+    var stageNames = {1:'卵',2:'稚魚',3:'幼魚',4:'若魚',5:'成魚',6:'大人',7:'伝説'};
+    info.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;pointer-events:auto;">' +
+      '<div><span style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.9);">' + (_aq.fish_name || '名前なし') + '</span>' +
+      '<span style="font-size:9px;color:rgba(255,255,255,0.5);margin-left:4px;">' + (stageNames[_aq.growth_stage] || 'Stage'+_aq.growth_stage) + '</span></div>' +
+      '<div style="display:flex;align-items:center;gap:6px;">' +
+      '<span style="font-size:10px;color:' + clarityColor + ';font-weight:600;">' + clarityLabel + '</span>' +
+      '<span style="font-size:9px;color:rgba(255,255,255,0.4);">' + (_aq.days_alive || 0) + '日</span>' +
+      '<button onclick="openCheckup()" style="font-size:9px;padding:2px 8px;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:10px;color:rgba(255,255,255,0.8);cursor:pointer;">🔬検査</button>' +
+      '</div></div>';
   }
 }
 
@@ -10131,10 +10134,15 @@ function feedAquarium(nutrientScores) {
     .then(function(r){return r.json();}).then(function(d){
       if (d.success) {
         if (d.voice) showAqVoice(d.voice);
-        if (d.hatched) loadAquariumData();
+        if (d.hatched || d.growthEvent) loadAquariumData();
         else { _aq.water_clarity += d.deltas.clarity; _aq.fish_color += d.deltas.color; }
         // 餌エフェクト
-        spawnAqFood(d.reaction === 'eat_delighted' ? '#ffd700' : d.reaction === 'eat_oily' ? '#a0522d' : '#4ade80');
+        if (d.reaction === 'evolution') {
+          // 成長エフェクト: キラキラを大量に
+          for (var k=0;k<20;k++) spawnAqFood('#ffd700');
+        } else {
+          spawnAqFood(d.reaction === 'eat_delighted' ? '#ffd700' : d.reaction === 'eat_oily' ? '#a0522d' : '#4ade80');
+        }
       }
     }).catch(function(){});
 }
@@ -10262,18 +10270,24 @@ function drawAquarium() {
     if(isDead){ctx.rotate(0.3);ctx.globalAlpha=0.4;}
     var hue=_aq.fish_species_id?(_aqSpeciesHue()||200):200;
     var sat=40+colNorm*55, light=isDead?30:35+colNorm*20;
+    // 魚種別体型
+    var shape = _aqSpeciesShape();
+    var bRx = shape.bodyRx, bRy = shape.bodyRy, tS = shape.tailSize, fS = shape.finSize;
     // 尾
-    var tw=Math.sin(_aqFish.tailPhase)*(4+eNorm*6);
+    var tw=Math.sin(_aqFish.tailPhase)*(4+eNorm*6)*tS;
     ctx.fillStyle='hsla('+hue+','+(sat-10)+'%,'+(light+5)+'%,0.6)';
-    ctx.beginPath();ctx.moveTo(-14,0);ctx.quadraticCurveTo(-22,-6+tw,-28,-9+tw);
-    ctx.quadraticCurveTo(-22,tw,-28,9+tw);ctx.quadraticCurveTo(-22,6+tw,-14,0);ctx.fill();
+    ctx.beginPath();ctx.moveTo(-bRx+3,0);ctx.quadraticCurveTo(-bRx-8*tS,-6*tS+tw,-bRx-14*tS,-9*tS+tw);
+    ctx.quadraticCurveTo(-bRx-8*tS,tw,-bRx-14*tS,9*tS+tw);ctx.quadraticCurveTo(-bRx-8*tS,6*tS+tw,-bRx+3,0);ctx.fill();
+    // 背びれ
+    ctx.fillStyle='hsla('+(hue+20)+','+sat+'%,'+(light+10)+'%,0.4)';
+    ctx.beginPath();ctx.moveTo(-3,-bRy);ctx.quadraticCurveTo(4,-bRy-6*fS,10,-bRy);ctx.closePath();ctx.fill();
     // 体
-    var bg=ctx.createLinearGradient(0,-9,0,9);
+    var bg=ctx.createLinearGradient(0,-bRy,0,bRy);
     bg.addColorStop(0,'hsla('+hue+','+sat+'%,'+(light+12)+'%,1)');
     bg.addColorStop(0.45,'hsla('+hue+','+sat+'%,'+light+'%,1)');
     bg.addColorStop(0.55,'hsla(0,'+(30+colNorm*50)+'%,'+(40+colNorm*15)+'%,1)');
     bg.addColorStop(1,'hsla('+(hue+10)+','+(sat-10)+'%,'+(light-5)+'%,1)');
-    ctx.fillStyle=bg;ctx.beginPath();ctx.ellipse(0,0,17,9,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=bg;ctx.beginPath();ctx.ellipse(0,0,bRx,bRy,0,0,Math.PI*2);ctx.fill();
     // 蛍光ライン
     if(colNorm>0.3&&!isDead){
       ctx.strokeStyle='hsla('+hue+',100%,'+(60+colNorm*20)+'%,'+(0.2+colNorm*0.4)+')';
@@ -10303,9 +10317,55 @@ function drawAquarium() {
 
 function _aqSpeciesHue() {
   if (!_aq || !_aq.fish_species_id) return 200;
-  // 種類ごとのhue（簡易版）
   var hues = {1:200,2:30,3:45,4:25,5:210,6:0,7:35,8:30,9:0,10:240,11:180,12:210,13:15,14:80,15:40,16:350,17:280,18:5,19:25,20:120,21:220,22:300,23:5,24:50,25:190,26:45,27:210,28:220,29:200,30:15};
   return hues[_aq.fish_species_id] || 200;
+}
+
+function _aqSpeciesShape() {
+  if (!_aq || !_aq.fish_species_id) return { bodyRx:17, bodyRy:9, tailSize:1, finSize:1 };
+  // ランク別の体型
+  var id = _aq.fish_species_id;
+  if (id >= 23) return { bodyRx:24, bodyRy:13, tailSize:1.5, finSize:1.3 }; // 超レア・伝説: 大きい
+  if (id >= 17) return { bodyRx:20, bodyRy:11, tailSize:1.3, finSize:1.2 }; // レア: やや大きい
+  if (id >= 9) return { bodyRx:18, bodyRy:10, tailSize:1.1, finSize:1.1 };  // アンコモン
+  if (id === 7 || id === 8) return { bodyRx:15, bodyRy:7, tailSize:0.8, finSize:0.7 }; // コリドラス・ドジョウ: 細い
+  if (id === 10) return { bodyRx:16, bodyRy:14, tailSize:1.8, finSize:1.5 }; // ベタ: ヒレが大きい
+  return { bodyRx:17, bodyRy:9, tailSize:1, finSize:1 }; // コモン標準
+}
+
+// 水質検査ボタン（ホーム画面info内に表示）
+function openCheckup() {
+  if (!currentUser || !_aq || _aq.status !== 'alive') return;
+  fetch('/api/aquarium/checkup', { method:'POST', headers:{'Content-Type':'application/json','x-user-id':currentUser.uid}, body:JSON.stringify({uid:currentUser.uid}) })
+    .then(function(r){return r.json();}).then(function(d){
+      if (d.success) {
+        showAqVoice(d.voice);
+        // 結果をモーダル表示
+        var r = d.result;
+        var html = '<div style="position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;" onclick="if(event.target===this)this.remove()">';
+        html += '<div style="background:#0d2440;border:1px solid rgba(255,255,255,0.15);border-radius:16px;padding:24px;max-width:340px;width:100%;color:#fff;">';
+        html += '<h3 style="font-size:15px;margin-bottom:12px;text-align:center;">🔬 水質検査レポート</h3>';
+        html += '<div style="text-align:center;font-size:28px;font-weight:800;margin-bottom:12px;color:' + (r.overall==='A'?'#4ade80':r.overall==='B'?'#fbbf24':'#ef4444') + ';">判定: ' + r.overall + '</div>';
+        html += '<div style="font-size:12px;line-height:2;color:rgba(255,255,255,0.8);">';
+        html += '透明度: ' + Math.round(r.clarity) + '% ' + (r.clarity>70?'○':'△') + '<br>';
+        html += 'アンモニア: ' + Math.round(r.ammonia) + ' ' + (r.ammonia<30?'○':'△') + '<br>';
+        html += 'pH: ' + r.ph.toFixed(1) + ' ' + (Math.abs(r.ph-7)<0.5?'○':'△') + '<br>';
+        html += '酸素: ' + Math.round(r.oxygen) + '% ' + (r.oxygen>60?'○':'△') + '<br>';
+        html += '</div>';
+        if (r.diseases && r.diseases.length > 0) {
+          html += '<div style="margin-top:10px;padding:10px;background:rgba(239,68,68,0.15);border-radius:8px;font-size:12px;">';
+          html += '<div style="font-weight:700;color:#fca5a5;margin-bottom:4px;">⚠️ 注意項目:</div>';
+          r.diseases.forEach(function(dd) {
+            html += '<div style="color:rgba(255,255,255,0.8);">・' + dd.name + '（Stage ' + dd.stage + '）</div>';
+          });
+          html += '</div>';
+        }
+        html += '<button onclick="this.closest(\'div[style*=fixed]\').remove()" style="width:100%;margin-top:14px;padding:10px;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.2);border-radius:10px;color:#fff;font-weight:600;cursor:pointer;">閉じる</button>';
+        html += '</div></div>';
+        document.body.insertAdjacentHTML('beforeend', html);
+        loadAquariumData();
+      }
+    }).catch(function(){});
 }
 
 // ページ読み込み時にアクアリウム初期化

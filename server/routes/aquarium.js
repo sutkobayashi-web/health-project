@@ -300,12 +300,41 @@ router.post('/feed', authUser, (req, res) => {
     } catch(e) {}
   }
 
+  // 成長判定
+  let newGrowthStage = aq.growth_stage || 1;
+  let growthEvent = null;
+  if (newStatus === 'alive') {
+    const daysAlive = (aq.days_alive || 0);
+    const feeds = totalFeeds;
+    const consec = consecutive;
+    const prevStage = aq.growth_stage || 1;
+
+    if (prevStage === 1 && daysAlive >= 1) {
+      newGrowthStage = 2; growthEvent = { stage: 2, msg: '稚魚に成長したよ！' };
+    }
+    if (prevStage === 2 && feeds >= 10 && consec >= 5) {
+      newGrowthStage = 3; growthEvent = { stage: 3, msg: '幼魚になった！少し大きくなったね' };
+    }
+    if (prevStage === 3 && daysAlive >= 21 && feeds >= 25) {
+      newGrowthStage = 4; growthEvent = { stage: 4, msg: '若魚に成長！体つきがしっかりしてきた' };
+    }
+    if (prevStage === 4 && daysAlive >= 45 && bs >= 60 && consec >= 7) {
+      newGrowthStage = 5; growthEvent = { stage: 5, msg: '成魚になったよ！立派に育ったね' };
+    }
+    if (prevStage === 5 && daysAlive >= 75 && aq.checkup_count >= 2) {
+      newGrowthStage = 6; growthEvent = { stage: 6, msg: '大人の魚になった。一緒に過ごした日々の証だね' };
+    }
+    if (prevStage === 6 && daysAlive >= 120 && newClarity > 60 && newHealth > 60) {
+      newGrowthStage = 7; growthEvent = { stage: 7, msg: '伝説の魚に...！あなたのおかげで最高の姿になったよ' };
+    }
+  }
+
   db.prepare(`UPDATE user_aquarium SET
     water_clarity=?, water_ph=?, ammonia=?, oxygen=?,
     fish_health=?, fish_size=?, fish_color=?, fish_speed=?, fish_stress=?,
     obesity_risk=?, hypertension_risk=?, diabetes_risk=?, liver_risk=?,
     total_feeds=?, consecutive_feed_days=?, last_feed_date=?,
-    status=?, fish_species_id=?,
+    status=?, fish_species_id=?, growth_stage=?,
     hatched_at = CASE WHEN ? = 'alive' AND status = 'egg' THEN datetime('now') ELSE hatched_at END,
     updated_at=datetime('now')
     WHERE user_id=?`).run(
@@ -313,7 +342,7 @@ router.post('/feed', authUser, (req, res) => {
     newHealth, newSize, newColor, newSpeed, newStress,
     newObesity, newHp, newDiabetes, newLiver,
     totalFeeds, consecutive, feedDate,
-    newStatus, speciesId,
+    newStatus, speciesId, newGrowthStage,
     newStatus,
     req.uid
   );
@@ -349,6 +378,12 @@ router.post('/feed', authUser, (req, res) => {
     voice = '嬉しそうに食べてるよ。\nあなたのごはんが一番おいしいんだって';
   }
 
+  // 成長イベントがあれば声を上書き
+  if (growthEvent) {
+    voice = growthEvent.msg;
+    reaction = 'evolution';
+  }
+
   res.json({
     success: true,
     reaction,
@@ -356,6 +391,7 @@ router.post('/feed', authUser, (req, res) => {
     hatched: newStatus === 'alive' && aq.status === 'egg',
     species: newStatus === 'alive' ? FISH_SPECIES.find(s => s.id === speciesId) : null,
     deltas: { clarity: clarityDelta, color: colorDelta, health: healthDelta, size: sizeDelta },
+    growthEvent: growthEvent,
   });
 });
 

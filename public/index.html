@@ -793,16 +793,15 @@
     <div id="buddy-header-name" style="display:none;">Aqua-CoWell</div>
     <div id="buddy-header-streak" style="display:none;"><span id="buddy-streak-icon">🌰</span><span id="buddy-streak-text">0日</span></div>
     <button id="buddy-inbox-btn" style="display:none;"><span id="buddy-news-badge" style="display:none;">0</span></button>
+    <!-- 魚ステータスバー -->
+    <div id="aq-info" style="flex-shrink:0;background:rgba(10,40,70,0.95);padding:8px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(255,255,255,0.1);">
+      <div style="font-size:11px;color:rgba(255,255,255,0.6);">読み込み中...</div>
+    </div>
     <!-- チャットメッセージエリア（水槽全画面） -->
     <div id="aquarium-container" style="flex:1;position:relative;overflow:hidden;background:linear-gradient(180deg,#1a7ab5,#0e5a8a,#0a3d6b);">
       <!-- 水槽Canvas（背景全体） -->
       <canvas id="aquarium-canvas" style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:1;"></canvas>
-      <!-- チャット削除ボタン（右上） -->
-      <button onclick="clearBuddyChat()" style="position:absolute;top:6px;right:8px;z-index:5;background:rgba(0,0,0,0.25);border:none;color:rgba(255,255,255,0.5);width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;" title="チャット履歴クリア"><i class="fas fa-trash-alt"></i></button>
-      <!-- 水槽情報オーバーレイ -->
-      <div id="aq-info" style="position:absolute;top:6px;left:8px;right:40px;z-index:4;pointer-events:none;">
-        <div style="text-align:center;font-size:11px;color:rgba(255,255,255,0.6);">読み込み中...</div>
-      </div>
+      <!-- 削除ボタンはaq-infoバーに移動済み -->
       <!-- 天の声（吹き出し表示エリア） -->
       <div id="aq-voice" style="display:none;"></div>
       <!-- チャット吹き出し（水槽の上に浮かぶ） -->
@@ -10089,40 +10088,53 @@ function updateAquariumUI() {
   var voiceEl = document.getElementById('aq-voice');
   if (!info) return;
 
+  var spNames = {1:'ネオンテトラ',2:'グッピー',3:'メダカ',4:'プラティ',5:'ゼブラダニオ',6:'アカヒレ',7:'コリドラス',8:'ドジョウ',9:'エンゼル',10:'ベタ',11:'グラミー',12:'カージナル',13:'ラスボラ',14:'オトシン',15:'ローチ',16:'チェリー',17:'ディスカス',18:'琉金',19:'クマノミ',20:'エビ',21:'ラミレジィ',22:'アピスト',23:'錦鯉',24:'アロワナ',25:'エイ',26:'タツノオトシゴ',27:'リュウグウ',28:'マンタ',29:'クジラ',30:'フェニックス'};
+  var stageNames = {1:'卵',2:'稚魚',3:'幼魚',4:'若魚',5:'成魚',6:'大人',7:'伝説'};
+
   if (_aq.status === 'egg') {
-    info.innerHTML = '<div style="text-align:center;padding:8px;">' +
-      '<div style="font-size:28px;margin-bottom:4px;">🥚</div>' +
-      '<div style="font-size:12px;color:#667eea;font-weight:600;">卵が届いたよ</div>' +
-      '<div style="font-size:11px;color:#888;margin-top:2px;">ごはんを3回記録すると孵化します</div>' +
-      '<div style="font-size:11px;color:#667eea;margin-top:4px;">記録: ' + (_aq.total_feeds || 0) + ' / 3</div>' +
+    info.innerHTML =
+      '<div style="flex:1;display:flex;align-items:center;gap:8px;">' +
+        '<span style="font-size:20px;">🥚</span>' +
+        '<div>' +
+          '<div onclick="renameFish()" style="font-size:13px;font-weight:700;color:#fff;cursor:pointer;">' + (_aq.fish_name || '名前をつける ✏️') + '</div>' +
+          '<div style="font-size:10px;color:rgba(255,255,255,0.5);">ごはん ' + (_aq.total_feeds||0) + '/3 で孵化</div>' +
+        '</div>' +
       '</div>';
   } else if (_aq.status === 'dead') {
-    info.innerHTML = '<div style="text-align:center;padding:8px;">' +
-      '<div style="font-size:20px;margin-bottom:4px;">🕯️</div>' +
-      '<div style="font-size:12px;color:#888;">' + (_aq.fish_name || '名前なし') + 'は旅立ちました</div>' +
-      '<div style="font-size:11px;color:#667eea;margin-top:6px;cursor:pointer;" onclick="getNewEgg()">新しい卵を受け取る →</div>' +
-      '</div>';
+    info.innerHTML =
+      '<div style="flex:1;display:flex;align-items:center;gap:8px;">' +
+        '<span style="font-size:18px;">🕯️</span>' +
+        '<div>' +
+          '<div style="font-size:13px;font-weight:700;color:rgba(255,255,255,0.6);">' + (_aq.fish_name || '名前なし') + '</div>' +
+          '<div style="font-size:10px;color:rgba(255,255,255,0.4);">旅立ちました</div>' +
+        '</div>' +
+      '</div>' +
+      '<button onclick="getNewEgg()" style="font-size:10px;padding:4px 12px;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:10px;color:rgba(255,255,255,0.8);cursor:pointer;">新しい卵</button>';
   } else {
-    var species = _aq.fish_species_id ? '🐟' : '';
+    var health = Math.round(_aq.fish_health || 0);
     var clarity = Math.round(_aq.water_clarity || 0);
-    var clarityLabel = clarity > 70 ? '○良好' : clarity > 40 ? '△注意' : '✕危険';
+    var healthColor = health > 70 ? '#4ade80' : health > 40 ? '#fbbf24' : '#ef4444';
     var clarityColor = clarity > 70 ? '#4ade80' : clarity > 40 ? '#fbbf24' : '#ef4444';
-    var stageNames = {1:'卵',2:'稚魚',3:'幼魚',4:'若魚',5:'成魚',6:'大人',7:'伝説'};
-    var speciesLabel = '';
-    if (_aq.fish_species_id) {
-      var spHues = {1:'ネオンテトラ',2:'グッピー',3:'メダカ',4:'プラティ',5:'ゼブラダニオ',6:'アカヒレ',7:'コリドラス',8:'ドジョウ',9:'エンゼル',10:'ベタ',11:'グラミー',12:'カージナル',13:'ラスボラ',14:'オトシン',15:'ローチ',16:'チェリー',17:'ディスカス',18:'琉金',19:'クマノミ',20:'エビ',21:'ラミレジィ',22:'アピスト',23:'錦鯉',24:'アロワナ',25:'エイ',26:'タツノオトシゴ',27:'リュウグウ',28:'マンタ',29:'クジラ',30:'フェニックス'};
-      speciesLabel = ' / ' + (spHues[_aq.fish_species_id] || '');
-    } else if (_aq.growth_stage >= 2) {
-      speciesLabel = ' / ???';
-    }
-    info.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;pointer-events:auto;">' +
-      '<div><span onclick="renameFish()" style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.9);cursor:pointer;border-bottom:1px dashed rgba(255,255,255,0.3);">' + (_aq.fish_name || '名前をつける') + ' ✏️</span>' +
-      '<span style="font-size:9px;color:rgba(255,255,255,0.5);margin-left:4px;">' + (stageNames[_aq.growth_stage] || 'Stage'+_aq.growth_stage) + speciesLabel + '</span></div>' +
-      '<div style="display:flex;align-items:center;gap:6px;">' +
-      '<span style="font-size:10px;color:' + clarityColor + ';font-weight:600;">' + clarityLabel + '</span>' +
-      '<span style="font-size:9px;color:rgba(255,255,255,0.4);">' + (_aq.days_alive || 0) + '日</span>' +
-      '<button onclick="openCheckup()" style="font-size:9px;padding:2px 8px;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:10px;color:rgba(255,255,255,0.8);cursor:pointer;">🔬検査</button>' +
-      '</div></div>';
+    var speciesLabel = _aq.fish_species_id ? (spNames[_aq.fish_species_id] || '') : (_aq.growth_stage >= 2 ? '???' : '');
+    var stageLabel = stageNames[_aq.growth_stage] || '';
+
+    info.innerHTML =
+      '<div style="flex:1;display:flex;align-items:center;gap:8px;min-width:0;">' +
+        '<span style="font-size:18px;">' + (_aq.fish_species_id ? '🐟' : '🐣') + '</span>' +
+        '<div style="min-width:0;">' +
+          '<div style="display:flex;align-items:center;gap:4px;">' +
+            '<span onclick="renameFish()" style="font-size:13px;font-weight:700;color:#fff;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (_aq.fish_name || '名前をつける ✏️') + '</span>' +
+            '<span style="font-size:9px;color:rgba(255,255,255,0.4);">' + stageLabel + (speciesLabel ? ' / ' + speciesLabel : '') + '</span>' +
+          '</div>' +
+          '<div style="display:flex;align-items:center;gap:6px;margin-top:1px;">' +
+            '<span style="font-size:9px;color:rgba(255,255,255,0.5);">❤️<span style="color:' + healthColor + ';font-weight:600;">' + health + '%</span></span>' +
+            '<span style="font-size:9px;color:rgba(255,255,255,0.5);">💧<span style="color:' + clarityColor + ';font-weight:600;">' + clarity + '%</span></span>' +
+            '<span style="font-size:9px;color:rgba(255,255,255,0.35);">' + (_aq.days_alive || 0) + '日目</span>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+      '<button onclick="openCheckup()" style="font-size:9px;padding:4px 10px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:10px;color:rgba(255,255,255,0.7);cursor:pointer;flex-shrink:0;">🔬検査</button>' +
+      '<button onclick="clearBuddyChat()" style="font-size:10px;background:none;border:none;color:rgba(255,255,255,0.3);cursor:pointer;flex-shrink:0;padding:4px;" title="チャット履歴クリア"><i class="fas fa-trash-alt"></i></button>';
   }
 }
 

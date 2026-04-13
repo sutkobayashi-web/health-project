@@ -10444,15 +10444,19 @@ function drawAquarium() {
     ctx.fillRect(0,0,_aqW,_aqH);
   }
 
-  // 砂利（海底）
-  var sandY = _aqH - 8;
+  // 砂利（海底 - 固定位置）
+  if (!window._aqGravel || window._aqGravelW !== _aqW) {
+    window._aqGravelW = _aqW;
+    window._aqGravel = [];
+    for(var gg=0;gg<30;gg++) window._aqGravel.push({x:Math.random()*_aqW, dy:Math.random()*5, r:1.5+Math.random()*3, c:'hsl('+(25+Math.random()*15)+','+(15+Math.random()*10)+'%,'+(30+Math.random()*15)+'%)'});
+  }
+  var sandY = _aqH - 6;
   ctx.fillStyle = 'hsla(30,20%,' + Math.round(25+cNorm*10) + '%,0.6)';
-  ctx.fillRect(0, sandY, _aqW, 10);
-  for (var gi2 = 0; gi2 < 30; gi2++) {
-    if (!window._aqGravel) { window._aqGravel = []; for(var gg=0;gg<30;gg++) window._aqGravel.push({x:Math.random()*_aqW, r:1.5+Math.random()*3, c:'hsl('+(25+Math.random()*15)+','+(15+Math.random()*10)+'%,'+(30+Math.random()*15)+'%)'}); }
+  ctx.fillRect(0, sandY-2, _aqW, 10);
+  for (var gi2 = 0; gi2 < window._aqGravel.length; gi2++) {
     var gr = window._aqGravel[gi2];
     ctx.fillStyle = gr.c;
-    ctx.beginPath(); ctx.ellipse(gr.x, sandY+Math.random()*6, gr.r, gr.r*0.6, 0, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(gr.x, sandY+gr.dy, gr.r, gr.r*0.6, 0, 0, Math.PI*2); ctx.fill();
   }
 
   // 水草
@@ -10462,7 +10466,7 @@ function drawAquarium() {
     for (var s = 0; s < p.segs; s++) {
       var st = s/p.segs;
       var sway = Math.sin(t+p.phase+s*0.5)*(5+s*2)*cNorm;
-      var segH = p.h/p.segs*cNorm;
+      var segH = p.h/p.segs*(0.5+cNorm*0.5); // 水質が悪くても最低50%の高さ
       var y1 = _aqH-2-s*segH, y2 = _aqH-2-(s+1)*segH;
       var x1 = p.x+sway*st, x2 = p.x+sway*(st+1/p.segs)*1.3;
       var w = p.w*(1-st*0.4);

@@ -5128,59 +5128,22 @@ function startBuddyChatFresh(buddyData) {
   var now = new Date();
   var fullDate = now.getFullYear() + '年' + (now.getMonth()+1) + '月' + now.getDate() + '日（' + ['日','月','火','水','木','金','土'][now.getDay()] + '）';
 
-  // デイリーグリーティング取得 → 1つの吹き出しで表示
-  fetch('/api/chat/daily-greeting', {
+  // 魚のAI挨拶を取得
+  fetch('/api/chat/daily-greeting?name=' + encodeURIComponent(nickname) + '&buddyType=gentle&department=' + encodeURIComponent(currentUser.department || ''), {
     headers: { 'Authorization': 'Bearer ' + getToken() }
   }).then(function(r) { return r.json(); }).then(function(data) {
-    var msg = greeting + '、' + nickname + 'さん！\n📅 ' + fullDate;
-    if (data.success) {
-      if (data.dateInfo) msg += '\n\n今日は「' + data.dateInfo + '」' + (data.dateFact ? '\n' + data.dateFact : '');
-      if (data.weather) msg += '\n\n' + data.weather;
-      if (data.healthTip) msg += '\n💡 ' + data.healthTip;
-      // 好奇心ギャップの一言（Phase4）
-      if (data.curiosity) {
-        msg += '\n\n👀 ' + data.curiosity;
-      }
-    }
-    // 初回のみ仕組み説明（挨拶→説明→体調チェックの流れ）
-    var introKey = 'co_heart_buddy_intro_' + (currentUser ? currentUser.uid : '');
-    // 旧キーとの後方互換: 既にカスタマイズ済みなら初回扱いしない
-    var alreadyIntro = localStorage.getItem(introKey) || localStorage.getItem('co_heart_buddy_intro') || localStorage.getItem('co_heart_buddy_customized');
-    if (!alreadyIntro) {
-      localStorage.setItem(introKey, '1');
-      addBuddyMessage('ai', msg);
-      setTimeout(function() {
-        addBuddyMessage('ai', 'ようこそ、Aqua-CoWellへ！🐟\n\nここは、あなたと一緒に暮らす魚の水槽だよ。\n\n🥚 まず卵が届くから、ごはんの写真を撮ってあげてね\n🐟 3回ごはんを記録すると、卵から魚が生まれるよ\n🍱 あなたが食べたものが、魚のごはんになるんだ\n\n魚に話しかけたり、ごはんをあげたり。\nあなたの生活が、この小さな命を育てるよ 🌊');
-        setTimeout(function() {
-          // 名前つけ促しは卵オープニングに統合済み
-          setTimeout(function() {
-            addBuddyMessage('ai', 'さて、今日の調子はいかがですか？');
-            loadBuddyNotices();
-            setTimeout(function() { checkBuddyTopic(); }, 800);
-          }, 1500);
-        }, 1000);
-      }, 1200);
-      return;
-    }
-
-    var deptMsg = getDeptGreeting(currentUser.department, hour);
-    if (deptMsg) msg += '\n\n' + deptMsg;
-    msg += '\n\nまず、今の調子はどう？';
-    addBuddyMessage('ai', msg);
-    // カスタマイズ案内（「表示しない」を選ぶまで毎回表示）
-    if (!localStorage.getItem(getBuddySetupKey())) {
-      setTimeout(function() {
-        // 名前つけ促しは卵オープニングに統合済み
-      }, 2000);
+    // AI挨拶（魚の声）
+    var aiGreeting = data.greeting || data.reply || '';
+    if (aiGreeting) {
+      addBuddyMessage('ai', aiGreeting);
+    } else {
+      addBuddyMessage('ai', greeting + '！来てくれたんだね 🐟');
     }
     loadBuddyNotices();
     setTimeout(function() { checkBuddyTopic(); }, 800);
-    setTimeout(function() { checkBuddyNewsAlert(); }, 4000);
   }).catch(function() {
-    addBuddyMessage('ai', greeting + '、' + nickname + 'さん！\n📅 ' + fullDate + '\n\nまず、今の調子はどう？');
+    addBuddyMessage('ai', greeting + '！来てくれたんだね 🐟');
     loadBuddyNotices();
-    setTimeout(function() { checkBuddyTopic(); }, 800);
-    setTimeout(function() { checkBuddyNewsAlert(); }, 4000);
   });
 }
 

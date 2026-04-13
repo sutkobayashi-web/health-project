@@ -10689,6 +10689,72 @@ function _aqSpeciesHue() {
   return hues[_aq.fish_species_id] || 200;
 }
 
+// 魚種別の体を描画する共通関数
+function drawFishBody(ctx, hue, colNorm, speciesId, tailPhase, eNorm, isMine, frame) {
+  var sat=40+colNorm*55, light=35+colNorm*20;
+  // 体型を取得（speciesId直接指定）
+  var shapes = {
+    1:{bodyRx:16,bodyRy:8,tailSize:1.0,finSize:0.8,type:'slim'},2:{bodyRx:14,bodyRy:8,tailSize:1.6,finSize:0.6,type:'fantail'},
+    3:{bodyRx:14,bodyRy:7,tailSize:0.8,finSize:0.5,type:'slim'},4:{bodyRx:15,bodyRy:9,tailSize:0.9,finSize:0.7,type:'round'},
+    5:{bodyRx:18,bodyRy:6,tailSize:0.9,finSize:0.6,type:'torpedo'},6:{bodyRx:14,bodyRy:7,tailSize:0.9,finSize:0.7,type:'slim'},
+    7:{bodyRx:13,bodyRy:10,tailSize:0.6,finSize:0.4,type:'bottom'},8:{bodyRx:22,bodyRy:5,tailSize:0.5,finSize:0.3,type:'eel'},
+    9:{bodyRx:14,bodyRy:18,tailSize:1.2,finSize:1.5,type:'angel'},10:{bodyRx:15,bodyRy:11,tailSize:2.2,finSize:2.0,type:'betta'},
+    11:{bodyRx:16,bodyRy:10,tailSize:1.0,finSize:0.9,type:'round'},12:{bodyRx:17,bodyRy:8,tailSize:1.0,finSize:0.8,type:'slim'},
+    17:{bodyRx:18,bodyRy:17,tailSize:1.0,finSize:0.8,type:'disc'},18:{bodyRx:16,bodyRy:14,tailSize:1.4,finSize:0.6,type:'goldfish'},
+    19:{bodyRx:15,bodyRy:9,tailSize:0.9,finSize:0.7,type:'round'},23:{bodyRx:20,bodyRy:12,tailSize:1.3,finSize:1.0,type:'koi'},
+    24:{bodyRx:26,bodyRy:8,tailSize:1.0,finSize:0.8,type:'arowana'},27:{bodyRx:30,bodyRy:5,tailSize:0.8,finSize:0.6,type:'ribbon'},
+    29:{bodyRx:28,bodyRy:16,tailSize:1.2,finSize:1.0,type:'whale'},
+  };
+  var shape = shapes[speciesId] || {bodyRx:17,bodyRy:9,tailSize:1,finSize:1,type:'slim'};
+  var bRx=shape.bodyRx, bRy=shape.bodyRy, tS=shape.tailSize, fS=shape.finSize, sType=shape.type;
+  var tw=Math.sin(tailPhase)*(4+(eNorm||0.5)*6)*tS;
+
+  if (sType==='eel') {
+    ctx.fillStyle='hsla('+hue+','+sat+'%,'+light+'%,1)';ctx.beginPath();ctx.moveTo(bRx,0);
+    for(var i=0;i<=20;i++){var t2=i/20;var sx=(1-t2*2)*bRx;var sy=Math.sin(t2*Math.PI*2+tailPhase)*3*t2;var sw=bRy*(1-t2*0.6);ctx.lineTo(sx,sy-sw);}
+    for(var j=20;j>=0;j--){var t3=j/20;var sx2=(1-t3*2)*bRx;var sy2=Math.sin(t3*Math.PI*2+tailPhase)*3*t3;var sw2=bRy*(1-t3*0.6);ctx.lineTo(sx2,sy2+sw2);}
+    ctx.closePath();ctx.fill();
+    ctx.strokeStyle='hsla('+hue+','+(sat-10)+'%,'+(light+15)+'%,0.6)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(bRx-2,-2);ctx.lineTo(bRx+6,-5);ctx.stroke();ctx.beginPath();ctx.moveTo(bRx-2,2);ctx.lineTo(bRx+6,5);ctx.stroke();
+    ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(bRx-3,-1,2,0,Math.PI*2);ctx.fill();ctx.fillStyle='#111';ctx.beginPath();ctx.arc(bRx-2.5,-1,1.2,0,Math.PI*2);ctx.fill();
+  } else if (sType==='fantail') {
+    ctx.fillStyle='hsla('+(hue+30)+','+(sat+20)+'%,'+(light+10)+'%,0.5)';ctx.beginPath();ctx.moveTo(-bRx+3,0);ctx.quadraticCurveTo(-bRx-10*tS,-12*tS+tw,-bRx-18*tS,-14*tS+tw);ctx.quadraticCurveTo(-bRx-12*tS,tw,-bRx-18*tS,14*tS+tw);ctx.quadraticCurveTo(-bRx-10*tS,12*tS+tw,-bRx+3,0);ctx.fill();
+    ctx.fillStyle='hsla('+hue+','+sat+'%,'+light+'%,1)';ctx.beginPath();ctx.ellipse(0,0,bRx,bRy,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(bRx-5,-1.5,2.5,0,Math.PI*2);ctx.fill();ctx.fillStyle='#111';ctx.beginPath();ctx.arc(bRx-4.5,-1.5,1.5,0,Math.PI*2);ctx.fill();
+  } else if (sType==='angel') {
+    ctx.fillStyle='hsla('+hue+','+sat+'%,'+light+'%,0.7)';ctx.beginPath();ctx.moveTo(0,-bRy);ctx.quadraticCurveTo(-5,-bRy-fS*10,2,-bRy-fS*16);ctx.quadraticCurveTo(5,-bRy-fS*8,0,-bRy);ctx.fill();
+    ctx.beginPath();ctx.moveTo(0,bRy);ctx.quadraticCurveTo(-3,bRy+fS*8,2,bRy+fS*14);ctx.quadraticCurveTo(4,bRy+fS*6,0,bRy);ctx.fill();
+    ctx.fillStyle='hsla('+hue+','+sat+'%,'+light+'%,1)';ctx.beginPath();ctx.ellipse(0,0,bRx,bRy,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(bRx-4,-2,2.5,0,Math.PI*2);ctx.fill();ctx.fillStyle='#111';ctx.beginPath();ctx.arc(bRx-3.5,-2,1.5,0,Math.PI*2);ctx.fill();
+  } else if (sType==='betta') {
+    ctx.fillStyle='hsla('+(hue+20)+','+(sat+10)+'%,'+(light+5)+'%,0.4)';ctx.beginPath();ctx.moveTo(-5,-bRy);ctx.quadraticCurveTo(-10,-bRy-fS*14+tw,-bRx+2,-bRy-fS*10+tw);ctx.quadraticCurveTo(8,-bRy-fS*8+tw,10,-bRy);ctx.fill();
+    ctx.fillStyle='hsla('+(hue-20)+','+(sat+15)+'%,'+(light+8)+'%,0.5)';ctx.beginPath();ctx.moveTo(-bRx+3,0);ctx.quadraticCurveTo(-bRx-12*tS,-15*tS+tw,-bRx-20*tS,-18*tS+tw);ctx.quadraticCurveTo(-bRx-15*tS,tw,-bRx-20*tS,18*tS+tw);ctx.quadraticCurveTo(-bRx-12*tS,15*tS+tw,-bRx+3,0);ctx.fill();
+    ctx.fillStyle='hsla('+hue+','+sat+'%,'+light+'%,1)';ctx.beginPath();ctx.ellipse(0,0,bRx,bRy,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(bRx-5,-2,3,0,Math.PI*2);ctx.fill();ctx.fillStyle='#111';ctx.beginPath();ctx.arc(bRx-4.5,-2,1.8,0,Math.PI*2);ctx.fill();
+  } else if (sType==='disc') {
+    var dg=ctx.createRadialGradient(0,0,0,0,0,bRx);dg.addColorStop(0,'hsla('+hue+','+(sat+10)+'%,'+(light+15)+'%,1)');dg.addColorStop(0.5,'hsla('+(hue+20)+','+sat+'%,'+light+'%,1)');dg.addColorStop(1,'hsla('+(hue-10)+','+(sat-10)+'%,'+(light-8)+'%,1)');
+    ctx.fillStyle=dg;ctx.beginPath();ctx.ellipse(0,0,bRx,bRy,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(bRx-6,-2,3,0,Math.PI*2);ctx.fill();ctx.fillStyle='#111';ctx.beginPath();ctx.arc(bRx-5.5,-2,1.8,0,Math.PI*2);ctx.fill();
+  } else if (sType==='goldfish') {
+    ctx.fillStyle='hsla('+hue+','+(sat+10)+'%,'+(light+10)+'%,0.5)';ctx.beginPath();ctx.moveTo(-bRx+3,-2);ctx.quadraticCurveTo(-bRx-10*tS,-10*tS+tw,-bRx-16*tS,-14*tS+tw);ctx.quadraticCurveTo(-bRx-8*tS,-2+tw,-bRx+3,-2);ctx.fill();
+    ctx.beginPath();ctx.moveTo(-bRx+3,2);ctx.quadraticCurveTo(-bRx-10*tS,10*tS+tw,-bRx-16*tS,14*tS+tw);ctx.quadraticCurveTo(-bRx-8*tS,2+tw,-bRx+3,2);ctx.fill();
+    ctx.fillStyle='hsla('+hue+','+sat+'%,'+light+'%,1)';ctx.beginPath();ctx.ellipse(0,0,bRx,bRy,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(bRx-5,-2,3,0,Math.PI*2);ctx.fill();ctx.fillStyle='#111';ctx.beginPath();ctx.arc(bRx-4.5,-2,1.8,0,Math.PI*2);ctx.fill();
+  } else if (sType==='bottom') {
+    ctx.fillStyle='hsla('+hue+','+sat+'%,'+light+'%,1)';ctx.beginPath();ctx.ellipse(0,0,bRx,bRy,0,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='hsla('+hue+','+(sat-10)+'%,'+(light+20)+'%,0.5)';ctx.lineWidth=0.8;ctx.beginPath();ctx.moveTo(bRx-2,2);ctx.lineTo(bRx+4,5);ctx.stroke();ctx.beginPath();ctx.moveTo(bRx-2,3);ctx.lineTo(bRx+3,7);ctx.stroke();
+    ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(bRx-4,-2,2.5,0,Math.PI*2);ctx.fill();ctx.fillStyle='#111';ctx.beginPath();ctx.arc(bRx-3.5,-2,1.5,0,Math.PI*2);ctx.fill();
+  } else {
+    ctx.fillStyle='hsla('+hue+','+(sat-10)+'%,'+(light+5)+'%,0.6)';ctx.beginPath();ctx.moveTo(-bRx+3,0);ctx.quadraticCurveTo(-bRx-8*tS,-6*tS+tw,-bRx-14*tS,-9*tS+tw);ctx.quadraticCurveTo(-bRx-8*tS,tw,-bRx-14*tS,9*tS+tw);ctx.quadraticCurveTo(-bRx-8*tS,6*tS+tw,-bRx+3,0);ctx.fill();
+    ctx.fillStyle='hsla('+(hue+20)+','+sat+'%,'+(light+10)+'%,0.4)';ctx.beginPath();ctx.moveTo(-3,-bRy);ctx.quadraticCurveTo(4,-bRy-6*fS,10,-bRy);ctx.closePath();ctx.fill();
+    var bg5=ctx.createLinearGradient(0,-bRy,0,bRy);bg5.addColorStop(0,'hsla('+hue+','+sat+'%,'+(light+12)+'%,1)');bg5.addColorStop(0.45,'hsla('+hue+','+sat+'%,'+light+'%,1)');bg5.addColorStop(0.55,'hsla(0,'+(30+colNorm*50)+'%,'+(40+colNorm*15)+'%,1)');bg5.addColorStop(1,'hsla('+(hue+10)+','+(sat-10)+'%,'+(light-5)+'%,1)');
+    ctx.fillStyle=bg5;ctx.beginPath();ctx.ellipse(0,0,bRx,bRy,0,0,Math.PI*2);ctx.fill();
+    if(sType==='slim'&&colNorm>0.3){ctx.strokeStyle='hsla('+hue+',100%,'+(60+colNorm*20)+'%,'+(0.2+colNorm*0.4)+')';ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(-bRx+4,-1.5);ctx.quadraticCurveTo(0,-2,bRx-6,-0.5);ctx.stroke();}
+    ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(bRx-6,-1.5,3,0,Math.PI*2);ctx.fill();ctx.fillStyle='#111';ctx.beginPath();ctx.arc(bRx-5.5,-1.5,1.8,0,Math.PI*2);ctx.fill();
+  }
+  if(isMine){ctx.strokeStyle='rgba(74,222,128,0.6)';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(0,0,bRx+4,bRy+4,0,0,Math.PI*2);ctx.stroke();}
+}
+
 function _aqSpeciesShape() {
   if (!_aq || !_aq.fish_species_id) return { bodyRx:12, bodyRy:6, tailSize:0.7, finSize:0.5, type:'fry' };
   var id = _aq.fish_species_id;
@@ -11109,6 +11175,7 @@ function initSharedTankCanvas(data) {
       days: f.days_alive,
       isMine: f.is_mine,
       isFry: !f.species_id,
+      speciesId: f.species_id || 0,
     };
   });
 
@@ -11227,40 +11294,10 @@ function initSharedTankCanvas(data) {
         if(f.isMine){ctx.strokeStyle='rgba(74,222,128,0.5)';ctx.lineWidth=1.5;ctx.beginPath();ctx.ellipse(0,0,14,8,0,0,Math.PI*2);ctx.stroke();}
         ctx.globalAlpha=1;ctx.restore();
       } else {
-      // ===== 成魚デザイン =====
+      // ===== 成魚デザイン（共通描画関数使用） =====
       var flip = f.vx > 0.03 ? 1 : f.vx < -0.03 ? -1 : 1;
       ctx.scale(flip * f.size, f.size);
-      var sat = 40+f.color*55, light = 35+f.color*20;
-      var accentSat = 30+f.color*60;
-      // 尾
-      var tw = Math.sin(f.tailPhase)*(4+f.speed*5);
-      ctx.fillStyle='hsla('+f.hue+','+(sat-10)+'%,'+(light+5)+'%,0.6)';
-      ctx.beginPath();ctx.moveTo(-14,0);ctx.quadraticCurveTo(-22,-6+tw,-30,-10+tw);
-      ctx.quadraticCurveTo(-22,tw,-30,10+tw);ctx.quadraticCurveTo(-22,6+tw,-14,0);ctx.fill();
-      // 背びれ
-      ctx.fillStyle='hsla('+(f.hue+20)+','+sat+'%,'+(light+10)+'%,0.4)';
-      ctx.beginPath();ctx.moveTo(-3,-9);ctx.quadraticCurveTo(4,-15,10,-9);ctx.closePath();ctx.fill();
-      // 体（赤ライン付きグラデーション）
-      var bg=ctx.createLinearGradient(0,-9,0,9);
-      bg.addColorStop(0,'hsla('+f.hue+','+sat+'%,'+(light+12)+'%,1)');
-      bg.addColorStop(0.45,'hsla('+f.hue+','+sat+'%,'+light+'%,1)');
-      bg.addColorStop(0.55,'hsla(0,'+accentSat+'%,'+(40+f.color*15)+'%,1)');
-      bg.addColorStop(1,'hsla('+(f.hue+10)+','+(sat-10)+'%,'+(light-5)+'%,1)');
-      ctx.fillStyle=bg;ctx.beginPath();ctx.ellipse(0,0,17,9,0,0,Math.PI*2);ctx.fill();
-      // 光沢
-      if(f.color>0.4){var sg=ctx.createRadialGradient(-5,-4,0,-5,-4,12);sg.addColorStop(0,'rgba(255,255,255,'+(0.1+f.color*0.2)+')');sg.addColorStop(1,'rgba(255,255,255,0)');ctx.fillStyle=sg;ctx.beginPath();ctx.ellipse(-5,-4,12,7,-0.3,0,Math.PI*2);ctx.fill();}
-      // 蛍光ライン
-      if(f.color>0.3){ctx.strokeStyle='hsla('+f.hue+',100%,'+(60+f.color*20)+'%,'+(0.3+f.color*0.4)+')';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(-12,-1.5);ctx.quadraticCurveTo(0,-2,8,-0.5);ctx.stroke();
-      ctx.strokeStyle='hsla('+f.hue+',100%,80%,'+(0.1+f.color*0.12)+')';ctx.lineWidth=3.5;ctx.beginPath();ctx.moveTo(-12,-1.5);ctx.quadraticCurveTo(0,-2,8,-0.5);ctx.stroke();}
-      // 目
-      ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(11,-1.5,3,0,Math.PI*2);ctx.fill();
-      ctx.fillStyle='#111';ctx.beginPath();ctx.arc(11.5,-1.5,1.8,0,Math.PI*2);ctx.fill();
-      ctx.fillStyle='rgba(255,255,255,0.7)';ctx.beginPath();ctx.arc(12,-2.2,0.7,0,Math.PI*2);ctx.fill();
-      // 口（呼吸）
-      var mo=Math.abs(Math.sin(f.tailPhase*0.7))*1.5;
-      ctx.fillStyle='hsla(0,30%,30%,0.5)';ctx.beginPath();ctx.ellipse(18,1,1.2,mo,0,0,Math.PI*2);ctx.fill();
-      // 自分の魚はハイライト
-      if (f.isMine) { ctx.strokeStyle='rgba(74,222,128,0.6)';ctx.lineWidth=2.5;ctx.beginPath();ctx.ellipse(0,0,22,13,0,0,Math.PI*2);ctx.stroke(); }
+      drawFishBody(ctx, f.hue, f.color, f.speciesId, f.tailPhase, f.speed, f.isMine, frame);
       ctx.restore();
       } // end else (成魚デザイン)
 

@@ -602,9 +602,9 @@ ${userDataContext || '（データなし）'}${antiLoopBlock}${progressionBlock}
       const cleanReply = result.replace('///VOICE_SUGGEST///', '').trim();
       return { success: true, reply: cleanReply, voiceSuggest: hasVoiceSuggest };
     }
-    return { success: false, reply: 'あれ、ちょっとうまく聞き取れなかった。もう一回教えてくれる？' };
+    return { success: false, reply: '...ぶくぶく（うまく聞こえなかった。もう一回言ってくれる？）' };
   } catch (e) {
-    return { success: false, reply: 'ごめん、ちょっと調子悪いみたい。少ししたらまた話そう！' };
+    return { success: false, reply: '...zzz（ちょっと眠くなっちゃった。また話しかけてね）' };
   }
 }
 
@@ -648,9 +648,9 @@ async function getBuddyGreeting(userName, buddyType, department) {
 - マークダウン記法禁止`;
     const reply = await callAIWithFallback(sys, '挨拶してください');
     if (reply) return { success: true, reply };
-    return { success: true, reply: `おっ、${userName || ''}さん！来てくれて嬉しい😊\nまず、今の調子はどう？` };
+    return { success: true, reply: 'あ、来てくれた！待ってたよ 🐟' };
   } catch (e) {
-    return { success: true, reply: `おっ、${userName || ''}さん！来てくれて嬉しい😊\nまず、今の調子はどう？` };
+    return { success: true, reply: 'あ、来てくれた！待ってたよ 🐟' };
   }
 }
 

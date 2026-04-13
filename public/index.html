@@ -9901,8 +9901,10 @@ function resizeAquarium() {
 
 function initAqPlants() {
   _aqPlants = [];
-  for (var i = 0; i < 5; i++) {
-    _aqPlants.push({ x: 15 + Math.random()*(_aqW-30), segs: 3+Math.floor(Math.random()*3), h: 30+Math.random()*50, w: 2+Math.random()*3, phase: Math.random()*Math.PI*2, hue: 100+Math.random()*40 });
+  // 水草を画面の30-50%の高さにして目立つように
+  var plantH = _aqH * 0.25;
+  for (var i = 0; i < 6; i++) {
+    _aqPlants.push({ x: 10 + Math.random()*(_aqW-20), segs: 3+Math.floor(Math.random()*3), h: plantH+Math.random()*plantH*0.8, w: 2+Math.random()*3, phase: Math.random()*Math.PI*2, hue: 100+Math.random()*40 });
   }
 }
 
@@ -10440,6 +10442,17 @@ function drawAquarium() {
     ctx.fillRect(0,0,_aqW,_aqH);
   }
 
+  // 砂利（海底）
+  var sandY = _aqH - 8;
+  ctx.fillStyle = 'hsla(30,20%,' + Math.round(25+cNorm*10) + '%,0.6)';
+  ctx.fillRect(0, sandY, _aqW, 10);
+  for (var gi2 = 0; gi2 < 30; gi2++) {
+    if (!window._aqGravel) { window._aqGravel = []; for(var gg=0;gg<30;gg++) window._aqGravel.push({x:Math.random()*_aqW, r:1.5+Math.random()*3, c:'hsl('+(25+Math.random()*15)+','+(15+Math.random()*10)+'%,'+(30+Math.random()*15)+'%)'}); }
+    var gr = window._aqGravel[gi2];
+    ctx.fillStyle = gr.c;
+    ctx.beginPath(); ctx.ellipse(gr.x, sandY+Math.random()*6, gr.r, gr.r*0.6, 0, 0, Math.PI*2); ctx.fill();
+  }
+
   // 水草
   var t = _aqFrame * 0.02;
   for (var pi = 0; pi < _aqPlants.length; pi++) {
@@ -10500,7 +10513,7 @@ function drawAquarium() {
     _aqFish.tailPhase += tailSpeed;
     _aqFish.breathPhase += 0.03;
     if (!isDead) {
-      if(_aqFrame%100===0){_aqFish.targetX=30+Math.random()*(_aqW-60);_aqFish.targetY=25+Math.random()*(_aqH-60);}
+      if(_aqFrame%100===0){_aqFish.targetX=30+Math.random()*(_aqW-60);_aqFish.targetY=20+Math.random()*(_aqH*0.55);}
       var spd=0.2+eNorm*1.2;
       var ddx=_aqFish.targetX-_aqFish.x,ddy=_aqFish.targetY-_aqFish.y,dd=Math.sqrt(ddx*ddx+ddy*ddy);
       if(dd>1){_aqFish.vx+=(ddx/dd)*spd*0.04;_aqFish.vy+=(ddy/dd)*spd*0.04;}

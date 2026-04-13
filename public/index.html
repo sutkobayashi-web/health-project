@@ -10095,9 +10095,9 @@ function updateAquariumUI() {
       // 1行目: 魚名 + ステータス
       '<div style="flex:1;display:flex;align-items:center;gap:6px;min-width:0;">' +
         '<span onclick="openFishMenu()" style="font-size:12px;font-weight:700;color:#fff;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (_aq.fish_name || '名前') + '▾</span>' +
-        '<span style="font-size:8px;color:rgba(255,255,255,0.5);">' + stageLabel + '</span>' +
-        '<span style="font-size:8px;color:' + healthColor + ';">❤️' + health + '%</span>' +
-        '<span style="font-size:8px;padding:1px 5px;background:' + wLevelColor + '22;color:' + wLevelColor + ';border-radius:4px;font-weight:700;">💧' + wLevelLabel + '</span>' +
+        '<span style="font-size:11px;color:rgba(255,255,255,0.6);font-weight:600;">' + stageLabel + '</span>' +
+        '<span style="font-size:11px;color:' + healthColor + ';font-weight:700;">❤️' + health + '%</span>' +
+        '<span style="font-size:11px;padding:2px 6px;background:' + wLevelColor + '22;color:' + wLevelColor + ';border-radius:5px;font-weight:700;">💧' + wLevelLabel + '</span>' +
       '</div>' +
       // ボタン群
       '<button id="feed-btn" onclick="manualFeed()" style="font-size:9px;padding:3px 8px;background:' + (fedToday ? 'rgba(255,255,255,0.08)' : 'rgba(251,191,36,0.25)') + ';border:1px solid ' + (fedToday ? 'rgba(255,255,255,0.1)' : 'rgba(251,191,36,0.5)') + ';border-radius:8px;color:' + (fedToday ? 'rgba(255,255,255,0.4)' : '#fbbf24') + ';cursor:pointer;flex-shrink:0;font-weight:700;">' + (fedToday ? '✅餌済' : '🐟餌') + '</button>' +

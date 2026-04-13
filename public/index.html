@@ -10038,6 +10038,13 @@ function loadAquariumData() {
       if (data.success) {
         _aq = data.aquarium;
         updateAquariumUI();
+
+        // 卵状態 → オープニング表示
+        if (_aq.status === 'egg' && !_aq.fish_name && !window._eggOpeningShown) {
+          window._eggOpeningShown = true;
+          showEggOpening();
+        }
+
         // 日次減衰チェック
         if (_aq.status === 'alive') {
           fetch('/api/aquarium/daily-decay', { method:'POST', headers:{'Content-Type':'application/json','x-user-id':currentUser.uid}, body:JSON.stringify({uid:currentUser.uid}) })
@@ -10048,6 +10055,112 @@ function loadAquariumData() {
         }
       }
     }).catch(function(){});
+}
+
+function showEggOpening() {
+  var overlay = document.createElement('div');
+  overlay.id = 'egg-opening';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:linear-gradient(180deg,#0a3d6b 0%,#062a4a 50%,#041e35 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;overflow-y:auto;';
+
+  overlay.innerHTML = '' +
+    '<div style="text-align:center;max-width:340px;width:100%;">' +
+      // 卵アニメーション
+      '<div id="egg-anim" style="font-size:60px;margin-bottom:16px;animation:eggWobble 2s ease-in-out infinite;">🥚</div>' +
+      '<style>@keyframes eggWobble { 0%,100%{transform:rotate(0)} 25%{transform:rotate(-5deg)} 75%{transform:rotate(5deg)} }</style>' +
+
+      // ストーリーテキスト（段階的に表示）
+      '<div id="egg-story" style="color:rgba(255,255,255,0.9);font-size:14px;line-height:1.8;text-align:center;min-height:120px;">' +
+      '</div>' +
+
+      // 名前入力（ストーリー後に表示）
+      '<div id="egg-name-area" style="display:none;margin-top:20px;">' +
+        '<div style="color:rgba(255,255,255,0.6);font-size:12px;margin-bottom:8px;">この子に名前をつけてあげてね</div>' +
+        '<input type="text" id="egg-name-input" placeholder="例: ネオン、ブルー、ポチ" maxlength="20" style="width:100%;padding:14px 16px;background:rgba(255,255,255,0.1);border:2px solid rgba(255,255,255,0.25);border-radius:14px;color:#fff;font-size:16px;font-weight:600;text-align:center;outline:none;" onfocus="this.style.borderColor=\'rgba(74,222,128,0.6)\'" onblur="this.style.borderColor=\'rgba(255,255,255,0.25)\'">' +
+        '<button onclick="submitEggName()" style="width:100%;margin-top:12px;padding:14px;background:linear-gradient(135deg,#4ade80,#22c55e);border:none;border-radius:14px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(74,222,128,0.3);">この名前に決める</button>' +
+        '<button onclick="skipEggName()" style="width:100%;margin-top:8px;padding:10px;background:none;border:1px solid rgba(255,255,255,0.2);border-radius:10px;color:rgba(255,255,255,0.5);font-size:12px;cursor:pointer;">あとで決める</button>' +
+      '</div>' +
+    '</div>';
+
+  document.body.appendChild(overlay);
+
+  // ストーリーを段階的に表示
+  var storyLines = [
+    { text: 'やあ。ようこそ、Aqua-CoWellへ。', delay: 500 },
+    { text: '', delay: 1500 },
+    { text: '実は、あなたに預かってほしい子がいるんだ。', delay: 2000 },
+    { text: '', delay: 3500 },
+    { text: 'この子はあなたのごはんで育つんだよ。', delay: 4000 },
+    { text: 'あなたが食べたものが、この子の栄養になるから。', delay: 5500 },
+    { text: '', delay: 7000 },
+    { text: '一緒に見守っていこう。', delay: 7500 },
+    { text: '', delay: 9000 },
+    { text: '...名前、つけてあげて。', delay: 9500, showName: true },
+  ];
+
+  var storyEl = document.getElementById('egg-story');
+  var accumulated = '';
+
+  storyLines.forEach(function(line) {
+    setTimeout(function() {
+      if (line.text) {
+        accumulated += (accumulated ? '<br>' : '') + line.text;
+        storyEl.innerHTML = accumulated;
+      }
+      if (line.showName) {
+        document.getElementById('egg-name-area').style.display = 'block';
+        setTimeout(function() { document.getElementById('egg-name-input').focus(); }, 300);
+      }
+    }, line.delay);
+  });
+}
+
+function submitEggName() {
+  var name = document.getElementById('egg-name-input').value.trim();
+  if (!name) { document.getElementById('egg-name-input').style.borderColor = '#ef4444'; return; }
+
+  fetch('/api/aquarium/name-egg', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-user-id': currentUser.uid },
+    body: JSON.stringify({ uid: currentUser.uid, name: name })
+  }).then(function(r) { return r.json(); }).then(function(d) {
+    if (d.success) {
+      closeEggOpening(name);
+    }
+  }).catch(function() { closeEggOpening(name); });
+}
+
+function skipEggName() {
+  closeEggOpening(null);
+}
+
+function closeEggOpening(fishName) {
+  var overlay = document.getElementById('egg-opening');
+  if (!overlay) return;
+
+  // フェードアウト
+  overlay.style.transition = 'opacity 0.6s';
+  overlay.style.opacity = '0';
+  setTimeout(function() {
+    overlay.remove();
+    loadAquariumData();
+
+    // チャットにウェルカムメッセージを流す
+    setTimeout(function() {
+      if (fishName) {
+        addBuddyMessage('ai', '「' + fishName + '」...いい名前だね 🐟\n\nこの子はあなたのごはんで育つよ。\n写真を撮って記録すると、' + fishName + 'にごはんをあげられるんだ。');
+      } else {
+        addBuddyMessage('ai', '名前はあとでもいいよ 🥚\n\nまずはごはんの写真を撮ってみて。\n3回記録すると、卵から何かが生まれるよ。');
+      }
+
+      setTimeout(function() {
+        addBuddyMessage('ai', '📸 使い方はかんたん！\n\n1. 下のメニューから「ごはん」をタップ\n2. 食事の写真を撮る\n3. 記録すると魚にごはんが届く\n\n投稿しない日は「フレーク」が自動で与えられるけど...\nあなたのごはんのほうが、ずっと嬉しいんだって 🐟');
+      }, 3000);
+
+      setTimeout(function() {
+        addBuddyMessage('ai', '🔬 月に1回「検査」ボタンで水質検査もできるよ。\n魚の健康チェックだけど...あなた自身の健康のヒントにもなるかも。\n\nそれじゃ、よろしくね！');
+      }, 6000);
+    }, 500);
+  }, 600);
 }
 
 function updateAquariumUI() {

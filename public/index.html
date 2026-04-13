@@ -10507,34 +10507,152 @@ function drawAquarium() {
       ctx.beginPath();ctx.moveTo(bRx-4,-3);ctx.lineTo(bRx-8,1);ctx.stroke();
       ctx.globalAlpha=1;ctx.restore();
     } else {
-      // ===== 成長した魚のデザイン =====
+      // ===== 成長した魚のデザイン（魚種別） =====
       var sat=40+colNorm*55, light=35+colNorm*20;
       var shape = _aqSpeciesShape();
       var bRx = shape.bodyRx, bRy = shape.bodyRy, tS = shape.tailSize, fS = shape.finSize;
-      // 尾
+      var sType = shape.type || 'slim';
       var tw=Math.sin(_aqFish.tailPhase)*(4+eNorm*6)*tS;
-      ctx.fillStyle='hsla('+hue+','+(sat-10)+'%,'+(light+5)+'%,0.6)';
-      ctx.beginPath();ctx.moveTo(-bRx+3,0);ctx.quadraticCurveTo(-bRx-8*tS,-6*tS+tw,-bRx-14*tS,-9*tS+tw);
-      ctx.quadraticCurveTo(-bRx-8*tS,tw,-bRx-14*tS,9*tS+tw);ctx.quadraticCurveTo(-bRx-8*tS,6*tS+tw,-bRx+3,0);ctx.fill();
-      // 背びれ
-      ctx.fillStyle='hsla('+(hue+20)+','+sat+'%,'+(light+10)+'%,0.4)';
-      ctx.beginPath();ctx.moveTo(-3,-bRy);ctx.quadraticCurveTo(4,-bRy-6*fS,10,-bRy);ctx.closePath();ctx.fill();
-      // 体
-      var bg=ctx.createLinearGradient(0,-bRy,0,bRy);
-      bg.addColorStop(0,'hsla('+hue+','+sat+'%,'+(light+12)+'%,1)');
-      bg.addColorStop(0.45,'hsla('+hue+','+sat+'%,'+light+'%,1)');
-      bg.addColorStop(0.55,'hsla(0,'+(30+colNorm*50)+'%,'+(40+colNorm*15)+'%,1)');
-      bg.addColorStop(1,'hsla('+(hue+10)+','+(sat-10)+'%,'+(light-5)+'%,1)');
-      ctx.fillStyle=bg;ctx.beginPath();ctx.ellipse(0,0,bRx,bRy,0,0,Math.PI*2);ctx.fill();
-      // 蛍光ライン
-      if(colNorm>0.3){
-        ctx.strokeStyle='hsla('+hue+',100%,'+(60+colNorm*20)+'%,'+(0.2+colNorm*0.4)+')';
-        ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(-12,-1.5);ctx.quadraticCurveTo(0,-2,8,-0.5);ctx.stroke();
+
+      if (sType === 'eel') {
+        // ===== ドジョウ型: 細長いうねうね =====
+        var wave = Math.sin(_aqFish.tailPhase*1.5)*4;
+        // うねる体
+        ctx.fillStyle='hsla('+hue+','+sat+'%,'+light+'%,1)';
+        ctx.beginPath();
+        ctx.moveTo(bRx,0);
+        for(var si=0;si<=20;si++){var t2=si/20;var sx2=(1-t2*2)*bRx;var sy2=Math.sin(t2*Math.PI*2+_aqFish.tailPhase)*3*t2;var sw=bRy*(1-t2*0.6);ctx.lineTo(sx2,sy2-sw);}
+        for(var si2=20;si2>=0;si2--){var t3=si2/20;var sx3=(1-t3*2)*bRx;var sy3=Math.sin(t3*Math.PI*2+_aqFish.tailPhase)*3*t3;var sw2=bRy*(1-t3*0.6);ctx.lineTo(sx3,sy3+sw2);}
+        ctx.closePath();ctx.fill();
+        // ヒゲ
+        ctx.strokeStyle='hsla('+hue+','+(sat-10)+'%,'+(light+15)+'%,0.6)';ctx.lineWidth=1;
+        ctx.beginPath();ctx.moveTo(bRx-2,-2);ctx.lineTo(bRx+6,-5);ctx.stroke();
+        ctx.beginPath();ctx.moveTo(bRx-2,2);ctx.lineTo(bRx+6,5);ctx.stroke();
+        // 目（小さい）
+        ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(bRx-3,-1,2,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='#111';ctx.beginPath();ctx.arc(bRx-2.5,-1,1.2,0,Math.PI*2);ctx.fill();
+      } else if (sType === 'fantail') {
+        // ===== グッピー型: 扇形の大きな尾 =====
+        // 大きな扇形の尾びれ
+        ctx.fillStyle='hsla('+(hue+30)+','+Math.round(sat+20)+'%,'+(light+10)+'%,0.5)';
+        ctx.beginPath();ctx.moveTo(-bRx+3,0);
+        ctx.quadraticCurveTo(-bRx-10*tS,-12*tS+tw,-bRx-18*tS,-14*tS+tw);
+        ctx.quadraticCurveTo(-bRx-12*tS,tw,-bRx-18*tS,14*tS+tw);
+        ctx.quadraticCurveTo(-bRx-10*tS,12*tS+tw,-bRx+3,0);ctx.fill();
+        // 体
+        ctx.fillStyle='hsla('+hue+','+sat+'%,'+light+'%,1)';ctx.beginPath();ctx.ellipse(0,0,bRx,bRy,0,0,Math.PI*2);ctx.fill();
+        // 目
+        ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(bRx-5,-1.5,2.5,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='#111';ctx.beginPath();ctx.arc(bRx-4.5,-1.5,1.5,0,Math.PI*2);ctx.fill();
+      } else if (sType === 'angel') {
+        // ===== エンゼル型: 縦に長い三角 =====
+        ctx.fillStyle='hsla('+hue+','+sat+'%,'+light+'%,0.7)';
+        // 上下に長いヒレ
+        ctx.beginPath();ctx.moveTo(0,-bRy);ctx.quadraticCurveTo(-5,-bRy-fS*10,2,-bRy-fS*16);ctx.quadraticCurveTo(5,-bRy-fS*8,0,-bRy);ctx.fill();
+        ctx.beginPath();ctx.moveTo(0,bRy);ctx.quadraticCurveTo(-3,bRy+fS*8,2,bRy+fS*14);ctx.quadraticCurveTo(4,bRy+fS*6,0,bRy);ctx.fill();
+        // 体（縦長楕円）
+        var bg2=ctx.createLinearGradient(-bRx,0,bRx,0);
+        bg2.addColorStop(0,'hsla('+hue+','+sat+'%,'+(light-5)+'%,1)');bg2.addColorStop(0.5,'hsla('+hue+','+sat+'%,'+(light+10)+'%,1)');bg2.addColorStop(1,'hsla('+hue+','+sat+'%,'+light+'%,1)');
+        ctx.fillStyle=bg2;ctx.beginPath();ctx.ellipse(0,0,bRx,bRy,0,0,Math.PI*2);ctx.fill();
+        // 縞模様
+        ctx.strokeStyle='hsla(0,0%,20%,0.15)';ctx.lineWidth=1.5;
+        for(var si3=-2;si3<=2;si3++){ctx.beginPath();ctx.moveTo(si3*5,-bRy+2);ctx.lineTo(si3*5,bRy-2);ctx.stroke();}
+        // 目
+        ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(bRx-4,-2,2.5,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='#111';ctx.beginPath();ctx.arc(bRx-3.5,-2,1.5,0,Math.PI*2);ctx.fill();
+      } else if (sType === 'betta') {
+        // ===== ベタ型: 巨大なヒレ =====
+        // 巨大背びれ
+        ctx.fillStyle='hsla('+(hue+20)+','+Math.round(sat+10)+'%,'+(light+5)+'%,0.4)';
+        ctx.beginPath();ctx.moveTo(-5,-bRy);ctx.quadraticCurveTo(-10,-bRy-fS*14+tw,-bRx+2,-bRy-fS*10+tw);ctx.quadraticCurveTo(8,-bRy-fS*8+tw,10,-bRy);ctx.fill();
+        // 巨大尾びれ
+        ctx.fillStyle='hsla('+(hue-20)+','+Math.round(sat+15)+'%,'+(light+8)+'%,0.5)';
+        ctx.beginPath();ctx.moveTo(-bRx+3,0);
+        ctx.quadraticCurveTo(-bRx-12*tS,-15*tS+tw,-bRx-20*tS,-18*tS+tw);
+        ctx.quadraticCurveTo(-bRx-15*tS,tw,-bRx-20*tS,18*tS+tw);
+        ctx.quadraticCurveTo(-bRx-12*tS,15*tS+tw,-bRx+3,0);ctx.fill();
+        // 巨大腹びれ
+        ctx.fillStyle='hsla('+(hue+10)+','+Math.round(sat+5)+'%,'+(light+3)+'%,0.35)';
+        ctx.beginPath();ctx.moveTo(-2,bRy-2);ctx.quadraticCurveTo(-8,bRy+fS*10+tw,5,bRy+fS*12+tw);ctx.quadraticCurveTo(8,bRy+fS*6,2,bRy-2);ctx.fill();
+        // 体
+        ctx.fillStyle='hsla('+hue+','+sat+'%,'+light+'%,1)';ctx.beginPath();ctx.ellipse(0,0,bRx,bRy,0,0,Math.PI*2);ctx.fill();
+        // 目
+        ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(bRx-5,-2,3,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='#111';ctx.beginPath();ctx.arc(bRx-4.5,-2,1.8,0,Math.PI*2);ctx.fill();
+      } else if (sType === 'disc') {
+        // ===== ディスカス型: ほぼ真円 =====
+        var bg3=ctx.createRadialGradient(0,0,0,0,0,bRx);
+        bg3.addColorStop(0,'hsla('+hue+','+(sat+10)+'%,'+(light+15)+'%,1)');
+        bg3.addColorStop(0.5,'hsla('+(hue+20)+','+sat+'%,'+light+'%,1)');
+        bg3.addColorStop(1,'hsla('+(hue-10)+','+(sat-10)+'%,'+(light-8)+'%,1)');
+        ctx.fillStyle=bg3;ctx.beginPath();ctx.ellipse(0,0,bRx,bRy,0,0,Math.PI*2);ctx.fill();
+        // 波模様
+        ctx.strokeStyle='hsla('+(hue+40)+',60%,70%,0.2)';ctx.lineWidth=1;
+        for(var wi=0;wi<5;wi++){ctx.beginPath();ctx.arc(0,0,4+wi*3,0,Math.PI*2);ctx.stroke();}
+        // 小さな尾
+        ctx.fillStyle='hsla('+hue+','+(sat-10)+'%,'+(light+5)+'%,0.5)';
+        ctx.beginPath();ctx.moveTo(-bRx+2,0);ctx.lineTo(-bRx-6,-5+tw);ctx.lineTo(-bRx-6,5+tw);ctx.closePath();ctx.fill();
+        // 目
+        ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(bRx-6,-2,3,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='#111';ctx.beginPath();ctx.arc(bRx-5.5,-2,1.8,0,Math.PI*2);ctx.fill();
+      } else if (sType === 'goldfish') {
+        // ===== 金魚型: 丸くて二股の尾 =====
+        // 二股の優雅な尾
+        ctx.fillStyle='hsla('+hue+','+(sat+10)+'%,'+(light+10)+'%,0.5)';
+        ctx.beginPath();ctx.moveTo(-bRx+3,-2);ctx.quadraticCurveTo(-bRx-10*tS,-10*tS+tw,-bRx-16*tS,-14*tS+tw);ctx.quadraticCurveTo(-bRx-8*tS,-2+tw,-bRx+3,-2);ctx.fill();
+        ctx.beginPath();ctx.moveTo(-bRx+3,2);ctx.quadraticCurveTo(-bRx-10*tS,10*tS+tw,-bRx-16*tS,14*tS+tw);ctx.quadraticCurveTo(-bRx-8*tS,2+tw,-bRx+3,2);ctx.fill();
+        // 丸い体
+        ctx.fillStyle='hsla('+hue+','+sat+'%,'+light+'%,1)';ctx.beginPath();ctx.ellipse(0,0,bRx,bRy,0,0,Math.PI*2);ctx.fill();
+        // 頭のこぶ
+        ctx.fillStyle='hsla('+hue+','+(sat-10)+'%,'+(light+5)+'%,0.6)';
+        ctx.beginPath();ctx.arc(bRx-4,-4,4,0,Math.PI*2);ctx.fill();
+        // 目
+        ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(bRx-5,-2,3,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='#111';ctx.beginPath();ctx.arc(bRx-4.5,-2,1.8,0,Math.PI*2);ctx.fill();
+      } else if (sType === 'bottom') {
+        // ===== コリドラス型: 底にいる丸い小さい魚 =====
+        ctx.fillStyle='hsla('+hue+','+sat+'%,'+light+'%,1)';ctx.beginPath();ctx.ellipse(0,0,bRx,bRy,0,0,Math.PI*2);ctx.fill();
+        // 小さな尾
+        ctx.fillStyle='hsla('+hue+','+(sat-10)+'%,'+(light+5)+'%,0.5)';
+        ctx.beginPath();ctx.moveTo(-bRx+2,0);ctx.lineTo(-bRx-5,-4+tw*0.5);ctx.lineTo(-bRx-5,4+tw*0.5);ctx.closePath();ctx.fill();
+        // ヒゲ
+        ctx.strokeStyle='hsla('+hue+','+(sat-10)+'%,'+(light+20)+'%,0.5)';ctx.lineWidth=0.8;
+        ctx.beginPath();ctx.moveTo(bRx-2,2);ctx.lineTo(bRx+4,5);ctx.stroke();
+        ctx.beginPath();ctx.moveTo(bRx-2,3);ctx.lineTo(bRx+3,7);ctx.stroke();
+        // 目
+        ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(bRx-4,-2,2.5,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='#111';ctx.beginPath();ctx.arc(bRx-3.5,-2,1.5,0,Math.PI*2);ctx.fill();
+      } else {
+        // ===== 標準型（スリム/ラウンド/魚雷等） =====
+        // 尾
+        ctx.fillStyle='hsla('+hue+','+(sat-10)+'%,'+(light+5)+'%,0.6)';
+        ctx.beginPath();ctx.moveTo(-bRx+3,0);ctx.quadraticCurveTo(-bRx-8*tS,-6*tS+tw,-bRx-14*tS,-9*tS+tw);
+        ctx.quadraticCurveTo(-bRx-8*tS,tw,-bRx-14*tS,9*tS+tw);ctx.quadraticCurveTo(-bRx-8*tS,6*tS+tw,-bRx+3,0);ctx.fill();
+        // 背びれ
+        ctx.fillStyle='hsla('+(hue+20)+','+sat+'%,'+(light+10)+'%,0.4)';
+        ctx.beginPath();ctx.moveTo(-3,-bRy);ctx.quadraticCurveTo(4,-bRy-6*fS,10,-bRy);ctx.closePath();ctx.fill();
+        // 体
+        var bg4=ctx.createLinearGradient(0,-bRy,0,bRy);
+        bg4.addColorStop(0,'hsla('+hue+','+sat+'%,'+(light+12)+'%,1)');
+        bg4.addColorStop(0.45,'hsla('+hue+','+sat+'%,'+light+'%,1)');
+        if (sType === 'torpedo') { // 魚雷型は縞模様
+          bg4.addColorStop(0.5,'hsla('+hue+','+(sat-20)+'%,'+(light+15)+'%,1)');
+          bg4.addColorStop(0.55,'hsla('+hue+','+sat+'%,'+light+'%,1)');
+        } else {
+          bg4.addColorStop(0.55,'hsla(0,'+(30+colNorm*50)+'%,'+(40+colNorm*15)+'%,1)');
+        }
+        bg4.addColorStop(1,'hsla('+(hue+10)+','+(sat-10)+'%,'+(light-5)+'%,1)');
+        ctx.fillStyle=bg4;ctx.beginPath();ctx.ellipse(0,0,bRx,bRy,0,0,Math.PI*2);ctx.fill();
+        // 蛍光ライン（スリム型のみ）
+        if(sType==='slim'&&colNorm>0.3){
+          ctx.strokeStyle='hsla('+hue+',100%,'+(60+colNorm*20)+'%,'+(0.2+colNorm*0.4)+')';
+          ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(-bRx+4,-1.5);ctx.quadraticCurveTo(0,-2,bRx-6,-0.5);ctx.stroke();
+        }
+        // 目
+        ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(bRx-6,-1.5,3,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='#111';ctx.beginPath();ctx.arc(bRx-5.5,-1.5,1.8,0,Math.PI*2);ctx.fill();
       }
-      // 目
-      ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(bRx-6,-1.5,3,0,Math.PI*2);ctx.fill();
-      ctx.fillStyle='#111';ctx.beginPath();ctx.arc(bRx-5.5,-1.5,1.8,0,Math.PI*2);ctx.fill();
-      ctx.fillStyle='rgba(255,255,255,0.7)';ctx.beginPath();ctx.arc(bRx-5,-2.2,0.7,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='rgba(255,255,255,0.6)';ctx.beginPath();ctx.arc(bRx-5,-2.5,0.7,0,Math.PI*2);ctx.fill();
       ctx.globalAlpha=1;ctx.restore();
     }
 
@@ -10572,15 +10690,35 @@ function _aqSpeciesHue() {
 }
 
 function _aqSpeciesShape() {
-  if (!_aq || !_aq.fish_species_id) return { bodyRx:12, bodyRy:6, tailSize:0.7, finSize:0.5 }; // 稚魚: 小さく透明感
-  // ランク別の体型
+  if (!_aq || !_aq.fish_species_id) return { bodyRx:12, bodyRy:6, tailSize:0.7, finSize:0.5, type:'fry' };
   var id = _aq.fish_species_id;
-  if (id >= 23) return { bodyRx:24, bodyRy:13, tailSize:1.5, finSize:1.3 }; // 超レア・伝説: 大きい
-  if (id >= 17) return { bodyRx:20, bodyRy:11, tailSize:1.3, finSize:1.2 }; // レア: やや大きい
-  if (id >= 9) return { bodyRx:18, bodyRy:10, tailSize:1.1, finSize:1.1 };  // アンコモン
-  if (id === 7 || id === 8) return { bodyRx:15, bodyRy:7, tailSize:0.8, finSize:0.7 }; // コリドラス・ドジョウ: 細い
-  if (id === 10) return { bodyRx:16, bodyRy:14, tailSize:1.8, finSize:1.5 }; // ベタ: ヒレが大きい
-  return { bodyRx:17, bodyRy:9, tailSize:1, finSize:1 }; // コモン標準
+  var shapes = {
+    // コモン
+    1: { bodyRx:16, bodyRy:8, tailSize:1.0, finSize:0.8, type:'slim' },      // ネオンテトラ: スリム
+    2: { bodyRx:14, bodyRy:8, tailSize:1.6, finSize:0.6, type:'fantail' },    // グッピー: 尾が大きい扇形
+    3: { bodyRx:14, bodyRy:7, tailSize:0.8, finSize:0.5, type:'slim' },       // メダカ: 小さくスリム
+    4: { bodyRx:15, bodyRy:9, tailSize:0.9, finSize:0.7, type:'round' },      // プラティ: やや丸い
+    5: { bodyRx:18, bodyRy:6, tailSize:0.9, finSize:0.6, type:'torpedo' },    // ゼブラダニオ: 細長い魚雷型
+    6: { bodyRx:14, bodyRy:7, tailSize:0.9, finSize:0.7, type:'slim' },       // アカヒレ: スリム
+    7: { bodyRx:13, bodyRy:10, tailSize:0.6, finSize:0.4, type:'bottom' },    // コリドラス: 丸くて底にいる
+    8: { bodyRx:22, bodyRy:5, tailSize:0.5, finSize:0.3, type:'eel' },        // ドジョウ: 細長いウナギ型
+    // アンコモン
+    9: { bodyRx:14, bodyRy:18, tailSize:1.2, finSize:1.5, type:'angel' },     // エンゼル: 縦に長い三角
+    10: { bodyRx:15, bodyRy:11, tailSize:2.2, finSize:2.0, type:'betta' },    // ベタ: ヒレが巨大
+    11: { bodyRx:16, bodyRy:10, tailSize:1.0, finSize:0.9, type:'round' },    // グラミー: 丸め
+    12: { bodyRx:17, bodyRy:8, tailSize:1.0, finSize:0.8, type:'slim' },      // カージナル: ネオン似
+    // レア
+    17: { bodyRx:18, bodyRy:17, tailSize:1.0, finSize:0.8, type:'disc' },     // ディスカス: 円盤型
+    18: { bodyRx:16, bodyRy:14, tailSize:1.4, finSize:0.6, type:'goldfish' }, // 琉金: 丸くて尾が長い
+    19: { bodyRx:15, bodyRy:9, tailSize:0.9, finSize:0.7, type:'round' },     // クマノミ
+    // 超レア
+    23: { bodyRx:20, bodyRy:12, tailSize:1.3, finSize:1.0, type:'koi' },      // 錦鯉: 大きく堂々
+    24: { bodyRx:26, bodyRy:8, tailSize:1.0, finSize:0.8, type:'arowana' },   // アロワナ: 長く平べったい
+    // 伝説
+    27: { bodyRx:30, bodyRy:5, tailSize:0.8, finSize:0.6, type:'ribbon' },    // リュウグウノツカイ: 超長い
+    29: { bodyRx:28, bodyRy:16, tailSize:1.2, finSize:1.0, type:'whale' },    // ミニクジラ: 巨大
+  };
+  return shapes[id] || { bodyRx:17, bodyRy:9, tailSize:1, finSize:1, type:'slim' };
 }
 
 // 水質検査ボタン（ホーム画面info内に表示）

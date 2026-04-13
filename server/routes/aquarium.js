@@ -139,6 +139,15 @@ function initAquariumTables() {
     created_at TEXT DEFAULT (datetime('now'))
   )`);
 
+  db.exec(`CREATE TABLE IF NOT EXISTS step_log (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id TEXT NOT NULL,
+    step_date TEXT NOT NULL,
+    steps INTEGER DEFAULT 0,
+    created_at TEXT DEFAULT (datetime('now')),
+    UNIQUE(user_id, step_date)
+  )`);
+
   db.exec(`CREATE TABLE IF NOT EXISTS fish_discovery (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id TEXT NOT NULL,
@@ -643,6 +652,94 @@ function determineFishSpecies(userId, db) {
   if (avgSodium < 2200) return 6;          // アカヒレ（塩分少なめ）
   return 2;                                 // グッピー（標準）
 }
+
+// ---------- 歩数記録 ----------
+router.post('/steps', authUser, (req, res) => {
+  const db = getDb();
+  const { steps } = req.body;
+  const stepCount = parseInt(steps) || 0;
+  if (stepCount < 0 || stepCount > 200000) return res.status(400).json({ error: '歩数が不正です' });
+
+  const stepDate = today();
+
+  // 歩数ログ保存
+  db.prepare(`INSERT INTO step_log (user_id, step_date, steps) VALUES (?,?,?)
+    ON CONFLICT(user_id, step_date) DO UPDATE SET steps=?, created_at=datetime('now')`)
+    .run(req.uid, stepDate, stepCount, stepCount);
+
+  // アクアリウムに反映
+  const aq = db.prepare('SELECT * FROM user_aquarium WHERE user_id = ?').get(req.uid);
+  if (aq && aq.status === 'alive') {
+    // 歩数によるボーナス
+    let speedDelta = 0, colorDelta = 0, healthDelta = 0, energyBonus = 0;
+    if (stepCount >= 10000) {
+      speedDelta = 8; colorDelta = 5; healthDelta = 3; energyBonus = 10;
+    } else if (stepCount >= 7000) {
+      speedDelta = 5; colorDelta = 3; healthDelta = 2; energyBonus = 6;
+    } else if (stepCount >= 5000) {
+      speedDelta = 3; colorDelta = 2; healthDelta = 1; energyBonus = 4;
+    } else if (stepCount >= 3000) {
+      speedDelta = 2; colorDelta = 1; healthDelta = 0.5; energyBonus = 2;
+    } else if (stepCount >= 1000) {
+      speedDelta = 1; colorDelta = 0.5; healthDelta = 0; energyBonus = 1;
+    }
+
+    // 肥満リスク軽減
+    const obesityReduce = stepCount >= 5000 ? -2 : stepCount >= 3000 ? -1 : 0;
+    // 糖尿病リスク軽減
+    const diabetesReduce = stepCount >= 7000 ? -2 : stepCount >= 5000 ? -1 : 0;
+    // メンタル改善
+    const mentalReduce = stepCount >= 3000 ? -3 : stepCount >= 1000 ? -1 : 0;
+
+    db.prepare(`UPDATE user_aquarium SET
+      fish_speed = MIN(100, fish_speed + ?),
+      fish_color = MIN(100, fish_color + ?),
+      fish_health = MIN(100, fish_health + ?),
+      oxygen = MIN(100, oxygen + ?),
+      obesity_risk = MAX(0, obesity_risk + ?),
+      diabetes_risk = MAX(0, diabetes_risk + ?),
+      mental_risk = MAX(0, mental_risk + ?),
+      updated_at = datetime('now')
+      WHERE user_id = ?`).run(
+      speedDelta, colorDelta, healthDelta, energyBonus,
+      obesityReduce, diabetesReduce, mentalReduce,
+      req.uid
+    );
+
+    // 反応メッセージ
+    let voice = '';
+    if (stepCount >= 10000) {
+      voice = 'すごい！' + stepCount.toLocaleString() + '歩！\n水の中を全速力で泳ぎたい気分！✨';
+    } else if (stepCount >= 7000) {
+      voice = stepCount.toLocaleString() + '歩！体が軽い！\nウロコがキラキラしてきた気がする';
+    } else if (stepCount >= 5000) {
+      voice = stepCount.toLocaleString() + '歩、いい感じ！\n今日は元気に泳げそうだよ';
+    } else if (stepCount >= 3000) {
+      voice = stepCount.toLocaleString() + '歩だね。\nちょっと体がほぐれた感じがする';
+    } else if (stepCount >= 1000) {
+      voice = stepCount.toLocaleString() + '歩か。\nもう少し歩くともっと元気になれるかも';
+    } else {
+      voice = stepCount.toLocaleString() + '歩...ちょっと少ないかな。\n僕も底でじっとしちゃうよ';
+    }
+
+    res.json({ success: true, steps: stepCount, voice, deltas: { speed: speedDelta, color: colorDelta, health: healthDelta } });
+  } else {
+    res.json({ success: true, steps: stepCount, voice: '歩数を記録したよ！' });
+  }
+});
+
+router.get('/steps', authUser, (req, res) => {
+  const db = getDb();
+  const recent = db.prepare('SELECT step_date, steps FROM step_log WHERE user_id = ? ORDER BY step_date DESC LIMIT 30').all(req.uid);
+  const todaySteps = db.prepare('SELECT steps FROM step_log WHERE user_id = ? AND step_date = ?').get(req.uid, today());
+  const weekTotal = db.prepare(`SELECT SUM(steps) as total FROM step_log WHERE user_id = ? AND step_date >= date('now','-7 days')`).get(req.uid);
+  res.json({
+    success: true,
+    today: todaySteps ? todaySteps.steps : null,
+    week_total: weekTotal ? weekTotal.total : 0,
+    recent,
+  });
+});
 
 // ---------- 魚種マスタ取得 ----------
 router.get('/species', (req, res) => {

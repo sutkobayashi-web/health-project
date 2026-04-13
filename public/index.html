@@ -627,13 +627,13 @@
         <!-- アバター -->
         <div style="flex-shrink:0;display:flex;align-items:flex-end;">
           <div id="mypage-avatar" style="width:56px;height:56px;border-radius:50%;overflow:hidden;border:3px solid #fff;box-shadow:0 4px 12px rgba(102,126,234,0.2);display:flex;align-items:center;justify-content:center;font-size:1.7rem;background:#f0f0f0;cursor:pointer;z-index:1;" onclick="showRanking();"></div>
-          <div id="mypage-buddy-avatar" style="width:38px;height:38px;border-radius:50%;overflow:hidden;border:2.5px solid #fff;box-shadow:0 2px 8px rgba(14,165,233,0.25);display:flex;align-items:center;justify-content:center;font-size:1rem;background:linear-gradient(135deg,#0ea5e9,#0284c7);color:white;margin-left:-14px;z-index:2;cursor:pointer;" onclick="openBuddySetup();closeMyPosts();"><i class="fas fa-robot" style="font-size:15px;"></i></div>
+          <!-- バディーアバター廃止 -->
         </div>
         <!-- ユーザー情報 -->
         <div style="flex:1;min-width:0;">
           <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
             <span style="font-weight:800;font-size:1.05rem;color:#2c3e50;" id="mypage-nickname">--</span>
-            <span style="font-size:0.6rem;color:#0ea5e9;font-weight:700;">& <span id="mypage-buddy-name">バディー</span></span>
+            <!-- バディー名称廃止 -->
             <span id="mypage-dept" style="font-size:0.6rem;font-weight:700;color:#667eea;background:#eef0ff;padding:1px 7px;border-radius:10px;"></span>
             <span id="mypage-rank" style="font-size:0.6rem;"></span>
           </div>
@@ -672,7 +672,7 @@
     </div>
     <!-- ボタン -->
     <div style="padding:6px 18px;display:flex;gap:6px;">
-      <button onclick="openBuddySetup()" style="flex:1;padding:8px 4px;background:linear-gradient(135deg,#0ea5e9,#0284c7);color:white;border:none;border-radius:10px;font-size:0.7rem;font-weight:700;cursor:pointer;"><i class="fas fa-robot"></i> バディー</button>
+      <!-- バディー設定ボタン廃止 -->
       <button onclick="openCoinShop()" style="flex:1;padding:8px 4px;background:linear-gradient(135deg,#f59e0b,#d97706);color:white;border:none;border-radius:10px;font-size:0.7rem;font-weight:700;cursor:pointer;"><i class="fas fa-store"></i> ショップ</button>
       <button onclick="openAdminFromUser()" style="flex:1;padding:8px 4px;background:white;color:#d63384;border:1.5px solid #d63384;border-radius:10px;font-size:0.7rem;font-weight:700;cursor:pointer;"><i class="fas fa-shield-alt"></i> 推進メンバー</button>
       <button onclick="closeMyPosts();openProfileEditModal();" style="flex:1;padding:8px 4px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;border-radius:10px;font-size:0.7rem;font-weight:700;cursor:pointer;"><i class="fas fa-edit"></i> 編集</button>
@@ -844,13 +844,13 @@
     <div style="text-align:center;margin-top:10px;font-size:0.7rem;color:#aaa;">※後からいつでも変更できます</div>
   </div>
 
-  <!-- ヘルスバディーチャット画面 -->
-  <div id="buddy-chat-screen" style="display:flex;flex-direction:column;height:calc(100vh - 56px - 68px);height:calc(100dvh - 56px - 68px);background:#f0f9ff;overflow:hidden;overscroll-behavior:contain;">
-    <!-- バディーヘッダー -->
-    <div style="padding:10px 16px;background:linear-gradient(135deg,#0ea5e9,#0284c7);color:white;display:flex;align-items:center;gap:10px;flex-shrink:0;box-shadow:0 2px 10px rgba(14,165,233,0.3);">
-      <div id="buddy-header-avatar" style="width:40px;height:40px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.2);"><i class="fas fa-robot" style="font-size:20px;"></i></div>
+  <!-- アクアリウムチャット画面 -->
+  <div id="buddy-chat-screen" style="display:flex;flex-direction:column;height:calc(100vh - 56px - 68px);height:calc(100dvh - 56px - 68px);background:#0a3d6b;overflow:hidden;overscroll-behavior:contain;">
+    <!-- ヘッダー -->
+    <div style="padding:10px 16px;background:rgba(10,40,70,0.95);color:white;display:flex;align-items:center;gap:10px;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,0.1);">
+      <div style="width:40px;height:40px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.2);"><i class="fas fa-fish" style="font-size:18px;"></i></div>
       <div style="flex:1;">
-        <div id="buddy-header-name" style="font-weight:800;font-size:0.9rem;">ヘルスバディー</div>
+        <div id="buddy-header-name" style="font-weight:800;font-size:0.9rem;">アクアリウム</div>
         <div style="font-size:0.65rem;opacity:0.8;">いつもそばにいるよ</div>
       </div>
       <div id="buddy-header-streak" style="display:flex;align-items:center;gap:4px;background:rgba(255,255,255,0.2);padding:4px 10px;border-radius:12px;font-size:0.7rem;font-weight:700;">
@@ -2610,7 +2610,7 @@ function inlineBpView() {
   var loadDiv = document.createElement('div');
   loadDiv.className = 'buddy-msg ai';
   var aiAvatar = typeof buddyData !== 'undefined' && buddyData ? getAvatarHtml(buddyData.avatar, 42) : '<i class="fas fa-robot"></i>';
-  loadDiv.innerHTML = '<div class="buddy-avatar">' + aiAvatar + '</div><div><div class="buddy-bubble"><i class="fas fa-circle-notch fa-spin"></i> 血圧データを確認中...</div></div>';
+  loadDiv.innerHTML = '<div style="flex:1;min-width:0;"><div class="buddy-bubble"><i class="fas fa-circle-notch fa-spin"></i> 血圧データを確認中...</div></div>';
   msgs.appendChild(loadDiv);
   msgs.scrollTop = msgs.scrollHeight;
 
@@ -2660,7 +2660,7 @@ function inlineBpView() {
     // チャットにカード表示
     var div = document.createElement('div');
     div.className = 'buddy-msg ai';
-    div.innerHTML = '<div class="buddy-avatar">' + aiAvatar + '</div><div style="flex:1;min-width:0;"><div class="buddy-bubble" style="padding:4px;">' + html + '</div></div>';
+    div.innerHTML = '<div style="flex:1;min-width:0;"><div class="buddy-bubble" style="padding:4px;">' + html + '</div></div>';
     msgs.appendChild(div);
     msgs.scrollTop = msgs.scrollHeight;
 
@@ -5583,16 +5583,11 @@ function addBuddyMessage(role, text) {
 
   var bubbleContent = isAI ? formatBuddyText(text) : text.replace(/\n/g, '<br>');
 
-  var buddyData = null;
-  try { buddyData = JSON.parse(localStorage.getItem('co_heart_buddy')); } catch(e) {}
-  var aiAvatar = buddyData ? getAvatarHtml(buddyData.avatar, 42) : '<i class="fas fa-robot"></i>';
-
   var div = document.createElement('div');
   div.className = 'buddy-msg ' + (isAI ? 'ai' : 'user');
   var memoBtn = isAI ? '<button class="buddy-memo-btn" onclick="saveBuddyMemo(this)" data-text="' + text.replace(/"/g, '&quot;').replace(/'/g, '&#39;') + '"><i class="far fa-bookmark"></i> メモ</button>' : '';
-  var speakBtn = isAI ? ' <button class="buddy-memo-btn" onclick="speakBuddyText(this)" data-text="' + text.replace(/"/g, '&quot;').replace(/'/g, '&#39;') + '" style="color:#0ea5e9;"><i class="fas fa-volume-up"></i></button>' : '';
-  div.innerHTML = '<div class="buddy-avatar">' + (isAI ? aiAvatar : getAvatarHtml(currentUser.avatar, 42)) + '</div>' +
-    '<div style="flex:1;min-width:0;"><div class="buddy-bubble">' + bubbleContent + '</div>' +
+  var speakBtn = isAI ? ' <button class="buddy-memo-btn" onclick="speakBuddyText(this)" data-text="' + text.replace(/"/g, '&quot;').replace(/'/g, '&#39;') + '" style="color:rgba(255,255,255,0.5);"><i class="fas fa-volume-up"></i></button>' : '';
+  div.innerHTML = '<div style="flex:1;min-width:0;"><div class="buddy-bubble">' + bubbleContent + '</div>' +
     '<div class="buddy-time">' + time + memoBtn + speakBtn + '</div></div>';
 
   msgs.appendChild(div);
@@ -7263,7 +7258,7 @@ function inlineAtmosphere() {
     var div = document.createElement('div');
     div.className = 'buddy-msg ai';
     var aiAvatar = typeof buddyData !== 'undefined' && buddyData ? getAvatarHtml(buddyData.avatar, 42) : '<i class="fas fa-robot"></i>';
-    div.innerHTML = '<div class="buddy-avatar">' + aiAvatar + '</div><div style="flex:1;min-width:0;"><div class="buddy-bubble" style="padding:4px;">' + html + '</div></div>';
+    div.innerHTML = '<div style="flex:1;min-width:0;"><div class="buddy-bubble" style="padding:4px;">' + html + '</div></div>';
     msgs.appendChild(div);
     msgs.scrollTop = msgs.scrollHeight;
   }).catch(function() {

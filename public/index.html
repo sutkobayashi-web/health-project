@@ -10097,7 +10097,7 @@ function updateAquariumUI() {
     info.innerHTML =
       // 魚名（広く取る）
       '<div style="flex:1;min-width:0;">' +
-        '<span onclick="openFishMenu()" style="font-size:15px;font-weight:700;color:#fff;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;">' + (_aq.fish_name || '名前をつける') + ' ▾</span>' +
+        '<span onclick="renameFish()" style="font-size:15px;font-weight:700;color:#fff;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;">' + (_aq.fish_name || '名前をつける ✏️') + '</span>' +
       '</div>' +
       // ボタン群
       '<button onclick="showStatusPanel()" style="font-size:10px;padding:4px 10px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:8px;color:rgba(255,255,255,0.9);cursor:pointer;flex-shrink:0;font-weight:700;">📊状態</button>' +
@@ -10387,19 +10387,7 @@ function showStatusPanel() {
   document.body.insertAdjacentHTML('beforeend', html);
 }
 
-function openFishMenu() {
-  var existing = document.getElementById('fish-menu-popup');
-  if (existing) { existing.remove(); return; }
-  var name = _aq ? (_aq.fish_name || '名前なし') : '名前なし';
-  var html = '<div id="fish-menu-popup" style="position:fixed;top:0;left:0;right:0;bottom:0;z-index:9998;" onclick="this.remove()">' +
-    '<div style="position:absolute;top:44px;left:14px;background:rgba(10,40,70,0.97);border:1px solid rgba(255,255,255,0.2);border-radius:14px;padding:6px 0;min-width:200px;box-shadow:0 8px 24px rgba(0,0,0,0.4);" onclick="event.stopPropagation()">' +
-      '<div style="padding:10px 16px;border-bottom:1px solid rgba(255,255,255,0.1);font-size:12px;color:rgba(255,255,255,0.5);">' + name + '</div>' +
-      '<div onclick="document.getElementById(\'fish-menu-popup\').remove();renameFish()" style="padding:12px 16px;cursor:pointer;font-size:13px;color:#fff;display:flex;align-items:center;gap:8px;"><i class="fas fa-pen" style="color:#4ade80;width:16px;"></i>名前を変更する</div>' +
-      '<div onclick="document.getElementById(\'fish-menu-popup\').remove();openCheckup()" style="padding:12px 16px;cursor:pointer;font-size:13px;color:#fff;display:flex;align-items:center;gap:8px;border-top:1px solid rgba(255,255,255,0.08);"><i class="fas fa-stethoscope" style="color:#fbbf24;width:16px;"></i>水質検査</div>' +
-      '<div onclick="document.getElementById(\'fish-menu-popup\').remove();openFishBook()" style="padding:12px 16px;cursor:pointer;font-size:13px;color:#fff;display:flex;align-items:center;gap:8px;border-top:1px solid rgba(255,255,255,0.08);"><i class="fas fa-book" style="color:#c084fc;width:16px;"></i>おさかな図鑑</div>' +
-    '</div></div>';
-  document.body.insertAdjacentHTML('beforeend', html);
-}
+function openFishMenu() { renameFish(); }
 
 function showFishGuide() {
   var html = '<div style="position:fixed;inset:0;background:rgba(0,10,25,0.95);z-index:9999;overflow-y:auto;padding:16px;" onclick="if(event.target===this)this.remove()">' +

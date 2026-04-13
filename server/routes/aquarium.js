@@ -416,33 +416,49 @@ router.post('/feed', authUser, (req, res) => {
   });
 });
 
-// ---------- API: フレーク自動投入 ----------
-router.post('/flake', authUser, (req, res) => {
+// ---------- API: 手動で餌をあげる ----------
+router.post('/manual-feed', authUser, (req, res) => {
   const db = getDb();
   const aq = db.prepare('SELECT * FROM user_aquarium WHERE user_id = ?').get(req.uid);
-  if (!aq || aq.status === 'dead' || aq.status === 'egg') return res.json({ success: false });
+  if (!aq || aq.status === 'dead') return res.json({ success: false });
+  if (aq.status === 'egg') return res.json({ success: true, voice: '卵にごはんの匂いを届けたよ！' });
 
   const feedDate = today();
-  if (aq.last_feed_date === feedDate) return res.json({ success: false, message: '今日はすでに食事済み' });
+  if (aq.last_feed_date === feedDate) return res.json({ success: true, already: true, voice: '今日はもうごはんあげたよ！😊' });
 
-  // フレークは最低限の維持
-  const newColor = clamp(aq.fish_color - 0.5, 0, 100);
-  const newClarity = clamp(aq.water_clarity - 1, 0, 100);
+  // 手動餌: フレーク程度だが、アクセスした証（連続日数は維持）
+  const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+  const consecutive = (aq.last_feed_date === yesterday) ? (aq.consecutive_feed_days || 0) + 1 : 1;
+
+  const newColor = clamp(aq.fish_color + 0.3, 0, 100);
+  const newHealth = clamp(aq.fish_health + 0.5, 0, 100);
+  const newMood = clamp(aq.mental_risk - 2, 0, 100);
 
   db.prepare(`UPDATE user_aquarium SET
-    fish_color=?, water_clarity=?, last_feed_date=?,
-    total_feeds=total_feeds+1, consecutive_feed_days=0,
+    fish_color=?, fish_health=?, mental_risk=?,
+    last_feed_date=?, total_feeds=total_feeds+1, consecutive_feed_days=?,
     updated_at=datetime('now')
-    WHERE user_id=?`).run(newColor, newClarity, feedDate, req.uid);
+    WHERE user_id=?`).run(newColor, newHealth, newMood, feedDate, consecutive, req.uid);
 
-  db.prepare(`INSERT INTO aquarium_feed_log (user_id, feed_date, feed_type) VALUES (?,?,?)`)
-    .run(req.uid, feedDate, 'flake');
+  db.prepare(`INSERT INTO aquarium_feed_log (user_id, feed_date, feed_type) VALUES (?,?,?)
+    ON CONFLICT(user_id, feed_date) DO UPDATE SET feed_type='manual'`)
+    .run(req.uid, feedDate, 'manual');
 
-  res.json({
-    success: true,
-    reaction: 'eat_plain',
-    voice: '今日は普通のフレーク。\nちょっと物足りなそうかな',
-  });
+  let voice = '';
+  if (consecutive >= 7) {
+    voice = 'ごはんありがとう！' + consecutive + '日連続だね！\n毎日来てくれて嬉しいよ✨';
+  } else if (consecutive >= 3) {
+    voice = 'ごはんありがとう！\n' + consecutive + '日連続！この調子！';
+  } else {
+    voice = 'ごはんありがとう！\n今日も元気に泳ぐよ🐟';
+  }
+
+  res.json({ success: true, voice, consecutive });
+});
+
+// 旧フレーク互換（廃止、手動餌に転送）
+router.post('/flake', authUser, (req, res) => {
+  res.json({ success: false, message: '手動で餌をあげてください' });
 });
 
 // ---------- API: 日次減衰（バッチ or アクセス時に呼ぶ） ----------

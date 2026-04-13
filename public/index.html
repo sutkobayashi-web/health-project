@@ -814,6 +814,7 @@
       <div style="display:flex;gap:5px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;touch-action:pan-x;">
         <button onclick="inlineBuddyTalk()" class="buddy-action-btn" style="display:flex;align-items:center;gap:4px;padding:7px 12px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);color:rgba(255,255,255,0.9);border-radius:18px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;"><i class="fas fa-comment-dots"></i> 話す</button>
         <button onclick="inlineFoodCheck()" class="buddy-action-btn" style="display:flex;align-items:center;gap:4px;padding:7px 12px;background:rgba(32,201,151,0.2);border:1px solid rgba(32,201,151,0.4);color:rgba(255,255,255,0.9);border-radius:18px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;"><i class="fas fa-utensils"></i> ごはん</button>
+        <button onclick="manualFeed()" id="feed-btn" class="buddy-action-btn" style="display:flex;align-items:center;gap:4px;padding:7px 12px;background:rgba(251,191,36,0.25);border:1px solid rgba(251,191,36,0.45);color:rgba(255,255,255,0.9);border-radius:18px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;"><i class="fas fa-fish"></i> 餌をあげる</button>
         <button onclick="openStepInput()" class="buddy-action-btn" style="display:flex;align-items:center;gap:4px;padding:7px 12px;background:rgba(74,222,128,0.2);border:1px solid rgba(74,222,128,0.35);color:rgba(255,255,255,0.9);border-radius:18px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;"><i class="fas fa-shoe-prints"></i> 歩数</button>
         <button onclick="inlineHealthConsult()" class="buddy-action-btn" style="display:flex;align-items:center;gap:4px;padding:7px 12px;background:rgba(233,30,99,0.2);border:1px solid rgba(233,30,99,0.3);color:rgba(255,255,255,0.9);border-radius:18px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;"><i class="fas fa-heartbeat"></i> 体調</button>
         <button onclick="inlineMemberConsult()" class="buddy-action-btn" style="display:flex;align-items:center;gap:4px;padding:7px 12px;background:rgba(243,156,18,0.2);border:1px solid rgba(243,156,18,0.3);color:rgba(255,255,255,0.9);border-radius:18px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;"><i class="fas fa-shield-alt"></i> 相談</button>
@@ -9920,6 +9921,9 @@ function loadAquariumData() {
           showEggOpening();
         }
 
+        // 餌チェック
+        checkDailyFeed();
+
         // 日次減衰チェック
         if (_aq.status === 'alive') {
           fetch('/api/aquarium/daily-decay', { method:'POST', headers:{'Content-Type':'application/json','x-user-id':currentUser.uid}, body:JSON.stringify({uid:currentUser.uid}) })
@@ -10103,6 +10107,46 @@ function showAqVoice(text) {
   el._t = setTimeout(function() { el.style.opacity = '0'; }, 5000);
 }
 
+// 餌をあげる
+function manualFeed() {
+  if (!currentUser || !_aq) return;
+  fetch('/api/aquarium/manual-feed', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-user-id': currentUser.uid },
+    body: JSON.stringify({ uid: currentUser.uid })
+  }).then(function(r) { return r.json(); }).then(function(d) {
+    if (d.success) {
+      if (d.voice) showAqVoice(d.voice);
+      if (!d.already) {
+        addBuddyMessage('ai', '🐟 ' + d.voice);
+        spawnAqFood('#fbbf24');
+        loadAquariumData();
+        // ボタンを「済み」に
+        var btn = document.getElementById('feed-btn');
+        if (btn) { btn.innerHTML = '<i class="fas fa-check"></i> 済み'; btn.style.opacity = '0.5'; }
+      } else {
+        addBuddyMessage('ai', d.voice);
+      }
+    }
+  }).catch(function() {});
+}
+
+// アクセス時に餌をまだあげてないか確認して促す
+function checkDailyFeed() {
+  if (!currentUser || !_aq || _aq.status !== 'alive') return;
+  var today = new Date().toISOString().split('T')[0];
+  if (_aq.last_feed_date === today) {
+    // 今日は済み
+    var btn = document.getElementById('feed-btn');
+    if (btn) { btn.innerHTML = '<i class="fas fa-check"></i> 済み'; btn.style.opacity = '0.5'; }
+  } else {
+    // まだ餌をあげてない → 促す
+    setTimeout(function() {
+      addBuddyMessage('ai', 'お腹空いたな...今日のごはん、まだかな？🐟\n\n下のメニューから「🐟 餌をあげる」をタップしてね。\n食事の写真を撮ってくれたらもっと嬉しいな！');
+    }, 3000);
+  }
+}
+
 // 歩数入力
 function openStepInput() {
   // まず今日の歩数を取得
@@ -10188,6 +10232,21 @@ function showFishGuide() {
           '2. 小さな<b>稚魚</b>が生まれる（まだ透明）<br>' +
           '3. 食事を続けると色がついて<b>種類が決まる</b>！<br>' +
           '4. 食事パターンで<b>30種類</b>の魚に進化<br>' +
+        '</div>' +
+      '</div>' +
+
+      // 餌をあげる
+      '<div style="background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.2);border-radius:12px;padding:14px;margin-bottom:10px;">' +
+        '<div style="font-size:13px;font-weight:700;color:#fbbf24;margin-bottom:8px;">🐟 餌をあげる（毎日）</div>' +
+        '<div style="font-size:12px;line-height:1.8;color:rgba(255,255,255,0.8);">' +
+          '毎日1回、メニューの「🐟 餌をあげる」をタップ！<br>' +
+          'これだけで魚は元気を保てます。<br><br>' +
+          '⚠️ <b>餌をあげないと？</b><br>' +
+          '→ 魚が弱っていきます。3日放置で元気がなくなり、10日で死亡...<br><br>' +
+          '📸 <b>食事の写真を投稿すると？</b><br>' +
+          '→ 餌の代わりにもなり、さらに栄養に応じて魚が成長！<br>' +
+          '→ 餌あげ + 食事投稿 で最強のごはん<br><br>' +
+          '🔥 <b>連続日数</b>が表示されます。何日続くかな？' +
         '</div>' +
       '</div>' +
 

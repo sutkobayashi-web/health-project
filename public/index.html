@@ -10720,6 +10720,11 @@ function drawGuests(ctx) {
 }
 
 // みんなの水槽
+function closeSharedTank() {
+  var el = document.getElementById('shared-tank-overlay');
+  if (el) el.remove();
+}
+
 function openSharedTank() {
   if (!currentUser) return;
   fetch('/api/aquarium/shared-tank?uid=' + currentUser.uid, { headers:{'x-user-id':currentUser.uid} })
@@ -10732,7 +10737,7 @@ function openSharedTank() {
 
       // ヘッダー
       var header = '<div style="padding:10px 16px;background:rgba(10,40,70,0.95);display:flex;align-items:center;gap:10px;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,0.1);">' +
-        '<button onclick="document.getElementById(\'shared-tank-overlay\').remove()" style="background:rgba(255,255,255,0.15);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:14px;"><i class="fas fa-arrow-left"></i></button>' +
+        '<button onclick="closeSharedTank()" style="background:rgba(255,255,255,0.15);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:14px;"><i class="fas fa-arrow-left"></i></button>' +
         '<div style="flex:1;"><div style="font-weight:800;font-size:14px;color:#fff;">🌊 みんなの水槽</div>' +
         '<div style="font-size:10px;color:rgba(255,255,255,0.5);">' + d.total + '匹の仲間（卵' + d.eggs + '個含む）</div></div>' +
         '<div style="text-align:right;font-size:10px;color:rgba(255,255,255,0.6);">水質 ' + d.avg_clarity + '% / 元気 ' + d.avg_health + '%</div>' +
@@ -10854,27 +10859,42 @@ function initSharedTankCanvas(data) {
       if (f.y<15) { f.y=15; f.vy*=-0.5; } if (f.y>H*0.65) { f.y=H*0.65; f.vy*=-0.5; }
       f.tailPhase += 0.03 + f.speed*0.03;
 
-      // 描画
+      // 描画（自分の水槽と同じスタイル）
       ctx.save();
       ctx.translate(f.x, f.y);
       var flip = f.vx > 0.03 ? 1 : f.vx < -0.03 ? -1 : 1;
       ctx.scale(flip * f.size, f.size);
       var sat = 40+f.color*55, light = 35+f.color*20;
+      var accentSat = 30+f.color*60;
       // 尾
-      var tw = Math.sin(f.tailPhase)*(4+f.speed*4);
+      var tw = Math.sin(f.tailPhase)*(4+f.speed*5);
       ctx.fillStyle='hsla('+f.hue+','+(sat-10)+'%,'+(light+5)+'%,0.6)';
-      ctx.beginPath();ctx.moveTo(-14,0);ctx.quadraticCurveTo(-22,-6+tw,-28,-9+tw);ctx.quadraticCurveTo(-22,tw,-28,9+tw);ctx.quadraticCurveTo(-22,6+tw,-14,0);ctx.fill();
-      // 体
+      ctx.beginPath();ctx.moveTo(-14,0);ctx.quadraticCurveTo(-22,-6+tw,-30,-10+tw);
+      ctx.quadraticCurveTo(-22,tw,-30,10+tw);ctx.quadraticCurveTo(-22,6+tw,-14,0);ctx.fill();
+      // 背びれ
+      ctx.fillStyle='hsla('+(f.hue+20)+','+sat+'%,'+(light+10)+'%,0.4)';
+      ctx.beginPath();ctx.moveTo(-3,-9);ctx.quadraticCurveTo(4,-15,10,-9);ctx.closePath();ctx.fill();
+      // 体（赤ライン付きグラデーション）
       var bg=ctx.createLinearGradient(0,-9,0,9);
-      bg.addColorStop(0,'hsla('+f.hue+','+sat+'%,'+(light+12)+'%,1)');bg.addColorStop(0.5,'hsla('+f.hue+','+sat+'%,'+light+'%,1)');bg.addColorStop(1,'hsla('+(f.hue+10)+','+(sat-10)+'%,'+(light-5)+'%,1)');
+      bg.addColorStop(0,'hsla('+f.hue+','+sat+'%,'+(light+12)+'%,1)');
+      bg.addColorStop(0.45,'hsla('+f.hue+','+sat+'%,'+light+'%,1)');
+      bg.addColorStop(0.55,'hsla(0,'+accentSat+'%,'+(40+f.color*15)+'%,1)');
+      bg.addColorStop(1,'hsla('+(f.hue+10)+','+(sat-10)+'%,'+(light-5)+'%,1)');
       ctx.fillStyle=bg;ctx.beginPath();ctx.ellipse(0,0,17,9,0,0,Math.PI*2);ctx.fill();
+      // 光沢
+      if(f.color>0.4){var sg=ctx.createRadialGradient(-5,-4,0,-5,-4,12);sg.addColorStop(0,'rgba(255,255,255,'+(0.1+f.color*0.2)+')');sg.addColorStop(1,'rgba(255,255,255,0)');ctx.fillStyle=sg;ctx.beginPath();ctx.ellipse(-5,-4,12,7,-0.3,0,Math.PI*2);ctx.fill();}
       // 蛍光ライン
-      if(f.color>0.3){ctx.strokeStyle='hsla('+f.hue+',100%,'+(60+f.color*20)+'%,'+(0.2+f.color*0.3)+')';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(-12,-1.5);ctx.quadraticCurveTo(0,-2,8,-0.5);ctx.stroke();}
+      if(f.color>0.3){ctx.strokeStyle='hsla('+f.hue+',100%,'+(60+f.color*20)+'%,'+(0.3+f.color*0.4)+')';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(-12,-1.5);ctx.quadraticCurveTo(0,-2,8,-0.5);ctx.stroke();
+      ctx.strokeStyle='hsla('+f.hue+',100%,80%,'+(0.1+f.color*0.12)+')';ctx.lineWidth=3.5;ctx.beginPath();ctx.moveTo(-12,-1.5);ctx.quadraticCurveTo(0,-2,8,-0.5);ctx.stroke();}
       // 目
       ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(11,-1.5,3,0,Math.PI*2);ctx.fill();
       ctx.fillStyle='#111';ctx.beginPath();ctx.arc(11.5,-1.5,1.8,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='rgba(255,255,255,0.7)';ctx.beginPath();ctx.arc(12,-2.2,0.7,0,Math.PI*2);ctx.fill();
+      // 口（呼吸）
+      var mo=Math.abs(Math.sin(f.tailPhase*0.7))*1.5;
+      ctx.fillStyle='hsla(0,30%,30%,0.5)';ctx.beginPath();ctx.ellipse(18,1,1.2,mo,0,0,Math.PI*2);ctx.fill();
       // 自分の魚はハイライト
-      if (f.isMine) { ctx.strokeStyle='rgba(74,222,128,0.5)';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(0,0,20,12,0,0,Math.PI*2);ctx.stroke(); }
+      if (f.isMine) { ctx.strokeStyle='rgba(74,222,128,0.6)';ctx.lineWidth=2.5;ctx.beginPath();ctx.ellipse(0,0,22,13,0,0,Math.PI*2);ctx.stroke(); }
       ctx.restore();
 
       // 名前

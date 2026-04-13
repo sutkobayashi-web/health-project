@@ -9896,13 +9896,18 @@ function resizeAquarium() {
   _aqCtx.setTransform(r, 0, 0, r, 0, 0);
   if (!_aqFish.x || _aqFish.x > _aqW) { _aqFish.x = _aqW / 2; _aqFish.y = _aqH / 2; }
   _aqFish.targetX = _aqW / 2; _aqFish.targetY = _aqH / 2;
-  initAqPlants();
+  // 水草は初回のみ生成（リサイズで短くなるのを防ぐ）
+  if (_aqPlants.length === 0) initAqPlants();
+  // 砂利もリセット
+  window._aqGravel = null;
 }
 
+var _aqInitialH = 0; // 初回の高さを記憶
 function initAqPlants() {
   _aqPlants = [];
-  // 水草を画面の30-50%の高さにして目立つように
-  var plantH = _aqH * 0.25;
+  _aqInitialH = _aqH > _aqInitialH ? _aqH : _aqInitialH;
+  var baseH = _aqInitialH || _aqH || 300;
+  var plantH = baseH * 0.25;
   for (var i = 0; i < 6; i++) {
     _aqPlants.push({ x: 10 + Math.random()*(_aqW-20), segs: 3+Math.floor(Math.random()*3), h: plantH+Math.random()*plantH*0.8, w: 2+Math.random()*3, phase: Math.random()*Math.PI*2, hue: 100+Math.random()*40 });
   }

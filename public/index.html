@@ -285,7 +285,7 @@
   /* ====== QRコードカード ====== */
   #qr-area img { border-radius: 12px !important; border: 2px solid #f0f2f5 !important; }
 
-  /* ヘルスバディーチャット */
+  /* ヘルス天の声チャット */
   .buddy-msg { display:flex; gap:8px; max-width:100%; width:100%; }
   .buddy-msg.ai { align-self:flex-start; }
   .buddy-msg.user { align-self:flex-end; flex-direction:row-reverse; text-align:right; }
@@ -329,7 +329,7 @@
           <div style="display:inline-flex;align-items:center;justify-content:center;width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#f3e5f5,#e1bee7);animation:authCharFloat 3s ease-in-out 0.5s infinite;"><i class="fas fa-comments" style="font-size:36px;color:#764ba2;"></i></div>
         </div>
         <div style="font-size:1.6rem; font-weight:900; color:#2c3e50; margin-bottom:4px;">CoWell</div>
-        <div class="auth-hero-catch">みんなの声で職場を元気に。<br><strong>あなたのバディー</strong>が毎日を一緒に過ごします</div>
+        <div class="auth-hero-catch">みんなの声で職場を元気に。<br><strong>あなたの天の声</strong>が毎日を一緒に過ごします</div>
       </div>
       <div class="auth-guide-text">ようこそ！下から選んでください</div>
       <button class="auth-menu-btn" onclick="showStep('register-role')" style="background:linear-gradient(135deg,#e3f2fd,#bbdefb); border:2px solid #42a5f5;"><i class="fas fa-user-plus" style="color:#1565c0;"></i><div><span class="auth-menu-title" style="color:#1565c0;">はじめての方</span><span class="auth-menu-desc" style="color:#1976d2;">新規登録して参加する</span></div></button>
@@ -627,13 +627,13 @@
         <!-- アバター -->
         <div style="flex-shrink:0;display:flex;align-items:flex-end;">
           <div id="mypage-avatar" style="width:56px;height:56px;border-radius:50%;overflow:hidden;border:3px solid #fff;box-shadow:0 4px 12px rgba(102,126,234,0.2);display:flex;align-items:center;justify-content:center;font-size:1.7rem;background:#f0f0f0;cursor:pointer;z-index:1;" onclick="showRanking();"></div>
-          <!-- バディーアバター廃止 -->
+          <!-- 天の声アバター廃止 -->
         </div>
         <!-- ユーザー情報 -->
         <div style="flex:1;min-width:0;">
           <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
             <span style="font-weight:800;font-size:1.05rem;color:#2c3e50;" id="mypage-nickname">--</span>
-            <!-- バディー名称廃止 -->
+            <!-- 天の声名称廃止 -->
             <span id="mypage-dept" style="font-size:0.6rem;font-weight:700;color:#667eea;background:#eef0ff;padding:1px 7px;border-radius:10px;"></span>
             <span id="mypage-rank" style="font-size:0.6rem;"></span>
           </div>
@@ -672,7 +672,7 @@
     </div>
     <!-- ボタン -->
     <div style="padding:6px 18px;display:flex;gap:6px;">
-      <!-- バディー設定ボタン廃止 -->
+      <!-- 天の声設定ボタン廃止 -->
       <button onclick="openCoinShop()" style="flex:1;padding:8px 4px;background:linear-gradient(135deg,#f59e0b,#d97706);color:white;border:none;border-radius:10px;font-size:0.7rem;font-weight:700;cursor:pointer;"><i class="fas fa-store"></i> ショップ</button>
       <button onclick="openAdminFromUser()" style="flex:1;padding:8px 4px;background:white;color:#d63384;border:1.5px solid #d63384;border-radius:10px;font-size:0.7rem;font-weight:700;cursor:pointer;"><i class="fas fa-shield-alt"></i> 推進メンバー</button>
       <button onclick="closeMyPosts();openProfileEditModal();" style="flex:1;padding:8px 4px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;border-radius:10px;font-size:0.7rem;font-weight:700;cursor:pointer;"><i class="fas fa-edit"></i> 編集</button>
@@ -684,7 +684,7 @@
     </div>
     <!-- メモ一覧 -->
     <div style="padding:8px 12px 4px;font-size:0.78rem;font-weight:700;color:#667eea;flex-shrink:0;display:flex;align-items:center;justify-content:between;gap:6px;cursor:pointer;" onclick="toggleMemoSection()">
-      <i class="fas fa-bookmark"></i> バディーメモ <span id="memo-count" style="font-size:0.65rem;background:#667eea;color:white;border-radius:10px;padding:1px 7px;"></span>
+      <i class="fas fa-bookmark"></i> メモ <span id="memo-count" style="font-size:0.65rem;background:#667eea;color:white;border-radius:10px;padding:1px 7px;"></span>
       <i class="fas fa-chevron-down" id="memo-toggle-icon" style="margin-left:auto;font-size:0.6rem;transition:transform 0.2s;"></i>
     </div>
     <div id="my-memos-list" style="padding:0 12px;max-height:0;overflow:hidden;transition:max-height 0.3s ease;"></div>
@@ -729,8 +729,8 @@
       <div class="ob-slide" data-slide="1" style="display:none;">
         <div style="text-align:center;padding:30px 20px;background:white;border-radius:20px;">
           <div style="font-size:3rem;margin-bottom:16px;">🤖💬</div>
-          <div style="font-size:1.1rem;font-weight:900;color:#0ea5e9;margin-bottom:12px;">バディーに話しかけよう</div>
-          <div style="font-size:0.85rem;color:#555;line-height:1.8;">あなたのことを気にかけてくれる<br>バディーがここにいます<br><br><strong>雑談でも愚痴でもOK</strong></div>
+          <div style="font-size:1.1rem;font-weight:900;color:#0ea5e9;margin-bottom:12px;">天の声に話しかけよう</div>
+          <div style="font-size:0.85rem;color:#555;line-height:1.8;">あなたのことを気にかけてくれる<br>天の声がここにいます<br><br><strong>雑談でも愚痴でもOK</strong></div>
         </div>
       </div>
       <!-- Slide 3 -->
@@ -784,13 +784,13 @@
     <span id="stat-nickname" style="display:none;"></span>
   </div>
 
-  <!-- ヘルスバディー作成画面 -->
+  <!-- ヘルス天の声作成画面 -->
   <div id="buddy-setup-screen" style="display:none;position:fixed;top:0;left:0;right:0;bottom:68px;z-index:2400;background:linear-gradient(160deg,#f0f9ff,#e0f2fe);overflow:hidden;display:none;flex-direction:column;">
     <!-- 上部固定：プレビュー＋タイトル -->
     <div style="flex-shrink:0;padding:8px 14px;background:linear-gradient(135deg,#0ea5e9,#0284c7);display:flex;align-items:center;gap:10px;box-shadow:0 2px 10px rgba(14,165,233,0.3);">
       <canvas id="buddy-setup-preview" width="168" height="168" style="border-radius:50%;border:2px solid rgba(255,255,255,0.5);flex-shrink:0;width:168px;height:168px;"></canvas>
       <div>
-        <div style="font-weight:900;font-size:0.95rem;color:white;">バディーを作ろう</div>
+        <div style="font-weight:900;font-size:0.95rem;color:white;">天の声を作ろう</div>
         <div style="font-size:0.7rem;color:rgba(255,255,255,0.7);margin-top:2px;">毎日一緒に過ごす仲間だよ</div>
       </div>
       <button onclick="document.getElementById('buddy-setup-screen').style.display='none'" style="margin-left:auto;background:rgba(255,255,255,0.2);border:none;color:white;width:32px;height:32px;border-radius:50%;font-size:14px;cursor:pointer;flex-shrink:0;"><i class="fas fa-times"></i></button>
@@ -805,7 +805,7 @@
       <!-- 名前入力 -->
       <div style="background:white;border-radius:14px;padding:12px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,0.05);">
         <div style="font-weight:800;font-size:0.82rem;color:#0284c7;margin-bottom:8px;"><i class="fas fa-pen" style="margin-right:4px;"></i>名前を付けてあげよう</div>
-        <input type="text" id="buddy-name-input" placeholder="例: ハルちゃん、ケンタ先生" value="バディー" style="width:100%;border:2px solid #e0e0e0;border-radius:10px;padding:10px 12px;font-size:0.88rem;outline:none;box-sizing:border-box;" onfocus="this.style.borderColor='#0ea5e9'" onblur="this.style.borderColor='#e0e0e0'">
+        <input type="text" id="buddy-name-input" placeholder="例: ハルちゃん、ケンタ先生" value="天の声" style="width:100%;border:2px solid #e0e0e0;border-radius:10px;padding:10px 12px;font-size:0.88rem;outline:none;box-sizing:border-box;" onfocus="this.style.borderColor='#0ea5e9'" onblur="this.style.borderColor='#e0e0e0'">
       </div>
       <!-- 性格選択 -->
       <div style="background:white;border-radius:14px;padding:12px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,0.05);">
@@ -911,7 +911,7 @@
       </div>
       <div style="text-align:center;">
         <div id="voice-status" style="font-size:0.78rem;font-weight:800;color:#0369a1;">マイクをタップして話す</div>
-        <div id="voice-sub-status" style="font-size:0.65rem;color:#64748b;margin-top:2px;">連続 = バディーの返答後に自動で聞き取り再開</div>
+        <div id="voice-sub-status" style="font-size:0.65rem;color:#64748b;margin-top:2px;">連続 = 天の声の返答後に自動で聞き取り再開</div>
       </div>
       <div id="voice-listening-indicator" style="display:none;margin-top:6px;">
         <div style="display:flex;align-items:center;justify-content:center;gap:6px;padding:5px;background:linear-gradient(135deg,#fef2f2,#fee2e2);border-radius:8px;">
@@ -1043,7 +1043,7 @@
       </div>
     </div>
 
-    <!-- 相談はバディーチャットから自然に吸い上げるため、投稿フォームは廃止 -->
+    <!-- 相談は天の声チャットから自然に吸い上げるため、投稿フォームは廃止 -->
 
     <!-- 食事セクション -->
     <div class="card-section food-section" style="background:linear-gradient(135deg,#e0f7ef,#c8e6c9); border:2px solid #20c997; box-shadow:0 4px 16px rgba(32,201,151,0.12);">
@@ -1133,7 +1133,7 @@
         <div style="display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#6c5ce7,#a29bfe);flex-shrink:0;"><i class="fas fa-stream" style="font-size:22px;color:#fff;"></i></div>
         <div style="flex:1;">
           <div class="section-title" style="margin-bottom:2px; padding-bottom:3px; border-bottom:2px solid rgba(108,92,231,0.2);"><i class="fas fa-stream"></i> みんなの声</div>
-          <div style="font-size:0.75rem; color:#999;">バディーとの会話から届いた声＆ごはん</div>
+          <div style="font-size:0.75rem; color:#999;">天の声との会話から届いた声＆ごはん</div>
         </div>
       </div>
       <div id="posts-view-body" style="display:none; margin-top:12px; padding-top:12px; border-top:1px solid rgba(108,92,231,0.2);">
@@ -1795,7 +1795,7 @@ function openAdminFromUser() {
 // ★ ログアウト
 function doUserLogout() {
   if (!confirm("ログアウトしますか？")) return;
-  // バディーチャット履歴をサーバーから削除
+  // 天の声チャット履歴をサーバーから削除
   if (currentUser && currentUser.uid) {
     fetch('/api/chat/buddy-history/clear', {
       method: 'POST',
@@ -1812,7 +1812,7 @@ function doUserLogout() {
   // AI相談チャットをリセット
   nurseInited = false; nurseHistory = []; nurseReady = true;
   var nurseArea = document.getElementById('nurse-messages'); if (nurseArea) nurseArea.innerHTML = '';
-  // バディーチャットをリセット・各画面を非表示
+  // 天の声チャットをリセット・各画面を非表示
   var buddyMsgs = document.getElementById('buddy-messages'); if (buddyMsgs) buddyMsgs.innerHTML = '';
   _buddyHistory = []; _buddyMoodChecked = false; _buddyTurnCount = 0;
   window._buddyScrollSetup = false;
@@ -2294,7 +2294,7 @@ function onLoginSuccess() {
   startUserHeartbeat();
   // タブ状態復元
   try {
-    // ログイン後は常にバディーチャットから開始
+    // ログイン後は常に天の声チャットから開始
     sessionStorage.removeItem('healthCurrentTab');
   } catch(e) {}
 }
@@ -2603,7 +2603,7 @@ function toggleBpEnabled(on) {
   });
 }
 function inlineBpView() {
-  // バディータブに切り替え
+  // 天の声タブに切り替え
   if (typeof switchAppTab === 'function') switchAppTab('buddy');
   var msgs = document.getElementById('buddy-messages');
   if (!msgs) return;
@@ -2664,7 +2664,7 @@ function inlineBpView() {
     msgs.appendChild(div);
     msgs.scrollTop = msgs.scrollHeight;
 
-    // バディーが血圧についてコメント
+    // 天の声が血圧についてコメント
     var latest = rows[0];
     var avg = { sys: 0, dia: 0, count: Math.min(rows.length, 7) };
     for (var i = 0; i < avg.count; i++) { avg.sys += rows[i].systolic; avg.dia += rows[i].diastolic; }
@@ -2679,7 +2679,7 @@ function inlineBpView() {
     else bpSummary += '正常範囲です。';
     bpSummary += ' 記録数: ' + rows.length + '件。';
 
-    // バディーにコメントさせる（AIまたはフォールバック）
+    // 天の声にコメントさせる（AIまたはフォールバック）
     setTimeout(function() {
       try {
         if (typeof buddyAskAI === 'function') {
@@ -2948,7 +2948,7 @@ function openPostDetail(row) {
   analysisText = analysisText.replace(/\/\/\/SCORE\/\/\/[\s\S]*$/, '').trim();
   var analysisDataText = analysisText.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   var analysisHtml = analysisText ? '<div class="ai-reply" style="position:relative;"><i class="fas fa-robot text-primary"></i> ' + analysisText.replace(/\n/g, '<br>') +
-    '<button onclick="speakPostAnalysis(this)" data-text="' + analysisDataText + '" data-state="idle" class="post-tts-btn" title="バディーが読み上げ" style="display:inline-flex;align-items:center;justify-content:center;margin-left:8px;width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#a78bfa,#7c3aed);color:white;border:none;cursor:pointer;font-size:14px;box-shadow:0 2px 8px rgba(124,58,237,0.3);vertical-align:middle;transition:transform 0.1s;" ontouchstart="this.style.transform=\'scale(0.9)\'" ontouchend="this.style.transform=\'\'"><i class="fas fa-volume-up"></i></button>' +
+    '<button onclick="speakPostAnalysis(this)" data-text="' + analysisDataText + '" data-state="idle" class="post-tts-btn" title="天の声が読み上げ" style="display:inline-flex;align-items:center;justify-content:center;margin-left:8px;width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#a78bfa,#7c3aed);color:white;border:none;cursor:pointer;font-size:14px;box-shadow:0 2px 8px rgba(124,58,237,0.3);vertical-align:middle;transition:transform 0.1s;" ontouchstart="this.style.transform=\'scale(0.9)\'" ontouchend="this.style.transform=\'\'"><i class="fas fa-volume-up"></i></button>' +
     '</div>' : '';
 
   sheet.innerHTML =
@@ -3177,7 +3177,7 @@ function loadMyMemos() {
     var memos = data.memos || [];
     if (countEl) countEl.textContent = memos.length || '';
     if (!memos.length) {
-      list.innerHTML = '<div style="padding:12px 0;text-align:center;font-size:0.75rem;color:#bbb;">バディーの回答で「メモ」ボタンを押すと保存されます</div>';
+      list.innerHTML = '<div style="padding:12px 0;text-align:center;font-size:0.75rem;color:#bbb;">天の声の回答で「メモ」ボタンを押すと保存されます</div>';
     } else {
       list.innerHTML = memos.map(function(m) {
         var d = new Date(m.created_at);
@@ -3214,7 +3214,7 @@ function openMemoDetail(id) {
     overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
     overlay.innerHTML = '<div style="background:white;border-radius:16px;max-width:400px;width:100%;max-height:80vh;overflow-y:auto;padding:20px;">' +
       '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">' +
-        '<div style="font-size:0.75rem;font-weight:700;color:#667eea;"><i class="fas fa-bookmark"></i> バディーメモ</div>' +
+        '<div style="font-size:0.75rem;font-weight:700;color:#667eea;"><i class="fas fa-bookmark"></i> メモ</div>' +
         '<button onclick="this.closest(\'div[style*=fixed]\').remove()" style="background:none;border:none;font-size:1.1rem;color:#aaa;cursor:pointer;"><i class="fas fa-times"></i></button>' +
       '</div>' +
       '<div style="font-size:0.85rem;color:#333;line-height:1.7;">' + formatted + '</div>' +
@@ -3246,14 +3246,14 @@ function openMyPosts() {
     if (avEl) avEl.innerHTML = getAvatarHtml(currentUser.avatar, 56);
     var nickEl = document.getElementById('mypage-nickname');
     if (nickEl) nickEl.innerText = currentUser.nickname || '--';
-    // バディーアバター＆名前セット
+    // 天の声アバター＆名前セット
     var buddyData = null;
     try { buddyData = JSON.parse(localStorage.getItem('co_heart_buddy')); } catch(e) {}
     if (buddyData) {
       var bAvEl = document.getElementById('mypage-buddy-avatar');
       if (bAvEl) bAvEl.innerHTML = getAvatarHtml(buddyData.avatar, 36);
       var bNameEl = document.getElementById('mypage-buddy-name');
-      if (bNameEl) bNameEl.textContent = buddyData.name || 'バディー';
+      if (bNameEl) bNameEl.textContent = buddyData.name || '天の声';
     }
     var deptEl = document.getElementById('mypage-dept');
     if (deptEl) deptEl.innerHTML = currentUser.department ? '<i class="fas fa-building"></i> ' + currentUser.department : '';
@@ -3729,7 +3729,7 @@ function submitPost() {
   if (!txt) return alert("内容を入力してください");
   if (isSubmitting) return;
   isSubmitting = true;
-  showLoading("バディーが読んでるよ...");
+  showLoading("読み込み中...");
   processForm({ uid: currentUser.uid, nickname: currentUser.nickname, avatar: currentUser.avatar, honne: encodeURIComponent(txt), department: currentUser.department, birthDate: currentUser.birthDate }).then(function(res) {
     hideLoading(); isSubmitting = false;
     if (res && res.success) {
@@ -3753,7 +3753,7 @@ function showAIResponse(text) {
   box.innerHTML =
     '<div style="text-align:center; margin-bottom:16px;">' +
       '<div style="font-size:2.5rem; margin-bottom:8px;">🩺</div>' +
-      '<div style="font-weight:800; font-size:1.1rem; color:#d63384;">バディーからのひとこと</div>' +
+      '<div style="font-weight:800; font-size:1.1rem; color:#d63384;">天の声からのひとこと</div>' +
       '<div style="font-size:0.75rem; color:#aaa; margin-top:4px;">推進メンバーにも届いたよ！</div>' +
     '</div>' +
     '<div style="background:linear-gradient(135deg,#fff5f7,#f0f4ff);padding:16px;border-radius:14px;font-size:0.9rem;line-height:1.8;color:#333;white-space:pre-wrap;border-left:4px solid #d63384;">' + escInbox(text) + '</div>' +
@@ -3847,7 +3847,7 @@ function showFoodResponse(text) {
     '<div style="text-align:center; margin-bottom:16px;">' +
       '<div style="font-size:2.5rem; margin-bottom:8px;">🥗</div>' +
       '<div style="font-weight:800; font-size:1.1rem; color:#20c997;">今日のごはん、見たよ！</div>' +
-      '<div style="font-size:0.75rem; color:#aaa; margin-top:4px;">バディーからのひとこと</div>' +
+      '<div style="font-size:0.75rem; color:#aaa; margin-top:4px;">天の声からのひとこと</div>' +
     '</div>' +
     '<div id="food-radar-chart-area"></div>' +
     '<div style="background:linear-gradient(135deg,#f0faf4,#edf4ff);padding:16px;border-radius:14px;font-size:0.9rem;line-height:1.8;color:#333;white-space:pre-wrap;border-left:4px solid #20c997;">' + escInbox(text) + '</div>' +
@@ -4471,8 +4471,8 @@ function hideLoading() { document.getElementById('loading-overlay').style.displa
 <div id="fab-speed-dial" style="display:none;"></div>
 <nav id="bottom-nav" style="display:none;">
   <div class="bnav-item active" id="bnav-buddy" onclick="switchAppTab('buddy');">
-    <i class="fas fa-robot bnav-icon"></i>
-    <span class="bnav-label">バディー</span>
+    <i class="fas fa-fish bnav-icon"></i>
+    <span class="bnav-label">水槽</span>
   </div>
   <div class="bnav-item" id="bnav-menu" onclick="switchAppTab('menu');">
     <i class="fas fa-th-large bnav-icon"></i>
@@ -4521,23 +4521,23 @@ function switchAppTab(tab) {
   var _challengeTab = document.getElementById('challenge-tab-screen'); if (_challengeTab) _challengeTab.style.display = 'none';
   unlockScroll();
 
-  // メインコンテンツとバディー画面の切替
+  // メインコンテンツと天の声画面の切替
   var mainContent = document.querySelector('.main-content');
   var buddyScreen = document.getElementById('buddy-chat-screen');
 
   if (tab === 'menu' || tab === 'challenge') {
     buddyScreen.style.display = 'none';
     mainContent.style.display = tab === 'menu' ? 'block' : 'none';
-    stopWakeWordListener(); // バディー画面以外ではウェイクワード停止
+    stopWakeWordListener(); // 天の声画面以外ではウェイクワード停止
   } else {
-    // バディー画面をベースに残す（ヘッダーが消えないように）
+    // 天の声画面をベースに残す（ヘッダーが消えないように）
     buddyScreen.style.display = 'flex';
     mainContent.style.display = 'none';
   }
 
   // 各タブを開く
   if (tab === 'buddy') {
-    // バディーは常に表示
+    // 天の声は常に表示
     // 入口カードは廃止 → インラインメニューから選択
   } else if (tab === 'menu') {
     // メニュー（旧ホーム）表示 — 空気ダッシュボードを読み込み
@@ -4547,7 +4547,7 @@ function switchAppTab(tab) {
     loadInboxContent();
     document.getElementById('inbox-sheet').classList.add('active');
   } else if (tab === 'chat') {
-    // 旧AI相談は削除（バディーに統合）
+    // 旧AI相談は削除（天の声に統合）
   } else if (tab === 'mypage') {
     document.getElementById('my-posts-modal').style.display = 'flex';
     openMyPosts();
@@ -4715,7 +4715,7 @@ function closeNurseChat() {
   document.getElementById('nurse-fab').style.display = 'flex';
   var ib = document.getElementById('inbox-fab'); if (ib) ib.style.display = 'flex';
   unlockScroll();
-  // ボトムナビのchatタブから開いた場合、バディーに戻す
+  // ボトムナビのchatタブから開いた場合、天の声に戻す
   if (_currentAppTab === 'chat') { switchAppTab('buddy'); }
 }
 
@@ -4968,9 +4968,9 @@ function nurseScrollBottom() {
 </script>
 <!-- ====== /AIヘルスアドバイザーチャットボット ====== -->
 
-<!-- ====== ヘルスバディー ====== -->
+<!-- ====== ヘルス天の声 ====== -->
 <script>
-// ===== ヘルスバディー =====
+// ===== ヘルス天の声 =====
 var _buddyHistory = [];
 var _buddyMoodChecked = false;
 var _buddyTurnCount = 0;
@@ -5006,12 +5006,12 @@ function selectBuddyPersonality(key) {
 }
 
 function saveBuddySetup() {
-  var name = document.getElementById('buddy-name-input').value.trim() || 'バディー';
+  var name = document.getElementById('buddy-name-input').value.trim() || '天の声';
   var avatar = abBuildString();
   var buddy = { avatar: avatar, name: name, personality: _selectedPersonality };
   localStorage.setItem('co_heart_buddy', JSON.stringify(buddy));
   localStorage.setItem('co_heart_buddy_customized', '1');
-  // サーバーに保存してからバディー初期化
+  // サーバーに保存してから天の声初期化
   document.getElementById('buddy-setup-screen').style.display = 'none';
   if (currentUser && currentUser.uid) {
     fetch('/api/auth/save-buddy', {
@@ -5027,7 +5027,7 @@ function saveBuddySetup() {
 function openBuddySetup() {
   document.getElementById('buddy-setup-screen').style.display = 'flex';
   abRenderBuilderUI('buddy-builder-parts', 'buddy-setup-preview');
-  // 既存のバディーデータがあればロード
+  // 既存の天の声データがあればロード
   var buddyData = null;
   try { buddyData = JSON.parse(localStorage.getItem('co_heart_buddy')); } catch(e) {}
   if (buddyData) {
@@ -5039,7 +5039,7 @@ function openBuddySetup() {
   if (typeof initVoiceSettingsUI === 'function') initVoiceSettingsUI();
 }
 
-// デフォルトバディー（プリセット）
+// デフォルト天の声（プリセット）
 var DEFAULT_BUDDY = {
   avatar: 'custom:#F5CBA7|#4A3728|#E3F2FD|16|9|0|0|8|0|0|0|1|3|1|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0',
   name: 'ハルちゃん',
@@ -5063,16 +5063,16 @@ function updateBuddyHeaderStreak() {
 function initBuddy() {
   if (!currentUser) return;
 
-  // ストリーク情報をバディーヘッダーに反映
+  // ストリーク情報を天の声ヘッダーに反映
   updateBuddyHeaderStreak();
 
-  // バディー画面を表示状態にする
+  // 天の声画面を表示状態にする
   var buddyScreen = document.getElementById('buddy-chat-screen');
   if (buddyScreen) buddyScreen.style.display = 'flex';
   var mainContent = document.querySelector('.main-content');
   if (mainContent) mainContent.style.display = 'none';
 
-  // バディーデータ読み込み（サーバー優先、localStorageフォールバック）
+  // 天の声データ読み込み（サーバー優先、localStorageフォールバック）
   var localBuddy = null;
   try { localBuddy = JSON.parse(localStorage.getItem('co_heart_buddy')); } catch(e) {}
 
@@ -5108,7 +5108,7 @@ function startBuddyChat(buddyData) {
   _buddyTurnCount = 0;
   loadBuddyChallengeBar();
 
-  // ヘッダーにバディー情報を設定
+  // ヘッダーに天の声情報を設定
   var headerAvatar = document.getElementById('buddy-header-avatar');
   var headerName = document.getElementById('buddy-header-name');
   if (headerAvatar) headerAvatar.innerHTML = getAvatarHtml(buddyData.avatar, 42);
@@ -5134,15 +5134,15 @@ function startBuddyChat(buddyData) {
         });
         window._buddyRestoring = false;
         _buddyMoodChecked = true;
-        // バディー経由メッセージも読み込む
+        // 天の声経由メッセージも読み込む
         loadBuddyNotices();
-        // お知らせ未読チェック（バディーが教える）
+        // お知らせ未読チェック（天の声が教える）
         setTimeout(function() { checkBuddyNewsAlert(); }, 3000);
         // カスタマイズ案内（非表示設定されていなければ）
         if (!localStorage.getItem(getBuddySetupKey())) {
           setTimeout(function() {
             window._buddyRestoring = true;
-            addBuddyMessage('ai', '🎨 そういえば、バディーの名前・見た目・性格をカスタマイズできるよ！');
+            addBuddyMessage('ai', '🎨 そういえば、水槽の魚に名前をつけてあげてね！');
             window._buddyRestoring = false;
             showBuddySetupPromptWithDismiss();
           }, 500);
@@ -5226,9 +5226,9 @@ function startBuddyChatFresh(buddyData) {
       localStorage.setItem(introKey, '1');
       addBuddyMessage('ai', msg);
       setTimeout(function() {
-        addBuddyMessage('ai', 'はじめに少しだけ、このアプリの仕組みを紹介させてね！\n\n🤖 私（バディー）は「あなた個人」の健康アドバイスが得意だよ。体調相談、食事、睡眠、なんでも聞いてね！\n\n🛡️ でも「職場の環境を変えたい」時は推進メンバーの出番！チャットの中で「推進メンバーに相談」を選ぶと、あなたの声が届くよ。\n\n📢→🗳️→💪 届いた声はテーマ候補になって、みんなの投票でチャレンジに変わるんだ！\n\nあなたの一言が、職場を変える力になるよ✨');
+        addBuddyMessage('ai', 'はじめに少しだけ、このアプリの仕組みを紹介させてね！\n\n🤖 私（天の声）は「あなた個人」の健康アドバイスが得意だよ。体調相談、食事、睡眠、なんでも聞いてね！\n\n🛡️ でも「職場の環境を変えたい」時は推進メンバーの出番！チャットの中で「推進メンバーに相談」を選ぶと、あなたの声が届くよ。\n\n📢→🗳️→💪 届いた声はテーマ候補になって、みんなの投票でチャレンジに変わるんだ！\n\nあなたの一言が、職場を変える力になるよ✨');
         setTimeout(function() {
-          addBuddyMessage('ai', '🎨 そういえば、バディーの名前・見た目・性格をカスタマイズできるよ！\n自分だけのバディーにしてみない？');
+          addBuddyMessage('ai', '🎨 そういえば、水槽の魚に名前をつけてあげてね！\n自分だけの天の声にしてみない？');
           showBuddySetupPromptWithDismiss();
           setTimeout(function() {
             addBuddyMessage('ai', 'さて、今日の調子はいかがですか？');
@@ -5247,7 +5247,7 @@ function startBuddyChatFresh(buddyData) {
     // カスタマイズ案内（「表示しない」を選ぶまで毎回表示）
     if (!localStorage.getItem(getBuddySetupKey())) {
       setTimeout(function() {
-        addBuddyMessage('ai', '🎨 そういえば、バディーの名前・見た目・性格をカスタマイズできるよ！');
+        addBuddyMessage('ai', '🎨 そういえば、水槽の魚に名前をつけてあげてね！');
         showBuddySetupPromptWithDismiss();
       }, 2000);
     }
@@ -5262,7 +5262,7 @@ function startBuddyChatFresh(buddyData) {
   });
 }
 
-// 30秒ごとにバディー新着メッセージをチェック
+// 30秒ごとに天の声新着メッセージをチェック
 var _buddyPollTimer = null;
 function startBuddyPoll() {
   if (_buddyPollTimer) return;
@@ -5275,9 +5275,9 @@ function startBuddyPoll() {
   }, 30000);
 }
 
-// === バディーがお知らせ未読を教える機能 ===
+// === 天の声がお知らせ未読を教える機能 ===
 var _buddyLastNewsCount = -1; // 初回判定用
-var _buddyNewsAlerted = false; // セッション中1回だけバディーが喋る（ポーリングではバッジのみ更新）
+var _buddyNewsAlerted = false; // セッション中1回だけ天の声が喋る（ポーリングではバッジのみ更新）
 function checkBuddyNewsAlert() {
   if (!currentUser) return;
   getUnreadNoticeCount(currentUser.uid).then(function(data) {
@@ -5285,7 +5285,7 @@ function checkBuddyNewsAlert() {
     var count = data.count || 0;
     // バッジ更新
     updateBuddyNewsBadge(count);
-    // 初回 or 新規増加時にバディーが教える（セッション中初回のみ喋る）
+    // 初回 or 新規増加時に天の声が教える（セッション中初回のみ喋る）
     if (count > 0 && !_buddyNewsAlerted) {
       _buddyNewsAlerted = true;
       var preview = data.latest ? data.latest.preview : '';
@@ -5302,7 +5302,7 @@ function checkBuddyNewsAlert() {
         addBuddyMessage('ai', msg);
       }, 2000);
     } else if (count > _buddyLastNewsCount && _buddyLastNewsCount >= 0 && count > 0) {
-      // ポーリングで増えた場合はバッジ更新のみ（バディーは喋らない→うるさくない）
+      // ポーリングで増えた場合はバッジ更新のみ（天の声は喋らない→うるさくない）
       // ただしバッジが光るアニメーションで気付かせる
       var badge = document.getElementById('buddy-news-badge');
       if (badge) {
@@ -5361,7 +5361,7 @@ function loadBuddyNotices() {
     .catch(function() {});
 }
 
-// === バディー話題共感機能 ===
+// === 天の声話題共感機能 ===
 // ポーリング用（途中で新しい話題が来たら問いかける）
 function checkBuddyTopicPoll() {
   if (!currentUser) return;
@@ -5444,7 +5444,7 @@ function markBuddyQuickUsed() {
 function showBuddyTopicQuestion(topic) {
   var buddyData = null;
   try { buddyData = JSON.parse(localStorage.getItem('co_heart_buddy')); } catch(e) {}
-  var buddyName = buddyData ? buddyData.name : 'バディー';
+  var buddyName = buddyData ? buddyData.name : '天の声';
 
   addBuddyMessage('ai', '📢 今週の話題です！\n━━━━━━━━━━━━\n「' + topic.title + '」\n\nみんなはどう思う？教えてほしいな！');
 
@@ -5545,7 +5545,7 @@ function showBuddySetupPromptWithDismiss() {
     '<div style="flex:1;min-width:0;">' +
       '<button onclick="openBuddySetup()" style="display:flex;align-items:center;gap:10px;width:100%;padding:14px 16px;background:linear-gradient(135deg,#0ea5e9,#0284c7);color:white;border:none;border-radius:16px;font-size:0.88rem;font-weight:700;cursor:pointer;box-shadow:0 3px 12px rgba(14,165,233,0.3);transition:transform 0.15s;font-family:inherit;">' +
         '<i class="fas fa-palette" style="font-size:1.2rem;"></i>' +
-        '<span>バディーをカスタマイズする</span>' +
+        '<span>魚に名前をつける</span>' +
         '<i class="fas fa-chevron-right" style="margin-left:auto;opacity:0.7;"></i>' +
       '</button>' +
       '<label id="' + dismissId + '" style="display:flex;align-items:center;gap:6px;margin-top:8px;cursor:pointer;font-size:0.75rem;color:#999;">' +
@@ -5692,7 +5692,7 @@ function showConcernOptions() {
     '<div class="buddy-quick-btn" onclick="selectConcern(\'appetite\')">🍽️ 食欲がない</div>' +
     '<div class="buddy-quick-btn" onclick="selectConcern(\'eye\')">👁️ 目の疲れ</div>' +
     '<div class="buddy-quick-btn" onclick="selectConcern(\'none\')">✅ 特にない</div>' +
-    '<div class="buddy-quick-btn" onclick="selectConcern(\'talk\')" style="border-color:#0ea5e9;color:#0ea5e9;">💬 バディーに話してみる</div>' +
+    '<div class="buddy-quick-btn" onclick="selectConcern(\'talk\')" style="border-color:#0ea5e9;color:#0ea5e9;">💬 話しかける</div>' +
   '</div>');
 }
 
@@ -5701,7 +5701,7 @@ function showFollowUpTopics() {
     '<div class="buddy-quick-btn" onclick="selectConcern(\'food\')">🍱 食事の相談</div>' +
     '<div class="buddy-quick-btn" onclick="selectConcern(\'exercise\')">🏃 運動の相談</div>' +
     '<div class="buddy-quick-btn" onclick="selectConcern(\'health_tip\')">💡 健康豆知識</div>' +
-    '<div class="buddy-quick-btn" onclick="selectConcern(\'talk\')" style="border-color:#0ea5e9;color:#0ea5e9;">💬 バディーに話してみる</div>' +
+    '<div class="buddy-quick-btn" onclick="selectConcern(\'talk\')" style="border-color:#0ea5e9;color:#0ea5e9;">💬 話しかける</div>' +
     '<div class="buddy-quick-btn" onclick="selectConcern(\'none\')">👍 大丈夫！</div>' +
   '</div>');
 }
@@ -5712,7 +5712,7 @@ function selectConcern(concern) {
   var texts = {
     sleep: '💤 睡眠が浅い', pain: '🦴 腰・肩が痛い', stress: '😣 ストレスを感じる',
     appetite: '🍽️ 食欲がない', eye: '👁️ 目が疲れる', none: '✅ 特にないです',
-    talk: '💬 バディーに話してみる', food: '🍱 食事について相談したい',
+    talk: '💬 話しかける', food: '🍱 食事について相談したい',
     exercise: '🏃 運動について相談したい', health_tip: '💡 健康豆知識が聞きたい'
   };
 
@@ -5756,7 +5756,7 @@ async function buddyAskAI(concern, userText) {
     context += 'ニックネーム: ' + (currentUser.nickname || '') + '\n';
     context += '相談内容: ' + userText + '\n';
 
-    // バディーの性格を反映
+    // 天の声の性格を反映
     var buddyData = null;
     try { buddyData = JSON.parse(localStorage.getItem('co_heart_buddy')); } catch(e) {}
     var personalityPrompt = '';
@@ -5768,10 +5768,10 @@ async function buddyAskAI(concern, userText) {
       else if (p === 'calm') personalityPrompt = '口調は穏やかで共感的に。「そうなんだ」「無理しないでね」急がせない。';
       else if (p === 'reliable') personalityPrompt = '口調は頼もしく論理的に。「データでは」「エビデンスによると」数値で説明。';
       context += '性格: ' + personalityPrompt + '\n';
-      context += 'バディーの名前: ' + buddyData.name + '\n';
+      context += '天の声の名前: ' + buddyData.name + '\n';
     }
 
-    var buddyName = (buddyData && buddyData.name) ? buddyData.name : 'ヘルスバディー';
+    var buddyName = (buddyData && buddyData.name) ? buddyData.name : 'ヘルス天の声';
     var systemPrompt = 'あなたの名前は「' + buddyName + '」です。初回の挨拶時のみ名乗り、会話の途中では名前を繰り返さないでください。\n' +
       '以下の原則に従って会話してください：\n' +
       '・3行以内で簡潔に返答する\n' +
@@ -5832,7 +5832,7 @@ async function buddyAskAI(concern, userText) {
 }
 
 // ========================================
-// 声の自然な吸い上げ: バディー会話→投稿
+// 声の自然な吸い上げ: 天の声会話→投稿
 // ========================================
 function showVoiceSuggestButtons() {
   addBuddyInlineQuick(
@@ -5842,7 +5842,7 @@ function showVoiceSuggestButtons() {
         '<div class="buddy-quick-btn" onclick="submitVoiceFromChat()" style="border-color:#20c997;color:#20c997;font-weight:700;">📢 聞いてみる</div>' +
         '<div class="buddy-quick-btn" onclick="declineVoiceSuggest()" style="border-color:#999;color:#999;">🙅 やめとく</div>' +
       '</div>' +
-      '<div style="font-size:0.6rem;color:#aaa;margin-top:6px;">バディーが要約するから、そのまま投稿されることはないよ</div>' +
+      '<div style="font-size:0.6rem;color:#aaa;margin-top:6px;">天の声が要約するから、そのまま投稿されることはないよ</div>' +
     '</div>'
   );
 }
@@ -5921,7 +5921,7 @@ function submitChallengeReaction(challengeId, reaction) {
 
 function showBuddyWrapUp() {
   addBuddyInlineQuick('<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;padding:4px 0;">' +
-    '<div class="buddy-quick-btn" onclick="buddyWrapUp(\'another\')" style="border-color:#0ea5e9;color:#0ea5e9;">💬 バディーに話してみる</div>' +
+    '<div class="buddy-quick-btn" onclick="buddyWrapUp(\'another\')" style="border-color:#0ea5e9;color:#0ea5e9;">💬 話しかける</div>' +
     '<div class="buddy-quick-btn" onclick="buddyWrapUp(\'member\')" style="border-color:#d63384;color:#d63384;">🛡️ 推進メンバーに相談</div>' +
     '<div class="buddy-quick-btn" onclick="buddyWrapUp(\'food\')" style="border-color:#20c997;color:#20c997;">🍱 食事を記録</div>' +
     '<div class="buddy-quick-btn" onclick="buddyWrapUp(\'done\')" style="border-color:#ff9800;color:#ff9800;">👍 ありがとう！</div>' +
@@ -5936,7 +5936,7 @@ function buddyWrapUp(action) {
       addBuddyMessage('ai', 'いつでも話しかけてくださいね！\n今日も良い1日を🌟');
     }, 500);
   } else if (action === 'another') {
-    addBuddyMessage('user', '💬 バディーに話してみる');
+    addBuddyMessage('user', '💬 話しかける');
     setTimeout(function() {
       addBuddyMessage('ai', 'うんうん、何でも聞くよ！😊\nここでの会話はあなただけのものです🔒');
     }, 500);
@@ -5972,7 +5972,7 @@ function showMemberConsultForm() {
 function submitMemberConsult() {
   var extra = document.getElementById('buddy-member-msg').value.trim();
   var recentTopics = _buddyHistory.filter(function(h) { return h.role === 'user'; }).map(function(h) { return h.content; }).slice(-5).join('\n');
-  var content = '【ヘルスバディー経由の相談】\n';
+  var content = '【ヘルス天の声経由の相談】\n';
   content += '相談内容: ' + recentTopics;
   if (extra) content += '\n補足: ' + extra;
 
@@ -6011,7 +6011,7 @@ function loadChallengeTabContent() {
     headers: { 'Authorization': 'Bearer ' + getToken() }
   }).then(function(r) { return r.json(); }).then(function(data) {
     if (!data.success || !data.challenges || !data.challenges.length) {
-      area.innerHTML = '<div style="text-align:center;padding:40px;"><div style="font-size:2.5rem;margin-bottom:12px;">🔥</div><div style="font-size:0.9rem;font-weight:700;color:#555;">現在開催中のチャレンジはありません</div><div style="font-size:0.78rem;color:#999;margin-top:8px;">バディーに声を届けると<br>チャレンジが生まれるかも！</div></div>';
+      area.innerHTML = '<div style="text-align:center;padding:40px;"><div style="font-size:2.5rem;margin-bottom:12px;">🔥</div><div style="font-size:0.9rem;font-weight:700;color:#555;">現在開催中のチャレンジはありません</div><div style="font-size:0.78rem;color:#999;margin-top:8px;">天の声に声を届けると<br>チャレンジが生まれるかも！</div></div>';
       return;
     }
 
@@ -6476,7 +6476,7 @@ function _getDailyTopic() {
 }
 // カードメタ定義
 var _entryCardMeta = {
-  daily:      { icon: '💬', title: 'ひとこと聞いて',       sub: 'バディーがお題を出すよ',      color: '#0369a1', bg: '#f0f9ff', border: '#7dd3fc', shadow: 'rgba(14,165,233,0.12)',  fn: 'entryCardDailyTheme()' },
+  daily:      { icon: '💬', title: 'ひとこと聞いて',       sub: '天の声がお題を出すよ',      color: '#0369a1', bg: '#f0f9ff', border: '#7dd3fc', shadow: 'rgba(14,165,233,0.12)',  fn: 'entryCardDailyTheme()' },
   health:     { icon: '📋', title: '体調レポート',         sub: 'サクッと選ぶだけ',            color: '#b45309', bg: '#fef3c7', border: '#fcd34d', shadow: 'rgba(245,158,11,0.12)',  fn: 'entryCardHealthReport()' },
   vent:       { icon: '😟', title: 'モヤっとを聞いて',     sub: 'グチでも全然OK',              color: '#be185d', bg: '#fce7f3', border: '#f9a8d4', shadow: 'rgba(236,72,153,0.12)',  fn: 'entryCardVent()' },
   suggest:    { icon: '💡', title: 'こうなったらいいな',   sub: '提案・アイデア',              color: '#15803d', bg: '#dcfce7', border: '#86efac', shadow: 'rgba(34,197,94,0.12)',   fn: 'entryCardSuggest()' },
@@ -6573,7 +6573,7 @@ function showBuddyEntryCards() {
 
   var cardsHtml = '';
   // 会話セクション
-  cardsHtml += '<div style="font-size:0.68rem;font-weight:800;color:#0369a1;text-align:center;margin-bottom:6px;"><i class="fas fa-comment-dots" style="margin-right:3px;"></i>バディーと話す</div>';
+  cardsHtml += '<div style="font-size:0.68rem;font-weight:800;color:#0369a1;text-align:center;margin-bottom:6px;"><i class="fas fa-comment-dots" style="margin-right:3px;"></i>天の声と話す</div>';
   cardsHtml += _renderCardGrid(talkOrder, ord.recommended);
   // アクションセクション
   cardsHtml += '<div style="font-size:0.68rem;font-weight:800;color:#059669;text-align:center;margin:12px 0 6px;"><i class="fas fa-bolt" style="margin-right:3px;"></i>やってみる・見る</div>';
@@ -6810,7 +6810,7 @@ function inlineHealthConsult() {
 function inlineMemberConsult() {
   _buddyCaptureMode = 'member_consult';
   hideActionBar();
-  addBuddyMessage('ai', '推進メンバーに直接届けたいことがあるんだね！🛡️\n\nバディー経由で届くから、気軽に相談してね。');
+  addBuddyMessage('ai', '推進メンバーに直接届けたいことがあるんだね！🛡️\n\n天の声経由で届くから、気軽に相談してね。');
   setTimeout(function() {
     addBuddyMessage('ai', 'どんなことを伝えたい？\n\n例えば...\n・職場環境の改善リクエスト\n・健康施策への意見\n・困っていること\n\n👇 下の入力欄に書いて送信してね');
     showCancelCapture();
@@ -6846,7 +6846,7 @@ function handleCapturedMessage(msg) {
     });
   } else if (mode === 'member_consult') {
     addBuddyMessage('ai', '🛡️ 推進メンバーに送信中...');
-    var noticeContent = '【バディー経由の相談・提案】\n' + msg;
+    var noticeContent = '【天の声経由の相談・提案】\n' + msg;
     saveAdminNotice({ content: noticeContent, sender: currentUser.nickname || '匿名ユーザー', targetId: 'ADMIN' }).then(function(res) {
       var msgs = document.getElementById('buddy-messages');
       var last = msgs.lastElementChild;
@@ -6919,7 +6919,7 @@ function handleFoodPhotoCapture(input) {
       div.innerHTML = '<div class="buddy-avatar">' + getAvatarHtml(currentUser.avatar, 42) + '</div><div><div class="buddy-bubble"><img src="' + dataUrl + '" style="max-width:200px;border-radius:10px;display:block;margin-bottom:4px;">📸 この食事を診断して！</div></div>';
       msgs.appendChild(div);
       msgs.scrollTop = msgs.scrollHeight;
-      // バディーが確認
+      // 天の声が確認
       setTimeout(function() {
         addBuddyMessage('ai', 'おいしそう！😋\nひとことコメントがあれば入力してね。\nなければそのまま「診断する」をタップ！');
         _buddyCaptureMode = 'food_comment';
@@ -7009,7 +7009,7 @@ function inlineChallengeJoin() {
       return;
     }
 
-    // チャレンジ一覧をバディーが紹介
+    // チャレンジ一覧を天の声が紹介
     var active = data.challenges.filter(function(c) { return c.status === 'active'; });
     var recruiting = data.challenges.filter(function(c) { return c.status === 'recruiting'; });
     var all = active.concat(recruiting);
@@ -7060,11 +7060,11 @@ function openChallengeFromChat(challengeId) {
 var HELP_TOPICS = {
   overview: {
     label: '📱 このアプリって何？',
-    answer: 'このアプリは「みんなの声で職場を元気にする」CoWellだよ！\n\n🤖 バディーに健康の相談ができる\n📢 みんなに相談・提案を匿名で投稿できる\n🍽️ 食事写真を撮ると9項目の栄養バランスを分析\n🏥 健診結果の閲覧＋食事×健診の因果分析\n🏆 健康チャレンジに参加できる\n🩺 血圧記録（カメラ読取り対応）\n🎤 音声会話＆連続会話モード\n🛡️ 推進メンバーに直接提案もできる\n\nあなたの声が職場を変える力になるよ✨'
+    answer: 'このアプリは「みんなの声で職場を元気にする」CoWellだよ！\n\n🐟 水槽の魚に話しかけて健康の相談ができる\n📢 みんなに相談・提案を匿名で投稿できる\n🍽️ 食事写真を撮ると9項目の栄養バランスを分析\n🏥 健診結果の閲覧＋食事×健診の因果分析\n🏆 健康チャレンジに参加できる\n🩺 血圧記録（カメラ読取り対応）\n🎤 音声会話＆連続会話モード\n🛡️ 推進メンバーに直接提案もできる\n\nあなたの声が職場を変える力になるよ✨'
   },
   actionbar: {
     label: '📋 メニューボタンの使い方',
-    answer: 'チャット画面の下に2行のメニューがあるよ！\n\n【1行目】\n💬 バディーに話す → フリートーク\n🍱 ごはん見せる → 食事写真で栄養診断\n❤️ 体調相談 → 体調の悩みを相談\n🛡️ 推進メンバーに相談 → 直接届く\n🟣 話題から選ぶ → 全メニュー一覧\n\n【2行目】\n🔥 チャレンジ参加！ → 健康チャレンジ\n📰 みんなの投稿 → タイムライン\n🌤 みんなの空気 → 参加率・番長\n🩺 血圧を測る（設定ON時）\n📈 血圧を見る（設定ON時）\n❓ 使い方 → このヘルプ\n\nスワイプで横スクロールできるよ！'
+    answer: 'チャット画面の下に2行のメニューがあるよ！\n\n【1行目】\n💬 話す → フリートーク\n🍱 ごはん見せる → 食事写真で栄養診断\n❤️ 体調相談 → 体調の悩みを相談\n🛡️ 推進メンバーに相談 → 直接届く\n🟣 話題から選ぶ → 全メニュー一覧\n\n【2行目】\n🔥 チャレンジ参加！ → 健康チャレンジ\n📰 みんなの投稿 → タイムライン\n🌤 みんなの空気 → 参加率・番長\n🩺 血圧を測る（設定ON時）\n📈 血圧を見る（設定ON時）\n❓ 使い方 → このヘルプ\n\nスワイプで横スクロールできるよ！'
   },
   food: {
     label: '🍽️ ごはん見せる（食事診断）',
@@ -7076,11 +7076,11 @@ var HELP_TOPICS = {
   },
   bp: {
     label: '🩺 血圧記録',
-    answer: '血圧計の数値をカメラで読み取って記録できるよ！\n\n📝 使い方：\n1. 設定画面で「血圧記録」をONにする\n2. メニューの「血圧を測る」をタップ\n3. 血圧計の液晶画面を撮影\n4. AIが自動で数値を読み取り（手入力もOK）\n5. 「記録する」で保存！\n\n📈 「血圧を見る」で推移グラフが見れるよ\n🤖 バディーも血圧データを把握して会話に反映するよ\n\n※設定でOFFにすればメニューから消えるよ'
+    answer: '血圧計の数値をカメラで読み取って記録できるよ！\n\n📝 使い方：\n1. 設定画面で「血圧記録」をONにする\n2. メニューの「血圧を測る」をタップ\n3. 血圧計の液晶画面を撮影\n4. AIが自動で数値を読み取り（手入力もOK）\n5. 「記録する」で保存！\n\n📈 「血圧を見る」で推移グラフが見れるよ\n🤖 天の声も血圧データを把握して会話に反映するよ\n\n※設定でOFFにすればメニューから消えるよ'
   },
   voice: {
     label: '🎤 音声会話の使い方',
-    answer: 'バディーと声で会話できるよ！🎤\n\n📝 使い方：\n1. 入力欄の左にある「🎤音声」ボタンをタップ\n2. 紫のマイクボタンをタップして話す\n3. 話し終わると自動で送信→バディーが声で返事！\n\n🔄 連続会話モード：\n緑の「連続」ボタンを1タップで開始！\nバディーの返答後に自動で聞き取り再開するよ\nハンズフリーで会話が続けられる！\n\n⏹️ 終わるとき：赤い✕ボタンをタップ\n🎵 声の変更：マイページで12種類の声から選べるよ\n🐢⚡ 速さも「ゆっくり」「普通」「早い」から選べる'
+    answer: '天の声と声で会話できるよ！🎤\n\n📝 使い方：\n1. 入力欄の左にある「🎤音声」ボタンをタップ\n2. 紫のマイクボタンをタップして話す\n3. 話し終わると自動で送信→天の声が声で返事！\n\n🔄 連続会話モード：\n緑の「連続」ボタンを1タップで開始！\n天の声の返答後に自動で聞き取り再開するよ\nハンズフリーで会話が続けられる！\n\n⏹️ 終わるとき：赤い✕ボタンをタップ\n🎵 声の変更：マイページで12種類の声から選べるよ\n🐢⚡ 速さも「ゆっくり」「普通」「早い」から選べる'
   },
   member: {
     label: '🛡️ 推進メンバーに相談',
@@ -7091,8 +7091,8 @@ var HELP_TOPICS = {
     answer: 'チャレンジは、みんなで健康目標に取り組む機能だよ！\n\n📝 使い方：\n1. メニューの「チャレンジ参加！」か、下のタブの「チャレンジ」をタップ\n2. 参加したいチャレンジを選んでエントリー\n3. 毎日のKPI（歩数・野菜・睡眠など）を記録\n\n🏅 ランキングで競い合える\n🎁 バッジやQUOカード報酬もあるかも！\n📅 期間中いつでも参加・離脱OK'
   },
   buddy: {
-    label: '🤖 バディーの使い方',
-    answer: '私はあなたの「ヘルスバディー」だよ！😊\n\n💬 何でも話しかけてね。健康の悩み、食事、睡眠、ストレス…AIが答えるよ\n📸 写真も送れる！食事写真を見せてくれたら分析するよ\n🎤 「音声」ボタンで声でも会話OK。連続会話モードも！\n🎨 名前・見た目・性格・声をカスタマイズできるよ\n🩺 血圧データも把握して健康アドバイスするよ\n\n⬇️ 下のメニューから各機能に直接アクセスできるよ！'
+    label: '🐟 Aqua-CoWellの使い方',
+    answer: '水槽の魚があなたと一緒に過ごすよ！🐟\n\n💬 何でも話しかけてね。健康の悩み、食事、睡眠、ストレス…AIが答えるよ\n📸 写真も送れる！食事写真を見せてくれたら分析するよ\n🎤 「音声」ボタンで声でも会話OK。連続会話モードも！\n🎨 名前・見た目・性格・声をカスタマイズできるよ\n🩺 血圧データも把握して健康アドバイスするよ\n\n⬇️ 下のメニューから各機能に直接アクセスできるよ！'
   },
   timeline: {
     label: '📋 投稿の見方',
@@ -7100,11 +7100,11 @@ var HELP_TOPICS = {
   },
   topic: {
     label: '🟣 話題から選ぶ',
-    answer: '「話題から選ぶ」は全機能を一覧で見れるメニューだよ！\n\n【バディーと話す】\n💬 ひとこと聞いて → お題で会話スタート\n📋 体調レポート → 今日の体調をサクッと報告\n😟 モヤっとを聞いて → グチでもOK\n💡 こうなったらいいな → 提案・アイデア\n🛡 推進メンバーに相談 → 直接届く\n\n【やってみる・見る】\n🍱 ごはん見せる → 食事写真で栄養診断\n🔥 チャレンジ参加 → 健康チャレンジ\n🌤 みんなの空気 → 参加率・ごはん番長\n📰 みんなの投稿 → タイムライン'
+    answer: '「話題から選ぶ」は全機能を一覧で見れるメニューだよ！\n\n【天の声と話す】\n💬 ひとこと聞いて → お題で会話スタート\n📋 体調レポート → 今日の体調をサクッと報告\n😟 モヤっとを聞いて → グチでもOK\n💡 こうなったらいいな → 提案・アイデア\n🛡 推進メンバーに相談 → 直接届く\n\n【やってみる・見る】\n🍱 ごはん見せる → 食事写真で栄養診断\n🔥 チャレンジ参加 → 健康チャレンジ\n🌤 みんなの空気 → 参加率・ごはん番長\n📰 みんなの投稿 → タイムライン'
   },
   mypage: {
     label: '👤 マイページ',
-    answer: 'マイページでは自分の情報を確認・変更できるよ！\n\n🪙 CoWellコインの残高・バッジ確認\n🏆 コインランキング\n🎨 バディーのカスタマイズ（名前・性格・声）\n😀 アバターの変更（動物着ぐるみも！）\n📋 自分の投稿一覧\n📝 バディーメモ\n🩺 血圧記録のON/OFF\n🔑 パスワード変更\n\n下のタブの「マイページ」からアクセスしてね！\n※ボトムメニュー: バディー→メニュー→お知らせ→チャレンジ→マイページ'
+    answer: 'マイページでは自分の情報を確認・変更できるよ！\n\n🪙 CoWellコインの残高・バッジ確認\n🏆 コインランキング\n🎨 魚の名前変更\n😀 アバターの変更（動物着ぐるみも！）\n📋 自分の投稿一覧\n📝 メモ\n🩺 血圧記録のON/OFF\n🔑 パスワード変更\n\n下のタブの「マイページ」からアクセスしてね！\n※ボトムメニュー: 水槽→メニュー→お知らせ→チャレンジ→マイページ'
   },
   cowell_coin: {
     label: '🪙 CoWellコイン',
@@ -7118,7 +7118,7 @@ function inlineTopicMenu() {
   setTimeout(function() {
     // 会話系
     var html = '<div style="padding:4px 0;">';
-    html += '<div style="font-size:0.62rem;font-weight:800;color:#0369a1;margin-bottom:4px;text-align:center;">💬 バディーと話す</div>';
+    html += '<div style="font-size:0.62rem;font-weight:800;color:#0369a1;margin-bottom:4px;text-align:center;">💬 天の声と話す</div>';
     html += '<div style="display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin-bottom:8px;">';
     var talkItems = [
       { label: '💬 ひとこと聞いて', action: "entryCardDailyTheme()", color: '#0369a1' },
@@ -7390,8 +7390,8 @@ function toggleVoiceMode() {
     if (panel) panel.style.display = 'block';
     if (textBar) textBar.style.display = 'none';
     if (btn) { btn.style.background = 'linear-gradient(135deg,#7c3aed,#5b21b6)'; btn.style.boxShadow = '0 0 12px rgba(124,58,237,0.6)'; }
-    updateVoiceStatus('タップしてバディーと会話モードに切替');
-    updateVoiceSubStatus('バディーの返答も読み上げます');
+    updateVoiceStatus('タップして会話モードに切替');
+    updateVoiceSubStatus('返答も読み上げます');
   } else {
     // 音声モードOFF
     if (panel) panel.style.display = 'none';
@@ -7530,7 +7530,7 @@ function _startOneShot() {
         _isListening = false;
         toggleVoiceMode();
         var _bName = 'バディ'; try { _bName = JSON.parse(localStorage.getItem('co_heart_buddy') || '{}').name || 'バディ'; } catch(e) {}
-        addBuddyMessage('ai', 'またね！いつでも「バディ」って呼んでくれたら' + _bName + 'が応えるよ 😊');
+        addBuddyMessage('ai', 'またね！いつでも水槽を覗きに来てね。' + _bName + 'が応えるよ 😊');
         return;
       }
       // 即送信（continuous=falseなのでブラウザが発話完了を判定済み）
@@ -7591,7 +7591,7 @@ function stopVoiceRecognition() {
   var indicator = document.getElementById('voice-listening-indicator');
   if (indicator) indicator.style.display = 'none';
   setMicState('ready');
-  updateVoiceStatus('タップしてバディーと会話モードに切替');
+  updateVoiceStatus('タップして会話モードに切替');
 }
 
 // ========================================
@@ -7613,7 +7613,7 @@ function startWakeWordListener() {
   _wakeWordRecognition.onresult = function(event) {
     for (var i = event.resultIndex; i < event.results.length; i++) {
       var text = event.results[i][0].transcript.toLowerCase();
-      if (text.indexOf('バディ') !== -1 || text.indexOf('ばでぃ') !== -1 || text.indexOf('buddy') !== -1 || text.indexOf('ばでい') !== -1 || text.indexOf('バディー') !== -1) {
+      if (text.indexOf('バディ') !== -1 || text.indexOf('ばでぃ') !== -1 || text.indexOf('buddy') !== -1 || text.indexOf('ばでい') !== -1 || text.indexOf('天の声') !== -1) {
         stopWakeWordListener();
         toggleVoiceMode();
         tapToSpeak();
@@ -7680,7 +7680,7 @@ function getJapaneseVoice() {
   return null;
 }
 
-// --- 音声設定管理（声はバディー性格連動、速度のみユーザー設定） ---
+// --- 音声設定管理（声は天の声性格連動、速度のみユーザー設定） ---
 // 性格ごとに複数の声パターンを用意。ユーザーが選択可能
 var _voiceOptions = [
   // ♀ 女性ボイス（Neural2-B / Wavenet-A / Wavenet-B）
@@ -7837,7 +7837,7 @@ function speakBuddyText(btnEl) {
   doSpeak(text, btnEl.closest('.buddy-msg'), null, btnEl);
 }
 
-// ========== 読み上げモード（バディーヘッダーのトグル） ==========
+// ========== 読み上げモード（天の声ヘッダーのトグル） ==========
 function _isBuddyTtsMode() {
   try { return localStorage.getItem('co_heart_buddy_tts_mode') === '1'; } catch(e) { return false; }
 }
@@ -8023,7 +8023,7 @@ function autoSpeakAndListen(text) {
   var lastAI = msgs ? msgs.querySelector('.buddy-msg.ai:last-child') : null;
 
   setMicState('speaking');
-  updateVoiceStatus('バディーが話しています...');
+  updateVoiceStatus('天の声が話しています...');
   updateVoiceSubStatus('');
 
   doSpeak(text, lastAI, function() {
@@ -8096,7 +8096,7 @@ function saveBuddyMood(mood) {
   }).catch(function(){});
 }
 </script>
-<!-- ====== /ヘルスバディー ====== -->
+<!-- ====== /ヘルス天の声 ====== -->
 
 <!-- ====== お知らせ Inbox ====== -->
 <style>
@@ -8327,7 +8327,7 @@ function checkInboxBadge() {
 
   loadBroadcastReads().then(function() { return getAllNotices(currentUser.uid); }).then(function(notices) {
     if (!notices || notices.length === 0) return;
-    // バディー経由メッセージはお知らせに表示しない
+    // 天の声経由メッセージはお知らせに表示しない
     notices = notices.filter(function(n) { return !(n.message && n.message.startsWith('【BUDDY】')); });
     if (notices.length === 0) return;
     var totalUnread = 0;
@@ -8361,7 +8361,7 @@ function closeInbox() {
   var nf = document.getElementById('nurse-fab'); if (nf) nf.style.display = 'flex';
   unlockScroll();
   checkInboxBadge();
-  // バディーヘッダーのお知らせバッジも更新
+  // 天の声ヘッダーのお知らせバッジも更新
   if (currentUser) {
     getUnreadNoticeCount(currentUser.uid).then(function(data) {
       if (data) updateBuddyNewsBadge(data.count || 0);
@@ -8388,7 +8388,7 @@ function loadInboxContent() {
   body.innerHTML = '<div style="text-align:center;padding:30px;"><div class="spinner-border text-primary" role="status"></div></div>';
 
   loadBroadcastReads().then(function() { return getAllNotices(currentUser.uid); }).then(function(notices) {
-    // バディー経由メッセージはお知らせに表示しない
+    // 天の声経由メッセージはお知らせに表示しない
     notices = (notices || []).filter(function(n) { return !(n.message && n.message.startsWith('【BUDDY】')); });
     _inboxNoticesCache = notices;
     if (notices.length === 0) {
@@ -9156,7 +9156,7 @@ function renderAvatarGallery(data) {
     html += '<div style="background:white; border-radius:14px; padding:10px 6px; text-align:center; border:2px solid ' +
       (voted ? '#e91e63' : (isSelf ? '#ff9800' : '#f0f0f0')) +
       '; box-shadow:0 2px 6px rgba(0,0,0,0.04);">';
-    // ユーザー＆バディーアバター（ペア表示）
+    // ユーザー＆天の声アバター（ペア表示）
     html += '<div style="display:flex; align-items:center; justify-content:center; gap:6px; margin-bottom:6px;">';
     html += '<div style="width:50px; height:50px; border-radius:50%; overflow:hidden; display:flex; align-items:center; justify-content:center; background:#f8f8f8; border:2px solid #e0e0e0; box-shadow:0 2px 6px rgba(0,0,0,0.1);">';
     html += getAvatarHtml(u.avatar || '😀', 46);
@@ -9165,7 +9165,7 @@ function renderAvatarGallery(data) {
     html += buddy ? getAvatarHtml(buddy.avatar, 46) : '<i class="fas fa-robot" style="font-size:20px;color:white;"></i>';
     html += '</div>';
     html += '</div>';
-    // ニックネーム＆バディー名
+    // ニックネーム＆天の声名
     html += '<div style="font-size:0.72rem; font-weight:700; color:#333; margin-bottom:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' + escapeHtml(u.nickname) + '</div>';
     if (buddy && buddy.name) {
       html += '<div style="font-size:0.58rem; color:#0ea5e9; font-weight:700; margin-bottom:2px;">& ' + escapeHtml(buddy.name) + '</div>';
@@ -9836,7 +9836,7 @@ function softRefresh() {
   try {
     // 現在のタブに応じてデータを再取得
     if (_currentAppTab === 'buddy') {
-      // バディータブではソフトリフレッシュ不要
+      // 天の声タブではソフトリフレッシュ不要
       updateHeaderStats();
     } else if (_currentAppTab === 'menu') {
       updateHeaderStats();
@@ -9945,7 +9945,7 @@ if ('serviceWorker' in navigator) {
     document.addEventListener('visibilitychange', function() {
       if (document.visibilityState === 'visible') {
         reg.update();
-        // PWA復帰時に新着バディーメッセージをチェック
+        // PWA復帰時に新着天の声メッセージをチェック
         if (typeof loadBuddyNotices === 'function' && currentUser) loadBuddyNotices();
       } else {
         // アプリ非表示時にマイクを確実に停止

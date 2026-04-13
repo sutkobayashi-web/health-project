@@ -10975,11 +10975,15 @@ function initSharedTankCanvas(data) {
   });
 
   // 卵オブジェクト
+  // 卵を海底に等間隔で並べる
+  var eggCount = (data.eggs || []).length;
+  var eggSpacing = eggCount > 0 ? Math.min(50, (W - 40) / eggCount) : 50;
+  var eggStartX = eggCount > 0 ? (W - eggSpacing * (eggCount - 1)) / 2 : W / 2;
   var eggObjs = (data.eggs || []).map(function(e, i) {
     return {
-      x: 50 + Math.random() * (W - 100),
-      y: H * 0.5 + Math.random() * (H * 0.12),
-      phase: Math.random() * Math.PI * 2,
+      x: eggStartX + i * eggSpacing,
+      y: H - 35,
+      phase: Math.random() * Math.PI * 2 + i * 0.5,
       name: e.fish_name || '',
       nickname: e.nickname,
       feeds: e.total_feeds,
@@ -11138,30 +11142,37 @@ function initSharedTankCanvas(data) {
     for (var ei = 0; ei < eggObjs.length; ei++) {
       var eg = eggObjs[ei];
       var eY = eg.y + Math.sin(frame * 0.025 + eg.phase) * 3;
-      // 卵本体
-      ctx.fillStyle = eg.isMine ? '#fff5e0' : '#f5f0e0';
-      ctx.beginPath(); ctx.ellipse(eg.x, eY, 16, 22, 0, 0, Math.PI*2); ctx.fill();
-      ctx.strokeStyle = eg.isMine ? 'rgba(74,222,128,0.6)' : '#d4c9a8';
-      ctx.lineWidth = eg.isMine ? 2 : 1.5;
-      ctx.beginPath(); ctx.ellipse(eg.x, eY, 16, 22, 0, 0, Math.PI*2); ctx.stroke();
-      // 揺れエフェクト
-      if (frame % 120 > 105) {
-        ctx.fillStyle = 'rgba(255,255,200,0.3)';
-        ctx.beginPath(); ctx.arc(eg.x+Math.random()*6-3, eY+Math.random()*6-3, 2, 0, Math.PI*2); ctx.fill();
+      // 卵本体（小さめで砂利の上に）
+      var eggSize = eg.isMine ? 1.0 : 0.7;
+      ctx.fillStyle = eg.isMine ? '#fff5e0' : '#f0ece0';
+      ctx.beginPath(); ctx.ellipse(eg.x, eY, 10*eggSize, 14*eggSize, 0, 0, Math.PI*2); ctx.fill();
+      ctx.strokeStyle = eg.isMine ? 'rgba(74,222,128,0.6)' : 'rgba(200,190,160,0.5)';
+      ctx.lineWidth = eg.isMine ? 1.5 : 1;
+      ctx.beginPath(); ctx.ellipse(eg.x, eY, 10*eggSize, 14*eggSize, 0, 0, Math.PI*2); ctx.stroke();
+      // 卵の中にニックネームの頭文字
+      if (!eg.name) {
+        ctx.fillStyle = 'rgba(150,130,100,0.5)';
+        ctx.font = 'bold ' + Math.round(9*eggSize) + 'px sans-serif';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        var initial = (eg.nickname || '?').charAt(0);
+        ctx.fillText(initial, eg.x, eY);
+        ctx.textBaseline = 'alphabetic';
       }
-      // 名前（卵の上）
+      // 揺れエフェクト（ごはん記録がある卵だけ）
+      if (eg.feeds > 0 && frame % 100 > 88) {
+        ctx.fillStyle = 'rgba(255,255,200,0.3)';
+        ctx.beginPath(); ctx.arc(eg.x+Math.random()*4-2, eY+Math.random()*4-2, 1.5, 0, Math.PI*2); ctx.fill();
+      }
+      // 名前タグ（名前がある卵だけ上に表示）
       ctx.save();
-      ctx.globalAlpha = eg.isMine ? 0.9 : 0.6;
-      ctx.fillStyle = eg.isMine ? '#4ade80' : 'rgba(255,255,255,0.8)';
-      ctx.font = (eg.isMine ? 'bold ' : '') + '10px sans-serif';
+      ctx.globalAlpha = eg.isMine ? 0.9 : 0.5;
+      ctx.fillStyle = eg.isMine ? '#4ade80' : 'rgba(255,255,255,0.7)';
+      ctx.font = (eg.isMine ? 'bold ' : '') + '8px sans-serif';
       ctx.textAlign = 'center';
-      ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 2;
-      var eLabel = (eg.name || eg.nickname) + (eg.name ? '' : 'の卵');
-      ctx.fillText(eLabel, eg.x, eY - 28);
-      // 記録回数
-      ctx.font = '8px sans-serif';
-      ctx.fillStyle = 'rgba(255,255,255,0.5)';
-      ctx.fillText(eg.feeds + '/3', eg.x, eY + 30);
+      ctx.shadowColor = 'rgba(0,0,0,0.4)'; ctx.shadowBlur = 1;
+      if (eg.name) {
+        ctx.fillText(eg.name, eg.x, eY - 18*eggSize);
+      }
       ctx.shadowBlur = 0;
       ctx.restore();
     }

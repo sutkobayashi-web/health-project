@@ -456,9 +456,65 @@ router.post('/manual-feed', authUser, (req, res) => {
   res.json({ success: true, voice, consecutive });
 });
 
-// 旧フレーク互換（廃止、手動餌に転送）
-router.post('/flake', authUser, (req, res) => {
-  res.json({ success: false, message: '手動で餌をあげてください' });
+// ---------- API: 水換え（1日1回） ----------
+router.post('/water-change', authUser, (req, res) => {
+  const db = getDb();
+  const aq = db.prepare('SELECT * FROM user_aquarium WHERE user_id = ?').get(req.uid);
+  if (!aq || aq.status !== 'alive') return res.json({ success: false });
+
+  // 今日すでに水換え済みかチェック
+  const todayDate = today();
+  const lastChange = db.prepare('SELECT feed_date FROM aquarium_feed_log WHERE user_id = ? AND feed_type = ? ORDER BY feed_date DESC LIMIT 1').get(req.uid, 'water_change');
+  if (lastChange && lastChange.feed_date === todayDate) {
+    return res.json({ success: true, already: true, voice: '今日はもう水換えしたよ！💧' });
+  }
+
+  // 水質レベルを1段階上げる（20%刻み）
+  const currentLevel = Math.floor(aq.water_clarity / 20); // 0-4
+  const newLevel = Math.min(4, currentLevel + 1);
+  const newClarity = clamp(newLevel * 20 + 10, 0, 100); // 10,30,50,70,90
+  const newAmmonia = clamp(aq.ammonia - 10, 0, 100);
+
+  db.prepare(`UPDATE user_aquarium SET water_clarity=?, ammonia=?, updated_at=datetime('now') WHERE user_id=?`)
+    .run(newClarity, newAmmonia, req.uid);
+
+  db.prepare(`INSERT INTO aquarium_feed_log (user_id, feed_date, feed_type) VALUES (?,?,?)`)
+    .run(req.uid, todayDate, 'water_change');
+
+  const levelNames = ['Lv1 危険','Lv2 汚い','Lv3 普通','Lv4 良好','Lv5 きれい'];
+  const voice = '水換えしたよ！水質が' + (levelNames[newLevel] || '') + 'になった💧';
+
+  res.json({ success: true, voice, newClarity, level: newLevel + 1 });
+});
+
+// ---------- API: 3要素チェック（食事+運動+野菜で最高ランク） ----------
+router.post('/full-recovery', authUser, (req, res) => {
+  const db = getDb();
+  const aq = db.prepare('SELECT * FROM user_aquarium WHERE user_id = ?').get(req.uid);
+  if (!aq || aq.status !== 'alive') return res.json({ success: false });
+
+  const todayDate = today();
+  // 今日の食事投稿があるか
+  const hasMeal = db.prepare("SELECT 1 FROM aquarium_feed_log WHERE user_id=? AND feed_date=? AND feed_type='user_meal'").get(req.uid, todayDate);
+  // 今日の歩数があるか（3000歩以上）
+  const hasSteps = db.prepare("SELECT steps FROM step_log WHERE user_id=? AND step_date=?").get(req.uid, todayDate);
+  const stepsOk = hasSteps && hasSteps.steps >= 3000;
+  // 今日の食事に野菜スコア50以上があるか
+  const hasVeg = db.prepare("SELECT 1 FROM aquarium_feed_log WHERE user_id=? AND feed_date=? AND feed_type='user_meal' AND vegetable_score>=50").get(req.uid, todayDate);
+
+  if (hasMeal && stepsOk && hasVeg) {
+    db.prepare(`UPDATE user_aquarium SET water_clarity=95, ammonia=5, oxygen=90, updated_at=datetime('now') WHERE user_id=?`).run(req.uid);
+    return res.json({ success: true, fullRecovery: true, voice: '食事・運動・野菜の3つが揃った！\n水がキラキラに輝いてるよ✨' });
+  }
+
+  res.json({
+    success: true, fullRecovery: false,
+    hasMeal: !!hasMeal, hasSteps: stepsOk, hasVeg: !!hasVeg,
+    voice: '3要素が揃うと水質が最高に！\n' +
+      (hasMeal ? '✅' : '⬜') + ' 食事投稿\n' +
+      (stepsOk ? '✅' : '⬜') + ' 歩数3000歩以上\n' +
+      (hasVeg ? '✅' : '⬜') + ' 野菜を含む食事'
+  });
 });
 
 // ---------- API: 日次減衰（バッチ or アクセス時に呼ぶ） ----------

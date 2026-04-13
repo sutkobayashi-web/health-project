@@ -814,7 +814,7 @@
       <div style="display:flex;gap:5px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;touch-action:pan-x;">
         <button onclick="inlineBuddyTalk()" class="buddy-action-btn" style="display:flex;align-items:center;gap:4px;padding:7px 12px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);color:rgba(255,255,255,0.9);border-radius:18px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;"><i class="fas fa-comment-dots"></i> 話す</button>
         <button onclick="inlineFoodCheck()" class="buddy-action-btn" style="display:flex;align-items:center;gap:4px;padding:7px 12px;background:rgba(32,201,151,0.2);border:1px solid rgba(32,201,151,0.4);color:rgba(255,255,255,0.9);border-radius:18px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;"><i class="fas fa-utensils"></i> ごはん</button>
-        <button onclick="manualFeed()" id="feed-btn" class="buddy-action-btn" style="display:flex;align-items:center;gap:4px;padding:7px 12px;background:rgba(251,191,36,0.25);border:1px solid rgba(251,191,36,0.45);color:rgba(255,255,255,0.9);border-radius:18px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;"><i class="fas fa-fish"></i> 餌をあげる</button>
+        <!-- 餌あげはステータスバーに移動 -->
         <button onclick="openStepInput()" class="buddy-action-btn" style="display:flex;align-items:center;gap:4px;padding:7px 12px;background:rgba(74,222,128,0.2);border:1px solid rgba(74,222,128,0.35);color:rgba(255,255,255,0.9);border-radius:18px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;"><i class="fas fa-shoe-prints"></i> 歩数</button>
         <button onclick="inlineHealthConsult()" class="buddy-action-btn" style="display:flex;align-items:center;gap:4px;padding:7px 12px;background:rgba(233,30,99,0.2);border:1px solid rgba(233,30,99,0.3);color:rgba(255,255,255,0.9);border-radius:18px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;"><i class="fas fa-heartbeat"></i> 体調</button>
         <button onclick="inlineMemberConsult()" class="buddy-action-btn" style="display:flex;align-items:center;gap:4px;padding:7px 12px;background:rgba(243,156,18,0.2);border:1px solid rgba(243,156,18,0.3);color:rgba(255,255,255,0.9);border-radius:18px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;"><i class="fas fa-shield-alt"></i> 相談</button>
@@ -10078,27 +10078,31 @@ function updateAquariumUI() {
     var health = Math.round(_aq.fish_health || 0);
     var clarity = Math.round(_aq.water_clarity || 0);
     var healthColor = health > 70 ? '#4ade80' : health > 40 ? '#fbbf24' : '#ef4444';
-    var clarityColor = clarity > 70 ? '#4ade80' : clarity > 40 ? '#fbbf24' : '#ef4444';
+    // 水質レベル表示
+    var wLevel, wLevelColor, wLevelLabel;
+    if (clarity > 80) { wLevel=5; wLevelColor='#4ade80'; wLevelLabel='Lv5 きれい'; }
+    else if (clarity > 60) { wLevel=4; wLevelColor='#60a5fa'; wLevelLabel='Lv4 良好'; }
+    else if (clarity > 40) { wLevel=3; wLevelColor='#fbbf24'; wLevelLabel='Lv3 普通'; }
+    else if (clarity > 20) { wLevel=2; wLevelColor='#f97316'; wLevelLabel='Lv2 汚い'; }
+    else { wLevel=1; wLevelColor='#ef4444'; wLevelLabel='Lv1 危険'; }
+
     var speciesLabel = _aq.fish_species_id ? (spNames[_aq.fish_species_id] || '') : (_aq.growth_stage >= 2 ? '???' : '');
     var stageLabel = stageNames[_aq.growth_stage] || '';
+    var todayStr = new Date().toISOString().split('T')[0];
+    var fedToday = _aq.last_feed_date === todayStr;
 
     info.innerHTML =
-      '<div style="flex:1;display:flex;align-items:center;gap:8px;min-width:0;">' +
-        '<span style="font-size:18px;">' + (_aq.fish_species_id ? '🐟' : '🐣') + '</span>' +
-        '<div style="min-width:0;">' +
-          '<div style="display:flex;align-items:center;gap:4px;">' +
-            '<span onclick="openFishMenu()" style="font-size:13px;font-weight:700;color:#fff;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (_aq.fish_name || '名前をつける') + ' ▾</span>' +
-            '<span style="font-size:9px;color:rgba(255,255,255,0.4);">' + stageLabel + (speciesLabel ? ' / ' + speciesLabel : '') + '</span>' +
-          '</div>' +
-          '<div style="display:flex;align-items:center;gap:6px;margin-top:1px;">' +
-            '<span style="font-size:9px;color:rgba(255,255,255,0.5);">❤️<span style="color:' + healthColor + ';font-weight:600;">' + health + '%</span></span>' +
-            '<span style="font-size:9px;color:rgba(255,255,255,0.5);">💧<span style="color:' + clarityColor + ';font-weight:600;">' + clarity + '%</span></span>' +
-            '<span style="font-size:9px;color:rgba(255,255,255,0.35);">' + (_aq.days_alive || 0) + '日目</span>' +
-          '</div>' +
-        '</div>' +
+      // 1行目: 魚名 + ステータス
+      '<div style="flex:1;display:flex;align-items:center;gap:6px;min-width:0;">' +
+        '<span onclick="openFishMenu()" style="font-size:12px;font-weight:700;color:#fff;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (_aq.fish_name || '名前') + '▾</span>' +
+        '<span style="font-size:8px;color:rgba(255,255,255,0.5);">' + stageLabel + '</span>' +
+        '<span style="font-size:8px;color:' + healthColor + ';">❤️' + health + '%</span>' +
+        '<span style="font-size:8px;padding:1px 5px;background:' + wLevelColor + '22;color:' + wLevelColor + ';border-radius:4px;font-weight:700;">💧' + wLevelLabel + '</span>' +
       '</div>' +
-      '<button onclick="openCheckup()" style="font-size:9px;padding:4px 10px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:10px;color:rgba(255,255,255,0.9);cursor:pointer;flex-shrink:0;">🔬検査</button>' +
-      '<button onclick="clearBuddyChat()" style="font-size:10px;background:none;border:none;color:rgba(255,255,255,0.3);cursor:pointer;flex-shrink:0;padding:4px;" title="チャット履歴クリア"><i class="fas fa-trash-alt"></i></button>';
+      // ボタン群
+      '<button id="feed-btn" onclick="manualFeed()" style="font-size:9px;padding:3px 8px;background:' + (fedToday ? 'rgba(255,255,255,0.08)' : 'rgba(251,191,36,0.25)') + ';border:1px solid ' + (fedToday ? 'rgba(255,255,255,0.1)' : 'rgba(251,191,36,0.5)') + ';border-radius:8px;color:' + (fedToday ? 'rgba(255,255,255,0.4)' : '#fbbf24') + ';cursor:pointer;flex-shrink:0;font-weight:700;">' + (fedToday ? '✅餌済' : '🐟餌') + '</button>' +
+      '<button id="water-btn" onclick="doWaterChange()" style="font-size:9px;padding:3px 8px;background:rgba(96,165,250,0.2);border:1px solid rgba(96,165,250,0.4);border-radius:8px;color:#60a5fa;cursor:pointer;flex-shrink:0;font-weight:700;">💧水換</button>' +
+      '<button onclick="clearBuddyChat()" style="font-size:9px;background:none;border:none;color:rgba(255,255,255,0.25);cursor:pointer;flex-shrink:0;padding:2px;" title="チャット履歴クリア"><i class="fas fa-trash-alt"></i></button>';
   }
 }
 
@@ -10135,6 +10139,46 @@ function manualFeed() {
   }).catch(function() {});
 }
 
+// 水換え
+function doWaterChange() {
+  if (!currentUser || !_aq) return;
+  fetch('/api/aquarium/water-change', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-user-id': currentUser.uid },
+    body: JSON.stringify({ uid: currentUser.uid })
+  }).then(function(r) { return r.json(); }).then(function(d) {
+    if (d.success) {
+      if (d.voice) showAqVoice(d.voice);
+      if (!d.already) {
+        addBuddyMessage('ai', '💧 ' + d.voice);
+        loadAquariumData();
+        // 3要素チェック
+        setTimeout(checkFullRecovery, 1000);
+      } else {
+        addBuddyMessage('ai', d.voice);
+      }
+    }
+  }).catch(function() {});
+}
+
+// 3要素フル回復チェック
+function checkFullRecovery() {
+  if (!currentUser) return;
+  fetch('/api/aquarium/full-recovery', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-user-id': currentUser.uid },
+    body: JSON.stringify({ uid: currentUser.uid })
+  }).then(function(r) { return r.json(); }).then(function(d) {
+    if (d.success) {
+      if (d.fullRecovery) {
+        showAqVoice(d.voice);
+        addBuddyMessage('ai', '🌟 ' + d.voice);
+        loadAquariumData();
+      }
+    }
+  }).catch(function() {});
+}
+
 // アクセス時に餌をまだあげてないか確認して促す
 function checkDailyFeed() {
   if (!currentUser || !_aq || _aq.status !== 'alive') return;
@@ -10146,7 +10190,7 @@ function checkDailyFeed() {
   } else {
     // まだ餌をあげてない → 促す
     setTimeout(function() {
-      addBuddyMessage('ai', 'お腹空いたな...今日のごはん、まだかな？🐟\n\n下のメニューから「🐟 餌をあげる」をタップしてね。\n食事の写真を撮ってくれたらもっと嬉しいな！');
+      addBuddyMessage('ai', 'お腹空いたな...今日のごはん、まだかな？🐟\n\n上のバーの「🐟餌」ボタンをタップしてね。\n食事の写真を撮ってくれたらもっと嬉しいな！');
     }, 3000);
   }
 }
@@ -10392,6 +10436,13 @@ function feedAquarium(nutrientScores) {
         } else {
           spawnAqFood(d.reaction === 'eat_delighted' ? '#ffd700' : d.reaction === 'eat_oily' ? '#a0522d' : '#4ade80');
         }
+        // 餌ボタンをグレーアウト
+        var feedBtn = document.getElementById('feed-btn');
+        if (feedBtn) { feedBtn.innerHTML = '✅餌済'; feedBtn.style.opacity = '0.5'; feedBtn.style.background = 'rgba(255,255,255,0.08)'; feedBtn.style.borderColor = 'rgba(255,255,255,0.1)'; feedBtn.style.color = 'rgba(255,255,255,0.4)'; }
+        // チャットに餌あげメッセージ
+        addBuddyMessage('ai', '🍱 ごはんをもらったよ！おいしかった！');
+        // 3要素チェック
+        setTimeout(checkFullRecovery, 2000);
       }
     }).catch(function(){});
 }

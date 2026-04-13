@@ -460,8 +460,31 @@ router.post('/daily-decay', authUser, (req, res) => {
   let newStatus = aq.status;
   let deathCause = '';
 
-  // 死亡判定
-  if (daysSince >= 10) {
+  // 大往生判定（180日以上 + Stage 6以上 + 健康状態良好）
+  if ((aq.days_alive || 0) + daysSince >= 180 && aq.growth_stage >= 6 && aq.fish_health > 50) {
+    newStatus = 'dead';
+    deathCause = 'old_age';
+    voice = (aq.fish_name || '') + 'は180日間の幸せな生涯を終えました。\nあなたと過ごした毎日が、全てでした。\n...ありがとう';
+    // 履歴に記録（大往生）
+    db.prepare(`INSERT INTO aquarium_history
+      (user_id, generation, fish_species_id, fish_name, days_alive, growth_stage, death_cause, total_feeds, checkup_count, rewards)
+      VALUES (?,?,?,?,?,?,?,?,?,?)`)
+      .run(req.uid, aq.generation, aq.fish_species_id, aq.fish_name, (aq.days_alive||0)+daysSince, aq.growth_stage, deathCause, aq.total_feeds, aq.checkup_count, '["grand_farewell"]');
+  }
+  // 疾病死判定（Stage 3の病気を30日以上放置）
+  else if (!deathCause && (aq.obesity_risk > 90 || aq.hypertension_risk > 90 || aq.diabetes_risk > 90 || aq.liver_risk > 90)) {
+    const diseaseName = aq.obesity_risk > 90 ? 'obesity' : aq.hypertension_risk > 90 ? 'hypertension' : aq.diabetes_risk > 90 ? 'diabetes' : 'liver';
+    const diseaseLabel = {obesity:'肥満',hypertension:'高血圧',diabetes:'糖尿病',liver:'脂肪肝'}[diseaseName];
+    newStatus = 'dead';
+    deathCause = diseaseName;
+    voice = '...' + (aq.fish_name || '') + 'は' + diseaseLabel + 'で旅立ちました。\nもっと早く気づいていれば...';
+    db.prepare(`INSERT INTO aquarium_history
+      (user_id, generation, fish_species_id, fish_name, days_alive, growth_stage, death_cause, total_feeds, checkup_count)
+      VALUES (?,?,?,?,?,?,?,?,?)`)
+      .run(req.uid, aq.generation, aq.fish_species_id, aq.fish_name, (aq.days_alive||0)+daysSince, aq.growth_stage, deathCause, aq.total_feeds, aq.checkup_count);
+  }
+  // 放置死判定
+  else if (daysSince >= 10) {
     newStatus = 'dead';
     deathCause = 'neglect';
     voice = '...水の中が、静かになったね。\nでもまた、卵がもらえるよ';

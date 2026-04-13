@@ -10388,42 +10388,82 @@ function drawAquarium() {
     if(isDead){ctx.rotate(0.3);ctx.globalAlpha=0.4;}
     var hue=_aq.fish_species_id?(_aqSpeciesHue()||200):200;
     var isFry = _aq && !_aq.fish_species_id && alive; // 稚魚判定
-    if (isFry) { ctx.globalAlpha = 0.6; } // 稚魚は半透明
-    var sat=40+colNorm*55, light=isDead?30:35+colNorm*20;
-    // 魚種別体型
-    var shape = _aqSpeciesShape();
-    var bRx = shape.bodyRx, bRy = shape.bodyRy, tS = shape.tailSize, fS = shape.finSize;
-    // 尾
-    var tw=Math.sin(_aqFish.tailPhase)*(4+eNorm*6)*tS;
-    ctx.fillStyle='hsla('+hue+','+(sat-10)+'%,'+(light+5)+'%,0.6)';
-    ctx.beginPath();ctx.moveTo(-bRx+3,0);ctx.quadraticCurveTo(-bRx-8*tS,-6*tS+tw,-bRx-14*tS,-9*tS+tw);
-    ctx.quadraticCurveTo(-bRx-8*tS,tw,-bRx-14*tS,9*tS+tw);ctx.quadraticCurveTo(-bRx-8*tS,6*tS+tw,-bRx+3,0);ctx.fill();
-    // 背びれ
-    ctx.fillStyle='hsla('+(hue+20)+','+sat+'%,'+(light+10)+'%,0.4)';
-    ctx.beginPath();ctx.moveTo(-3,-bRy);ctx.quadraticCurveTo(4,-bRy-6*fS,10,-bRy);ctx.closePath();ctx.fill();
-    // 体
-    var bg=ctx.createLinearGradient(0,-bRy,0,bRy);
-    bg.addColorStop(0,'hsla('+hue+','+sat+'%,'+(light+12)+'%,1)');
-    bg.addColorStop(0.45,'hsla('+hue+','+sat+'%,'+light+'%,1)');
-    bg.addColorStop(0.55,'hsla(0,'+(30+colNorm*50)+'%,'+(40+colNorm*15)+'%,1)');
-    bg.addColorStop(1,'hsla('+(hue+10)+','+(sat-10)+'%,'+(light-5)+'%,1)');
-    ctx.fillStyle=bg;ctx.beginPath();ctx.ellipse(0,0,bRx,bRy,0,0,Math.PI*2);ctx.fill();
-    // 蛍光ライン
-    if(colNorm>0.3&&!isDead){
-      ctx.strokeStyle='hsla('+hue+',100%,'+(60+colNorm*20)+'%,'+(0.2+colNorm*0.4)+')';
-      ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(-12,-1.5);ctx.quadraticCurveTo(0,-2,8,-0.5);ctx.stroke();
-    }
-    // 目
-    if(!isDead){
-      ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(11,-1.5,3,0,Math.PI*2);ctx.fill();
-      ctx.fillStyle='#111';ctx.beginPath();ctx.arc(11.5,-1.5,1.8,0,Math.PI*2);ctx.fill();
-      ctx.fillStyle='rgba(255,255,255,0.7)';ctx.beginPath();ctx.arc(12,-2.2,0.7,0,Math.PI*2);ctx.fill();
-    } else {
+
+    if (isFry) {
+      // ===== 稚魚専用デザイン =====
+      ctx.globalAlpha = 0.7;
+      var fryPhase = _aqFrame * 0.04;
+      // 透明な楕円ボディ
+      var fryGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, 10);
+      fryGrad.addColorStop(0, 'rgba(200,230,255,0.4)');
+      fryGrad.addColorStop(0.6, 'rgba(180,220,255,0.2)');
+      fryGrad.addColorStop(1, 'rgba(160,210,255,0.05)');
+      ctx.fillStyle = fryGrad;
+      ctx.beginPath(); ctx.ellipse(0, 0, 10, 5, 0, 0, Math.PI*2); ctx.fill();
+      // 背骨ライン（薄い線）
+      ctx.strokeStyle = 'rgba(200,230,255,0.35)';
+      ctx.lineWidth = 0.8;
+      ctx.beginPath(); ctx.moveTo(-8, 0); ctx.lineTo(7, 0); ctx.stroke();
+      // 小さな尾びれ
+      var ftw = Math.sin(fryPhase) * 3;
+      ctx.fillStyle = 'rgba(180,220,255,0.25)';
+      ctx.beginPath(); ctx.moveTo(-8, 0); ctx.lineTo(-13, -3+ftw); ctx.lineTo(-13, 3+ftw); ctx.closePath(); ctx.fill();
+      // 大きな目（稚魚は体に比べて目が大きい）
+      ctx.fillStyle = 'rgba(0,0,0,0.6)';
+      ctx.beginPath(); ctx.arc(5, -1, 2.5, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.8)';
+      ctx.beginPath(); ctx.arc(5.5, -1.8, 0.8, 0, Math.PI*2); ctx.fill();
+      // 卵黄嚢（お腹のオレンジの点 = 栄養袋）
+      ctx.fillStyle = 'rgba(255,180,80,0.4)';
+      ctx.beginPath(); ctx.ellipse(-1, 2, 3, 1.5, 0, 0, Math.PI*2); ctx.fill();
+      // キラキラ（生命の輝き）
+      if (_aqFrame % 10 < 3) {
+        ctx.fillStyle = 'rgba(255,255,220,' + (0.3+Math.random()*0.4) + ')';
+        ctx.beginPath(); ctx.arc(Math.random()*12-6, Math.random()*8-4, 0.8, 0, Math.PI*2); ctx.fill();
+      }
+      ctx.globalAlpha = 1; ctx.restore();
+    } else if (isDead) {
+      // ===== 死亡デザイン =====
+      var sat=40+colNorm*55, light=30;
+      var shape = _aqSpeciesShape();
+      var bRx = shape.bodyRx, bRy = shape.bodyRy;
+      ctx.fillStyle='hsla('+hue+','+(sat-10)+'%,'+(light+5)+'%,0.4)';
+      ctx.beginPath();ctx.ellipse(0,0,bRx,bRy,0,0,Math.PI*2);ctx.fill();
       ctx.strokeStyle='#666';ctx.lineWidth=1;
-      ctx.beginPath();ctx.moveTo(9,-3);ctx.lineTo(13,1);ctx.stroke();
-      ctx.beginPath();ctx.moveTo(13,-3);ctx.lineTo(9,1);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(bRx-8,-3);ctx.lineTo(bRx-4,1);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(bRx-4,-3);ctx.lineTo(bRx-8,1);ctx.stroke();
+      ctx.globalAlpha=1;ctx.restore();
+    } else {
+      // ===== 成長した魚のデザイン =====
+      var sat=40+colNorm*55, light=35+colNorm*20;
+      var shape = _aqSpeciesShape();
+      var bRx = shape.bodyRx, bRy = shape.bodyRy, tS = shape.tailSize, fS = shape.finSize;
+      // 尾
+      var tw=Math.sin(_aqFish.tailPhase)*(4+eNorm*6)*tS;
+      ctx.fillStyle='hsla('+hue+','+(sat-10)+'%,'+(light+5)+'%,0.6)';
+      ctx.beginPath();ctx.moveTo(-bRx+3,0);ctx.quadraticCurveTo(-bRx-8*tS,-6*tS+tw,-bRx-14*tS,-9*tS+tw);
+      ctx.quadraticCurveTo(-bRx-8*tS,tw,-bRx-14*tS,9*tS+tw);ctx.quadraticCurveTo(-bRx-8*tS,6*tS+tw,-bRx+3,0);ctx.fill();
+      // 背びれ
+      ctx.fillStyle='hsla('+(hue+20)+','+sat+'%,'+(light+10)+'%,0.4)';
+      ctx.beginPath();ctx.moveTo(-3,-bRy);ctx.quadraticCurveTo(4,-bRy-6*fS,10,-bRy);ctx.closePath();ctx.fill();
+      // 体
+      var bg=ctx.createLinearGradient(0,-bRy,0,bRy);
+      bg.addColorStop(0,'hsla('+hue+','+sat+'%,'+(light+12)+'%,1)');
+      bg.addColorStop(0.45,'hsla('+hue+','+sat+'%,'+light+'%,1)');
+      bg.addColorStop(0.55,'hsla(0,'+(30+colNorm*50)+'%,'+(40+colNorm*15)+'%,1)');
+      bg.addColorStop(1,'hsla('+(hue+10)+','+(sat-10)+'%,'+(light-5)+'%,1)');
+      ctx.fillStyle=bg;ctx.beginPath();ctx.ellipse(0,0,bRx,bRy,0,0,Math.PI*2);ctx.fill();
+      // 蛍光ライン
+      if(colNorm>0.3){
+        ctx.strokeStyle='hsla('+hue+',100%,'+(60+colNorm*20)+'%,'+(0.2+colNorm*0.4)+')';
+        ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(-12,-1.5);ctx.quadraticCurveTo(0,-2,8,-0.5);ctx.stroke();
+      }
+      // 目
+      ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(bRx-6,-1.5,3,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#111';ctx.beginPath();ctx.arc(bRx-5.5,-1.5,1.8,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='rgba(255,255,255,0.7)';ctx.beginPath();ctx.arc(bRx-5,-2.2,0.7,0,Math.PI*2);ctx.fill();
+      ctx.globalAlpha=1;ctx.restore();
     }
-    ctx.globalAlpha=1;ctx.restore();
 
     // 魚の名前を上に表示（一緒に移動）
     if ((alive || isDead) && _aq && _aq.fish_name) {

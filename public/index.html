@@ -9880,11 +9880,11 @@ function initAquarium() {
   window.addEventListener('resize', resizeAquarium);
   loadAquariumData();
   requestAnimationFrame(drawAquarium);
-  // ゲスト魚を3分後に初回ロード、以降5分ごと
+  // 仲間の魚を起動時にロード、以降5分ごと更新
   setTimeout(function() {
-    loadVisitors();
-    setInterval(loadVisitors, 300000);
-  }, 180000);
+    loadCommunityFish();
+    setInterval(loadCommunityFish, 300000);
+  }, 2000);
 }
 
 function resizeAquarium() {
@@ -10590,42 +10590,44 @@ function openFishHistory() {
 // ゲスト魚システム
 var _aqGuests = []; // { x, y, vx, vy, tailPhase, hue, size, speed, color, name, nickname, stayLeft, entering, leaving }
 
-function loadVisitors() {
-  if (!currentUser || !_aq || _aq.status !== 'alive') return;
-  fetch('/api/aquarium/visitors?uid=' + currentUser.uid, { headers:{'x-user-id':currentUser.uid} })
+function loadCommunityFish() {
+  if (!currentUser) return;
+  fetch('/api/aquarium/shared-tank?uid=' + currentUser.uid, { headers:{'x-user-id':currentUser.uid} })
     .then(function(r){return r.json();}).then(function(d){
-      if (!d.success || !d.visitors.length) return;
-      d.visitors.forEach(function(v, i) {
+      if (!d.success) return;
+      // 自分以外の魚をゲストとして常駐表示
+      _aqGuests = [];
+      d.fish.forEach(function(f) {
+        if (f.is_mine) return; // 自分はスキップ
+        var isFry = !f.fish_species_id;
         _aqGuests.push({
-          x: i % 2 === 0 ? -30 : _aqW + 30, // 画面外から入ってくる
-          y: 40 + Math.random() * (_aqH - 100),
-          vx: i % 2 === 0 ? 0.8 : -0.8,
-          vy: (Math.random() - 0.5) * 0.4,
-          targetX: _aqW * 0.3 + Math.random() * _aqW * 0.4,
-          targetY: 40 + Math.random() * (_aqH - 100),
+          x: 20 + Math.random() * (_aqW - 40),
+          y: 30 + Math.random() * (_aqH - 80),
+          vx: (Math.random() - 0.5) * 0.6,
+          vy: (Math.random() - 0.5) * 0.3,
+          targetX: Math.random() * _aqW,
+          targetY: 30 + Math.random() * (_aqH - 80),
           tailPhase: Math.random() * Math.PI * 2,
-          hue: v.hue || 200,
-          size: 0.6 + (v.fish_size || 30) / 100 * 0.8,
-          speed: 0.3 + (v.fish_speed || 50) / 100 * 0.8,
-          color: (v.fish_color || 50) / 100,
-          name: v.fish_name,
-          nickname: v.nickname,
-          species: v.species_name,
-          health: v.fish_health,
-          stayLeft: v.stay_duration * 60, // フレーム換算
-          entering: true,
+          hue: f.hue || 200,
+          size: isFry ? 0.3 : 0.35 + (f.fish_size || 30) / 100 * 0.4,
+          speed: 0.2 + (f.fish_speed || 50) / 100 * 0.4,
+          color: (f.fish_color || 50) / 100,
+          name: f.fish_name,
+          nickname: f.nickname,
+          species: f.species_name,
+          health: f.fish_health,
+          isFry: isFry,
+          stayLeft: 999999, // 常駐
+          entering: false,
           leaving: false,
-          opacity: 0,
+          opacity: 0.45, // 背景表示なので薄め
         });
       });
-      // 到着メッセージ
-      if (d.visitors.length > 0) {
-        var first = d.visitors[0];
-        var stayLabel = d.my_clarity > 70 ? '居心地よさそうにしてるよ' : d.my_clarity > 40 ? 'ちょっとキョロキョロしてる' : 'すぐ帰っちゃいそう...水をきれいにしてあげよう';
-        showAqVoice(first.nickname + 'の' + first.fish_name + 'が遊びに来たよ！\n' + stayLabel);
-      }
     }).catch(function(){});
 }
+
+// 旧loadVisitors互換
+function loadVisitors() { loadCommunityFish(); }
 
 function drawGuests(ctx) {
   for (var gi = _aqGuests.length - 1; gi >= 0; gi--) {
@@ -10672,21 +10674,36 @@ function drawGuests(ctx) {
     g.x += g.vx; g.y += g.vy;
     g.tailPhase += 0.04 + g.speed * 0.03;
 
+    // 壁バウンド
+    if(g.x<15){g.x=15;g.vx*=-0.5;}if(g.x>_aqW-15){g.x=_aqW-15;g.vx*=-0.5;}
+    if(g.y<15){g.y=15;g.vy*=-0.5;}if(g.y>_aqH-30){g.y=_aqH-30;g.vy*=-0.5;}
+
     // 描画
     ctx.save();
-    ctx.globalAlpha = g.opacity * 0.75; // ゲストは少し半透明
+    ctx.globalAlpha = g.opacity;
     ctx.translate(g.x, g.y);
-    var flip = g.vx > 0.05 ? 1 : g.vx < -0.05 ? -1 : 1;
+    var flip = g.vx > 0.03 ? 1 : g.vx < -0.03 ? -1 : 1;
     ctx.scale(flip * g.size, g.size);
 
-    var sat = 40 + g.color * 50;
-    var light = 35 + g.color * 18;
+    if (g.isFry) {
+      // 稚魚ゲスト: 透明な小さい点
+      var fryG = ctx.createRadialGradient(0,0,0,0,0,8);
+      fryG.addColorStop(0,'rgba(200,230,255,0.35)');fryG.addColorStop(1,'rgba(200,230,255,0.05)');
+      ctx.fillStyle=fryG;ctx.beginPath();ctx.ellipse(0,0,8,4,0,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='rgba(0,0,0,0.4)';ctx.beginPath();ctx.arc(4,-0.5,1.8,0,Math.PI*2);ctx.fill();
+      var ftw=Math.sin(g.tailPhase)*2;
+      ctx.fillStyle='rgba(180,220,255,0.2)';ctx.beginPath();ctx.moveTo(-6,0);ctx.lineTo(-10,-2+ftw);ctx.lineTo(-10,2+ftw);ctx.closePath();ctx.fill();
+      ctx.restore();
+    } else {
+      // 通常ゲスト魚
+      var sat = 40 + g.color * 50;
+      var light = 35 + g.color * 18;
 
-    // 尾
-    var tw = Math.sin(g.tailPhase) * (4 + g.speed * 4);
-    ctx.fillStyle = 'hsla('+g.hue+','+(sat-10)+'%,'+(light+5)+'%,0.5)';
-    ctx.beginPath(); ctx.moveTo(-14,0); ctx.quadraticCurveTo(-22,-6+tw,-28,-9+tw);
-    ctx.quadraticCurveTo(-22,tw,-28,9+tw); ctx.quadraticCurveTo(-22,6+tw,-14,0); ctx.fill();
+      // 尾
+      var tw = Math.sin(g.tailPhase) * (4 + g.speed * 4);
+      ctx.fillStyle = 'hsla('+g.hue+','+(sat-10)+'%,'+(light+5)+'%,0.5)';
+      ctx.beginPath(); ctx.moveTo(-14,0); ctx.quadraticCurveTo(-22,-6+tw,-28,-9+tw);
+      ctx.quadraticCurveTo(-22,tw,-28,9+tw); ctx.quadraticCurveTo(-22,6+tw,-14,0); ctx.fill();
 
     // 体
     var bg = ctx.createLinearGradient(0,-9,0,9);
@@ -10706,19 +10723,18 @@ function drawGuests(ctx) {
     ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(11.5,-1.5,1.8,0,Math.PI*2); ctx.fill();
 
     ctx.restore();
+    } // end else (通常ゲスト魚)
 
-    // 名前タグ（近くにいるとき表示）
-    if (!g.leaving && !g.entering && g.opacity > 0.8) {
+    // 名前タグ（常駐ゲストは常に表示）
+    if (!g.leaving && g.opacity > 0.2) {
       ctx.save();
-      ctx.globalAlpha = 0.6;
-      ctx.fillStyle = 'rgba(0,20,40,0.5)';
-      ctx.font = '9px sans-serif';
-      var nameText = g.nickname + 'の' + g.name;
-      var tw2 = ctx.measureText(nameText).width;
-      ctx.fillRect(g.x - tw2/2 - 4, g.y - g.size*15 - 14, tw2 + 8, 14);
-      ctx.fillStyle = 'rgba(255,255,255,0.8)';
+      ctx.globalAlpha = 0.4;
+      ctx.fillStyle = 'rgba(255,255,255,0.7)';
+      ctx.font = '8px sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText(nameText, g.x, g.y - g.size*15 - 4);
+      ctx.shadowColor = 'rgba(0,0,0,0.4)'; ctx.shadowBlur = 2;
+      ctx.fillText(g.name || g.nickname, g.x, g.y - g.size*12 - 3);
+      ctx.shadowBlur = 0;
       ctx.restore();
     }
   }

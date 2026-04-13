@@ -625,6 +625,58 @@ router.get('/species', (req, res) => {
   res.json(FISH_SPECIES);
 });
 
+// ---------- ゲスト魚（他人の魚が遊びに来る） ----------
+router.get('/visitors', authUser, (req, res) => {
+  const db = getDb();
+  try {
+    // 自分のアクアリウム
+    const myAq = db.prepare('SELECT * FROM user_aquarium WHERE user_id = ?').get(req.uid);
+    if (!myAq || myAq.status !== 'alive') return res.json({ success: true, visitors: [] });
+
+    // 他のユーザーの生きている魚を取得
+    const others = db.prepare(`SELECT ua.*, u.nickname FROM user_aquarium ua
+      JOIN users u ON ua.user_id = u.id
+      WHERE ua.user_id != ? AND ua.status = 'alive' AND ua.fish_species_id > 0
+      ORDER BY ua.fish_health DESC`).all(req.uid);
+
+    if (!others.length) return res.json({ success: true, visitors: [] });
+
+    // 水質に応じた滞在時間（秒）
+    const myClarity = myAq.water_clarity || 50;
+    const stayBase = myClarity > 70 ? 120 : myClarity > 40 ? 45 : 15; // 良好:2分、注意:45秒、危険:15秒
+
+    // 元気な魚ほど訪問しやすい（上位から2匹選出）
+    const candidates = others.filter(o => o.fish_health > 30);
+    const shuffled = candidates.sort(() => Math.random() - 0.5);
+    const selected = shuffled.slice(0, Math.min(2, shuffled.length));
+
+    const visitors = selected.map(v => {
+      const species = FISH_SPECIES.find(s => s.id === v.fish_species_id);
+      // ゲストの元気度で滞在時間にボーナス
+      const guestBonus = v.fish_health > 70 ? 1.5 : 1.0;
+      const stayDuration = Math.round(stayBase * guestBonus);
+
+      return {
+        nickname: v.nickname || '???',
+        fish_name: v.fish_name || '名前なし',
+        species_name: species ? species.name : '魚',
+        species_id: v.fish_species_id,
+        hue: species ? species.hue : 200,
+        fish_health: Math.round(v.fish_health),
+        fish_color: Math.round(v.fish_color),
+        fish_size: Math.round(v.fish_size),
+        fish_speed: Math.round(v.fish_speed),
+        growth_stage: v.growth_stage,
+        stay_duration: stayDuration, // 秒
+      };
+    });
+
+    res.json({ success: true, visitors, my_clarity: myClarity });
+  } catch(e) {
+    res.json({ success: true, visitors: [] });
+  }
+});
+
 // ---------- 図鑑 ----------
 router.get('/discovery', authUser, (req, res) => {
   const db = getDb();

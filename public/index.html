@@ -10091,18 +10091,19 @@ function updateAquariumUI() {
     var todayStr = new Date().toISOString().split('T')[0];
     var fedToday = _aq.last_feed_date === todayStr;
 
+    // 状態ボタン用にデータを保存
+    window._aqStatusData = { health:health, healthColor:healthColor, clarity:clarity, wLevel:wLevel, wLevelColor:wLevelColor, wLevelLabel:wLevelLabel, stageLabel:stageLabel, speciesLabel:speciesLabel, days:_aq.days_alive||0, obesity:Math.round(_aq.obesity_risk||0), hp:Math.round(_aq.hypertension_risk||0), liver:Math.round(_aq.liver_risk||0), diabetes:Math.round(_aq.diabetes_risk||0), mental:Math.round(_aq.mental_risk||0), consec:_aq.consecutive_feed_days||0, checkups:_aq.checkup_count||0 };
+
     info.innerHTML =
-      // 1行目: 魚名 + ステータス
-      '<div style="flex:1;display:flex;align-items:center;gap:6px;min-width:0;">' +
-        '<span onclick="openFishMenu()" style="font-size:14px;font-weight:700;color:#fff;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (_aq.fish_name || '名前') + '▾</span>' +
-        '<span style="font-size:11px;color:rgba(255,255,255,0.6);font-weight:600;">' + stageLabel + '</span>' +
-        '<span style="font-size:11px;color:' + healthColor + ';font-weight:700;">❤️' + health + '%</span>' +
-        '<span style="font-size:11px;padding:2px 6px;background:' + wLevelColor + '22;color:' + wLevelColor + ';border-radius:5px;font-weight:700;">💧' + wLevelLabel + '</span>' +
+      // 魚名（広く取る）
+      '<div style="flex:1;min-width:0;">' +
+        '<span onclick="openFishMenu()" style="font-size:15px;font-weight:700;color:#fff;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;">' + (_aq.fish_name || '名前をつける') + ' ▾</span>' +
       '</div>' +
       // ボタン群
-      '<button id="feed-btn" onclick="manualFeed()" style="font-size:9px;padding:3px 8px;background:' + (fedToday ? 'rgba(255,255,255,0.08)' : 'rgba(251,191,36,0.25)') + ';border:1px solid ' + (fedToday ? 'rgba(255,255,255,0.1)' : 'rgba(251,191,36,0.5)') + ';border-radius:8px;color:' + (fedToday ? 'rgba(255,255,255,0.4)' : '#fbbf24') + ';cursor:pointer;flex-shrink:0;font-weight:700;">' + (fedToday ? '✅餌済' : '🐟餌') + '</button>' +
-      '<button id="water-btn" onclick="doWaterChange()" style="font-size:9px;padding:3px 8px;background:rgba(96,165,250,0.2);border:1px solid rgba(96,165,250,0.4);border-radius:8px;color:#60a5fa;cursor:pointer;flex-shrink:0;font-weight:700;">💧水換</button>' +
-      '<button onclick="clearBuddyChat()" style="font-size:14px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.4);cursor:pointer;flex-shrink:0;padding:4px 8px;border-radius:8px;" title="チャット履歴クリア"><i class="fas fa-trash-alt"></i></button>';
+      '<button onclick="showStatusPanel()" style="font-size:10px;padding:4px 10px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:8px;color:rgba(255,255,255,0.9);cursor:pointer;flex-shrink:0;font-weight:700;">📊状態</button>' +
+      '<button id="feed-btn" onclick="manualFeed()" style="font-size:10px;padding:4px 10px;background:' + (fedToday ? 'rgba(255,255,255,0.08)' : 'rgba(251,191,36,0.25)') + ';border:1px solid ' + (fedToday ? 'rgba(255,255,255,0.1)' : 'rgba(251,191,36,0.5)') + ';border-radius:8px;color:' + (fedToday ? 'rgba(255,255,255,0.4)' : '#fbbf24') + ';cursor:pointer;flex-shrink:0;font-weight:700;">' + (fedToday ? '✅済' : '🐟餌') + '</button>' +
+      '<button id="water-btn" onclick="doWaterChange()" style="font-size:10px;padding:4px 10px;background:rgba(96,165,250,0.2);border:1px solid rgba(96,165,250,0.4);border-radius:8px;color:#60a5fa;cursor:pointer;flex-shrink:0;font-weight:700;">💧水換</button>' +
+      '<button onclick="clearBuddyChat()" style="font-size:12px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.3);cursor:pointer;flex-shrink:0;padding:4px 6px;border-radius:8px;" title="チャット履歴クリア"><i class="fas fa-trash-alt"></i></button>';
   }
 }
 
@@ -10279,6 +10280,64 @@ function submitSteps() {
       addBuddyMessage('ai', '🏃 ' + steps.toLocaleString() + '歩を記録したよ！\n' + (d.voice || ''));
     }
   }).catch(function() {});
+}
+
+function showStatusPanel() {
+  var existing = document.getElementById('status-panel');
+  if (existing) { existing.remove(); return; }
+  var d = window._aqStatusData;
+  if (!d) return;
+
+  var riskBar = function(label, val, color) {
+    return '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">' +
+      '<span style="font-size:11px;color:rgba(255,255,255,0.7);min-width:60px;">' + label + '</span>' +
+      '<div style="flex:1;height:6px;background:rgba(255,255,255,0.1);border-radius:3px;overflow:hidden;">' +
+        '<div style="width:' + val + '%;height:100%;background:' + color + ';border-radius:3px;"></div>' +
+      '</div>' +
+      '<span style="font-size:10px;color:rgba(255,255,255,0.5);min-width:28px;text-align:right;">' + val + '%</span>' +
+    '</div>';
+  };
+
+  var html = '<div id="status-panel" style="position:fixed;top:0;left:0;right:0;bottom:0;z-index:9998;" onclick="this.remove()">' +
+    '<div style="position:absolute;top:50px;right:10px;left:10px;max-width:320px;margin-left:auto;background:rgba(10,40,70,0.97);border:1px solid rgba(255,255,255,0.2);border-radius:14px;padding:16px;box-shadow:0 8px 24px rgba(0,0,0,0.4);" onclick="event.stopPropagation()">' +
+      '<div style="font-size:14px;font-weight:800;color:#fff;margin-bottom:12px;">📊 ' + (_aq.fish_name || '魚') + 'の状態</div>' +
+
+      // 基本情報
+      '<div style="display:flex;gap:8px;margin-bottom:12px;">' +
+        '<div style="flex:1;background:rgba(255,255,255,0.06);border-radius:8px;padding:8px;text-align:center;">' +
+          '<div style="font-size:9px;color:rgba(255,255,255,0.5);">Stage</div>' +
+          '<div style="font-size:14px;font-weight:800;color:#fff;">' + d.stageLabel + '</div>' +
+          '<div style="font-size:9px;color:rgba(255,255,255,0.4);">' + (d.speciesLabel || '???') + '</div>' +
+        '</div>' +
+        '<div style="flex:1;background:rgba(255,255,255,0.06);border-radius:8px;padding:8px;text-align:center;">' +
+          '<div style="font-size:9px;color:rgba(255,255,255,0.5);">元気度</div>' +
+          '<div style="font-size:14px;font-weight:800;color:' + d.healthColor + ';">' + d.health + '%</div>' +
+        '</div>' +
+        '<div style="flex:1;background:rgba(255,255,255,0.06);border-radius:8px;padding:8px;text-align:center;">' +
+          '<div style="font-size:9px;color:rgba(255,255,255,0.5);">水質</div>' +
+          '<div style="font-size:14px;font-weight:800;color:' + d.wLevelColor + ';">' + d.wLevelLabel + '</div>' +
+        '</div>' +
+      '</div>' +
+
+      // リスク値
+      '<div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.6);margin-bottom:6px;">⚠️ リスク値</div>' +
+      riskBar('肥満', d.obesity, d.obesity>60?'#ef4444':d.obesity>30?'#fbbf24':'#4ade80') +
+      riskBar('高血圧', d.hp, d.hp>60?'#ef4444':d.hp>30?'#fbbf24':'#4ade80') +
+      riskBar('糖尿病', d.diabetes, d.diabetes>60?'#ef4444':d.diabetes>30?'#fbbf24':'#4ade80') +
+      riskBar('肝臓', d.liver, d.liver>60?'#ef4444':d.liver>30?'#fbbf24':'#4ade80') +
+      riskBar('メンタル', d.mental, d.mental>60?'#ef4444':d.mental>30?'#fbbf24':'#4ade80') +
+
+      // 記録
+      '<div style="display:flex;gap:8px;margin-top:10px;font-size:10px;color:rgba(255,255,255,0.5);">' +
+        '<span>📅' + d.days + '日目</span>' +
+        '<span>🔥' + d.consec + '日連続</span>' +
+        '<span>🔬検査' + d.checkups + '回</span>' +
+      '</div>' +
+
+      '<button onclick="this.closest(\'#status-panel\').remove()" style="width:100%;margin-top:12px;padding:8px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:8px;color:rgba(255,255,255,0.7);cursor:pointer;font-size:11px;">閉じる</button>' +
+    '</div></div>';
+
+  document.body.insertAdjacentHTML('beforeend', html);
 }
 
 function openFishMenu() {

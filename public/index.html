@@ -10079,7 +10079,7 @@ function updateAquariumUI() {
         '<span style="font-size:18px;">' + (_aq.fish_species_id ? '🐟' : '🐣') + '</span>' +
         '<div style="min-width:0;">' +
           '<div style="display:flex;align-items:center;gap:4px;">' +
-            '<span onclick="renameFish()" style="font-size:13px;font-weight:700;color:#fff;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (_aq.fish_name || '名前をつける ✏️') + '</span>' +
+            '<span onclick="openFishMenu()" style="font-size:13px;font-weight:700;color:#fff;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (_aq.fish_name || '名前をつける') + ' ▾</span>' +
             '<span style="font-size:9px;color:rgba(255,255,255,0.4);">' + stageLabel + (speciesLabel ? ' / ' + speciesLabel : '') + '</span>' +
           '</div>' +
           '<div style="display:flex;align-items:center;gap:6px;margin-top:1px;">' +
@@ -10155,6 +10155,123 @@ function submitSteps() {
       addBuddyMessage('ai', '🏃 ' + steps.toLocaleString() + '歩を記録したよ！\n' + (d.voice || ''));
     }
   }).catch(function() {});
+}
+
+function openFishMenu() {
+  var existing = document.getElementById('fish-menu-popup');
+  if (existing) { existing.remove(); return; }
+  var name = _aq ? (_aq.fish_name || '名前なし') : '名前なし';
+  var html = '<div id="fish-menu-popup" style="position:fixed;top:0;left:0;right:0;bottom:0;z-index:9998;" onclick="this.remove()">' +
+    '<div style="position:absolute;top:44px;left:14px;background:rgba(10,40,70,0.97);border:1px solid rgba(255,255,255,0.2);border-radius:14px;padding:6px 0;min-width:200px;box-shadow:0 8px 24px rgba(0,0,0,0.4);" onclick="event.stopPropagation()">' +
+      '<div style="padding:10px 16px;border-bottom:1px solid rgba(255,255,255,0.1);font-size:12px;color:rgba(255,255,255,0.5);">' + name + '</div>' +
+      '<div onclick="document.getElementById(\'fish-menu-popup\').remove();renameFish()" style="padding:12px 16px;cursor:pointer;font-size:13px;color:#fff;display:flex;align-items:center;gap:8px;"><i class="fas fa-pen" style="color:#4ade80;width:16px;"></i>名前を変更する</div>' +
+      '<div onclick="document.getElementById(\'fish-menu-popup\').remove();showFishGuide()" style="padding:12px 16px;cursor:pointer;font-size:13px;color:#fff;display:flex;align-items:center;gap:8px;border-top:1px solid rgba(255,255,255,0.08);"><i class="fas fa-book-open" style="color:#60a5fa;width:16px;"></i>育て方ガイド</div>' +
+      '<div onclick="document.getElementById(\'fish-menu-popup\').remove();openCheckup()" style="padding:12px 16px;cursor:pointer;font-size:13px;color:#fff;display:flex;align-items:center;gap:8px;border-top:1px solid rgba(255,255,255,0.08);"><i class="fas fa-stethoscope" style="color:#fbbf24;width:16px;"></i>水質検査</div>' +
+      '<div onclick="document.getElementById(\'fish-menu-popup\').remove();openFishBook()" style="padding:12px 16px;cursor:pointer;font-size:13px;color:#fff;display:flex;align-items:center;gap:8px;border-top:1px solid rgba(255,255,255,0.08);"><i class="fas fa-book" style="color:#c084fc;width:16px;"></i>おさかな図鑑</div>' +
+    '</div></div>';
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+function showFishGuide() {
+  var html = '<div style="position:fixed;inset:0;background:rgba(0,10,25,0.95);z-index:9999;overflow-y:auto;padding:16px;" onclick="if(event.target===this)this.remove()">' +
+    '<div style="max-width:400px;margin:0 auto;color:#fff;">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">' +
+        '<h3 style="font-size:16px;font-weight:800;">🐟 育て方ガイド</h3>' +
+        '<button onclick="this.closest(\'div[style*=fixed]\').remove()" style="background:rgba(255,255,255,0.15);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:14px;">✕</button>' +
+      '</div>' +
+
+      // 基本
+      '<div style="background:rgba(255,255,255,0.06);border-radius:12px;padding:14px;margin-bottom:10px;">' +
+        '<div style="font-size:13px;font-weight:700;color:#4ade80;margin-bottom:8px;">🥚 はじめかた</div>' +
+        '<div style="font-size:12px;line-height:1.8;color:rgba(255,255,255,0.8);">' +
+          '1. 卵が届いたら、ごはんの写真を<b>3回</b>記録<br>' +
+          '2. 小さな<b>稚魚</b>が生まれる（まだ透明）<br>' +
+          '3. 食事を続けると色がついて<b>種類が決まる</b>！<br>' +
+          '4. 食事パターンで<b>30種類</b>の魚に進化<br>' +
+        '</div>' +
+      '</div>' +
+
+      // 食事
+      '<div style="background:rgba(255,255,255,0.06);border-radius:12px;padding:14px;margin-bottom:10px;">' +
+        '<div style="font-size:13px;font-weight:700;color:#60a5fa;margin-bottom:8px;">🍱 ごはんと水質</div>' +
+        '<div style="font-size:12px;line-height:1.8;color:rgba(255,255,255,0.8);">' +
+          'あなたが食べたものが、魚のごはんになります。<br><br>' +
+          '🥗 <b>野菜が多い</b> → 水がきれいに、色が鮮やかに<br>' +
+          '🍟 <b>揚げ物が多い</b> → 水が濁る、魚が太る<br>' +
+          '🧂 <b>塩分が多い</b> → 魚がふらつく<br>' +
+          '🍺 <b>お酒が多い</b> → 水が黄色くなる<br>' +
+          '⚖️ <b>バランス良好</b> → 全てが改善！キラキラに<br><br>' +
+          '投稿しない日は「フレーク」が自動で与えられますが、<br>あなたのごはんのほうがずっと嬉しいんだって🐟' +
+        '</div>' +
+      '</div>' +
+
+      // 歩数
+      '<div style="background:rgba(255,255,255,0.06);border-radius:12px;padding:14px;margin-bottom:10px;">' +
+        '<div style="font-size:13px;font-weight:700;color:#4ade80;margin-bottom:8px;">🏃 歩数</div>' +
+        '<div style="font-size:12px;line-height:1.8;color:rgba(255,255,255,0.8);">' +
+          '万歩計の歩数を記録すると魚に反映！<br><br>' +
+          '🚶 3,000歩 → 少し元気に<br>' +
+          '🏃 5,000歩 → 泳ぎが速く<br>' +
+          '🏃‍♂️ 7,000歩 → ウロコがキラキラ<br>' +
+          '🔥 10,000歩 → 全速力！色も最高に鮮やか<br><br>' +
+          '歩数は肥満・糖尿病リスクも軽減します' +
+        '</div>' +
+      '</div>' +
+
+      // 水質検査
+      '<div style="background:rgba(255,255,255,0.06);border-radius:12px;padding:14px;margin-bottom:10px;">' +
+        '<div style="font-size:13px;font-weight:700;color:#fbbf24;margin-bottom:8px;">🔬 水質検査（健診）</div>' +
+        '<div style="font-size:12px;line-height:1.8;color:rgba(255,255,255,0.8);">' +
+          '月1回の水質検査で、見えない病気を早期発見。<br><br>' +
+          '検査しないと…<br>' +
+          '😨 <b>自覚症状がないまま</b>病気が進行<br>' +
+          '💀 Stage 3で突然倒れることも<br><br>' +
+          '検査すれば…<br>' +
+          '✅ Stage 1で発見 → 食事改善で回復可能！<br>' +
+          '🏥 「もっと早く検査していれば…」を防ぐ' +
+        '</div>' +
+      '</div>' +
+
+      // 血圧
+      '<div style="background:rgba(255,255,255,0.06);border-radius:12px;padding:14px;margin-bottom:10px;">' +
+        '<div style="font-size:13px;font-weight:700;color:#f87171;margin-bottom:8px;">🩺 血圧記録</div>' +
+        '<div style="font-size:12px;line-height:1.8;color:rgba(255,255,255,0.8);">' +
+          'マイページの設定から血圧記録をONにすると、<br>' +
+          'メニューに「血圧を測る」が出現。<br>' +
+          '血圧計の写真を撮るだけでAIが数値を読み取り！<br><br>' +
+          '塩分の多い食事が続くと<br>魚の高血圧リスクも上がります🐟' +
+        '</div>' +
+      '</div>' +
+
+      // 成長と死
+      '<div style="background:rgba(255,255,255,0.06);border-radius:12px;padding:14px;margin-bottom:10px;">' +
+        '<div style="font-size:13px;font-weight:700;color:#c084fc;margin-bottom:8px;">📈 成長と寿命</div>' +
+        '<div style="font-size:12px;line-height:1.8;color:rgba(255,255,255,0.8);">' +
+          '🐣 稚魚 → 🐟 幼魚 → 若魚 → 成魚 → 大人 → <b>伝説</b><br><br>' +
+          '<b>⚠️ 放置すると…</b><br>' +
+          '3日放置 → 元気がなくなる<br>' +
+          '7日放置 → 病気になる<br>' +
+          '10日放置 → <b>死んでしまう</b><br><br>' +
+          '<b>🏆 180日育てると…</b><br>' +
+          '大往生！褒賞がもらえて、新しい卵が届く<br><br>' +
+          '死んでしまっても新しい卵がもらえます。<br>' +
+          '次は同じ過ちをしないように…🙏' +
+        '</div>' +
+      '</div>' +
+
+      // 仲間
+      '<div style="background:rgba(255,255,255,0.06);border-radius:12px;padding:14px;margin-bottom:10px;">' +
+        '<div style="font-size:13px;font-weight:700;color:#60a5fa;margin-bottom:8px;">🌊 仲間を見る</div>' +
+        '<div style="font-size:12px;line-height:1.8;color:rgba(255,255,255,0.8);">' +
+          'メニューから「仲間を見る」で<br>' +
+          '全社員の魚が一つの水槽で泳いでいます。<br><br>' +
+          '他の人の魚がキラキラしてたら…<br>' +
+          '何を食べてるんだろう？🤔' +
+        '</div>' +
+      '</div>' +
+
+    '</div></div>';
+  document.body.insertAdjacentHTML('beforeend', html);
 }
 
 function renameFish() {

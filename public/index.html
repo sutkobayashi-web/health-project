@@ -11293,6 +11293,9 @@ function initSharedTankCanvas(data) {
         '<span style="color:rgba(255,255,255,0.4);">' + f.fish_name + '</span>' +
         '</div>';
     }).join('') +
+    '<div onclick="var el=document.getElementById(\'egg-accordion\');el.style.display=el.style.display===\'none\'?\'flex\':\'none\';this.querySelector(\'i\').classList.toggle(\'fa-chevron-down\');this.querySelector(\'i\').classList.toggle(\'fa-chevron-up\');" style="width:100%;padding:6px 8px;margin-top:4px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;font-size:10px;color:rgba(255,255,255,0.5);cursor:pointer;display:flex;align-items:center;gap:4px;">' +
+      '🥚 卵 ' + (data.eggs||[]).length + '個 <i class="fas fa-chevron-down" style="margin-left:auto;font-size:8px;"></i></div>' +
+    '<div id="egg-accordion" style="display:none;flex-wrap:wrap;gap:4px;margin-top:4px;">' +
     (data.eggs || []).map(function(e) {
       var border = e.is_mine ? 'border:2px solid #4ade80;' : 'border:1px solid rgba(255,255,255,0.15);';
       return '<div style="' + border + 'background:rgba(255,255,255,0.06);border-radius:8px;padding:4px 8px;font-size:10px;color:rgba(255,255,255,0.6);display:flex;align-items:center;gap:4px;">' +
@@ -11300,7 +11303,7 @@ function initSharedTankCanvas(data) {
         '<span>' + (e.is_mine ? '⭐' : '') + e.nickname + '</span>' +
         '<span style="color:rgba(255,255,255,0.3);">' + (e.fish_name || '卵') + ' (' + e.total_feeds + '/3)</span>' +
         '</div>';
-    }).join('') + '</div>';
+    }).join('') + '</div></div>';
 
   // アニメーション
   var frame = 0;

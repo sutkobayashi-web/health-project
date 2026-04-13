@@ -288,7 +288,7 @@
   /* ヘルス天の声チャット */
   .buddy-msg { display:flex; gap:8px; max-width:100%; width:100%; }
   .buddy-msg.ai { align-self:flex-start; }
-  .buddy-msg.user { align-self:flex-end; flex-direction:row-reverse; text-align:right; }
+  .buddy-msg.user { align-self:flex-end; flex-direction:row-reverse; text-align:right; gap:8px; }
   .buddy-avatar { width:0; height:0; display:none; }
   #buddy-float-avatar { display:none !important; }
   .buddy-msg.user .buddy-avatar { display:none; }
@@ -5579,7 +5579,9 @@ function addBuddyMessage(role, text) {
   div.className = 'buddy-msg ' + (isAI ? 'ai' : 'user');
   var memoBtn = isAI ? '<button class="buddy-memo-btn" onclick="saveBuddyMemo(this)" data-text="' + text.replace(/"/g, '&quot;').replace(/'/g, '&#39;') + '"><i class="far fa-bookmark"></i> メモ</button>' : '';
   var speakBtn = isAI ? ' <button class="buddy-memo-btn" onclick="speakBuddyText(this)" data-text="' + text.replace(/"/g, '&quot;').replace(/'/g, '&#39;') + '" style="color:rgba(255,255,255,0.5);"><i class="fas fa-volume-up"></i></button>' : '';
-  div.innerHTML = '<div style="flex:1;min-width:0;"><div class="buddy-bubble">' + bubbleContent + '</div>' +
+  var userAvHtml = !isAI && currentUser ? '<div style="width:36px;height:36px;border-radius:50%;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;border:2px solid rgba(255,255,255,0.3);">' + getAvatarHtml(currentUser.avatar, 32) + '</div>' : '';
+  div.innerHTML = (isAI ? '' : userAvHtml) +
+    '<div style="flex:1;min-width:0;"><div class="buddy-bubble">' + bubbleContent + '</div>' +
     '<div class="buddy-time">' + time + memoBtn + speakBtn + '</div></div>';
 
   msgs.appendChild(div);

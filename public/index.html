@@ -11382,16 +11382,7 @@ function initSharedTankCanvas(data) {
       ctx.restore();
       } // end else (成魚デザイン)
 
-      // 名前
-      ctx.save();
-      ctx.globalAlpha = f.isMine ? 0.9 : 0.6;
-      ctx.fillStyle = f.isMine ? '#4ade80' : 'rgba(255,255,255,0.8)';
-      ctx.font = (f.isMine ? 'bold ' : '') + '10px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 2;
-      ctx.fillText(f.name, f.x, f.y - f.size*14 - 3);
-      ctx.shadowBlur = 0;
-      ctx.restore();
+      // 名前表示は削除（下部パネルで確認可能）
     }
 
     // 卵を描画
@@ -11419,16 +11410,8 @@ function initSharedTankCanvas(data) {
         ctx.fillStyle = 'rgba(255,255,200,0.3)';
         ctx.beginPath(); ctx.arc(eg.x+Math.random()*4-2, eY+Math.random()*4-2, 1.5, 0, Math.PI*2); ctx.fill();
       }
-      // 名前タグ（名前がある卵だけ上に表示）
+      // 名前表示は削除（下部パネルで確認可能）
       ctx.save();
-      ctx.globalAlpha = eg.isMine ? 0.9 : 0.5;
-      ctx.fillStyle = eg.isMine ? '#4ade80' : 'rgba(255,255,255,0.7)';
-      ctx.font = (eg.isMine ? 'bold ' : '') + '8px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.shadowColor = 'rgba(0,0,0,0.4)'; ctx.shadowBlur = 1;
-      if (eg.name) {
-        ctx.fillText(eg.name, eg.x, eY - 18*eggSize);
-      }
       ctx.shadowBlur = 0;
       ctx.restore();
     }

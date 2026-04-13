@@ -845,7 +845,7 @@
   </div>
 
   <!-- アクアリウムチャット画面 -->
-  <div id="buddy-chat-screen" style="display:flex;flex-direction:column;height:calc(100vh - 56px - 68px);height:calc(100dvh - 56px - 68px);background:#0a3d6b;overflow:hidden;overscroll-behavior:contain;margin-bottom:-1px;">
+  <div id="buddy-chat-screen" style="display:flex;flex-direction:column;height:calc(100vh - 56px);height:calc(100dvh - 56px);padding-bottom:calc(52px + env(safe-area-inset-bottom, 8px));background:#0a3d6b;overflow:hidden;overscroll-behavior:contain;box-sizing:border-box;">
     <!-- ストリーク・ベル・削除は非表示要素として残す（JS参照用） -->
     <div id="buddy-header-name" style="display:none;">Aqua-CoWell</div>
     <div id="buddy-header-streak" style="display:none;"><span id="buddy-streak-icon">🌰</span><span id="buddy-streak-text">0日</span></div>

@@ -5067,9 +5067,8 @@ function startBuddyChat(buddyData) {
         if (!localStorage.getItem(getBuddySetupKey())) {
           setTimeout(function() {
             window._buddyRestoring = true;
-            addBuddyMessage('ai', '🎨 そういえば、水槽の魚に名前をつけてあげてね！');
+            // 名前つけ促しは卵オープニングに統合済み
             window._buddyRestoring = false;
-            showBuddySetupPromptWithDismiss();
           }, 500);
         }
       } else {
@@ -5153,8 +5152,7 @@ function startBuddyChatFresh(buddyData) {
       setTimeout(function() {
         addBuddyMessage('ai', 'ようこそ、Aqua-CoWellへ！🐟\n\nここは、あなたと一緒に暮らす魚の水槽だよ。\n\n🥚 まず卵が届くから、ごはんの写真を撮ってあげてね\n🐟 3回ごはんを記録すると、卵から魚が生まれるよ\n🍱 あなたが食べたものが、魚のごはんになるんだ\n\n魚に話しかけたり、ごはんをあげたり。\nあなたの生活が、この小さな命を育てるよ 🌊');
         setTimeout(function() {
-          addBuddyMessage('ai', '🎨 そういえば、水槽の魚に名前をつけてあげてね！\n自分だけの天の声にしてみない？');
-          showBuddySetupPromptWithDismiss();
+          // 名前つけ促しは卵オープニングに統合済み
           setTimeout(function() {
             addBuddyMessage('ai', 'さて、今日の調子はいかがですか？');
             loadBuddyNotices();
@@ -5172,8 +5170,7 @@ function startBuddyChatFresh(buddyData) {
     // カスタマイズ案内（「表示しない」を選ぶまで毎回表示）
     if (!localStorage.getItem(getBuddySetupKey())) {
       setTimeout(function() {
-        addBuddyMessage('ai', '🎨 そういえば、水槽の魚に名前をつけてあげてね！');
-        showBuddySetupPromptWithDismiss();
+        // 名前つけ促しは卵オープニングに統合済み
       }, 2000);
     }
     loadBuddyNotices();

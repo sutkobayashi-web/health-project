@@ -66,7 +66,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; }
-  html, body { background: #f0f0f5; overflow: hidden; overscroll-behavior: none; position: fixed; width: 100%; height: 100%; margin: 0; }
+  html, body { background: #0a3d6b; overflow: hidden; overscroll-behavior: none; position: fixed; width: 100%; height: 100%; margin: 0; }
   #main-app, #auth-modal { touch-action: manipulation; }
   #buddy-action-bar { touch-action: pan-x !important; -webkit-overflow-scrolling: touch; scroll-behavior: smooth; }
   #buddy-action-bar::-webkit-scrollbar { display: none; }
@@ -845,7 +845,7 @@
   </div>
 
   <!-- アクアリウムチャット画面 -->
-  <div id="buddy-chat-screen" style="display:flex;flex-direction:column;height:calc(100vh - 56px - 68px);height:calc(100dvh - 56px - 68px);background:#0a3d6b;overflow:hidden;overscroll-behavior:contain;">
+  <div id="buddy-chat-screen" style="display:flex;flex-direction:column;height:calc(100vh - 56px - 68px);height:calc(100dvh - 56px - 68px);background:#0a3d6b;overflow:hidden;overscroll-behavior:contain;margin-bottom:-1px;">
     <!-- ストリーク・ベル・削除は非表示要素として残す（JS参照用） -->
     <div id="buddy-header-name" style="display:none;">Aqua-CoWell</div>
     <div id="buddy-header-streak" style="display:none;"><span id="buddy-streak-icon">🌰</span><span id="buddy-streak-text">0日</span></div>

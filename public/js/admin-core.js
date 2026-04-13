@@ -77,7 +77,7 @@ function doAdminAuth() {
             document.getElementById('admin-auth-overlay').style.display = 'none';
             renderHeaderInfo();
             loadData();
-            switchTab('v2dash');
+            switchTab('evaluation');
         } else { alert("認証失敗: " + res.msg); }
     }).catch(function(err) { hideLoading(); alert("通信エラー: " + err.message); });
 }
@@ -124,7 +124,7 @@ window.onload = function() {
         const el = document.getElementById('ts'+i);
         if(el) el.addEventListener('input', function() { document.getElementById('tv'+i).innerText = this.value; if(typeof updThemeRadar === 'function') updThemeRadar(); });
     }
-    switchTab('v2dash');
+    switchTab('evaluation');
     const loader = document.getElementById('global-loading-overlay');
     if(loader) loader.style.display = 'none';
 };
@@ -590,7 +590,7 @@ function renderGeneralUsers(users, onlineMap) {
                 '<td class="text-muted small">' + dateStr + '</td>' +
                 '<td class="text-center"><button class="btn btn-sm" style="font-size:0.75rem; color:' + toggleColor + ';" onclick="toggleShowRealName(\'users\',\'' + u.id + '\',' + (showName ? 0 : 1) + ')" title="' + (showName ? '実名非表示にする' : '実名表示にする') + '"><i class="fas ' + toggleIcon + '"></i></button></td>' +
                 '<td><button class="btn btn-outline-success btn-sm me-1" style="font-size:0.7rem;" onclick="sendPersonalMessage(\'' + u.id + '\',\'' + escapeHtml(u.nickname) + '\')" title="お知らせ"><i class="fas fa-envelope"></i></button>' +
-                '<button class="btn btn-outline-info btn-sm me-1" style="font-size:0.7rem;" onclick="sendBuddyMessage(\'' + u.id + '\',\'' + escapeHtml(u.nickname) + '\')" title="バディーチャット"><i class="fas fa-comment-dots"></i></button>' +
+                '<button class="btn btn-outline-info btn-sm me-1" style="font-size:0.7rem;" onclick="sendBuddyMessage(\'' + u.id + '\',\'' + escapeHtml(u.nickname) + '\')" title="水槽チャット"><i class="fas fa-comment-dots"></i></button>' +
                 '<button class="btn btn-outline-primary btn-sm me-1" style="font-size:0.7rem;" onclick=\'openEditUserModal(' + JSON.stringify(u).replace(/'/g, "&#39;") + ')\'><i class="fas fa-edit"></i></button>' +
                 '<button class="btn btn-outline-danger btn-sm" style="font-size:0.7rem;" onclick="handleDeleteUser(\'' + u.id + '\',\'' + escapeHtml(u.nickname) + '\')"><i class="fas fa-trash"></i></button></td>' +
                 '</tr>';
@@ -702,10 +702,80 @@ function handleRejectMemberFromTab(id) {
 }
 
 function handleDeleteCoreMember(id, name) {
-    if (!confirm(name + 'さんを削除しますか？')) return;
-    deleteCoreMember(id).then(function(res) {
+    // 2択モーダル: 除名(推進メンバーから外すだけ) / 完全退会(ユーザーアカウントも削除)
+    var choice = prompt(
+        name + 'さんの処理を選んでください:\n\n' +
+        '  1 = 推進メンバーから除名のみ (一般ユーザーとしては継続)\n' +
+        '  2 = 完全退会 (推進メンバー+一般ユーザー両方削除)\n' +
+        '  空欄 = キャンセル\n\n' +
+        '番号を入力:',
+        ''
+    );
+    if (choice === null || choice === '') return;
+    var cascade = false;
+    if (choice === '2') {
+        if (!confirm(name + 'さんを完全退会させますか？\nユーザーアカウントも削除され、投稿履歴は残りますがログイン不可になります。この操作は取り消せません。')) return;
+        cascade = true;
+    } else if (choice === '1') {
+        if (!confirm(name + 'さんを推進メンバーから除名します。\n一般ユーザーとしては引き続き利用できます。よろしいですか？')) return;
+    } else {
+        alert('1 または 2 を入力してください');
+        return;
+    }
+    deleteCoreMember(id, cascade).then(function(res) {
         alert(res.msg);
         if (res.success) loadMemberManagement();
+    });
+}
+
+// 一般ユーザーを推進メンバーに昇格
+function openPromoteUserModal() {
+    getPromotableUsers().then(function(res) {
+        if (!res || !res.success) { alert('候補取得エラー: ' + (res ? res.msg : '')); return; }
+        var users = res.data || [];
+        if (users.length === 0) { alert('昇格可能な一般ユーザーがいません'); return; }
+
+        var options = users.map(function(u) {
+            var label = u.nickname + (u.real_name ? ' (' + u.real_name + ')' : '') + (u.department ? ' - ' + u.department : '');
+            return '<option value="' + u.id + '">' + label + '</option>';
+        }).join('');
+
+        var modalHtml =
+            '<div id="promote-user-modal" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;">' +
+            '<div style="background:#fff;border-radius:12px;padding:20px;max-width:440px;width:100%;max-height:90vh;overflow-y:auto;">' +
+            '<h5 style="margin:0 0 12px;color:#6c5ce7;"><i class="fas fa-arrow-up"></i> 推進メンバーへ昇格</h5>' +
+            '<p style="font-size:0.82rem;color:#666;margin-bottom:14px;">既存の一般ユーザー情報（投稿履歴・天の声会話・CoWellコイン等）を保持したまま推進メンバー権限を追加します。</p>' +
+            '<div class="mb-3"><label class="form-label">対象ユーザー</label><select id="pm-user" class="form-select">' + options + '</select></div>' +
+            '<div class="mb-3"><label class="form-label">メールアドレス（ログイン用）</label><input type="email" id="pm-email" class="form-control" placeholder="example@company.com"></div>' +
+            '<div class="mb-3"><label class="form-label">所属</label><input type="text" id="pm-dept" class="form-control" placeholder="例: 管理部"></div>' +
+            '<div class="mb-3"><label><input type="checkbox" id="pm-university"> 大学関係者として登録</label>' +
+            '<input type="text" id="pm-university-org" class="form-control mt-2" placeholder="例: 〇〇大学 ××学部" style="display:none;"></div>' +
+            '<div class="text-end">' +
+            '<button type="button" class="btn btn-secondary me-2" onclick="document.getElementById(\'promote-user-modal\').remove()">キャンセル</button>' +
+            '<button type="button" class="btn btn-primary" onclick="submitPromoteUser()">昇格申請</button>' +
+            '</div></div></div>';
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        document.getElementById('pm-university').addEventListener('change', function() {
+            document.getElementById('pm-university-org').style.display = this.checked ? 'block' : 'none';
+        });
+    });
+}
+
+function submitPromoteUser() {
+    var data = {
+        userId: document.getElementById('pm-user').value,
+        email: document.getElementById('pm-email').value.trim(),
+        dept: document.getElementById('pm-dept').value.trim(),
+        isUniversity: document.getElementById('pm-university').checked,
+        universityOrg: document.getElementById('pm-university-org').value.trim()
+    };
+    if (!data.email) { alert('メールアドレスを入力してください'); return; }
+    promoteUserToMember(data).then(function(res) {
+        alert(res.msg);
+        if (res.success) {
+            document.getElementById('promote-user-modal').remove();
+            loadMemberManagement();
+        }
     });
 }
 
@@ -778,7 +848,7 @@ function switchTab(t) {
     var navEl = document.getElementById(navMap[t] || 'nav-eval');
     if(navEl) navEl.classList.add('active');
 
-    if(t==='evaluation') { renderInbox(currentInboxFilter); if(typeof dismissNavUnreadBadge==='function') dismissNavUnreadBadge(); setTimeout(function(){ if(typeof renderInboxCustomAvatars==='function') renderInboxCustomAvatars(); if(typeof applyChatUnreadBadges==='function') applyChatUnreadBadges(); }, 500); }
+    if(t==='evaluation') { renderInbox(currentInboxFilter); setTimeout(function(){ if(typeof renderInboxCustomAvatars==='function') renderInboxCustomAvatars(); if(typeof applyChatUnreadBadges==='function') applyChatUnreadBadges(); }, 500); }
     if(t==='current') loadCurrentAnalysis();
     if(t==='candidates') loadCandidates();
     if(t==='resolved') loadResolved();
@@ -1096,7 +1166,7 @@ function loadMariganRanking() {
     var area = document.getElementById('marigan-ranking-area');
     if (!area) return;
     area.innerHTML = '<div class="text-center py-3"><div class="spinner-border spinner-border-sm text-warning"></div></div>';
-    fetch('/api/admin/marigan-ranking', {
+    fetch('/admin/marigan-ranking', {
         headers: { 'Authorization': 'Bearer ' + localStorage.getItem('co_heart_admin_token') }
     }).then(function(r) { return r.json(); }).then(function(data) {
         if (!data.success || !data.ranking || data.ranking.length === 0) {

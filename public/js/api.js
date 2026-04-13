@@ -275,8 +275,14 @@ function addCoreMember(data) {
 function updateCoreMember(data) {
   return api('/admin/member-update', data, getAdminToken());
 }
-function deleteCoreMember(id) {
-  return api('/admin/member-delete', { id }, getAdminToken());
+function deleteCoreMember(id, cascade) {
+  return api('/admin/member-delete', { id, cascade: cascade ? 1 : 0 }, getAdminToken());
+}
+function promoteUserToMember(data) {
+  return api('/admin/promote-user', data, getAdminToken());
+}
+function getPromotableUsers() {
+  return api('/admin/promotable-users', undefined, getAdminToken());
 }
 function addGeneralUser(data) {
   return api('/admin/user-add', data, getAdminToken());
@@ -326,7 +332,7 @@ function getPersonalNoticesAdmin() {
   return api('/notices/admin-list', undefined, getAdminToken());
 }
 
-// ===== Chat (ヘルスバディー) =====
+// ===== Chat (Aqua-CoWell) =====
 function chatWithBuddy(userMessage, history, userName, buddyType) {
   return api('/chat/message', { userMessage, history, userName, buddyType });
 }

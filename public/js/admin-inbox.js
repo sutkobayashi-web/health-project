@@ -305,7 +305,7 @@ function renderReportList(data) {
             (isAlert ?
                 // === アラート専用パネル ===
                 '<div style="background:linear-gradient(135deg,#fef2f2,#fff1f2); padding:14px;">' +
-                    '<div style="background:#dc2626; color:white; padding:8px 14px; border-radius:8px; font-size:0.78rem; font-weight:700; margin-bottom:12px;"><i class="fas fa-exclamation-triangle me-1"></i>要対応アラート — バディーが推進メンバーへの相談を促しました</div>' +
+                    '<div style="background:#dc2626; color:white; padding:8px 14px; border-radius:8px; font-size:0.78rem; font-weight:700; margin-bottom:12px;"><i class="fas fa-exclamation-triangle me-1"></i>要対応アラート — 天の声が推進メンバーへの相談を促しました</div>' +
                     '<div style="font-size:0.85rem; line-height:1.8; color:#444; white-space:pre-wrap; margin-bottom:12px; padding:10px; background:white; border-radius:10px; border:1px solid #fecaca;">'+escapeHtml(rawContent)+'</div>' +
                     (aiHtml ? '<div style="background:#fff7ed; border-radius:10px; padding:10px; margin-bottom:12px; border:1px solid #fed7aa;">'+aiHtml+'</div>' : '') +
                     '<div style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-start;">' +
@@ -345,11 +345,11 @@ function renderReportList(data) {
                             '<textarea id="reply-text-'+pid+'" rows="2" placeholder="投稿者に返事を送る..." style="width:100%; border:1px solid #f0d0e0; border-radius:8px; padding:8px; font-size:0.8rem; resize:none; outline:none; box-sizing:border-box; background:white;" onfocus="this.style.borderColor=\'#d63384\'" onblur="this.style.borderColor=\'#f0d0e0\'"></textarea>' +
                             '<div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:6px;">' +
                                 '<button class="btn btn-sm fw-bold" style="font-size:0.7rem; background:linear-gradient(135deg,#ec4899,#be185d); color:white; border:none; border-radius:8px; padding:5px 14px;" onclick="sendReplyToUser(\''+pid+'\',\''+escapeHtml(r[INBOX_COLS.UID]||'')+'\',\''+escapeHtml(r[INBOX_COLS.USER_NAME]||'')+'\')"><i class="fas fa-paper-plane me-1"></i>お知らせ</button>' +
-                                '<button class="btn btn-sm fw-bold" style="font-size:0.7rem; background:linear-gradient(135deg,#38bdf8,#0284c7); color:white; border:none; border-radius:8px; padding:5px 14px;" onclick="sendReplyViaBuddy(\''+pid+'\',\''+escapeHtml(r[INBOX_COLS.UID]||'')+'\',\''+escapeHtml(r[INBOX_COLS.USER_NAME]||'')+'\')"><i class="fas fa-robot me-1"></i>バディー経由</button>' +
+                                '<button class="btn btn-sm fw-bold" style="font-size:0.7rem; background:linear-gradient(135deg,#38bdf8,#0284c7); color:white; border:none; border-radius:8px; padding:5px 14px;" onclick="sendReplyViaBuddy(\''+pid+'\',\''+escapeHtml(r[INBOX_COLS.UID]||'')+'\',\''+escapeHtml(r[INBOX_COLS.USER_NAME]||'')+'\')"><i class="fas fa-robot me-1"></i>天の声経由</button>' +
                             '</div>' +
                             '<div style="margin-top:8px; border-top:1px solid #f0d0e0; padding-top:8px;">' +
                                 '<div style="font-size:0.7rem; font-weight:700; color:#0284c7; margin-bottom:4px; cursor:pointer;" onclick="var el=document.getElementById(\'buddy-history-'+pid+'\'); if(el.style.display===\'none\'){el.style.display=\'block\'; loadInboxBuddyHistory(\''+pid+'\',\''+escapeHtml(r[INBOX_COLS.UID]||'')+'\'); this.querySelector(\'i.fa-chevron-right,i.fa-chevron-down\').className=this.querySelector(\'i\').className.replace(\'fa-chevron-right\',\'fa-chevron-down\');} else {el.style.display=\'none\'; this.querySelector(\'i.fa-chevron-down,i.fa-chevron-right\').className=this.querySelector(\'i\').className.replace(\'fa-chevron-down\',\'fa-chevron-right\');}">' +
-                                    '<i class="fas fa-chevron-right me-1" style="font-size:0.6rem;"></i><i class="fas fa-history me-1"></i>バディー送信履歴</div>' +
+                                    '<i class="fas fa-chevron-right me-1" style="font-size:0.6rem;"></i><i class="fas fa-history me-1"></i>天の声送信履歴</div>' +
                                 '<div id="buddy-history-'+pid+'" style="display:none; max-height:180px; overflow-y:auto; font-size:0.75rem;"></div>' +
                             '</div>' +
                         '</div>' +
@@ -952,7 +952,7 @@ function likePost(pid, rowId) {
     });
 }
 
-// アコーディオン内バディー送信履歴読み込み
+// アコーディオン内天の声送信履歴読み込み
 function loadInboxBuddyHistory(pid, targetUid) {
     var area = document.getElementById('buddy-history-' + pid);
     if (!area) return;
@@ -989,7 +989,7 @@ function loadInboxBuddyHistory(pid, targetUid) {
     });
 }
 
-// 投稿者への返事（バディー経由で送信）
+// 投稿者への返事（天の声経由で送信）
 function sendReplyViaBuddy(postId, targetUid, userName) {
     var textarea = document.getElementById('reply-text-' + postId);
     if (!textarea) return;
@@ -1015,11 +1015,11 @@ function sendReplyViaBuddy(postId, targetUid, userName) {
         if (data && data.success) {
             textarea.value = '';
             var sent = document.getElementById('reply-sent-' + postId);
-            if (sent) { sent.style.display = 'block'; sent.innerHTML = '<i class="fas fa-robot me-1" style="color:#0ea5e9;"></i>バディー経由で' + userName + 'さんへ送信しました'; }
+            if (sent) { sent.style.display = 'block'; sent.innerHTML = '<i class="fas fa-robot me-1" style="color:#0ea5e9;"></i>天の声経由で' + userName + 'さんへ送信しました'; }
             // 送信履歴が開いていれば自動リフレッシュ
             var histEl = document.getElementById('buddy-history-' + postId);
             if (histEl && histEl.style.display !== 'none') { loadInboxBuddyHistory(postId, targetUid); }
-            alert(userName + 'さんのバディーにメッセージを送りました');
+            alert(userName + 'さんの天の声にメッセージを送りました');
         } else {
             alert('送信失敗: ' + (data ? data.msg : ''));
         }

@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>CoWell Passport</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Noto+Serif+JP:wght@500;700&family=Cormorant+Garamond:wght@500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="/js/avatar-render.js?v=20260411"></script>
+<style>
+:root {
+  --navy: #1e3a5f;
+  --navy-dark: #152a47;
+  --navy-light: #2d4e7a;
+  --gold: #b8935a;
+  --gold-dark: #9a7a46;
+  --cream: #faf8f3;
+  --paper: #ffffff;
+  --border: #d8d4c4;
+  --border-dark: #a89e7f;
+  --text: #2c2c2c;
+  --text-sub: #6b6b6b;
+  --accent-green: #4a6b4a;
+  --accent-red: #8b3a3a;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; font-family: 'Noto Sans JP', sans-serif; background: var(--cream); color: var(--text); min-height: 100vh; }
+.serif { font-family: 'Noto Serif JP', serif; }
+.garamond { font-family: 'Cormorant Garamond', 'Noto Serif JP', serif; letter-spacing: 0.08em; }
+
+.pp-container { max-width: 680px; margin: 0 auto; padding: 0 0 100px; }
+
+/* ヘッダー：公式文書風 */
+.pp-header {
+  background: linear-gradient(180deg, var(--navy) 0%, var(--navy-dark) 100%);
+  color: #fff;
+  padding: 24px 20px;
+  position: relative;
+  border-bottom: 4px double var(--gold);
+}
+.pp-header::before {
+  content: '';
+  position: absolute;
+  top: 8px; left: 8px; right: 8px; bottom: 8px;
+  border: 1px solid rgba(184,147,90,0.35);
+  pointer-events: none;
+}
+.pp-header-top { display: flex; align-items: center; justify-content: space-between; position: relative; z-index: 1; }
+.pp-header-brand { font-family: 'Cormorant Garamond', serif; font-size: 11px; letter-spacing: 0.3em; color: var(--gold); text-transform: uppercase; }
+.pp-header-title { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 700; letter-spacing: 0.15em; margin-top: 2px; }
+.pp-close-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: #fff; width: 34px; height: 34px; border-radius: 50%; cursor: pointer; font-size: 14px; }
+
+.pp-header-divider { display: flex; align-items: center; margin: 14px 0; position: relative; z-index: 1; }
+.pp-header-divider .line { flex: 1; height: 1px; background: rgba(184,147,90,0.5); }
+.pp-header-divider .seal { width: 42px; height: 42px; border: 2px solid var(--gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 10px; background: var(--navy-dark); }
+.pp-header-divider .seal i { color: var(--gold); font-size: 18px; }
+
+.pp-owner { display: flex; align-items: center; gap: 14px; position: relative; z-index: 1; }
+.pp-owner-avatar { width: 60px; height: 60px; border-radius: 50%; background: rgba(255,255,255,0.1); border: 2px solid var(--gold); display: flex; align-items: center; justify-content: center; font-size: 28px; overflow: hidden; flex-shrink: 0; }
+.pp-owner-avatar > * { max-width: 100%; max-height: 100%; }
+.pp-owner-info { flex: 1; }
+.pp-owner-info .label { font-family: 'Cormorant Garamond', serif; font-size: 9px; letter-spacing: 0.25em; color: var(--gold); text-transform: uppercase; }
+.pp-owner-info .name { font-family: 'Noto Serif JP', serif; font-size: 18px; font-weight: 700; margin-top: 1px; }
+.pp-owner-info .sub { font-size: 11px; color: rgba(255,255,255,0.75); margin-top: 4px; }
+
+.pp-header-meta { display: flex; gap: 16px; margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(184,147,90,0.25); position: relative; z-index: 1; font-size: 10px; }
+.pp-header-meta-item { flex: 1; }
+.pp-header-meta-item .k { font-family: 'Cormorant Garamond', serif; color: var(--gold); letter-spacing: 0.15em; font-size: 9px; }
+.pp-header-meta-item .v { color: #fff; margin-top: 2px; }
+
+/* PDF出力ボタン */
+.pp-action-bar { padding: 16px 12px 4px; display: flex; gap: 10px; }
+.pp-action-btn { flex: 1; padding: 12px; background: var(--paper); border: 1px solid var(--border-dark); border-radius: 6px; color: var(--navy); font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+.pp-action-btn i { color: var(--gold-dark); }
+.pp-action-btn.primary { background: var(--navy); color: #fff; border-color: var(--navy-dark); }
+.pp-action-btn.primary i { color: var(--gold); }
+
+/* モード切替 */
+.pp-modes { display: flex; gap: 6px; padding: 12px; }
+.pp-mode-chip { flex: 1; background: var(--paper); border: 1px solid var(--border); padding: 9px 4px; border-radius: 4px; text-align: center; cursor: pointer; transition: all 0.15s; font-size: 11px; font-weight: 500; color: var(--text-sub); }
+.pp-mode-chip i { display: block; font-size: 16px; margin-bottom: 3px; color: var(--navy-light); }
+.pp-mode-chip.active { background: var(--navy); color: #fff; border-color: var(--navy-dark); }
+.pp-mode-chip.active i { color: var(--gold); }
+
+.pp-mode-desc { padding: 4px 16px 10px; font-size: 10px; color: var(--text-sub); text-align: center; font-style: italic; }
+
+/* セクション */
+.pp-section {
+  background: var(--paper);
+  margin: 10px 12px 0;
+  padding: 18px 18px 16px;
+  border: 1px solid var(--border);
+  position: relative;
+}
+.pp-section-title {
+  font-family: 'Noto Serif JP', serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--navy);
+  margin: 0 0 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.pp-section-title-left { display: flex; align-items: center; gap: 8px; }
+.pp-section-number {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--gold-dark);
+  font-weight: 500;
+}
+
+/* バッジグリッド */
+.pp-badge-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.pp-badge {
+  background: var(--cream);
+  border: 1px solid var(--border);
+  padding: 12px 6px;
+  text-align: center;
+}
+.pp-badge-icon { font-size: 20px; color: var(--navy-light); margin-bottom: 4px; }
+.pp-badge-value { font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 700; color: var(--navy); line-height: 1; }
+.pp-badge-label { font-size: 9px; color: var(--text-sub); margin-top: 4px; letter-spacing: 0.05em; font-weight: 600; }
+.pp-badge-desc { font-size: 8px; color: #9ca0a8; margin-top: 2px; line-height: 1.4; font-family: 'Noto Serif JP', serif; }
+
+.pp-section-legend {
+  background: var(--cream);
+  border: 1px solid var(--border);
+  padding: 10px 12px;
+  margin-bottom: 14px;
+  font-size: 10px;
+  color: var(--text-sub);
+  line-height: 1.7;
+  font-family: 'Noto Serif JP', serif;
+  font-style: italic;
+}
+.pp-section-legend b { color: var(--navy); font-style: normal; }
+
+/* トレンド */
+.pp-trend-summary { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; padding: 12px 14px; background: var(--cream); border: 1px solid var(--border); }
+.pp-trend-arrow { font-size: 30px; }
+.pp-trend-arrow.improving { color: var(--accent-green); }
+.pp-trend-arrow.declining { color: var(--accent-red); }
+.pp-trend-arrow.stable { color: var(--text-sub); }
+.pp-trend-arrow.unknown { color: var(--border-dark); }
+.pp-trend-text { font-size: 12px; color: var(--text); flex: 1; font-family: 'Noto Serif JP', serif; }
+.pp-trend-text b { color: var(--navy); }
+#bp-chart-wrap { height: 170px; }
+
+/* 健診履歴 */
+.pp-checkup-summary { display: flex; gap: 8px; margin-bottom: 12px; }
+.pp-checkup-badge-big { flex: 1; background: var(--cream); border: 1px solid var(--border); padding: 12px 8px; text-align: center; }
+.pp-checkup-badge-big .num { font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 700; color: var(--navy); }
+.pp-checkup-badge-big .lbl { font-size: 9px; color: var(--text-sub); margin-top: 2px; }
+.pp-checkup-timeline { position: relative; padding-left: 18px; }
+.pp-checkup-timeline::before { content: ''; position: absolute; left: 5px; top: 6px; bottom: 6px; width: 1px; background: var(--border-dark); }
+.pp-checkup-year { position: relative; padding: 6px 0 10px; }
+.pp-checkup-year::before { content: ''; position: absolute; left: -16px; top: 10px; width: 9px; height: 9px; border-radius: 50%; background: var(--gold); border: 1px solid var(--navy); }
+.pp-checkup-year-label { font-family: 'Noto Serif JP', serif; font-size: 12px; font-weight: 700; color: var(--navy); }
+.pp-checkup-year-date { font-size: 10px; color: var(--text-sub); margin-left: 6px; }
+.pp-checkup-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
+.pp-checkup-chip { font-size: 9px; padding: 3px 8px; background: var(--cream); border: 1px solid var(--border); color: var(--text); }
+.pp-checkup-privacy { font-size: 9px; color: var(--text-sub); padding: 8px 10px; background: var(--cream); border: 1px solid var(--border); margin-top: 10px; line-height: 1.6; font-style: italic; }
+
+/* 免許セクション */
+.pp-license-card { border: 1px dashed var(--border-dark); padding: 20px; text-align: center; background: var(--cream); }
+.pp-license-card.has-data { border-style: solid; border-color: var(--navy); background: var(--paper); text-align: left; padding: 14px; }
+.pp-license-btn { background: var(--navy); color: #fff; border: none; padding: 10px 22px; border-radius: 3px; font-size: 12px; font-weight: 500; cursor: pointer; margin-top: 10px; letter-spacing: 0.05em; }
+.pp-license-btn.sub { background: transparent; color: var(--text-sub); border: 1px solid var(--border-dark); }
+.pp-license-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
+.pp-license-row:last-child { border-bottom: none; }
+.pp-license-label { color: var(--text-sub); font-size: 10px; font-family: 'Cormorant Garamond', serif; letter-spacing: 0.1em; }
+.pp-license-value { color: var(--text); font-weight: 500; font-family: 'Noto Serif JP', serif; }
+.pp-license-expiry-warn { color: var(--accent-red); }
+.pp-license-expiry-ok { color: var(--accent-green); }
+
+/* 開示粒度 */
+.pp-disclosure { display: flex; flex-direction: column; gap: 6px; }
+.pp-disclosure-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--cream); border: 1px solid var(--border); cursor: pointer; }
+.pp-disclosure-row.active { border-color: var(--navy); background: var(--paper); box-shadow: inset 3px 0 0 var(--gold); }
+.pp-disclosure-row input[type="radio"] { accent-color: var(--navy); }
+.pp-disclosure-title { font-size: 12px; font-weight: 600; font-family: 'Noto Serif JP', serif; }
+.pp-disclosure-desc { font-size: 10px; color: var(--text-sub); margin-top: 2px; }
+
+/* 共有リンク */
+.pp-share-box { padding: 12px; background: var(--cream); border: 1px solid var(--border); margin-top: 10px; }
+.pp-share-url { font-size: 10px; word-break: break-all; color: var(--navy); background: var(--paper); padding: 8px; border: 1px solid var(--border); margin-top: 6px; font-family: 'Courier New', monospace; }
+.pp-share-btn-row { display: flex; gap: 6px; margin-top: 8px; }
+.pp-share-btn-row button { flex: 1; padding: 8px; font-size: 11px; border: 1px solid var(--navy); cursor: pointer; background: var(--navy); color: #fff; font-family: inherit; }
+.pp-share-btn-row button.sub { background: transparent; color: var(--text-sub); border-color: var(--border-dark); }
+
+/* 原則バナー */
+.pp-principle-banner {
+  background: var(--cream);
+  border-top: 2px solid var(--gold);
+  border-bottom: 2px solid var(--gold);
+  padding: 10px 14px;
+  margin: 14px 12px 0;
+  font-size: 10px;
+  color: var(--navy);
+  line-height: 1.7;
+  font-family: 'Noto Serif JP', serif;
+  text-align: center;
+  font-style: italic;
+}
+
+/* フッター */
+.pp-footer-seal { text-align: center; padding: 24px 20px; color: var(--text-sub); font-size: 9px; letter-spacing: 0.1em; font-family: 'Cormorant Garamond', serif; }
+.pp-footer-seal .line { display: inline-block; width: 30px; height: 1px; background: var(--border-dark); vertical-align: middle; margin: 0 8px; }
+
+.pp-loading { text-align: center; padding: 30px; color: var(--text-sub); font-size: 12px; }
+input[type="file"] { display: none; }
+.pp-fab-wrap { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+
+/* トースト */
+.pp-toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--navy); color: #fff; padding: 12px 18px; border: 1px solid var(--gold); font-size: 11px; box-shadow: 0 4px 16px rgba(0,0,0,0.3); z-index: 10000; max-width: 90%; text-align: center; display: none; font-family: 'Noto Serif JP', serif; }
+.pp-toast.show { display: block; animation: toastIn 0.3s; }
+@keyframes toastIn { from { opacity: 0; transform: translate(-50%, 10px); } to { opacity: 1; transform: translate(-50%, 0); } }
+
+/* PDF用一時コンテナ(動的生成、生成完了後に削除)
+   背面に配置して視覚的フラッシュを防ぎつつ、html2canvasが寸法計算できる位置に置く */
+.pp-pdf-temp { position: fixed; left: 0; top: 0; width: 794px; background: #ffffff; color: #2c2c2c; padding: 40px; font-family: 'Noto Sans JP', sans-serif; z-index: -1; pointer-events: none; }
+.pp-pdf-temp * { box-sizing: border-box; }
+
+@media (max-width: 380px) {
+  .pp-badge-grid { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<div class="pp-container">
+
+  <!-- ヘッダー -->
+  <div class="pp-header">
+    <div class="pp-header-top">
+      <div>
+        <div class="pp-header-brand">THE PERSONAL HEALTH RECORD</div>
+        <div class="pp-header-title">CoWell Passport</div>
+      </div>
+      <button class="pp-close-btn" onclick="closePassport()"><i class="fas fa-times"></i></button>
+    </div>
+
+    <div class="pp-header-divider">
+      <div class="line"></div>
+      <div class="seal"><i class="fas fa-shield-alt"></i></div>
+      <div class="line"></div>
+    </div>
+
+    <div class="pp-owner">
+      <div class="pp-owner-avatar" id="owner-avatar"><i class="fas fa-user"></i></div>
+      <div class="pp-owner-info">
+        <div class="label">BEARER</div>
+        <div class="name" id="owner-name">—</div>
+        <div class="sub" id="owner-sub">—</div>
+      </div>
+    </div>
+
+    <div class="pp-header-meta">
+      <div class="pp-header-meta-item">
+        <div class="k">ISSUED</div>
+        <div class="v" id="issue-date">—</div>
+      </div>
+      <div class="pp-header-meta-item">
+        <div class="k">PASSPORT NO.</div>
+        <div class="v" id="passport-no">—</div>
+      </div>
+      <div class="pp-header-meta-item">
+        <div class="k">AUTHORITY</div>
+        <div class="v">CoWell</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- アクションバー -->
+  <div class="pp-action-bar">
+    <button class="pp-action-btn primary" onclick="exportPDF()"><i class="fas fa-file-pdf"></i> PDFとして保存</button>
+    <button class="pp-action-btn" onclick="window.print()"><i class="fas fa-print"></i> 印刷</button>
+  </div>
+
+  <!-- 原則バナー -->
+  <div class="pp-principle-banner">
+    This document contains verified behavioral records of the bearer.<br>
+    数値ではなく行動を証明する。本人が開示粒度を制御する。
+  </div>
+
+  <!-- モード切替 -->
+  <div class="pp-modes">
+    <div class="pp-mode-chip active" data-mode="self" onclick="switchMode('self')">
+      <i class="fas fa-user"></i> 本人閲覧
+    </div>
+    <div class="pp-mode-chip" data-mode="family" onclick="switchMode('family')">
+      <i class="fas fa-house-user"></i> 家族に
+    </div>
+    <div class="pp-mode-chip" data-mode="doctor" onclick="switchMode('doctor')">
+      <i class="fas fa-user-md"></i> かかりつけ医
+    </div>
+  </div>
+  <div class="pp-mode-desc" id="mode-desc">本人閲覧モード：継続してきた行動の軌跡を確認します</div>
+
+  <!-- セクション01: 行動の記録 -->
+  <div class="pp-section" id="section-badges">
+    <div class="pp-section-title">
+      <span class="pp-section-title-left"><i class="fas fa-medal" style="color:var(--gold-dark);"></i> 行動の記録</span>
+      <span class="pp-section-number">SECTION I</span>
+    </div>
+    <div id="badge-grid">
+      <div class="pp-loading">読み込み中...</div>
+    </div>
+  </div>
+
+  <!-- セクション02: 改善の軌跡 -->
+  <div class="pp-section" id="section-trend">
+    <div class="pp-section-title">
+      <span class="pp-section-title-left"><i class="fas fa-chart-line" style="color:var(--gold-dark);"></i> 改善の軌跡</span>
+      <span class="pp-section-number">SECTION II</span>
+    </div>
+    <div id="trend-content">
+      <div class="pp-loading">読み込み中...</div>
+    </div>
+  </div>
+
+  <!-- セクション03: 健康診断の受診記録 -->
+  <div class="pp-section" id="checkup-section">
+    <div class="pp-section-title">
+      <span class="pp-section-title-left"><i class="fas fa-stethoscope" style="color:var(--gold-dark);"></i> 健康診断の受診記録</span>
+      <span class="pp-section-number">
+        <label style="font-size:10px;font-weight:500;color:var(--text-sub);display:inline-flex;align-items:center;gap:4px;cursor:pointer;font-family:'Noto Sans JP',sans-serif;letter-spacing:normal;">
+          <input type="checkbox" id="checkup-enable" onchange="toggleCheckupSection(this.checked)" style="accent-color:var(--navy);">
+          表示する
+        </label>
+      </span>
+    </div>
+    <div id="checkup-content">
+      <div style="text-align:center;padding:20px;color:var(--text-sub);font-size:11px;line-height:1.7;font-family:'Noto Serif JP',serif;font-style:italic;">
+        <i class="fas fa-shield-alt" style="font-size:22px;color:var(--border-dark);display:block;margin-bottom:8px;"></i>
+        健診セクションは初期は非表示です。<br>
+        右上のチェックで有効化すると<br>
+        <b>受診日と項目名のみ</b>取得します。<br>
+        <span style="font-size:9px;">（数値・判定は一切取得しません）</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- セクション04: 運転免許証 -->
+  <div class="pp-section" id="section-license">
+    <div class="pp-section-title">
+      <span class="pp-section-title-left"><i class="fas fa-id-card" style="color:var(--gold-dark);"></i> 運転免許証</span>
+      <span class="pp-section-number">SECTION IV</span>
+    </div>
+    <div id="license-content">
+      <div class="pp-license-card">
+        <div style="font-size:28px;color:var(--border-dark);"><i class="fas fa-id-card"></i></div>
+        <div style="font-size:11px;color:var(--text-sub);margin-top:8px;font-family:'Noto Serif JP',serif;font-style:italic;">免許証を撮影してデータ化できます</div>
+        <input type="file" id="license-file" accept="image/*" capture="environment" onchange="scanLicense(this)">
+        <div class="pp-fab-wrap">
+          <button class="pp-license-btn" onclick="document.getElementById('license-file').click()">
+            <i class="fas fa-camera"></i> 免許証を撮影
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- セクション05: 開示粒度 -->
+  <div class="pp-section" id="section-disclosure">
+    <div class="pp-section-title">
+      <span class="pp-section-title-left"><i class="fas fa-eye" style="color:var(--gold-dark);"></i> 開示粒度設定</span>
+      <span class="pp-section-number">SECTION V</span>
+    </div>
+    <div class="pp-disclosure" id="disclosure-levels">
+      <label class="pp-disclosure-row active" data-level="1">
+        <input type="radio" name="level" value="1" checked onchange="updateLevel(1)">
+        <div>
+          <div class="pp-disclosure-title">Lv.1  バッジのみ</div>
+          <div class="pp-disclosure-desc">記録日数・チャレンジ参加数など行動の証明だけ</div>
+        </div>
+      </label>
+      <label class="pp-disclosure-row" data-level="2">
+        <input type="radio" name="level" value="2" onchange="updateLevel(2)">
+        <div>
+          <div class="pp-disclosure-title">Lv.2  改善方向のみ</div>
+          <div class="pp-disclosure-desc">数値ではなく「上向き／下向き」の矢印のみ</div>
+        </div>
+      </label>
+      <label class="pp-disclosure-row" data-level="3">
+        <input type="radio" name="level" value="3" onchange="updateLevel(3)">
+        <div>
+          <div class="pp-disclosure-title">Lv.3  トレンドグラフ</div>
+          <div class="pp-disclosure-desc">時系列の改善カーブを共有（医師向け）</div>
+        </div>
+      </label>
+      <label class="pp-disclosure-row" data-level="4">
+        <input type="radio" name="level" value="4" onchange="updateLevel(4)">
+        <div>
+          <div class="pp-disclosure-title">Lv.4  詳細＋運転免許</div>
+          <div class="pp-disclosure-desc">すべての情報を開示（信頼できる相手のみ推奨）</div>
+        </div>
+      </label>
+    </div>
+  </div>
+
+  <!-- セクション06: 共有リンク -->
+  <div class="pp-section" id="section-share">
+    <div class="pp-section-title">
+      <span class="pp-section-title-left"><i class="fas fa-link" style="color:var(--gold-dark);"></i> 共有リンク発行</span>
+      <span class="pp-section-number">SECTION VI</span>
+    </div>
+    <div style="font-size:10px;color:var(--text-sub);margin-bottom:10px;font-family:'Noto Serif JP',serif;font-style:italic;">選択中の粒度で、有効期限付きの閲覧リンクを発行します</div>
+    <div class="pp-share-btn-row">
+      <button onclick="createShare(24)">24時間</button>
+      <button onclick="createShare(72)">3日間</button>
+      <button onclick="createShare(168)">7日間</button>
+    </div>
+    <div id="share-box" style="display:none;" class="pp-share-box">
+      <div style="font-size:10px;font-weight:600;color:var(--navy);font-family:'Cormorant Garamond',serif;letter-spacing:0.15em;">ISSUED URL</div>
+      <div class="pp-share-url" id="share-url">—</div>
+      <div class="pp-share-btn-row">
+        <button onclick="copyShareLink()"><i class="fas fa-copy"></i> コピー</button>
+        <button class="sub" onclick="revokeShare()">無効化</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- フッター -->
+  <div class="pp-footer-seal">
+    <span class="line"></span> COWELL PASSPORT · OFFICIAL DOCUMENT <span class="line"></span>
+  </div>
+
+</div>
+
+<!-- PDF生成用キャンバスは動的生成 -->
+
+<script>
+var token = localStorage.getItem('co_heart_token') || '';
+var currentMode = 'self';
+var currentLevel = 1;
+var currentPassportData = null;
+var bpChart = null;
+
+function apiHeaders() {
+  return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token };
+}
+
+function closePassport() {
+  try { window.location.href = '/'; } catch(e) {}
+}
+
+// モード別セクション可視性マップ
+var MODE_VISIBILITY = {
+  self:   { 'section-badges': true, 'section-trend': true, 'section-checkup': true, 'section-license': true, 'section-disclosure': true, 'section-share': true, chart: true },
+  family: { 'section-badges': true, 'section-trend': true, 'section-checkup': false, 'section-license': false, 'section-disclosure': true, 'section-share': true, chart: false },
+  doctor: { 'section-badges': true, 'section-trend': true, 'section-checkup': true, 'section-license': false, 'section-disclosure': true, 'section-share': true, chart: true }
+};
+
+function applyModeVisibility(mode) {
+  var map = MODE_VISIBILITY[mode] || MODE_VISIBILITY.self;
+  Object.keys(map).forEach(function(key) {
+    if (key === 'chart') return;
+    var el = document.getElementById(key);
+    if (el) el.style.display = map[key] ? '' : 'none';
+  });
+  // グラフは family では非表示(矢印＋テキストのみ残す)
+  var chartWrap = document.getElementById('bp-chart-wrap');
+  if (chartWrap) chartWrap.style.display = map.chart ? '' : 'none';
+}
+
+function switchMode(mode) {
+  currentMode = mode;
+  document.querySelectorAll('.pp-mode-chip').forEach(function(el){ el.classList.remove('active'); });
+  document.querySelector('[data-mode="'+mode+'"]').classList.add('active');
+
+  var desc = document.getElementById('mode-desc');
+  if (mode === 'self') desc.textContent = '本人閲覧モード：継続してきた行動の軌跡を確認します';
+  else if (mode === 'family') desc.textContent = '家族向けモード：頑張っている姿を大切な人に（免許・健診は非表示）';
+  else if (mode === 'doctor') desc.textContent = 'かかりつけ医モード：行動と改善の記録・健診受診歴（免許は非表示）';
+
+  applyModeVisibility(mode);
+
+  var suggestedLevel = mode === 'self' ? 4 : mode === 'family' ? 2 : 3;
+  var radio = document.querySelector('input[name="level"][value="'+suggestedLevel+'"]');
+  if (radio) { radio.checked = true; updateLevel(suggestedLevel); }
+}
+
+function formatJpDate(iso) {
+  try {
+    var d = iso ? new Date(iso) : new Date();
+    return d.getFullYear() + '.' + String(d.getMonth()+1).padStart(2,'0') + '.' + String(d.getDate()).padStart(2,'0');
+  } catch(e) { return ''; }
+}
+
+function generatePassportNo(uid) {
+  var h = 0;
+  var s = String(uid || 'guest');
+  for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) & 0xffffff;
+  return 'CW' + h.toString(16).toUpperCase().padStart(6, '0');
+}
+
+async function loadPassport() {
+  if (!token) {
+    alert('ログインが必要です');
+    window.location.href = '/';
+    return;
+  }
+  try {
+    var res = await fetch('/api/passport/me', { headers: apiHeaders() });
+    var json = await res.json();
+    if (!json.success) {
+      alert(json.msg || '取得エラー');
+      return;
+    }
+    currentPassportData = json.data;
+    renderOwner(json.data.user);
+    renderBadges(json.data.badges);
+    renderTrend(json.data.trend);
+    renderLicense(json.data.license);
+    applySettings(json.data.settings);
+    initCheckupSection();
+    applyModeVisibility(currentMode);
+  } catch (e) {
+    console.error(e);
+    alert('通信エラー: ' + e.message);
+  }
+}
+
+function renderOwner(user) {
+  document.getElementById('owner-name').textContent = user.nickname || '—';
+  document.getElementById('owner-sub').textContent = (user.department || '') + ' · 連続 ' + (user.streak_count || 0) + '日';
+  document.getElementById('passport-no').textContent = generatePassportNo(user.id);
+  document.getElementById('issue-date').textContent = formatJpDate();
+  var av = document.getElementById('owner-avatar');
+  if (typeof getAvatarHtml === 'function') {
+    av.innerHTML = getAvatarHtml(user.avatar || '😀', 60);
+  } else {
+    av.textContent = user.avatar || '😀';
+  }
+}
+
+// バッジ定義：数値＋ラベル＋第三者向けの意味の説明
+var BADGE_DEFS = [
+  { key: 'streak_current', icon: 'fa-fire', label: '連続記録日数', desc: '健康記録を毎日続けた日数', unit: '日' },
+  { key: 'streak_best', icon: 'fa-trophy', label: '最長記録', desc: '過去最長の継続日数', unit: '日' },
+  { key: 'post_count', icon: 'fa-file-alt', label: '投稿数', desc: '健康相談・食事報告の投稿', unit: '件' },
+  { key: 'challenge_count', icon: 'fa-dumbbell', label: 'チャレンジ参加', desc: '歩数・野菜等の取組み参加', unit: '回' },
+  { key: 'earned_badges', icon: 'fa-award', label: '獲得バッジ', desc: '行動達成の認定バッジ', unit: '個' },
+  { key: 'buddy_messages', icon: 'fa-comments', label: '天の声会話', desc: 'AI保健師との相談回数', unit: '回' },
+  { key: 'bp_records', icon: 'fa-heart', label: '血圧記録', desc: '自己測定値を記録した回数', unit: '回' },
+  { key: 'memo_count', icon: 'fa-book', label: 'メモ数', desc: '会話からの気づき保存', unit: '件' },
+  { key: 'tree_stage', icon: 'fa-tree', label: '成長段階', desc: '継続で育つ健康の木のレベル', unit: '/7' }
+];
+
+function renderBadges(b) {
+  // 凡例ブロック
+  var legend = '<div class="pp-section-legend">'
+    + '<b>この記録について.</b> 本書は<b>数値ではなく行動の記録</b>を集計した証明です。'
+    + 'CoWellアプリ上で本人が継続的に取り組んだ健康行動（毎日の記録・食事報告・AI保健師との相談・血圧測定・チャレンジ参加など）の履歴を可視化しています。'
+    + '各項目は<b>何をどれだけ継続したか</b>の指標で、医療判定や健康状態の数値ではありません。'
+    + '</div>';
+
+  var html = legend + '<div class="pp-badge-grid">' + BADGE_DEFS.map(function(def){
+    var value = b[def.key] || 0;
+    return '<div class="pp-badge"><div class="pp-badge-icon"><i class="fas '+def.icon+'"></i></div>'
+      + '<div class="pp-badge-value">'+value+'<span style="font-size:11px;color:var(--text-sub);margin-left:2px;">'+def.unit+'</span></div>'
+      + '<div class="pp-badge-label">'+def.label+'</div>'
+      + '<div class="pp-badge-desc">'+def.desc+'</div></div>';
+  }).join('') + '</div>';
+
+  document.getElementById('badge-grid').innerHTML = html;
+}
+
+function renderTrend(t) {
+  var wrap = document.getElementById('trend-content');
+  if (!t || !t.bp_series || t.bp_series.length === 0) {
+    wrap.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-sub);font-size:11px;font-family:\'Noto Serif JP\',serif;font-style:italic;">'
+      + '<i class="fas fa-seedling" style="font-size:24px;color:var(--border-dark);margin-bottom:8px;display:block;"></i>'
+      + '血圧記録がまだありません。<br>継続記録により改善の軌跡が可視化されます。</div>';
+    return;
+  }
+
+  var cur = t.bp_current || {};
+  var prev = t.bp_previous || {};
+  var direction = 'stable';
+  var text = '記録が継続されています';
+  if (cur.sys && prev.sys) {
+    var diff = cur.sys - prev.sys;
+    if (diff < -2) { direction = 'improving'; text = '<b>改善傾向</b>を記録中'; }
+    else if (diff > 2) { direction = 'declining'; text = 'ゆるやかに上昇中。記録を継続してください'; }
+    else { direction = 'stable'; text = '安定した数値を維持'; }
+  } else if (cur.sys && !prev.sys) {
+    text = '記録を継続中。翌月から改善軌跡が表示されます';
+  }
+
+  var arrowIcon = direction === 'improving' ? 'fa-arrow-trend-down' : direction === 'declining' ? 'fa-arrow-trend-up' : 'fa-minus';
+  var html = '<div class="pp-trend-summary">'
+    + '<i class="fas '+arrowIcon+' pp-trend-arrow '+direction+'"></i>'
+    + '<div class="pp-trend-text">'+text+'</div></div>'
+    + '<div id="bp-chart-wrap"><canvas id="bp-chart"></canvas></div>';
+  wrap.innerHTML = html;
+
+  setTimeout(function(){
+    var ctx = document.getElementById('bp-chart');
+    if (!ctx) return;
+    if (bpChart) bpChart.destroy();
+    bpChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: t.bp_series.map(function(r){ return r.date.substr(5); }),
+        datasets: [
+          { label: 'SYS', data: t.bp_series.map(function(r){ return r.sys; }), borderColor: '#1e3a5f', backgroundColor: 'rgba(30,58,95,0.08)', tension: 0.3, fill: true, pointRadius: 2 },
+          { label: 'DIA', data: t.bp_series.map(function(r){ return r.dia; }), borderColor: '#b8935a', backgroundColor: 'rgba(184,147,90,0.08)', tension: 0.3, fill: true, pointRadius: 2 }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom', labels: { font: { size: 10, family: 'Cormorant Garamond' } } } },
+        scales: { y: { beginAtZero: false, ticks: { font: { size: 10 } } }, x: { ticks: { font: { size: 9 }, maxRotation: 0 } } }
+      }
+    });
+  }, 50);
+}
+
+function renderLicense(lic) {
+  var wrap = document.getElementById('license-content');
+  if (lic && lic.has) {
+    fetch('/api/passport/license', { headers: apiHeaders() })
+      .then(function(r){ return r.json(); })
+      .then(function(json){
+        if (!json.success || !json.data) return;
+        var d = json.data;
+        var expiry = d.expiry_date || '';
+        var expiryClass = '';
+        var expiryWarn = '';
+        if (expiry) {
+          var daysLeft = Math.floor((new Date(expiry) - Date.now()) / 86400000);
+          if (daysLeft < 90) { expiryClass = 'pp-license-expiry-warn'; expiryWarn = ' ⚠ 更新時期'; }
+          else { expiryClass = 'pp-license-expiry-ok'; }
+        }
+        var html = '<div class="pp-license-card has-data">';
+        if (d.image_url) {
+          html += '<img src="'+d.image_url+'" style="width:100%;max-height:160px;object-fit:cover;margin-bottom:10px;border:1px solid var(--border);">';
+        }
+        html += '<div class="pp-license-row"><span class="pp-license-label">NAME</span><span class="pp-license-value">'+(d.name||'—')+'</span></div>';
+        html += '<div class="pp-license-row"><span class="pp-license-label">NUMBER</span><span class="pp-license-value">'+(d.license_number||'—')+'</span></div>';
+        html += '<div class="pp-license-row"><span class="pp-license-label">TYPE</span><span class="pp-license-value">'+(d.license_type||'—')+'</span></div>';
+        html += '<div class="pp-license-row"><span class="pp-license-label">EXPIRY</span><span class="pp-license-value '+expiryClass+'">'+(expiry||'—')+expiryWarn+'</span></div>';
+        if (d.conditions) html += '<div class="pp-license-row"><span class="pp-license-label">CONDITIONS</span><span class="pp-license-value">'+d.conditions+'</span></div>';
+        html += '<input type="file" id="license-file" accept="image/*" capture="environment" onchange="scanLicense(this)">';
+        html += '<div class="pp-fab-wrap">';
+        html += '<button class="pp-license-btn sub" onclick="document.getElementById(\'license-file\').click()"><i class="fas fa-redo"></i> 撮り直す</button>';
+        html += '<button class="pp-license-btn sub" onclick="deleteLicense()" style="color:var(--accent-red);border-color:var(--accent-red);"><i class="fas fa-trash"></i> 削除</button>';
+        html += '</div></div>';
+        wrap.innerHTML = html;
+      });
+  }
+}
+
+async function scanLicense(input) {
+  if (!input.files || !input.files[0]) return;
+  var file = input.files[0];
+  var reader = new FileReader();
+  reader.onload = async function(e) {
+    var base64 = e.target.result.split(',')[1];
+    var wrap = document.getElementById('license-content');
+    wrap.innerHTML = '<div class="pp-loading"><i class="fas fa-spinner fa-spin"></i> 免許証を読み取り中...</div>';
+    try {
+      var res = await fetch('/api/passport/license/scan', {
+        method: 'POST', headers: apiHeaders(),
+        body: JSON.stringify({ imageBase64: base64, mimeType: file.type })
+      });
+      var json = await res.json();
+      if (json.success) {
+        await loadPassport();
+      } else {
+        alert(json.msg || '読み取りエラー');
+        await loadPassport();
+      }
+    } catch (e) {
+      alert('通信エラー: ' + e.message);
+      await loadPassport();
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+async function deleteLicense() {
+  if (!confirm('免許証データを削除しますか？')) return;
+  try {
+    var res = await fetch('/api/passport/license/delete', { method: 'POST', headers: apiHeaders() });
+    var json = await res.json();
+    if (json.success) { await loadPassport(); }
+  } catch(e) { alert(e.message); }
+}
+
+function applySettings(s) {
+  if (!s) return;
+  currentLevel = s.disclosure_level || 1;
+  var radio = document.querySelector('input[name="level"][value="'+currentLevel+'"]');
+  if (radio) radio.checked = true;
+  updateLevel(currentLevel, true);
+  if (s.share_token && s.share_expires_at && new Date(s.share_expires_at) > new Date()) {
+    showShareBox(s.share_token, s.share_expires_at);
+  }
+}
+
+async function updateLevel(lv, skipSave) {
+  currentLevel = lv;
+  document.querySelectorAll('.pp-disclosure-row').forEach(function(el){ el.classList.remove('active'); });
+  var row = document.querySelector('.pp-disclosure-row[data-level="'+lv+'"]');
+  if (row) row.classList.add('active');
+  if (skipSave) return;
+  try {
+    await fetch('/api/passport/settings', {
+      method: 'POST', headers: apiHeaders(),
+      body: JSON.stringify({ disclosure_level: lv })
+    });
+  } catch(e) {}
+}
+
+async function createShare(hours) {
+  try {
+    var res = await fetch('/api/passport/share', {
+      method: 'POST', headers: apiHeaders(),
+      body: JSON.stringify({ mode: currentMode, hours: hours })
+    });
+    var json = await res.json();
+    if (json.success) {
+      showShareBox(json.token, json.expires_at);
+    } else {
+      alert(json.msg || 'エラー');
+    }
+  } catch(e) { alert(e.message); }
+}
+
+function showShareBox(token, expiresAt) {
+  var box = document.getElementById('share-box');
+  var url = window.location.origin + '/passport/share/' + token;
+  document.getElementById('share-url').textContent = url;
+  box.style.display = 'block';
+  box.dataset.url = url;
+}
+
+function copyShareLink() {
+  var url = document.getElementById('share-box').dataset.url;
+  if (!url) return;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url).then(function(){
+      showToast('リンクをコピーしました');
+    });
+  } else {
+    prompt('このリンクをコピー:', url);
+  }
+}
+
+async function revokeShare() {
+  if (!confirm('共有リンクを無効化しますか？')) return;
+  try {
+    var res = await fetch('/api/passport/share/revoke', { method: 'POST', headers: apiHeaders() });
+    var json = await res.json();
+    if (json.success) {
+      document.getElementById('share-box').style.display = 'none';
+      showToast('共有リンクを無効化しました');
+    }
+  } catch(e) { alert(e.message); }
+}
+
+// ===== 健診セクション =====
+function initCheckupSection() {
+  var enabled = localStorage.getItem('pp_checkup_enabled') === '1';
+  var cb = document.getElementById('checkup-enable');
+  if (cb) cb.checked = enabled;
+  if (enabled) loadCheckupMeta();
+}
+
+function toggleCheckupSection(enabled) {
+  localStorage.setItem('pp_checkup_enabled', enabled ? '1' : '0');
+  if (enabled) {
+    showToast('健診の受診記録（日付・項目名のみ）を表示します。数値・判定は取得しません。');
+    loadCheckupMeta();
+  } else {
+    document.getElementById('checkup-content').innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-sub);font-size:11px;font-family:\'Noto Serif JP\',serif;font-style:italic;">'
+      + '<i class="fas fa-shield-alt" style="font-size:22px;color:var(--border-dark);display:block;margin-bottom:8px;"></i>'
+      + '健診セクションは非表示です。<br>右上のチェックで再表示できます。</div>';
+  }
+}
+
+function showToast(msg) {
+  var t = document.getElementById('pp-toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'pp-toast';
+    t.className = 'pp-toast';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 3500);
+}
+
+async function loadCheckupMeta() {
+  var wrap = document.getElementById('checkup-content');
+  wrap.innerHTML = '<div class="pp-loading"><i class="fas fa-spinner fa-spin"></i> Boxから受診記録を取得中...</div>';
+  try {
+    var res = await fetch('/api/passport/checkup-meta', { headers: apiHeaders() });
+    var json = await res.json();
+    if (!json.success) {
+      wrap.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-sub);font-size:11px;">健診データは読み込めませんでした</div>';
+      return;
+    }
+    var d = json.data;
+    if (!d.timeline || d.timeline.length === 0) {
+      wrap.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-sub);font-size:11px;">'
+        + '<i class="fas fa-clipboard-list" style="font-size:22px;color:var(--border-dark);display:block;margin-bottom:8px;"></i>'
+        + 'まだ健診の受診記録がありません</div>';
+      return;
+    }
+    var html = '<div class="pp-checkup-summary">'
+      + '<div class="pp-checkup-badge-big"><div class="num">'+(d.total_years||0)+'</div><div class="lbl">受診記録年数</div></div>'
+      + '<div class="pp-checkup-badge-big"><div class="num">'+(d.consecutive_years||0)+'</div><div class="lbl">連続受診年数</div></div>'
+      + '</div>';
+
+    html += '<div class="pp-checkup-timeline">';
+    d.timeline.forEach(function(t) {
+      html += '<div class="pp-checkup-year">';
+      html += '<span class="pp-checkup-year-label">'+t.year+'年度</span>';
+      if (t.date) html += '<span class="pp-checkup-year-date">'+t.date+'</span>';
+      if (t.categories && t.categories.length) {
+        html += '<div class="pp-checkup-chips">';
+        t.categories.forEach(function(c) { html += '<span class="pp-checkup-chip">'+c+'</span>'; });
+        html += '</div>';
+      }
+      html += '</div>';
+    });
+    html += '</div>';
+    html += '<div class="pp-checkup-privacy"><i class="fas fa-shield-alt"></i> 受診日と検査項目のみ表示しています。'
+      + '数値・判定結果はプライバシー保護のためパスポートには載せません。</div>';
+
+    wrap.innerHTML = html;
+  } catch (e) {
+    wrap.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-sub);font-size:11px;">通信エラー</div>';
+  }
+}
+
+// ===== PDF出力 =====
+// 色定数(html2canvasがCSS変数を解決できないためliteral値を使用)
+var PDF_COLORS = {
+  navy: '#1e3a5f',
+  navyDark: '#152a47',
+  gold: '#b8935a',
+  goldDark: '#9a7a46',
+  cream: '#faf8f3',
+  paper: '#ffffff',
+  border: '#d8d4c4',
+  borderDark: '#a89e7f',
+  text: '#2c2c2c',
+  textSub: '#6b6b6b',
+  green: '#4a6b4a',
+  red: '#8b3a3a'
+};
+
+function pdfBuildHTML(data, license, checkupData, mode) {
+  var c = PDF_COLORS;
+  var user = data.user || {};
+  var badges = data.badges || {};
+  var trend = data.trend || {};
+  var issueDate = formatJpDate();
+  var passportNo = generatePassportNo(user.id);
+
+  // モード表記
+  var modeLabel = 'SELF';
+  var modeJp = '本人閲覧用';
+  if (mode === 'family') { modeLabel = 'FAMILY'; modeJp = '家族向け'; }
+  else if (mode === 'doctor') { modeLabel = 'PHYSICIAN'; modeJp = 'かかりつけ医向け'; }
+
+  // モード別の表示制御
+  var showChart = mode !== 'family';
+  var showCheckup = mode !== 'family';
+  var showLicense = mode === 'self';
+
+  // PDFでは html2canvas が複雑なカスタムアバターSVG を描画できないことがあるため、
+  // シンプルな頭文字円に置き換え(絵文字はそのまま表示可能)
+  var nickname = user.nickname || '—';
+  var initial = nickname.charAt(0);
+  var avatarHtml;
+  if (user.avatar && user.avatar.length <= 4 && !user.avatar.startsWith('custom:')) {
+    // 絵文字アバターはそのまま使える
+    avatarHtml = '<span style="font-size:44px;line-height:1;">'+user.avatar+'</span>';
+  } else {
+    // カスタムアバター/画像URL等は頭文字円で代替
+    avatarHtml = '<span style="font-family:\'Noto Serif JP\',serif;font-size:36px;font-weight:700;color:'+c.navy+';">'+initial+'</span>';
+  }
+
+  // トレンド判定
+  var trendText = '記録継続中';
+  var trendArrow = '—';
+  var trendColor = c.textSub;
+  var cur = trend.bp_current || {};
+  var prev = trend.bp_previous || {};
+  if (cur.sys && prev.sys) {
+    var diff = cur.sys - prev.sys;
+    if (diff < -2) { trendText = '改善傾向を記録中'; trendArrow = '↓'; trendColor = c.green; }
+    else if (diff > 2) { trendText = 'ゆるやかに上昇中'; trendArrow = '↑'; trendColor = c.red; }
+    else { trendText = '安定した数値を維持'; }
+  } else if (!cur.sys) {
+    trendText = '血圧記録を始めましょう';
+  }
+
+  var html = '';
+  // === ヘッダー ===
+  html += '<div style="border-bottom:3px double '+c.gold+';padding-bottom:20px;margin-bottom:24px;">'
+    + '<div style="display:flex;justify-content:space-between;align-items:flex-end;">'
+    + '<div>'
+      + '<div style="font-family:\'Cormorant Garamond\',serif;font-size:14px;letter-spacing:0.3em;color:'+c.goldDark+';text-transform:uppercase;">THE PERSONAL HEALTH RECORD</div>'
+      + '<div style="font-family:\'Cormorant Garamond\',serif;font-size:42px;font-weight:700;color:'+c.navy+';letter-spacing:0.15em;margin-top:4px;line-height:1.1;">CoWell Passport</div>'
+    + '</div>'
+    + '<div style="text-align:right;font-family:\'Cormorant Garamond\',serif;">'
+      + '<div style="display:inline-block;padding:3px 10px;background:'+c.navy+';color:'+c.gold+';font-size:9px;letter-spacing:0.25em;margin-bottom:6px;">'+modeLabel+' / '+modeJp+'</div>'
+      + '<div style="font-size:9px;letter-spacing:0.2em;color:'+c.textSub+';">ISSUED</div>'
+      + '<div style="font-size:13px;color:'+c.navy+';font-weight:600;letter-spacing:0.08em;">'+issueDate+'</div>'
+      + '<div style="font-size:9px;letter-spacing:0.2em;color:'+c.textSub+';margin-top:6px;">PASSPORT NO.</div>'
+      + '<div style="font-size:13px;color:'+c.navy+';font-weight:600;letter-spacing:0.08em;">'+passportNo+'</div>'
+    + '</div></div>'
+    + '<div style="display:flex;gap:20px;align-items:center;margin-top:20px;padding:18px;border:1px solid '+c.border+';background:'+c.cream+';">'
+    + '<div style="width:80px;height:80px;border-radius:50%;border:2px solid '+c.navy+';overflow:hidden;display:flex;align-items:center;justify-content:center;background:#fff;flex-shrink:0;">'+avatarHtml+'</div>'
+    + '<div style="flex:1;">'
+      + '<div style="font-family:\'Cormorant Garamond\',serif;font-size:11px;letter-spacing:0.25em;color:'+c.goldDark+';text-transform:uppercase;">BEARER</div>'
+      + '<div style="font-family:\'Noto Serif JP\',serif;font-size:22px;font-weight:700;color:'+c.navy+';margin-top:4px;">'+(user.nickname||'—')+'</div>'
+      + '<div style="font-size:12px;color:'+c.textSub+';margin-top:4px;">'+(user.department||'')+' &nbsp;·&nbsp; 連続記録 '+(user.streak_count||0)+'日</div>'
+    + '</div></div></div>';
+
+  // === SECTION I: 行動の記録 ===
+  var badgeItems = BADGE_DEFS.map(function(def) {
+    return { label: def.label, desc: def.desc, unit: def.unit, value: badges[def.key] || 0 };
+  });
+  html += '<div style="margin-top:26px;page-break-inside:avoid;">'
+    + '<div style="display:flex;align-items:baseline;gap:14px;border-bottom:1px solid '+c.borderDark+';padding-bottom:6px;margin-bottom:14px;">'
+    + '<span style="font-family:\'Cormorant Garamond\',serif;font-size:12px;letter-spacing:0.25em;color:'+c.goldDark+';font-weight:500;">SECTION I</span>'
+    + '<span style="font-family:\'Noto Serif JP\',serif;font-size:14px;font-weight:700;color:'+c.navy+';">行動の記録</span>'
+    + '</div>'
+    // 第三者向けの凡例
+    + '<div style="background:'+c.cream+';border:1px solid '+c.border+';padding:10px 14px;margin-bottom:12px;font-size:10px;color:'+c.textSub+';line-height:1.7;font-family:\'Noto Serif JP\',serif;font-style:italic;">'
+    + 'この記録について: 本書は <span style="color:'+c.navy+';font-style:normal;font-weight:700;">数値ではなく行動の継続記録</span> の証明です。'
+    + 'CoWellアプリ上で本人が取り組んだ健康行動（毎日の記録・食事報告・AI保健師との相談・血圧測定・チャレンジ参加）の履歴を集計したもので、'
+    + '医療判定や健康状態の指標ではありません。'
+    + '</div>'
+    + '<div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:10px;">';
+  badgeItems.forEach(function(b) {
+    html += '<div style="border:1px solid '+c.border+';padding:14px 10px;text-align:center;background:'+c.cream+';">'
+      + '<div style="font-family:\'Cormorant Garamond\',serif;font-size:30px;font-weight:700;color:'+c.navy+';line-height:1;">'+b.value+'<span style="font-size:12px;color:'+c.textSub+';margin-left:2px;">'+b.unit+'</span></div>'
+      + '<div style="font-size:10px;color:'+c.textSub+';margin-top:6px;font-weight:700;">'+b.label+'</div>'
+      + '<div style="font-size:8px;color:#9ca0a8;margin-top:3px;font-family:\'Noto Serif JP\',serif;line-height:1.5;">'+b.desc+'</div>'
+      + '</div>';
+  });
+  html += '</div></div>';
+
+  // === SECTION II: 改善の軌跡 ===
+  html += '<div style="margin-top:26px;page-break-inside:avoid;">'
+    + '<div style="display:flex;align-items:baseline;gap:14px;border-bottom:1px solid '+c.borderDark+';padding-bottom:6px;margin-bottom:14px;">'
+    + '<span style="font-family:\'Cormorant Garamond\',serif;font-size:12px;letter-spacing:0.25em;color:'+c.goldDark+';font-weight:500;">SECTION II</span>'
+    + '<span style="font-family:\'Noto Serif JP\',serif;font-size:14px;font-weight:700;color:'+c.navy+';">改善の軌跡</span>'
+    + '</div>'
+    + '<div style="padding:18px;border:1px solid '+c.border+';background:'+c.cream+';display:flex;gap:16px;align-items:center;">'
+    + '<div style="font-size:40px;line-height:1;color:'+trendColor+';font-weight:700;">'+trendArrow+'</div>'
+    + '<div style="font-family:\'Noto Serif JP\',serif;font-size:13px;color:'+c.text+';">'+trendText+'</div>'
+    + '</div></div>';
+
+  // === SECTION III: 健診受診記録（ON時かつ family 以外のモード） ===
+  var sectionNum = 3;
+  if (checkupData && showCheckup) {
+    html += '<div style="margin-top:26px;page-break-inside:avoid;">'
+      + '<div style="display:flex;align-items:baseline;gap:14px;border-bottom:1px solid '+c.borderDark+';padding-bottom:6px;margin-bottom:14px;">'
+      + '<span style="font-family:\'Cormorant Garamond\',serif;font-size:12px;letter-spacing:0.25em;color:'+c.goldDark+';font-weight:500;">SECTION III</span>'
+      + '<span style="font-family:\'Noto Serif JP\',serif;font-size:14px;font-weight:700;color:'+c.navy+';">健康診断の受診記録</span>'
+      + '</div>'
+      + '<div style="display:grid;grid-template-columns:repeat(2, 1fr);gap:10px;margin-bottom:12px;">'
+      + '<div style="border:1px solid '+c.border+';padding:12px;background:'+c.cream+';text-align:center;">'
+        + '<div style="font-family:\'Cormorant Garamond\',serif;font-size:24px;font-weight:700;color:'+c.navy+';">'+(checkupData.total_years||0)+'</div>'
+        + '<div style="font-size:10px;color:'+c.textSub+';">受診記録年数</div>'
+      + '</div>'
+      + '<div style="border:1px solid '+c.border+';padding:12px;background:'+c.cream+';text-align:center;">'
+        + '<div style="font-family:\'Cormorant Garamond\',serif;font-size:24px;font-weight:700;color:'+c.navy+';">'+(checkupData.consecutive_years||0)+'</div>'
+        + '<div style="font-size:10px;color:'+c.textSub+';">連続受診年数</div>'
+      + '</div>'
+      + '</div>'
+      + '<div style="border:1px solid '+c.border+';padding:12px 16px;background:#fff;">';
+    checkupData.timeline.forEach(function(t, i) {
+      var borderBottom = i < checkupData.timeline.length - 1 ? 'border-bottom:1px dotted '+c.border+';' : '';
+      html += '<div style="display:flex;gap:12px;padding:8px 0;'+borderBottom+'font-size:11px;">'
+        + '<div style="font-family:\'Noto Serif JP\',serif;color:'+c.navy+';font-weight:700;width:80px;flex-shrink:0;">'+t.year+'年度</div>'
+        + '<div style="color:'+c.textSub+';font-size:10px;line-height:1.6;">'+(t.categories||[]).join(' · ')+'</div>'
+        + '</div>';
+    });
+    html += '</div>'
+      + '<div style="font-size:9px;color:'+c.textSub+';margin-top:6px;font-style:italic;">※ 受診日と検査項目のみ記載。数値・判定結果は含まれません。</div>'
+      + '</div>';
+    sectionNum++;
+  }
+
+  // === SECTION IV (or III): 運転免許（本人モードのみ） ===
+  if (license && license.license_number && showLicense) {
+    var roman = sectionNum === 3 ? 'III' : 'IV';
+    html += '<div style="margin-top:26px;page-break-inside:avoid;">'
+      + '<div style="display:flex;align-items:baseline;gap:14px;border-bottom:1px solid '+c.borderDark+';padding-bottom:6px;margin-bottom:14px;">'
+      + '<span style="font-family:\'Cormorant Garamond\',serif;font-size:12px;letter-spacing:0.25em;color:'+c.goldDark+';font-weight:500;">SECTION '+roman+'</span>'
+      + '<span style="font-family:\'Noto Serif JP\',serif;font-size:14px;font-weight:700;color:'+c.navy+';">運転免許証</span>'
+      + '</div>'
+      + '<div style="padding:14px;border:1px solid '+c.border+';">';
+    var rows = [
+      ['NAME', license.name || '—'],
+      ['NUMBER', license.license_number || '—'],
+      ['TYPE', license.license_type || '—'],
+      ['EXPIRY', license.expiry_date || '—']
+    ];
+    if (license.conditions) rows.push(['CONDITIONS', license.conditions]);
+    rows.forEach(function(r, i) {
+      var borderBottom = i < rows.length - 1 ? 'border-bottom:1px dotted '+c.border+';' : '';
+      html += '<div style="display:flex;justify-content:space-between;padding:7px 0;'+borderBottom+'font-size:11px;">'
+        + '<span style="color:'+c.textSub+';font-family:\'Cormorant Garamond\',serif;letter-spacing:0.15em;">'+r[0]+'</span>'
+        + '<span style="color:'+c.text+';font-weight:500;font-family:\'Noto Serif JP\',serif;">'+r[1]+'</span>'
+        + '</div>';
+    });
+    html += '</div></div>';
+  }
+
+  // === フッター ===
+  html += '<div style="margin-top:40px;padding-top:16px;border-top:1px solid '+c.border+';display:flex;justify-content:space-between;align-items:flex-end;">'
+    + '<div style="font-size:9px;color:'+c.textSub+';line-height:1.6;max-width:60%;">'
+    + '本書は CoWell が発行する個人健康パスポートです。<br>'
+    + '記載内容は本人の行動記録に基づく証明であり、医療診断結果ではありません。<br>'
+    + '本書の情報を第三者に提示する際は本人の明示的同意が必要です。'
+    + '</div>'
+    + '<div style="text-align:center;">'
+    + '<div style="width:160px;height:1px;background:'+c.text+';margin-bottom:4px;"></div>'
+    + '<div style="font-family:\'Cormorant Garamond\',serif;font-size:10px;letter-spacing:0.2em;color:'+c.textSub+';">BEARER SIGNATURE</div>'
+    + '</div></div>';
+
+  return html;
+}
+
+async function exportPDF() {
+  if (!currentPassportData) {
+    showToast('データ読み込み中です');
+    return;
+  }
+  showToast('PDFを生成しています...');
+
+  var tempDiv = null;
+  try {
+    // 免許情報取得
+    var license = null;
+    if (currentPassportData.license && currentPassportData.license.has) {
+      try {
+        var licRes = await fetch('/api/passport/license', { headers: apiHeaders() });
+        var licJson = await licRes.json();
+        if (licJson.success && licJson.data) license = licJson.data;
+      } catch(e) {}
+    }
+
+    // 健診メタ取得（ON時のみ）
+    var checkupData = null;
+    if (localStorage.getItem('pp_checkup_enabled') === '1') {
+      try {
+        var chkRes = await fetch('/api/passport/checkup-meta', { headers: apiHeaders() });
+        var chkJson = await chkRes.json();
+        if (chkJson.success && chkJson.data && chkJson.data.timeline && chkJson.data.timeline.length) {
+          checkupData = chkJson.data;
+        }
+      } catch(e) {}
+    }
+
+    // 一時divを動的生成しbodyに追加(html2canvasが確実に認識する)
+    tempDiv = document.createElement('div');
+    tempDiv.className = 'pp-pdf-temp';
+    tempDiv.innerHTML = pdfBuildHTML(currentPassportData, license, checkupData, currentMode);
+    document.body.appendChild(tempDiv);
+
+    // ページトップにスクロール(html2canvasがviewport基準で描画するため)
+    var originalScrollY = window.scrollY;
+    window.scrollTo(0, 0);
+
+    // Webフォント読み込み完了を待つ
+    if (document.fonts && document.fonts.ready) {
+      try { await document.fonts.ready; } catch(e) {}
+    }
+
+    // 画像読み込み完了を待つ
+    var imgs = tempDiv.querySelectorAll('img');
+    await Promise.all(Array.from(imgs).map(function(img) {
+      if (img.complete && img.naturalHeight > 0) return Promise.resolve();
+      return new Promise(function(resolve) {
+        img.onload = resolve;
+        img.onerror = resolve;
+        setTimeout(resolve, 3000);
+      });
+    }));
+
+    // レイアウト確定待ち
+    await new Promise(function(r) { setTimeout(r, 300); });
+
+    console.log('[PDF] tempDiv size:', tempDiv.offsetWidth, 'x', tempDiv.offsetHeight);
+
+    // html2canvas を直接呼び出し(html2pdfラッパーを経由しない)
+    var h2c = window.html2canvas;
+    if (!h2c) throw new Error('html2canvas が読み込まれていません');
+
+    var pdfCanvas = await h2c(tempDiv, {
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: '#ffffff',
+      logging: false,
+      width: tempDiv.offsetWidth,
+      height: tempDiv.offsetHeight,
+      windowWidth: tempDiv.offsetWidth,
+      windowHeight: tempDiv.offsetHeight,
+      scrollX: 0,
+      scrollY: 0
+    });
+
+    console.log('[PDF] canvas rendered:', pdfCanvas.width, 'x', pdfCanvas.height);
+
+    if (!pdfCanvas.width || !pdfCanvas.height) {
+      throw new Error('キャンバス描画失敗(width or height = 0)');
+    }
+
+    var imgData = pdfCanvas.toDataURL('image/jpeg', 0.95);
+
+    // jsPDFでA4縦に配置
+    var jsPDFClass = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
+    if (!jsPDFClass) throw new Error('jsPDF が読み込まれていません');
+
+    var pdf = new jsPDFClass({ unit: 'mm', format: 'a4', orientation: 'portrait', compress: true });
+    var pdfWidth = 210 - 20;   // 210mm - 左右各10mm余白
+    var pdfHeight = pdfCanvas.height * pdfWidth / pdfCanvas.width;
+    var pageHeight = 297 - 20; // 297mm - 上下各10mm余白
+
+    if (pdfHeight <= pageHeight) {
+      pdf.addImage(imgData, 'JPEG', 10, 10, pdfWidth, pdfHeight);
+    } else {
+      // 複数ページに分割
+      var heightLeft = pdfHeight;
+      var position = 10;
+      pdf.addImage(imgData, 'JPEG', 10, position, pdfWidth, pdfHeight);
+      heightLeft -= pageHeight;
+      while (heightLeft > 0) {
+        position = heightLeft - pdfHeight + 10;
+        pdf.addPage();
+        pdf.addImage(imgData, 'JPEG', 10, position, pdfWidth, pdfHeight);
+        heightLeft -= pageHeight;
+      }
+    }
+
+    var user = currentPassportData.user || {};
+    var safeName = (user.nickname || 'user').replace(/[^\w\u3040-\u309f\u30a0-\u30ff\u4e00-\u9faf]/g, '_');
+    var modeSuffix = currentMode === 'self' ? '本人' : currentMode === 'family' ? '家族用' : '医師用';
+    var fileName = 'CoWell_Passport_' + safeName + '_' + modeSuffix + '_' + formatJpDate().replace(/\./g, '') + '.pdf';
+    pdf.save(fileName);
+
+    window.scrollTo(0, originalScrollY);
+    showToast('PDFを保存しました');
+  } catch (e) {
+    console.error('[PDF] export error:', e);
+    console.error('[PDF] stack:', e && e.stack);
+    var errMsg = 'PDF生成エラー\n\n';
+    errMsg += 'メッセージ: ' + (e && e.message ? e.message : String(e)) + '\n';
+    if (e && e.name) errMsg += '種別: ' + e.name + '\n';
+    errMsg += '\n--- デバッグ情報 ---\n';
+    errMsg += 'html2canvas: ' + (typeof window.html2canvas) + '\n';
+    errMsg += 'jspdf: ' + (typeof window.jspdf) + '\n';
+    errMsg += 'jsPDF: ' + (typeof window.jsPDF) + '\n';
+    if (tempDiv) {
+      errMsg += 'tempDiv size: ' + tempDiv.offsetWidth + 'x' + tempDiv.offsetHeight + '\n';
+    }
+    errMsg += '\nスタックはF12のコンソールに出力されています';
+    alert(errMsg);
+  } finally {
+    if (tempDiv && tempDiv.parentNode) {
+      tempDiv.parentNode.removeChild(tempDiv);
+    }
+  }
+}
+
+// 初期化
+loadPassport();
+</script>
+
+</body>
+</html>

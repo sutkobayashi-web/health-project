@@ -839,7 +839,7 @@ function renderV2Challenges() {
         html += '</div>';
       }
       html += '<div class="small text-muted mb-2"><i class="fas fa-users me-1"></i>参加者: ' + (c.participantCount || 0) + '名</div>';
-      // バディー反応集計表示エリア
+      // 天の声反応集計表示エリア
       html += '<div id="challenge-reaction-' + c.challenge_id + '" class="mb-2"></div>';
       // アクション
       html += '<div class="d-flex gap-2 mt-2">';
@@ -873,7 +873,7 @@ function loadChallengeReactions(challengeId) {
     if (!el || !data.success || data.total === 0) return;
     var labels = { want_to_try: { text:'やってみたい', color:'#20c997', icon:'🙋' }, interested: { text:'興味がある', color:'#667eea', icon:'💡' }, too_much: { text:'ちょっと面倒', color:'#ff9800', icon:'😅' }, already_in: { text:'もう参加中', color:'#e91e63', icon:'✅' } };
     var html = '<div style="padding:8px 10px;background:#f8f9ff;border-radius:10px;border-left:3px solid #667eea;">';
-    html += '<div style="font-size:0.68rem;font-weight:700;color:#667eea;margin-bottom:6px;"><i class="fas fa-comment-dots me-1"></i>バディー経由の反応（' + data.total + '件）</div>';
+    html += '<div style="font-size:0.68rem;font-weight:700;color:#667eea;margin-bottom:6px;"><i class="fas fa-comment-dots me-1"></i>天の声経由の反応（' + data.total + '件）</div>';
     data.reactions.forEach(function(r) {
       var l = labels[r.reaction] || { text:r.reaction, color:'#999', icon:'❓' };
       var pct = Math.round(r.count / data.total * 100);

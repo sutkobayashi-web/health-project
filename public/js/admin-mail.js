@@ -223,11 +223,11 @@ function sendBuddyMessage(targetUid, targetName) {
   modal.innerHTML =
     '<div style="background:white;border-radius:16px;width:90%;max-width:500px;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 8px 32px rgba(0,0,0,0.2);">' +
       '<div style="padding:16px 20px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center;">' +
-        '<div style="font-weight:800;font-size:1rem;"><i class="fas fa-comment-dots" style="color:#0ea5e9;margin-right:6px;"></i>バディー経由メッセージ — ' + escapeHtml(targetName) + 'さん</div>' +
+        '<div style="font-weight:800;font-size:1rem;"><i class="fas fa-comment-dots" style="color:#0ea5e9;margin-right:6px;"></i>天の声経由メッセージ — ' + escapeHtml(targetName) + 'さん</div>' +
         '<button onclick="document.getElementById(\'buddy-send-modal\').remove()" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:#999;">&times;</button>' +
       '</div>' +
       '<div style="padding:16px 20px;border-bottom:1px solid #eee;">' +
-        '<textarea id="buddy-send-text" rows="3" placeholder="バディー画面に吹き出しで表示されます..." style="width:100%;border:1.5px solid #e0e0e0;border-radius:10px;padding:10px;font-size:0.85rem;resize:none;box-sizing:border-box;"></textarea>' +
+        '<textarea id="buddy-send-text" rows="3" placeholder="天の声画面に吹き出しで表示されます..." style="width:100%;border:1.5px solid #e0e0e0;border-radius:10px;padding:10px;font-size:0.85rem;resize:none;box-sizing:border-box;"></textarea>' +
         '<button id="buddy-send-btn" onclick="execBuddySend(\'' + targetUid + '\',\'' + escapeHtml(targetName) + '\')" style="margin-top:8px;width:100%;padding:10px;background:linear-gradient(135deg,#0ea5e9,#0284c7);color:white;border:none;border-radius:10px;font-weight:700;font-size:0.85rem;cursor:pointer;"><i class="fas fa-paper-plane" style="margin-right:6px;"></i>送信</button>' +
       '</div>' +
       '<div style="padding:12px 20px;font-weight:700;font-size:0.8rem;color:#666;border-bottom:1px solid #f0f0f0;"><i class="fas fa-history" style="margin-right:4px;"></i>送信履歴</div>' +

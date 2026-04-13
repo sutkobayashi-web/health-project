@@ -10288,7 +10288,7 @@ function drawAquarium() {
   var cNorm = _aq ? (_aq.water_clarity || 50) / 100 : 0.8;
   var eNorm = _aq ? (_aq.fish_speed || 50) / 100 : 0.6;
   var colNorm = _aq ? (_aq.fish_color || 50) / 100 : 0.6;
-  var sizeScale = _aq ? 0.8 + (_aq.fish_size || 30) / 100 * 1.2 : 1.2;
+  var rawSize = _aq ? (_aq.fish_size || 10) : 30; var sizeScale = rawSize < 20 ? 0.4 + rawSize / 100 * 0.6 : 0.6 + rawSize / 100 * 1.2;
   var alive = _aq && _aq.status === 'alive';
   var isEgg = _aq && _aq.status === 'egg';
   var isDead = _aq && _aq.status === 'dead';

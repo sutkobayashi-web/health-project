@@ -757,7 +757,7 @@ router.get('/visitors', authUser, (req, res) => {
     // 他のユーザーの生きている魚を取得
     const others = db.prepare(`SELECT ua.*, u.nickname FROM user_aquarium ua
       JOIN users u ON ua.user_id = u.id
-      WHERE ua.user_id != ? AND ua.status = 'alive' AND ua.fish_species_id > 0
+      WHERE ua.user_id != ? AND ua.status = 'alive' AND ua.fish_health > 30 AND ua.fish_species_id > 0
       ORDER BY ua.fish_health DESC`).all(req.uid);
 
     if (!others.length) return res.json({ success: true, visitors: [] });
@@ -804,7 +804,7 @@ router.get('/shared-tank', authUser, (req, res) => {
   try {
     const allFish = db.prepare(`SELECT ua.*, u.nickname FROM user_aquarium ua
       JOIN users u ON ua.user_id = u.id
-      WHERE ua.status = 'alive' AND ua.fish_species_id > 0
+      WHERE ua.status = 'alive'
       ORDER BY ua.fish_health DESC`).all();
 
     const eggRows = db.prepare(`SELECT ua.*, u.nickname FROM user_aquarium ua

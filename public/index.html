@@ -10854,6 +10854,52 @@ function drawGuests(ctx) {
 }
 
 // 仲間を見る
+var _sharedTankData = null;
+
+function toggleSharedRanking() {
+  var existing = document.getElementById('shared-ranking-panel');
+  if (existing) { existing.remove(); return; }
+  if (!_sharedTankData) return;
+
+  // 元気度ランキング（上位5）
+  var sorted = _sharedTankData.fish.slice().sort(function(a,b) { return b.fish_health - a.fish_health; });
+  var top5 = sorted.slice(0, 5);
+  var medals = ['🥇','🥈','🥉','4️⃣','5️⃣'];
+
+  var html = '<div id="shared-ranking-panel" style="position:absolute;top:50px;right:10px;z-index:10;background:rgba(10,30,55,0.95);border:1px solid rgba(255,255,255,0.2);border-radius:14px;padding:12px;width:180px;box-shadow:0 8px 24px rgba(0,0,0,0.4);">';
+  html += '<div style="font-size:12px;font-weight:800;color:#fbbf24;margin-bottom:8px;text-align:center;">🏆 元気ランキング</div>';
+
+  top5.forEach(function(f, i) {
+    var isMine = f.is_mine;
+    var healthColor = f.fish_health > 70 ? '#4ade80' : f.fish_health > 40 ? '#fbbf24' : '#ef4444';
+    html += '<div style="display:flex;align-items:center;gap:6px;padding:5px 4px;' + (isMine ? 'background:rgba(74,222,128,0.12);border-radius:8px;' : '') + (i < 4 ? 'border-bottom:1px solid rgba(255,255,255,0.06);' : '') + '">';
+    html += '<span style="font-size:14px;width:20px;text-align:center;">' + medals[i] + '</span>';
+    html += '<div style="flex:1;min-width:0;">';
+    html += '<div style="font-size:11px;font-weight:' + (isMine?'800':'600') + ';color:' + (isMine?'#4ade80':'#fff') + ';overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (isMine?'⭐':'') + (f.fish_name || f.nickname) + '</div>';
+    html += '<div style="font-size:9px;color:rgba(255,255,255,0.4);">' + f.nickname + '</div>';
+    html += '</div>';
+    html += '<div style="font-size:13px;font-weight:800;color:' + healthColor + ';">' + f.fish_health + '%</div>';
+    html += '</div>';
+  });
+
+  // 自分が圏外の場合
+  var myRank = -1;
+  sorted.forEach(function(f, i) { if (f.is_mine) myRank = i; });
+  if (myRank >= 5) {
+    var me = sorted[myRank];
+    html += '<div style="border-top:1px dashed rgba(255,255,255,0.15);margin-top:4px;padding-top:6px;display:flex;align-items:center;gap:6px;">';
+    html += '<span style="font-size:10px;color:rgba(255,255,255,0.4);width:20px;text-align:center;">' + (myRank+1) + '</span>';
+    html += '<div style="flex:1;font-size:11px;font-weight:800;color:#4ade80;">⭐' + (me.fish_name || me.nickname) + '</div>';
+    html += '<div style="font-size:13px;font-weight:800;color:#fbbf24;">' + me.fish_health + '%</div>';
+    html += '</div>';
+  }
+
+  html += '<div style="font-size:8px;color:rgba(255,255,255,0.3);text-align:center;margin-top:6px;">タップで閉じる</div>';
+  html += '</div>';
+
+  document.getElementById('shared-tank-body').insertAdjacentHTML('beforeend', html);
+}
+
 function closeSharedTank() {
   var el = document.getElementById('shared-tank-overlay');
   if (el) el.remove();
@@ -10868,13 +10914,14 @@ function openSharedTank() {
       var overlay = document.createElement('div');
       overlay.id = 'shared-tank-overlay';
       overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:#041e35;display:flex;flex-direction:column;';
+      _sharedTankData = d;
 
       // ヘッダー
       var header = '<div style="padding:10px 16px;background:rgba(10,40,70,0.95);display:flex;align-items:center;gap:10px;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,0.1);">' +
         '<button onclick="closeSharedTank()" style="background:rgba(255,255,255,0.15);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:14px;"><i class="fas fa-arrow-left"></i></button>' +
         '<div style="flex:1;"><div style="font-weight:800;font-size:14px;color:#fff;">🌊 仲間を見る</div>' +
         '<div style="font-size:10px;color:rgba(255,255,255,0.5);">' + d.fish.length + '匹 + 卵' + d.eggs.length + '個</div></div>' +
-        '<div style="text-align:right;font-size:10px;color:rgba(255,255,255,0.6);">水質 ' + d.avg_clarity + '% / 元気 ' + d.avg_health + '%</div>' +
+        '<button onclick="toggleSharedRanking()" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);color:#fbbf24;padding:5px 12px;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0;">🏆 TOP5</button>' +
         '</div>';
 
       // 水槽Canvas

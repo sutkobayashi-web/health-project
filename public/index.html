@@ -11209,7 +11209,7 @@ function openSharedTank() {
       // 水槽Canvas
       var tankBody = '<div id="shared-tank-body" style="flex:1;position:relative;overflow:hidden;background:linear-gradient(180deg,#1a7ab5 0%,#0e5a8a 40%,#0a3d6b 100%);">' +
         '<canvas id="shared-tank-canvas" style="position:absolute;top:0;left:0;width:100%;height:100%;"></canvas>' +
-        '<div id="shared-tank-info" style="position:absolute;bottom:0;left:0;right:0;z-index:3;max-height:40%;overflow-y:auto;background:linear-gradient(transparent,rgba(0,0,0,0.7));padding:8px 12px;"></div>' +
+        '<div id="shared-tank-info" style="display:none;"></div>' +
         '</div>';
 
       overlay.innerHTML = header + tankBody;
@@ -11382,7 +11382,16 @@ function initSharedTankCanvas(data) {
       ctx.restore();
       } // end else (成魚デザイン)
 
-      // 名前表示は削除（下部パネルで確認可能）
+      // 魚の名前（一緒に泳ぐ）
+      ctx.save();
+      ctx.globalAlpha = f.isMine ? 0.9 : 0.6;
+      ctx.fillStyle = f.isMine ? '#4ade80' : 'rgba(255,255,255,0.8)';
+      ctx.font = (f.isMine ? 'bold ' : '') + '10px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 2;
+      ctx.fillText(f.name, f.x, f.y - f.size*14 - 3);
+      ctx.shadowBlur = 0;
+      ctx.restore();
     }
 
     // 卵を描画

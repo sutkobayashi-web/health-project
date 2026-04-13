@@ -877,6 +877,7 @@
         <button onclick="inlineTopicMenu()" class="buddy-action-btn" style="display:flex;align-items:center;gap:4px;padding:7px 12px;background:rgba(124,58,237,0.2);border:1px solid rgba(124,58,237,0.3);color:rgba(255,255,255,0.9);border-radius:18px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;"><i class="fas fa-th-large"></i> メニュー</button>
       </div>
       <div style="display:flex;gap:5px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;touch-action:pan-x;">
+        <button onclick="openSharedTank()" class="buddy-action-btn" style="display:flex;align-items:center;gap:4px;padding:7px 12px;background:rgba(26,122,181,0.25);border:1px solid rgba(26,122,181,0.4);color:rgba(255,255,255,0.9);border-radius:18px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;"><i class="fas fa-water"></i> みんなの水槽</button>
         <button onclick="openFishBook()" class="buddy-action-btn" style="display:flex;align-items:center;gap:4px;padding:7px 12px;background:rgba(74,222,128,0.15);border:1px solid rgba(74,222,128,0.3);color:rgba(255,255,255,0.9);border-radius:18px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;"><i class="fas fa-book"></i> 図鑑</button>
         <button onclick="openFishHistory()" class="buddy-action-btn" style="display:flex;align-items:center;gap:4px;padding:7px 12px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.7);border-radius:18px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;"><i class="fas fa-monument"></i> 歴代</button>
         <button onclick="inlineChallengeJoin()" class="buddy-action-btn" style="display:flex;align-items:center;gap:4px;padding:7px 12px;background:rgba(255,107,53,0.2);border:1px solid rgba(255,107,53,0.35);color:rgba(255,255,255,0.9);border-radius:18px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;"><i class="fas fa-fire"></i> チャレンジ</button>
@@ -10716,6 +10717,208 @@ function drawGuests(ctx) {
       ctx.restore();
     }
   }
+}
+
+// みんなの水槽
+function openSharedTank() {
+  if (!currentUser) return;
+  fetch('/api/aquarium/shared-tank?uid=' + currentUser.uid, { headers:{'x-user-id':currentUser.uid} })
+    .then(function(r){return r.json();}).then(function(d){
+      if (!d.success) return;
+
+      var overlay = document.createElement('div');
+      overlay.id = 'shared-tank-overlay';
+      overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:#041e35;display:flex;flex-direction:column;';
+
+      // ヘッダー
+      var header = '<div style="padding:10px 16px;background:rgba(10,40,70,0.95);display:flex;align-items:center;gap:10px;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,0.1);">' +
+        '<button onclick="document.getElementById(\'shared-tank-overlay\').remove()" style="background:rgba(255,255,255,0.15);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:14px;"><i class="fas fa-arrow-left"></i></button>' +
+        '<div style="flex:1;"><div style="font-weight:800;font-size:14px;color:#fff;">🌊 みんなの水槽</div>' +
+        '<div style="font-size:10px;color:rgba(255,255,255,0.5);">' + d.total + '匹の仲間（卵' + d.eggs + '個含む）</div></div>' +
+        '<div style="text-align:right;font-size:10px;color:rgba(255,255,255,0.6);">水質 ' + d.avg_clarity + '% / 元気 ' + d.avg_health + '%</div>' +
+        '</div>';
+
+      // 水槽Canvas
+      var tankBody = '<div id="shared-tank-body" style="flex:1;position:relative;overflow:hidden;background:linear-gradient(180deg,#1a7ab5 0%,#0e5a8a 40%,#0a3d6b 100%);">' +
+        '<canvas id="shared-tank-canvas" style="position:absolute;top:0;left:0;width:100%;height:100%;"></canvas>' +
+        '<div id="shared-tank-info" style="position:absolute;bottom:0;left:0;right:0;z-index:3;max-height:40%;overflow-y:auto;background:linear-gradient(transparent,rgba(0,0,0,0.7));padding:8px 12px;"></div>' +
+        '</div>';
+
+      overlay.innerHTML = header + tankBody;
+      document.body.appendChild(overlay);
+
+      // Canvas初期化 & 描画
+      setTimeout(function() { initSharedTankCanvas(d); }, 100);
+    }).catch(function(){});
+}
+
+function initSharedTankCanvas(data) {
+  var canvas = document.getElementById('shared-tank-canvas');
+  var body = document.getElementById('shared-tank-body');
+  if (!canvas || !body) return;
+  var ctx = canvas.getContext('2d');
+  var r = devicePixelRatio || 1;
+  var W = body.clientWidth, H = body.clientHeight;
+  canvas.width = W * r; canvas.height = H * r;
+  ctx.setTransform(r, 0, 0, r, 0, 0);
+
+  // 魚オブジェクト生成
+  var fishes = data.fish.map(function(f, i) {
+    return {
+      x: 30 + Math.random() * (W - 60),
+      y: 30 + Math.random() * (H * 0.6),
+      vx: (Math.random() - 0.5) * 1.5,
+      vy: (Math.random() - 0.5) * 0.5,
+      targetX: Math.random() * W,
+      targetY: 30 + Math.random() * (H * 0.55),
+      tailPhase: Math.random() * Math.PI * 2,
+      hue: f.hue,
+      size: 0.6 + (f.fish_size || 30) / 100 * 0.8,
+      speed: 0.3 + (f.fish_speed || 50) / 100 * 0.8,
+      color: (f.fish_color || 50) / 100,
+      health: f.fish_health,
+      name: f.fish_name,
+      nickname: f.nickname,
+      species: f.species_name,
+      rank: f.rank,
+      stage: f.growth_stage,
+      days: f.days_alive,
+      isMine: f.is_mine,
+    };
+  });
+
+  // 水草
+  var plants = [];
+  for (var p = 0; p < 8; p++) {
+    plants.push({ x: 15 + Math.random()*(W-30), segs: 3+Math.floor(Math.random()*3), h: 30+Math.random()*60, w: 2+Math.random()*3, phase: Math.random()*Math.PI*2, hue: 100+Math.random()*40 });
+  }
+
+  // 情報パネル
+  var infoEl = document.getElementById('shared-tank-info');
+  var rankColors = {common:'#94a3b8',uncommon:'#60a5fa',rare:'#fbbf24',ultra:'#c084fc',legend:'#f87171'};
+  infoEl.innerHTML = '<div style="display:flex;flex-wrap:wrap;gap:4px;">' +
+    data.fish.map(function(f) {
+      var rc = rankColors[f.rank] || '#94a3b8';
+      var border = f.is_mine ? 'border:2px solid #4ade80;' : 'border:1px solid rgba(255,255,255,0.15);';
+      return '<div onclick="showFishDetail(this)" data-info="' + encodeURIComponent(JSON.stringify(f)) + '" style="' + border + 'background:rgba(255,255,255,0.08);border-radius:8px;padding:4px 8px;font-size:10px;color:rgba(255,255,255,0.8);cursor:pointer;display:flex;align-items:center;gap:4px;">' +
+        '<span style="color:' + rc + ';">●</span>' +
+        '<span>' + (f.is_mine ? '⭐' : '') + f.nickname + '</span>' +
+        '<span style="color:rgba(255,255,255,0.4);">' + f.fish_name + '</span>' +
+        '</div>';
+    }).join('') + '</div>';
+
+  // アニメーション
+  var frame = 0;
+  function draw() {
+    if (!document.getElementById('shared-tank-overlay')) return;
+    frame++;
+    ctx.clearRect(0, 0, W, H);
+
+    // 水の背景
+    var cNorm = (data.avg_clarity || 50) / 100;
+    var wHue = 195 + (1-cNorm)*20;
+    var g = ctx.createLinearGradient(0,0,0,H);
+    g.addColorStop(0, 'hsla('+wHue+','+(55+cNorm*20)+'%,'+(38+cNorm*18)+'%,1)');
+    g.addColorStop(0.6, 'hsla('+(wHue+5)+','+(50+cNorm*15)+'%,'+(28+cNorm*12)+'%,1)');
+    g.addColorStop(1, 'hsla('+(wHue+10)+','+(40+cNorm*12)+'%,'+(18+cNorm*10)+'%,1)');
+    ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+
+    // 水草
+    var t = frame * 0.02;
+    for (var pi = 0; pi < plants.length; pi++) {
+      var pp = plants[pi];
+      for (var s = 0; s < pp.segs; s++) {
+        var st = s/pp.segs;
+        var sway = Math.sin(t+pp.phase+s*0.5)*(5+s*2)*cNorm;
+        var segH = pp.h/pp.segs*cNorm;
+        var y1 = H-2-s*segH, y2 = H-2-(s+1)*segH;
+        var x1 = pp.x+sway*st, x2 = pp.x+sway*(st+1/pp.segs)*1.3;
+        var w = pp.w*(1-st*0.4);
+        ctx.fillStyle = 'hsla('+pp.hue+','+(50+cNorm*30)+'%,'+(25+cNorm*15)+'%,'+(0.5+cNorm*0.4)+')';
+        ctx.beginPath(); ctx.moveTo(x1-w,y1); ctx.quadraticCurveTo(x2,(y1+y2)/2,x2-w/2,y2);
+        ctx.lineTo(x2+w/2,y2); ctx.quadraticCurveTo(x2,(y1+y2)/2,x1+w,y1); ctx.closePath(); ctx.fill();
+      }
+    }
+
+    // 全魚描画
+    for (var fi = 0; fi < fishes.length; fi++) {
+      var f = fishes[fi];
+      // 移動
+      if (frame % 150 === fi % 150) { f.targetX = 30+Math.random()*(W-60); f.targetY = 20+Math.random()*(H*0.55); }
+      var dx = f.targetX-f.x, dy = f.targetY-f.y, dist = Math.sqrt(dx*dx+dy*dy);
+      if (dist>3) { f.vx += (dx/dist)*f.speed*0.03; f.vy += (dy/dist)*f.speed*0.03; }
+      f.vx *= 0.97; f.vy *= 0.97;
+      f.vy += Math.sin(frame*0.02+fi)*0.01;
+      f.x += f.vx; f.y += f.vy;
+      if (f.x<20) { f.x=20; f.vx*=-0.5; } if (f.x>W-20) { f.x=W-20; f.vx*=-0.5; }
+      if (f.y<15) { f.y=15; f.vy*=-0.5; } if (f.y>H*0.65) { f.y=H*0.65; f.vy*=-0.5; }
+      f.tailPhase += 0.03 + f.speed*0.03;
+
+      // 描画
+      ctx.save();
+      ctx.translate(f.x, f.y);
+      var flip = f.vx > 0.03 ? 1 : f.vx < -0.03 ? -1 : 1;
+      ctx.scale(flip * f.size, f.size);
+      var sat = 40+f.color*55, light = 35+f.color*20;
+      // 尾
+      var tw = Math.sin(f.tailPhase)*(4+f.speed*4);
+      ctx.fillStyle='hsla('+f.hue+','+(sat-10)+'%,'+(light+5)+'%,0.6)';
+      ctx.beginPath();ctx.moveTo(-14,0);ctx.quadraticCurveTo(-22,-6+tw,-28,-9+tw);ctx.quadraticCurveTo(-22,tw,-28,9+tw);ctx.quadraticCurveTo(-22,6+tw,-14,0);ctx.fill();
+      // 体
+      var bg=ctx.createLinearGradient(0,-9,0,9);
+      bg.addColorStop(0,'hsla('+f.hue+','+sat+'%,'+(light+12)+'%,1)');bg.addColorStop(0.5,'hsla('+f.hue+','+sat+'%,'+light+'%,1)');bg.addColorStop(1,'hsla('+(f.hue+10)+','+(sat-10)+'%,'+(light-5)+'%,1)');
+      ctx.fillStyle=bg;ctx.beginPath();ctx.ellipse(0,0,17,9,0,0,Math.PI*2);ctx.fill();
+      // 蛍光ライン
+      if(f.color>0.3){ctx.strokeStyle='hsla('+f.hue+',100%,'+(60+f.color*20)+'%,'+(0.2+f.color*0.3)+')';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(-12,-1.5);ctx.quadraticCurveTo(0,-2,8,-0.5);ctx.stroke();}
+      // 目
+      ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(11,-1.5,3,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#111';ctx.beginPath();ctx.arc(11.5,-1.5,1.8,0,Math.PI*2);ctx.fill();
+      // 自分の魚はハイライト
+      if (f.isMine) { ctx.strokeStyle='rgba(74,222,128,0.5)';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(0,0,20,12,0,0,Math.PI*2);ctx.stroke(); }
+      ctx.restore();
+
+      // 名前
+      ctx.save();
+      ctx.globalAlpha = f.isMine ? 0.9 : 0.6;
+      ctx.fillStyle = f.isMine ? '#4ade80' : 'rgba(255,255,255,0.8)';
+      ctx.font = (f.isMine ? 'bold ' : '') + '10px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 2;
+      ctx.fillText(f.name, f.x, f.y - f.size*14 - 3);
+      ctx.shadowBlur = 0;
+      ctx.restore();
+    }
+
+    requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+function showFishDetail(el) {
+  try {
+    var f = JSON.parse(decodeURIComponent(el.dataset.info));
+    var rankNames = {common:'コモン',uncommon:'アンコモン',rare:'レア',ultra:'超レア',legend:'伝説'};
+    var rankColors = {common:'#94a3b8',uncommon:'#60a5fa',rare:'#fbbf24',ultra:'#c084fc',legend:'#f87171'};
+    var rc = rankColors[f.rank] || '#94a3b8';
+    var html = '<div style="position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px;" onclick="if(event.target===this)this.remove()">' +
+      '<div style="background:#0d2440;border:1px solid rgba(255,255,255,0.15);border-radius:16px;padding:20px;max-width:300px;width:100%;color:#fff;">' +
+      '<div style="text-align:center;margin-bottom:12px;">' +
+      '<div style="font-size:24px;margin-bottom:4px;">🐟</div>' +
+      '<div style="font-size:16px;font-weight:800;">' + f.fish_name + '</div>' +
+      '<div style="font-size:11px;color:rgba(255,255,255,0.5);">' + f.nickname + 'の魚</div>' +
+      '<div style="font-size:10px;color:' + rc + ';margin-top:4px;">' + (rankNames[f.rank]||'') + ' / ' + f.species_name + '</div>' +
+      '</div>' +
+      '<div style="font-size:12px;line-height:2;color:rgba(255,255,255,0.8);">' +
+      '元気度: ' + f.fish_health + '% ' + (f.fish_health>70?'😊':f.fish_health>40?'😐':'😢') + '<br>' +
+      '色の鮮やかさ: ' + f.fish_color + '%<br>' +
+      '成長: Stage ' + f.growth_stage + '<br>' +
+      '飼育日数: ' + (f.days_alive||0) + '日' +
+      (f.is_mine ? '<br><span style="color:#4ade80;">⭐ あなたの魚です</span>' : '') +
+      '</div>' +
+      '<button onclick="this.closest(\'div[style*=fixed]\').remove()" style="width:100%;margin-top:12px;padding:8px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:8px;color:#fff;cursor:pointer;">閉じる</button>' +
+      '</div></div>';
+    document.body.insertAdjacentHTML('beforeend', html);
+  } catch(e) {}
 }
 
 // ページ読み込み時にアクアリウム初期化

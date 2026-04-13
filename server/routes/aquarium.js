@@ -677,6 +677,61 @@ router.get('/visitors', authUser, (req, res) => {
   }
 });
 
+// ---------- みんなの水槽 ----------
+router.get('/shared-tank', authUser, (req, res) => {
+  const db = getDb();
+  try {
+    const allFish = db.prepare(`SELECT ua.*, u.nickname FROM user_aquarium ua
+      JOIN users u ON ua.user_id = u.id
+      WHERE ua.status = 'alive' AND ua.fish_species_id > 0
+      ORDER BY ua.fish_health DESC`).all();
+
+    const eggs = db.prepare(`SELECT ua.*, u.nickname FROM user_aquarium ua
+      JOIN users u ON ua.user_id = u.id
+      WHERE ua.status = 'egg'`).all();
+
+    // 水槽全体の水質 = 全員の平均
+    let avgClarity = 50, avgHealth = 50;
+    if (allFish.length > 0) {
+      avgClarity = Math.round(allFish.reduce((s, f) => s + (f.water_clarity || 50), 0) / allFish.length);
+      avgHealth = Math.round(allFish.reduce((s, f) => s + (f.fish_health || 50), 0) / allFish.length);
+    }
+
+    const fish = allFish.map(f => {
+      const species = FISH_SPECIES.find(s => s.id === f.fish_species_id);
+      return {
+        user_id: f.user_id,
+        nickname: f.nickname || '???',
+        fish_name: f.fish_name || '名前なし',
+        species_name: species ? species.name : '魚',
+        species_id: f.fish_species_id,
+        hue: species ? species.hue : 200,
+        rank: species ? species.rank : 'common',
+        fish_health: Math.round(f.fish_health),
+        fish_color: Math.round(f.fish_color),
+        fish_size: Math.round(f.fish_size),
+        fish_speed: Math.round(f.fish_speed),
+        growth_stage: f.growth_stage,
+        days_alive: f.days_alive,
+        is_mine: f.user_id === req.uid,
+      };
+    });
+
+    res.json({
+      success: true,
+      fish,
+      eggs: eggs.length,
+      total: allFish.length + eggs.length,
+      avg_clarity: avgClarity,
+      avg_health: avgHealth,
+      healthy_count: allFish.filter(f => f.fish_health > 70).length,
+      sick_count: allFish.filter(f => f.fish_health < 40).length,
+    });
+  } catch(e) {
+    res.json({ success: false, error: e.message });
+  }
+});
+
 // ---------- 図鑑 ----------
 router.get('/discovery', authUser, (req, res) => {
   const db = getDb();

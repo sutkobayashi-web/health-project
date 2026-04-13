@@ -5377,7 +5377,7 @@ function showBuddyTopicQuestion(topic) {
     var html = '<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;padding:4px 0;">';
     topic.choices.forEach(function(c, i) {
       var colors = ['#667eea', '#20c997', '#ff9800', '#e91e63'];
-      html += '<div class="buddy-quick-btn" onclick="selectTopicChoice(\'' + topic.topicId + '\',' + i + ',\'' + c.replace(/'/g, "\\'") + '\')" style="border-color:' + colors[i % 4] + ';color:' + colors[i % 4] + ';">' + c + '</div>';
+      html += '<div class="buddy-quick-btn" onclick="selectTopicChoice(\'' + topic.topicId + '\',' + i + ',\'' + c.replace(/'/g, "\\'") + '\')" style="border-color:rgba(255,255,255,0.35);color:rgba(255,255,255,0.9);">' + c + '</div>';
     });
     html += '</div>';
     addBuddyInlineQuick(html);
@@ -5598,7 +5598,7 @@ function showConcernOptions() {
     '<div class="buddy-quick-btn" onclick="selectConcern(\'appetite\')">🍽️ 食欲がない</div>' +
     '<div class="buddy-quick-btn" onclick="selectConcern(\'eye\')">👁️ 目の疲れ</div>' +
     '<div class="buddy-quick-btn" onclick="selectConcern(\'none\')">✅ 特にない</div>' +
-    '<div class="buddy-quick-btn" onclick="selectConcern(\'talk\')" style="border-color:#0ea5e9;color:#0ea5e9;">💬 話しかける</div>' +
+    '<div class="buddy-quick-btn" onclick="selectConcern(\'talk\')" style="border-color:rgba(255,255,255,0.35);color:rgba(255,255,255,0.9);">💬 話しかける</div>' +
   '</div>');
 }
 
@@ -5607,7 +5607,7 @@ function showFollowUpTopics() {
     '<div class="buddy-quick-btn" onclick="selectConcern(\'food\')">🍱 食事の相談</div>' +
     '<div class="buddy-quick-btn" onclick="selectConcern(\'exercise\')">🏃 運動の相談</div>' +
     '<div class="buddy-quick-btn" onclick="selectConcern(\'health_tip\')">💡 健康豆知識</div>' +
-    '<div class="buddy-quick-btn" onclick="selectConcern(\'talk\')" style="border-color:#0ea5e9;color:#0ea5e9;">💬 話しかける</div>' +
+    '<div class="buddy-quick-btn" onclick="selectConcern(\'talk\')" style="border-color:rgba(255,255,255,0.35);color:rgba(255,255,255,0.9);">💬 話しかける</div>' +
     '<div class="buddy-quick-btn" onclick="selectConcern(\'none\')">👍 大丈夫！</div>' +
   '</div>');
 }
@@ -5745,8 +5745,8 @@ function showVoiceSuggestButtons() {
     '<div style="text-align:center;padding:6px 0;">' +
       '<div style="font-size:0.72rem;color:#667eea;font-weight:700;margin-bottom:8px;">同じ悩みの人がいるかも。匿名でみんなに聞いてみる？</div>' +
       '<div style="display:flex;gap:8px;justify-content:center;">' +
-        '<div class="buddy-quick-btn" onclick="submitVoiceFromChat()" style="border-color:#20c997;color:#20c997;font-weight:700;">📢 聞いてみる</div>' +
-        '<div class="buddy-quick-btn" onclick="declineVoiceSuggest()" style="border-color:#999;color:#999;">🙅 やめとく</div>' +
+        '<div class="buddy-quick-btn" onclick="submitVoiceFromChat()" style="border-color:rgba(255,255,255,0.35);color:rgba(255,255,255,0.9);font-weight:700;">📢 聞いてみる</div>' +
+        '<div class="buddy-quick-btn" onclick="declineVoiceSuggest()" style="border-color:rgba(255,255,255,0.35);color:rgba(255,255,255,0.9);">🙅 やめとく</div>' +
       '</div>' +
       '<div style="font-size:0.6rem;color:#aaa;margin-top:6px;">天の声が要約するから、そのまま投稿されることはないよ</div>' +
     '</div>'
@@ -5797,10 +5797,10 @@ function showChallengeReaction(challenge) {
     '<div style="text-align:center;padding:4px 0;">' +
       '<div style="font-size:0.68rem;color:#667eea;font-weight:700;margin-bottom:6px;">' + escapeHtml(challenge.title) + ' について</div>' +
       '<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;">' +
-        '<div class="buddy-quick-btn" onclick="submitChallengeReaction(\'' + challenge.challenge_id + '\',\'want_to_try\')" style="border-color:#20c997;color:#20c997;">🙋 やってみたい</div>' +
-        '<div class="buddy-quick-btn" onclick="submitChallengeReaction(\'' + challenge.challenge_id + '\',\'interested\')" style="border-color:#667eea;color:#667eea;">💡 興味がある</div>' +
-        '<div class="buddy-quick-btn" onclick="submitChallengeReaction(\'' + challenge.challenge_id + '\',\'too_much\')" style="border-color:#ff9800;color:#ff9800;">😅 ちょっと面倒</div>' +
-        '<div class="buddy-quick-btn" onclick="submitChallengeReaction(\'' + challenge.challenge_id + '\',\'already_in\')" style="border-color:#e91e63;color:#e91e63;">✅ もう参加中</div>' +
+        '<div class="buddy-quick-btn" onclick="submitChallengeReaction(\'' + challenge.challenge_id + '\',\'want_to_try\')" style="border-color:rgba(255,255,255,0.35);color:rgba(255,255,255,0.9);">🙋 やってみたい</div>' +
+        '<div class="buddy-quick-btn" onclick="submitChallengeReaction(\'' + challenge.challenge_id + '\',\'interested\')" style="border-color:rgba(255,255,255,0.35);color:rgba(255,255,255,0.9);">💡 興味がある</div>' +
+        '<div class="buddy-quick-btn" onclick="submitChallengeReaction(\'' + challenge.challenge_id + '\',\'too_much\')" style="border-color:rgba(255,255,255,0.35);color:rgba(255,255,255,0.9);">😅 ちょっと面倒</div>' +
+        '<div class="buddy-quick-btn" onclick="submitChallengeReaction(\'' + challenge.challenge_id + '\',\'already_in\')" style="border-color:rgba(255,255,255,0.35);color:rgba(255,255,255,0.9);">✅ もう参加中</div>' +
       '</div>' +
     '</div>'
   );
@@ -5827,10 +5827,10 @@ function submitChallengeReaction(challengeId, reaction) {
 
 function showBuddyWrapUp() {
   addBuddyInlineQuick('<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;padding:4px 0;">' +
-    '<div class="buddy-quick-btn" onclick="buddyWrapUp(\'another\')" style="border-color:#0ea5e9;color:#0ea5e9;">💬 話しかける</div>' +
-    '<div class="buddy-quick-btn" onclick="buddyWrapUp(\'member\')" style="border-color:#d63384;color:#d63384;">🛡️ 推進メンバーに相談</div>' +
-    '<div class="buddy-quick-btn" onclick="buddyWrapUp(\'food\')" style="border-color:#20c997;color:#20c997;">🍱 食事を記録</div>' +
-    '<div class="buddy-quick-btn" onclick="buddyWrapUp(\'done\')" style="border-color:#ff9800;color:#ff9800;">👍 ありがとう！</div>' +
+    '<div class="buddy-quick-btn" onclick="buddyWrapUp(\'another\')" style="border-color:rgba(255,255,255,0.35);color:rgba(255,255,255,0.9);">💬 話しかける</div>' +
+    '<div class="buddy-quick-btn" onclick="buddyWrapUp(\'member\')" style="border-color:rgba(255,255,255,0.35);color:rgba(255,255,255,0.9);">🛡️ 推進メンバーに相談</div>' +
+    '<div class="buddy-quick-btn" onclick="buddyWrapUp(\'food\')" style="border-color:rgba(255,255,255,0.35);color:rgba(255,255,255,0.9);">🍱 食事を記録</div>' +
+    '<div class="buddy-quick-btn" onclick="buddyWrapUp(\'done\')" style="border-color:rgba(255,255,255,0.35);color:rgba(255,255,255,0.9);">👍 ありがとう！</div>' +
   '</div>');
 }
 
@@ -6221,7 +6221,7 @@ function inlineConsult() {
         '<div class="buddy-quick-btn" onclick="buddyConsultHint(\'職場\')">🏢 職場環境</div>' +
         '<div class="buddy-quick-btn" onclick="buddyConsultHint(\'提案\')">💡 提案がある</div>' +
         '<div class="buddy-quick-btn" onclick="buddyConsultHint(\'自由\')">✏️ 自由に書く</div>' +
-        '<div class="buddy-quick-btn" onclick="cancelCaptureMode()" style="border-color:#999;color:#999;">✕ やめる</div>' +
+        '<div class="buddy-quick-btn" onclick="cancelCaptureMode()" style="border-color:rgba(255,255,255,0.35);color:rgba(255,255,255,0.9);">✕ やめる</div>' +
       '</div>'
     );
   }, 800);
@@ -6261,7 +6261,7 @@ function cancelCaptureMode() {
 function showCancelCapture() {
   addBuddyInlineQuick(
     '<div style="display:flex;justify-content:center;padding:4px 0;">' +
-      '<div class="buddy-quick-btn" onclick="cancelCaptureMode()" style="border-color:#999;color:#999;">✕ やめる</div>' +
+      '<div class="buddy-quick-btn" onclick="cancelCaptureMode()" style="border-color:rgba(255,255,255,0.35);color:rgba(255,255,255,0.9);">✕ やめる</div>' +
     '</div>'
   );
 }
@@ -6530,7 +6530,7 @@ function entryCardDailyTopic() {
 function _buildQuickButtons(items) {
   var html = '<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;padding:4px 0;">';
   items.forEach(function(it) {
-    html += '<button class="buddy-quick-btn" onclick="' + it.action + '" style="border-color:' + (it.color || '#0ea5e9') + ';color:' + (it.color || '#0ea5e9') + ';">' + it.label + '</button>';
+    html += '<button class="buddy-quick-btn" onclick="' + it.action + '" style="border-color:rgba(255,255,255,0.35);color:rgba(255,255,255,0.9);">' + it.label + '</button>';
   });
   html += '</div>';
   return html;
@@ -6778,8 +6778,8 @@ function inlineFoodCheck() {
   setTimeout(function() {
     addBuddyInlineQuick(
       '<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;padding:4px 0;">' +
-        '<div class="buddy-quick-btn" onclick="triggerFoodCamera()" style="border-color:#20c997;color:#20c997;">📸 写真を撮る</div>' +
-        '<div class="buddy-quick-btn" onclick="cancelCaptureMode()" style="border-color:#999;color:#999;">✕ やめる</div>' +
+        '<div class="buddy-quick-btn" onclick="triggerFoodCamera()" style="border-color:rgba(255,255,255,0.35);color:rgba(255,255,255,0.9);">📸 写真を撮る</div>' +
+        '<div class="buddy-quick-btn" onclick="cancelCaptureMode()" style="border-color:rgba(255,255,255,0.35);color:rgba(255,255,255,0.9);">✕ やめる</div>' +
       '</div>'
     );
     // file input準備
@@ -6832,8 +6832,8 @@ function handleFoodPhotoCapture(input) {
         document.getElementById('buddy-input').placeholder = 'ひとこと（任意、空でもOK）...';
         addBuddyInlineQuick(
           '<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;padding:4px 0;">' +
-            '<div class="buddy-quick-btn" onclick="submitFoodFromChat(\'\')" style="border-color:#20c997;color:#20c997;">🔍 コメントなしで診断する</div>' +
-            '<div class="buddy-quick-btn" onclick="cancelFoodCapture()" style="border-color:#999;color:#999;">✕ やめる</div>' +
+            '<div class="buddy-quick-btn" onclick="submitFoodFromChat(\'\')" style="border-color:rgba(255,255,255,0.35);color:rgba(255,255,255,0.9);">🔍 コメントなしで診断する</div>' +
+            '<div class="buddy-quick-btn" onclick="cancelFoodCapture()" style="border-color:rgba(255,255,255,0.35);color:rgba(255,255,255,0.9);">✕ やめる</div>' +
           '</div>'
         );
       }, 500);
@@ -6940,9 +6940,9 @@ function inlineChallengeJoin() {
       addBuddyMessage('ai', 'どのチャレンジに挑戦する？👇');
       var btns = all.map(function(c) {
         var label = c.isJoined ? (c.icon || '💪') + ' ' + c.title + 'の記録' : (c.icon || '💪') + ' ' + c.title + 'に参加！';
-        return '<div class="buddy-quick-btn" onclick="openChallengeFromChat(\'' + c.challenge_id + '\')" style="border-color:#ff6b35;color:#ff6b35;">' + label + '</div>';
+        return '<div class="buddy-quick-btn" onclick="openChallengeFromChat(\'' + c.challenge_id + '\')" style="border-color:rgba(255,255,255,0.35);color:rgba(255,255,255,0.9);">' + label + '</div>';
       }).join('');
-      btns += '<div class="buddy-quick-btn" onclick="cancelCaptureMode()" style="border-color:#999;color:#999;">✕ やめる</div>';
+      btns += '<div class="buddy-quick-btn" onclick="cancelCaptureMode()" style="border-color:rgba(255,255,255,0.35);color:rgba(255,255,255,0.9);">✕ やめる</div>';
       addBuddyInlineQuick(
         '<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;padding:4px 0;">' + btns + '</div>'
       );
@@ -7034,7 +7034,7 @@ function inlineTopicMenu() {
       { label: '🛡 推進メンバーに相談', action: "entryCardConsult()", color: '#6d28d9' }
     ];
     talkItems.forEach(function(it) {
-      html += '<div class="buddy-quick-btn" onclick="markBuddyQuickUsed();' + it.action + '" style="border-color:' + it.color + ';color:' + it.color + ';font-size:0.72rem;padding:6px 10px;">' + it.label + '</div>';
+      html += '<div class="buddy-quick-btn" onclick="markBuddyQuickUsed();' + it.action + '" style="border-color:rgba(255,255,255,0.35);color:rgba(255,255,255,0.9);font-size:0.72rem;padding:6px 10px;">' + it.label + '</div>';
     });
     html += '</div>';
     // アクション系
@@ -7047,10 +7047,10 @@ function inlineTopicMenu() {
       { label: '📰 みんなの投稿', action: "inlineTimelineView()", color: '#6d28d9' }
     ];
     actionItems.forEach(function(it) {
-      html += '<div class="buddy-quick-btn" onclick="markBuddyQuickUsed();' + it.action + '" style="border-color:' + it.color + ';color:' + it.color + ';font-size:0.72rem;padding:6px 10px;">' + it.label + '</div>';
+      html += '<div class="buddy-quick-btn" onclick="markBuddyQuickUsed();' + it.action + '" style="border-color:rgba(255,255,255,0.35);color:rgba(255,255,255,0.9);font-size:0.72rem;padding:6px 10px;">' + it.label + '</div>';
     });
     html += '</div>';
-    html += '<div style="text-align:center;margin-top:6px;"><div class="buddy-quick-btn" onclick="cancelCaptureMode()" style="border-color:#999;color:#999;font-size:0.68rem;">✕ 閉じる</div></div>';
+    html += '<div style="text-align:center;margin-top:6px;"><div class="buddy-quick-btn" onclick="cancelCaptureMode()" style="border-color:rgba(255,255,255,0.35);color:rgba(255,255,255,0.9);font-size:0.68rem;">✕ 閉じる</div></div>';
     html += '</div>';
     addBuddyInlineQuick(html);
     var msgs = document.getElementById('buddy-messages');
@@ -7065,7 +7065,7 @@ function inlineHelp() {
     var btns = Object.keys(HELP_TOPICS).map(function(key) {
       return '<div class="buddy-quick-btn" onclick="showHelpAnswer(\'' + key + '\')">' + HELP_TOPICS[key].label + '</div>';
     }).join('');
-    btns += '<div class="buddy-quick-btn" onclick="cancelCaptureMode()" style="border-color:#999;color:#999;">✕ 閉じる</div>';
+    btns += '<div class="buddy-quick-btn" onclick="cancelCaptureMode()" style="border-color:rgba(255,255,255,0.35);color:rgba(255,255,255,0.9);">✕ 閉じる</div>';
     addBuddyInlineQuick(
       '<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;padding:4px 0;">' + btns + '</div>'
     );
@@ -7090,7 +7090,7 @@ function showHelpAnswer(key) {
       var btns = Object.keys(HELP_TOPICS).filter(function(k) { return k !== key; }).map(function(k) {
         return '<div class="buddy-quick-btn" onclick="showHelpAnswer(\'' + k + '\')">' + HELP_TOPICS[k].label + '</div>';
       }).join('');
-      btns += '<div class="buddy-quick-btn" onclick="cancelCaptureMode()" style="border-color:#999;color:#999;">✕ 大丈夫！</div>';
+      btns += '<div class="buddy-quick-btn" onclick="cancelCaptureMode()" style="border-color:rgba(255,255,255,0.35);color:rgba(255,255,255,0.9);">✕ 大丈夫！</div>';
       addBuddyInlineQuick(
         '<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;padding:4px 0;">' + btns + '</div>'
       );

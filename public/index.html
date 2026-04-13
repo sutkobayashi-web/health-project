@@ -10108,7 +10108,7 @@ function updateAquariumUI() {
     var clarityColor = clarity > 70 ? '#4ade80' : clarity > 40 ? '#fbbf24' : '#ef4444';
     var stageNames = {1:'卵',2:'稚魚',3:'幼魚',4:'若魚',5:'成魚',6:'大人',7:'伝説'};
     info.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;pointer-events:auto;">' +
-      '<div><span style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.9);">' + (_aq.fish_name || '名前なし') + '</span>' +
+      '<div><span onclick="renameFish()" style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.9);cursor:pointer;border-bottom:1px dashed rgba(255,255,255,0.3);">' + (_aq.fish_name || '名前をつける') + ' ✏️</span>' +
       '<span style="font-size:9px;color:rgba(255,255,255,0.5);margin-left:4px;">' + (stageNames[_aq.growth_stage] || 'Stage'+_aq.growth_stage) + '</span></div>' +
       '<div style="display:flex;align-items:center;gap:6px;">' +
       '<span style="font-size:10px;color:' + clarityColor + ';font-weight:600;">' + clarityLabel + '</span>' +
@@ -10125,6 +10125,24 @@ function showAqVoice(text) {
   el.style.opacity = '1';
   clearTimeout(el._t);
   el._t = setTimeout(function() { el.style.opacity = '0'; }, 5000);
+}
+
+function renameFish() {
+  if (!currentUser || !_aq) return;
+  var current = _aq.fish_name || '';
+  var newName = prompt('魚の名前を入力してね', current);
+  if (newName === null || newName.trim() === '' || newName.trim() === current) return;
+  fetch('/api/aquarium/name-egg', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-user-id': currentUser.uid },
+    body: JSON.stringify({ uid: currentUser.uid, name: newName.trim() })
+  }).then(function(r) { return r.json(); }).then(function(d) {
+    if (d.success) {
+      _aq.fish_name = newName.trim();
+      updateAquariumUI();
+      showAqVoice('「' + newName.trim() + '」...いい名前だね！');
+    }
+  }).catch(function() {});
 }
 
 function getNewEgg() {

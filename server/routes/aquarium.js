@@ -291,13 +291,10 @@ router.post('/feed', authUser, (req, res) => {
   let speciesId = aq.fish_species_id;
 
   if (aq.status === 'egg' && totalFeeds >= 3) {
-    // 孵化！食事パターンで魚種決定
-    speciesId = determineFishSpecies(req.uid, db);
+    // 孵化！最初は全員「稚魚」（species_id=0）
+    // 種類は食事の蓄積で後から決まる
+    speciesId = 0;
     newStatus = 'alive';
-    // 図鑑に登録
-    try {
-      db.prepare('INSERT OR IGNORE INTO fish_discovery (user_id, species_id) VALUES (?, ?)').run(req.uid, speciesId);
-    } catch(e) {}
   }
 
   // 成長判定
@@ -310,13 +307,28 @@ router.post('/feed', authUser, (req, res) => {
     const prevStage = aq.growth_stage || 1;
 
     if (prevStage === 1 && daysAlive >= 1) {
-      newGrowthStage = 2; growthEvent = { stage: 2, msg: '稚魚に成長したよ！' };
+      newGrowthStage = 2; growthEvent = { stage: 2, msg: '稚魚に成長したよ！まだ透明で小さいけど...これからどんな魚になるかな？' };
     }
     if (prevStage === 2 && feeds >= 10 && consec >= 5) {
-      newGrowthStage = 3; growthEvent = { stage: 3, msg: '幼魚になった！少し大きくなったね' };
+      // ★ Stage 3で種類が決まる！食事蓄積で進化分岐
+      speciesId = determineFishSpecies(req.uid, db);
+      newGrowthStage = 3;
+      const sp = FISH_SPECIES.find(s => s.id === speciesId);
+      growthEvent = { stage: 3, msg: '体に色がついてきた！...この子は「' + (sp ? sp.name : '魚') + '」だ！\nあなたの食事から生まれた姿だよ', speciesId: speciesId };
+      // 図鑑に登録
+      try { db.prepare('INSERT OR IGNORE INTO fish_discovery (user_id, species_id) VALUES (?, ?)').run(req.uid, speciesId); } catch(e) {}
     }
     if (prevStage === 3 && daysAlive >= 21 && feeds >= 25) {
-      newGrowthStage = 4; growthEvent = { stage: 4, msg: '若魚に成長！体つきがしっかりしてきた' };
+      // Stage 4: 食事が変わっていれば種類も変化する可能性
+      const newSpecies = determineFishSpecies(req.uid, db);
+      if (newSpecies !== speciesId && newSpecies !== aq.fish_species_id) {
+        speciesId = newSpecies;
+        const sp = FISH_SPECIES.find(s => s.id === speciesId);
+        newGrowthStage = 4; growthEvent = { stage: 4, msg: '食事が変わって...姿も変わった！「' + (sp ? sp.name : '魚') + '」に進化したよ！', speciesId: speciesId };
+        try { db.prepare('INSERT OR IGNORE INTO fish_discovery (user_id, species_id) VALUES (?, ?)').run(req.uid, speciesId); } catch(e) {}
+      } else {
+        newGrowthStage = 4; growthEvent = { stage: 4, msg: '若魚に成長！体つきがしっかりしてきた' };
+      }
     }
     if (prevStage === 4 && daysAlive >= 45 && bs >= 60 && consec >= 7) {
       newGrowthStage = 5; growthEvent = { stage: 5, msg: '成魚になったよ！立派に育ったね' };
@@ -364,7 +376,7 @@ router.post('/feed', authUser, (req, res) => {
   let voice = '';
   if (newStatus === 'alive' && aq.status === 'egg') {
     const sp = FISH_SPECIES.find(s => s.id === speciesId);
-    voice = `卵が割れた！${sp ? sp.name : '魚'}が生まれたよ！\nあなたの最初の3日間のごはんから生まれた命だよ`;
+    voice = '卵が割れた！小さな稚魚が生まれたよ！\nまだ透明で何の魚かわからないけど...\nこれからのごはんで、どんな魚になるか決まるんだ';
     reaction = 'hatch';
   } else if (bs >= 80) {
     voice = 'おっ、今日はごちそうだ！\nすごく嬉しそうに食べてるよ✨';
@@ -595,28 +607,40 @@ router.post('/new-egg', authUser, (req, res) => {
   res.json({ success: true, generation: newGen, voice: '新しい卵だよ。\n今度はどんな子が生まれるかな...' });
 });
 
-// ---------- 魚種決定ロジック ----------
+// ---------- 魚種決定ロジック（直近10回の食事で判定） ----------
 function determineFishSpecies(userId, db) {
-  // 過去3日の食事ログを分析
-  const logs = db.prepare(`SELECT * FROM aquarium_feed_log WHERE user_id = ? AND feed_type = 'user_meal' ORDER BY created_at DESC LIMIT 3`).all(userId);
+  const logs = db.prepare(`SELECT * FROM aquarium_feed_log WHERE user_id = ? AND feed_type = 'user_meal' ORDER BY created_at DESC LIMIT 10`).all(userId);
 
-  if (logs.length < 3) return 1; // デフォルト: ネオンテトラ
+  if (logs.length < 3) return 2; // デフォルト: グッピー（最も普通）
 
-  const avgBalance = logs.reduce((s, l) => s + (l.balance_score || 0), 0) / logs.length;
-  const avgVeg = logs.reduce((s, l) => s + (l.vegetable_score || 0), 0) / logs.length;
-  const avgFat = logs.reduce((s, l) => s + (l.fat_ratio || 0), 0) / logs.length;
-  const avgProtein = logs.reduce((s, l) => s + (l.protein_ratio || 0), 0) / logs.length;
-  const avgSodium = logs.reduce((s, l) => s + (l.sodium || 0), 0) / logs.length;
-  const avgCalories = logs.reduce((s, l) => s + (l.calories || 0), 0) / logs.length;
+  const avg = (key) => logs.reduce((s, l) => s + (Number(l[key]) || 0), 0) / logs.length;
+  const avgBalance = avg('balance_score');
+  const avgVeg = avg('vegetable_score');
+  const avgFat = avg('fat_ratio');
+  const avgProtein = avg('protein_ratio');
+  const avgSodium = avg('sodium');
+  const avgCalories = avg('calories');
+  const avgAlcohol = avg('alcohol_cal');
+  const avgFiber = avg('fiber_score');
+  const count = logs.length;
 
-  // コモン種の分岐
-  if (avgBalance >= 70) return 1;           // ネオンテトラ（バランス良好）
-  if (avgVeg > 50) return 3;               // メダカ（和食/野菜寄り）
-  if (avgProtein > 0.22) return 5;         // ゼブラダニオ（肉多め）
-  if (avgFat > 0.35) return 8;             // ドジョウ（不規則/脂質多い）
-  if (avgCalories < 500) return 7;         // コリドラス（カロリー控えめ）
-  if (avgCalories > 800) return 4;         // プラティ（洋食/高カロリー）
-  if (avgSodium < 2000) return 6;          // アカヒレ（質素）
+  // === アンコモン判定（食事が一定以上蓄積されている場合） ===
+  if (count >= 7) {
+    if (avgBalance >= 70 && avgVeg > 50) return 9;            // エンゼルフィッシュ（野菜+バランス）
+    if (avgProtein > 0.20 && avgFat < 0.30) return 10;        // ベタ（高タンパク低脂質）
+    if (avgFat < 0.25 && avgBalance >= 60) return 11;         // グラミー（脂質控えめ）
+    if (avgBalance >= 70) return 12;                          // カージナルテトラ（バランス優秀）
+    if (avgFiber > 3) return 14;                              // オトシンクルス（食物繊維多い）
+  }
+
+  // === コモン判定 ===
+  if (avgBalance >= 65) return 1;           // ネオンテトラ（バランス良好）
+  if (avgVeg > 45) return 3;               // メダカ（野菜寄り）
+  if (avgProtein > 0.20) return 5;         // ゼブラダニオ（肉多め）
+  if (avgFat > 0.32) return 8;             // ドジョウ（脂質多い）
+  if (avgCalories < 550) return 7;         // コリドラス（カロリー控えめ）
+  if (avgCalories > 750) return 4;         // プラティ（高カロリー）
+  if (avgSodium < 2200) return 6;          // アカヒレ（塩分少なめ）
   return 2;                                 // グッピー（標準）
 }
 

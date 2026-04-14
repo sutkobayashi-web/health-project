@@ -10170,24 +10170,33 @@ function updateAquariumUI() {
   var stageNames = {1:'卵',2:'稚魚',3:'幼魚',4:'若魚',5:'成魚',6:'大人',7:'伝説'};
 
   if (_aq.status === 'egg') {
+    var eggFeeds = _aq.total_feeds || 0;
+    var todayStrEgg = new Date().toISOString().split('T')[0];
+    var fedTodayEgg = _aq.last_feed_date === todayStrEgg;
     info.innerHTML =
-      '<div style="flex:1;display:flex;align-items:center;gap:8px;">' +
-        '<span style="font-size:20px;">🥚</span>' +
-        '<div>' +
-          '<div onclick="renameFish()" style="font-size:13px;font-weight:700;color:#fff;cursor:pointer;">' + (_aq.fish_name || '名前をつける ✏️') + '</div>' +
-          '<div style="font-size:10px;color:rgba(255,255,255,0.5);">ごはん ' + (_aq.total_feeds||0) + '/3 で孵化</div>' +
-        '</div>' +
-      '</div>';
-  } else if (_aq.status === 'dead') {
-    info.innerHTML =
-      '<div style="flex:1;display:flex;align-items:center;gap:8px;">' +
-        '<span style="font-size:18px;">🕯️</span>' +
-        '<div>' +
-          '<div style="font-size:13px;font-weight:700;color:rgba(255,255,255,0.6);">' + (_aq.fish_name || '名前なし') + '</div>' +
-          '<div style="font-size:10px;color:rgba(255,255,255,0.4);">旅立ちました</div>' +
+      '<div style="flex:1;min-width:0;display:flex;align-items:center;gap:6px;">' +
+        '<span style="font-size:18px;">🥚</span>' +
+        '<div style="min-width:0;">' +
+          '<div onclick="renameFish()" style="font-size:13px;font-weight:700;color:#fff;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (_aq.fish_name || '名前をつける ✏️') + '</div>' +
+          '<div style="font-size:9px;color:rgba(255,255,255,0.5);">ごはん ' + eggFeeds + '/3 で孵化</div>' +
         '</div>' +
       '</div>' +
-      '<button onclick="getNewEgg()" style="font-size:10px;padding:4px 12px;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:10px;color:rgba(255,255,255,0.8);cursor:pointer;">新しい卵</button>';
+      '<button onclick="showEggStatus()" style="font-size:10px;padding:4px 10px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:8px;color:rgba(255,255,255,0.9);cursor:pointer;flex-shrink:0;font-weight:700;">📊状態</button>' +
+      '<button onclick="showFishGuide()" style="font-size:10px;padding:4px 10px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:8px;color:rgba(255,255,255,0.9);cursor:pointer;flex-shrink:0;font-weight:700;">📖ガイド</button>' +
+      '<button id="feed-btn" onclick="manualFeed()" style="font-size:10px;padding:4px 10px;background:' + (fedTodayEgg ? 'rgba(255,255,255,0.08)' : 'rgba(251,191,36,0.25)') + ';border:1px solid ' + (fedTodayEgg ? 'rgba(255,255,255,0.1)' : 'rgba(251,191,36,0.5)') + ';border-radius:8px;color:' + (fedTodayEgg ? 'rgba(255,255,255,0.4)' : '#fbbf24') + ';cursor:pointer;flex-shrink:0;font-weight:700;">' + (fedTodayEgg ? '✅済' : '🐟餌') + '</button>' +
+      '<button onclick="clearBuddyChat()" style="font-size:12px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.3);cursor:pointer;flex-shrink:0;padding:4px 6px;border-radius:8px;" title="チャット履歴クリア"><i class="fas fa-trash-alt"></i></button>';
+  } else if (_aq.status === 'dead') {
+    info.innerHTML =
+      '<div style="flex:1;display:flex;align-items:center;gap:6px;min-width:0;">' +
+        '<span style="font-size:16px;">🕯️</span>' +
+        '<div style="min-width:0;">' +
+          '<div style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.6);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (_aq.fish_name || '名前なし') + '</div>' +
+          '<div style="font-size:9px;color:rgba(255,255,255,0.4);">旅立ちました</div>' +
+        '</div>' +
+      '</div>' +
+      '<button onclick="getNewEgg()" style="font-size:10px;padding:4px 10px;background:rgba(74,222,128,0.2);border:1px solid rgba(74,222,128,0.4);border-radius:8px;color:#4ade80;cursor:pointer;flex-shrink:0;font-weight:700;">🥚新しい卵</button>' +
+      '<button onclick="showFishGuide()" style="font-size:10px;padding:4px 10px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:8px;color:rgba(255,255,255,0.9);cursor:pointer;flex-shrink:0;font-weight:700;">📖ガイド</button>' +
+      '<button onclick="clearBuddyChat()" style="font-size:12px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.3);cursor:pointer;flex-shrink:0;padding:4px 6px;border-radius:8px;" title="チャット履歴クリア"><i class="fas fa-trash-alt"></i></button>';
   } else {
     var health = Math.round(_aq.fish_health || 0);
     var clarity = Math.round(_aq.water_clarity || 0);
@@ -10440,6 +10449,59 @@ function giveHealthAdvice() {
       addBuddyMessage('ai', msg);
     }, i * 1500);
   });
+}
+
+function showEggStatus() {
+  var existing = document.getElementById('status-panel');
+  if (existing) { existing.remove(); return; }
+  if (!_aq) return;
+  var feeds = _aq.total_feeds || 0;
+  var name = _aq.fish_name || '（名前なし）';
+  var eggAge = _aq.egg_started_at ? Math.floor((Date.now() - new Date(_aq.egg_started_at+'Z').getTime()) / 86400000) : 0;
+
+  var html = '<div id="status-panel" style="position:fixed;top:0;left:0;right:0;bottom:0;z-index:9998;" onclick="this.remove()">' +
+    '<div style="position:absolute;top:50px;right:10px;left:10px;max-width:320px;margin-left:auto;background:rgba(10,40,70,0.97);border:1px solid rgba(255,255,255,0.2);border-radius:14px;padding:16px;box-shadow:0 8px 24px rgba(0,0,0,0.4);" onclick="event.stopPropagation()">' +
+      '<div style="font-size:14px;font-weight:800;color:#fff;margin-bottom:12px;">🥚 ' + name + 'の状態</div>' +
+
+      '<div style="display:flex;gap:8px;margin-bottom:12px;">' +
+        '<div style="flex:1;background:rgba(255,255,255,0.06);border-radius:8px;padding:10px;text-align:center;">' +
+          '<div style="font-size:9px;color:rgba(255,255,255,0.5);">ステージ</div>' +
+          '<div style="font-size:16px;font-weight:800;color:#fbbf24;">🥚 卵</div>' +
+        '</div>' +
+        '<div style="flex:1;background:rgba(255,255,255,0.06);border-radius:8px;padding:10px;text-align:center;">' +
+          '<div style="font-size:9px;color:rgba(255,255,255,0.5);">ごはん回数</div>' +
+          '<div style="font-size:16px;font-weight:800;color:' + (feeds >= 3 ? '#4ade80' : '#fbbf24') + ';">' + feeds + ' / 3</div>' +
+        '</div>' +
+        '<div style="flex:1;background:rgba(255,255,255,0.06);border-radius:8px;padding:10px;text-align:center;">' +
+          '<div style="font-size:9px;color:rgba(255,255,255,0.5);">経過日数</div>' +
+          '<div style="font-size:16px;font-weight:800;color:#60a5fa;">' + eggAge + '日</div>' +
+        '</div>' +
+      '</div>' +
+
+      '<div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.6);margin-bottom:6px;">🐣 孵化までの道のり</div>' +
+      '<div style="background:rgba(255,255,255,0.06);border-radius:8px;padding:10px;margin-bottom:8px;">' +
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">' +
+          '<span style="font-size:10px;color:' + (feeds >= 1 ? '#4ade80' : 'rgba(255,255,255,0.4)') + ';">' + (feeds >= 1 ? '✅' : '⬜') + '</span>' +
+          '<span style="font-size:11px;color:rgba(255,255,255,0.8);">1回目のごはん</span>' +
+        '</div>' +
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">' +
+          '<span style="font-size:10px;color:' + (feeds >= 2 ? '#4ade80' : 'rgba(255,255,255,0.4)') + ';">' + (feeds >= 2 ? '✅' : '⬜') + '</span>' +
+          '<span style="font-size:11px;color:rgba(255,255,255,0.8);">2回目のごはん</span>' +
+        '</div>' +
+        '<div style="display:flex;align-items:center;gap:8px;">' +
+          '<span style="font-size:10px;color:' + (feeds >= 3 ? '#4ade80' : 'rgba(255,255,255,0.4)') + ';">' + (feeds >= 3 ? '✅' : '⬜') + '</span>' +
+          '<span style="font-size:11px;color:rgba(255,255,255,0.8);">3回目のごはん → 🐣 孵化！</span>' +
+        '</div>' +
+      '</div>' +
+
+      '<div style="font-size:10px;color:rgba(255,255,255,0.4);line-height:1.6;margin-bottom:10px;">' +
+        '💡 食事の写真を撮って投稿するか、下のメニューから「🐟餌」ボタンをタップすると、ごはん回数が増えます。' +
+      '</div>' +
+
+      '<button onclick="this.closest(\'#status-panel\').remove()" style="width:100%;padding:8px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:8px;color:rgba(255,255,255,0.7);cursor:pointer;font-size:11px;">閉じる</button>' +
+    '</div></div>';
+
+  document.body.insertAdjacentHTML('beforeend', html);
 }
 
 function showStatusPanel() {

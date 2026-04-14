@@ -52,6 +52,37 @@ router.get('/inbox', (req, res) => {
   } catch (e) { res.json([]); }
 });
 
+// 推進メンバー掲示板用: 受信箱サマリー
+router.get('/inbox-summary', (req, res) => {
+  try {
+    const db = getDb();
+    const posts = db.prepare("SELECT post_id, category, admin_read_at FROM posts WHERE status = 'open' ORDER BY created_at DESC").all();
+    // メンバーコメント数
+    const commentCounts = {};
+    db.prepare("SELECT post_id, COUNT(*) as cnt FROM member_chats GROUP BY post_id").all()
+      .forEach(r => { commentCounts[r.post_id] = r.cnt; });
+    const result = posts.map(p => ({
+      post_id: p.post_id,
+      category: p.category,
+      admin_read: !!p.admin_read_at,
+      member_comment_count: commentCounts[p.post_id] || 0,
+    }));
+    res.json({ success: true, posts: result, total: result.length });
+  } catch (e) { res.json({ success: false, posts: [], total: 0 }); }
+});
+
+// 推進メンバー掲示板用: 活動統計
+router.get('/stats', (req, res) => {
+  try {
+    const db = getDb();
+    const weeklyPosts = db.prepare("SELECT COUNT(*) as cnt FROM posts WHERE created_at > datetime('now', '-7 days')").get().cnt;
+    const activeUsers = db.prepare("SELECT COUNT(DISTINCT user_id) as cnt FROM buddy_messages WHERE created_at > datetime('now', '-7 days')").get().cnt;
+    const totalUsers = db.prepare("SELECT COUNT(*) as cnt FROM users").get().cnt;
+    const todayChats = db.prepare("SELECT COUNT(*) as cnt FROM buddy_messages WHERE created_at > datetime('now', '-1 day')").get().cnt;
+    res.json({ success: true, weeklyPosts, activeUsers, totalUsers, todayChats });
+  } catch (e) { res.json({ success: false }); }
+});
+
 // 投稿の管理者既読マーク
 router.post('/inbox-mark-read', (req, res) => {
   try {

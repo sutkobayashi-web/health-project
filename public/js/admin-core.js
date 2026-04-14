@@ -157,6 +157,7 @@ function loadData() {
             allPostData = data;
         }
         if (typeof renderV2Dashboard === 'function') renderV2Dashboard();
+        if (typeof loadMemberBoard === 'function') loadMemberBoard();
     }).catch(function(err) { hideLoading(); alert("データ取得エラー: " + err.message); });
     // メンバーリスト＆ハートビート開始
     startHeartbeat();
@@ -860,7 +861,7 @@ function switchTab(t) {
     if(t==='members') loadMemberManagement();
     if(t==='backup') loadBackupTab();
     // v2
-    if(t==='v2dash' && typeof renderV2Dashboard === 'function') renderV2Dashboard();
+    if(t==='v2dash') { if(typeof renderV2Dashboard === 'function') renderV2Dashboard(); if(typeof loadMemberBoard === 'function') loadMemberBoard(); }
     if(t==='v2challenge' && typeof renderV2Challenges === 'function') renderV2Challenges();
     if(t==='v2kpi' && typeof renderV2KpiSelector === 'function') renderV2KpiSelector();
     if(t==='v2ambassador' && typeof renderV2Ambassador === 'function') renderV2Ambassador();

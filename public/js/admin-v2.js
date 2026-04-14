@@ -1,6 +1,122 @@
 /*  admin-v2.js – 凝集型健康アクションプラン管理画面  */
 
 // ============================================================
+// ★ 推進メンバー掲示板
+// ============================================================
+function loadMemberBoard() {
+  var board = document.getElementById('board-tasks');
+  if (!board) return;
+
+  // 挨拶
+  var hour = new Date().getHours();
+  var greetEl = document.getElementById('board-greeting');
+  if (greetEl) {
+    greetEl.textContent = hour < 10 ? 'おはようございます。今日のやることを確認しましょう' :
+      hour < 18 ? 'お疲れ様です。状況を確認しましょう' : 'お疲れ様でした。今日の振り返りです';
+  }
+
+  // 並行でデータ取得
+  Promise.all([
+    api('/themes/current-cycle', undefined, getAdminToken()),
+    api('/posts/inbox-summary', undefined, getAdminToken()).catch(function() { return null; }),
+    api('/admin/stats', undefined, getAdminToken()).catch(function() { return null; }),
+  ]).then(function(results) {
+    var cycleData = results[0];
+    var inboxData = results[1];
+    var statsData = results[2];
+
+    var tasks = [];
+
+    // 1. 未対応の投稿
+    var unreadPosts = 0;
+    try {
+      if (inboxData && inboxData.posts) {
+        unreadPosts = inboxData.posts.filter(function(p) { return !p.member_comment_count; }).length;
+      }
+    } catch(e) {}
+    if (unreadPosts > 0) {
+      tasks.push({
+        icon: '💬', color: '#ef4444', priority: 1,
+        title: '未対応の投稿が ' + unreadPosts + '件',
+        desc: '社員からの相談・投稿にコメントや共感をお願いします',
+        action: '受信箱を見る', onclick: "switchTab('inbox')"
+      });
+    } else {
+      tasks.push({
+        icon: '✅', color: '#4ade80', priority: 9,
+        title: '投稿はすべて対応済み',
+        desc: '新しい投稿が届いたら通知されます',
+        action: null
+      });
+    }
+
+    // 2. テーマサイクル状況
+    if (cycleData && cycleData.success && cycleData.cycle) {
+      var c = cycleData.cycle;
+      var themes = cycleData.themes || [];
+      var statusInfo = {
+        'candidate': { icon: '🔍', title: 'テーマ精査中 (' + themes.length + '件)', desc: 'プラン案に共感を押し、議論チャットで意見を書いてください', action: '精査する', color: '#f59e0b' },
+        'advisor_review': { icon: '🩺', title: '専門家の助言待ち', desc: '保健師からのコメントを待っています', action: null, color: '#9c27b0' },
+        'exec_approval': { icon: '📝', title: '役員承認待ち', desc: '役員の承認を待っています', action: null, color: '#e53935' },
+        'voting': { icon: '🗳️', title: '全社投票中', desc: (cycleData.totalVoters || 0) + '/' + (cycleData.totalUsers || 0) + '名が投票済み。社員に投票を呼びかけてください', action: '投票状況を見る', color: '#667eea' },
+        'finalized': { icon: '🎉', title: 'テーマ確定済み', desc: 'チャレンジを作成して施策を開始しましょう', action: 'チャレンジ作成', color: '#43a047' },
+      };
+      var info = statusInfo[c.status] || { icon: '📊', title: 'サイクル進行中', desc: '', action: null, color: '#999' };
+
+      // 精査中は共感未評価のプラン数をカウント
+      if (c.status === 'candidate') {
+        var planCount = 0;
+        themes.forEach(function(t) { try { planCount += JSON.parse(t.action_plans || '[]').length; } catch(e) {} });
+        if (planCount > 0) info.desc = planCount + '件のプラン案に共感を押し、議論に参加してください';
+      }
+
+      tasks.push({
+        icon: info.icon, color: info.color, priority: c.status === 'candidate' ? 2 : 5,
+        title: info.title,
+        desc: info.desc,
+        action: info.action, onclick: "document.getElementById('v2-themes-area').scrollIntoView({behavior:'smooth'})"
+      });
+    } else {
+      tasks.push({
+        icon: '📊', color: '#64748b', priority: 8,
+        title: 'テーマサイクル未開始',
+        desc: '投稿が集まったら「AIテーマ凝集」を実行してサイクルを開始します',
+        action: null
+      });
+    }
+
+    // 3. 今週の活動サマリー
+    try {
+      var weeklyPosts = statsData && statsData.weeklyPosts ? statsData.weeklyPosts : 0;
+      var activeUsers = statsData && statsData.activeUsers ? statsData.activeUsers : 0;
+      tasks.push({
+        icon: '📈', color: '#22d3ee', priority: 7,
+        title: '今週の活動: 投稿 ' + weeklyPosts + '件 / アクティブ ' + activeUsers + '名',
+        desc: '社員の参加が増えるとテーマ凝集の精度が上がります',
+        action: null
+      });
+    } catch(e) {}
+
+    // 優先度でソート
+    tasks.sort(function(a, b) { return a.priority - b.priority; });
+
+    // レンダリング
+    board.innerHTML = tasks.map(function(t) {
+      return '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(255,255,255,0.06);border-radius:10px;border-left:3px solid ' + t.color + ';">' +
+        '<span style="font-size:1.3rem;flex-shrink:0;">' + t.icon + '</span>' +
+        '<div style="flex:1;min-width:0;">' +
+          '<div style="font-weight:700;font-size:0.82rem;">' + t.title + '</div>' +
+          '<div style="font-size:0.7rem;color:rgba(255,255,255,0.5);line-height:1.4;">' + t.desc + '</div>' +
+        '</div>' +
+        (t.action ? '<button onclick="' + (t.onclick || '') + '" style="background:' + t.color + ';color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;">' + t.action + '</button>' : '') +
+      '</div>';
+    }).join('');
+  }).catch(function() {
+    board.innerHTML = '<div style="text-align:center;padding:12px;color:rgba(255,255,255,0.4);font-size:0.8rem;">読み込みエラー</div>';
+  });
+}
+
+// ============================================================
 // 全社健診データ分析
 // ============================================================
 function runCheckupAnalysis() {

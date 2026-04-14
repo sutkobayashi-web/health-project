@@ -797,29 +797,9 @@
     <div id="aq-info" style="flex-shrink:0;background:linear-gradient(135deg,#0e4a7a,#0a3d6b);padding:8px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(255,255,255,0.15);">
       <div style="font-size:11px;color:rgba(255,255,255,0.6);">読み込み中...</div>
     </div>
-    <!-- コンディションバー（元気度+水質のビジュアルバー） -->
-    <div id="condition-bar" style="flex-shrink:0;background:rgba(10,30,50,0.95);padding:6px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,0.08);display:none;">
-      <div style="flex:1;min-width:0;">
-        <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px;">
-          <span style="font-size:8px;color:rgba(255,255,255,0.5);width:28px;">元気</span>
-          <div style="flex:1;height:5px;background:rgba(255,255,255,0.08);border-radius:3px;overflow:hidden;">
-            <div id="cond-health-bar" style="width:50%;height:100%;background:#4ade80;border-radius:3px;transition:width 0.5s;"></div>
-          </div>
-          <span id="cond-health-val" style="font-size:9px;color:#4ade80;font-weight:700;width:28px;text-align:right;">50%</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:4px;">
-          <span style="font-size:8px;color:rgba(255,255,255,0.5);width:28px;">水質</span>
-          <div style="flex:1;height:5px;background:rgba(255,255,255,0.08);border-radius:3px;overflow:hidden;">
-            <div id="cond-clarity-bar" style="width:50%;height:100%;background:#60a5fa;border-radius:3px;transition:width 0.5s;"></div>
-          </div>
-          <span id="cond-clarity-val" style="font-size:9px;color:#60a5fa;font-weight:700;width:28px;text-align:right;">50%</span>
-        </div>
-      </div>
-      <div id="cond-mood" style="font-size:18px;">😐</div>
-      <button onclick="openSharedTank()" style="background:rgba(26,122,181,0.3);border:1px solid rgba(26,122,181,0.5);color:rgba(255,255,255,0.9);border-radius:8px;padding:4px 10px;font-size:9px;font-weight:700;cursor:pointer;flex-shrink:0;"><i class="fas fa-water"></i> みんな</button>
-    </div>
+    <!-- コンディションバーは水槽Canvas内に描画（condition-bar廃止） -->
     <!-- 水槽ミニビュー + チャットエリア -->
-    <div id="aquarium-container" style="height:30vh;max-height:180px;position:relative;overflow:hidden;background:linear-gradient(180deg,#1a7ab5,#0e5a8a,#0a3d6b);flex-shrink:0;">
+    <div id="aquarium-container" style="height:18vh;max-height:110px;position:relative;overflow:hidden;background:linear-gradient(180deg,#1a7ab5,#0e5a8a,#0a3d6b);flex-shrink:0;">
       <!-- 水槽Canvas -->
       <canvas id="aquarium-canvas" style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:1;"></canvas>
       <div id="aq-voice" style="display:none;"></div>
@@ -830,27 +810,22 @@
       <!-- 入口カード -->
       <div id="buddy-entry-cards" style="display:none;position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(10,40,70,0.95);backdrop-filter:blur(8px);overflow-y:auto;padding:18px 14px;z-index:5;"></div>
     </div>
-    <!-- インラインアクションバー（2行×横スクロール） -->
-    <div id="buddy-action-bar" style="flex-shrink:0;background:rgba(10,30,50,0.9);border-top:1px solid rgba(255,255,255,0.1);padding:6px 8px;display:flex;flex-direction:column;gap:4px;">
-      <div style="display:flex;gap:5px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;touch-action:pan-x;">
-        <button onclick="inlineBuddyTalk()" class="buddy-action-btn" style="display:flex;align-items:center;gap:4px;padding:7px 12px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);color:rgba(255,255,255,0.9);border-radius:18px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;"><i class="fas fa-comment-dots"></i> 話す</button>
-        <button onclick="inlineFoodCheck()" class="buddy-action-btn" style="display:flex;align-items:center;gap:4px;padding:7px 12px;background:rgba(32,201,151,0.2);border:1px solid rgba(32,201,151,0.4);color:rgba(255,255,255,0.9);border-radius:18px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;"><i class="fas fa-utensils"></i> ごはん</button>
-        <!-- 餌あげはステータスバーに移動 -->
-        <button onclick="openStepInput()" class="buddy-action-btn" style="display:flex;align-items:center;gap:4px;padding:7px 12px;background:rgba(74,222,128,0.2);border:1px solid rgba(74,222,128,0.35);color:rgba(255,255,255,0.9);border-radius:18px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;"><i class="fas fa-shoe-prints"></i> 歩数</button>
-        <button onclick="inlineHealthConsult()" class="buddy-action-btn" style="display:flex;align-items:center;gap:4px;padding:7px 12px;background:rgba(233,30,99,0.2);border:1px solid rgba(233,30,99,0.3);color:rgba(255,255,255,0.9);border-radius:18px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;"><i class="fas fa-heartbeat"></i> 体調</button>
-        <button onclick="inlineMemberConsult()" class="buddy-action-btn" style="display:flex;align-items:center;gap:4px;padding:7px 12px;background:rgba(243,156,18,0.2);border:1px solid rgba(243,156,18,0.3);color:rgba(255,255,255,0.9);border-radius:18px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;"><i class="fas fa-shield-alt"></i> 相談</button>
-        <button onclick="inlineTopicMenu()" class="buddy-action-btn" style="display:flex;align-items:center;gap:4px;padding:7px 12px;background:rgba(124,58,237,0.2);border:1px solid rgba(124,58,237,0.3);color:rgba(255,255,255,0.9);border-radius:18px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;"><i class="fas fa-th-large"></i> メニュー</button>
-      </div>
-      <div style="display:flex;gap:5px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;touch-action:pan-x;">
-        <button onclick="openSharedTank()" class="buddy-action-btn" style="display:flex;align-items:center;gap:4px;padding:7px 12px;background:rgba(26,122,181,0.25);border:1px solid rgba(26,122,181,0.4);color:rgba(255,255,255,0.9);border-radius:18px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;"><i class="fas fa-water"></i> 仲間を見る</button>
-        <button onclick="openFishBook()" class="buddy-action-btn" style="display:flex;align-items:center;gap:4px;padding:7px 12px;background:rgba(74,222,128,0.15);border:1px solid rgba(74,222,128,0.3);color:rgba(255,255,255,0.9);border-radius:18px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;"><i class="fas fa-book"></i> 図鑑</button>
-        <button onclick="openFishHistory()" class="buddy-action-btn" style="display:flex;align-items:center;gap:4px;padding:7px 12px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.7);border-radius:18px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;"><i class="fas fa-monument"></i> 歴代</button>
-        <button onclick="inlineChallengeJoin()" class="buddy-action-btn" style="display:flex;align-items:center;gap:4px;padding:7px 12px;background:rgba(255,107,53,0.2);border:1px solid rgba(255,107,53,0.35);color:rgba(255,255,255,0.9);border-radius:18px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;"><i class="fas fa-fire"></i> チャレンジ</button>
-        <button onclick="inlineTimelineView()" class="buddy-action-btn" style="display:flex;align-items:center;gap:4px;padding:7px 12px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);color:rgba(255,255,255,0.9);border-radius:18px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;"><i class="fas fa-stream"></i> みんなの投稿</button>
-        <button onclick="inlineAtmosphere()" class="buddy-action-btn" style="display:flex;align-items:center;gap:4px;padding:7px 12px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);color:rgba(255,255,255,0.9);border-radius:18px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;"><i class="fas fa-cloud-sun"></i> みんなの空気</button>
-        <button id="bp-inline-btn" onclick="inlineBpRecord()" class="buddy-action-btn" style="display:none;align-items:center;gap:4px;padding:7px 12px;background:rgba(233,30,99,0.2);border:1px solid rgba(233,30,99,0.3);color:rgba(255,255,255,0.9);border-radius:18px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;"><i class="fas fa-stethoscope"></i> 血圧を測る</button>
-        <button id="bp-view-inline-btn" onclick="inlineBpView()" class="buddy-action-btn" style="display:none;align-items:center;gap:4px;padding:7px 12px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);color:rgba(255,255,255,0.9);border-radius:18px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;"><i class="fas fa-chart-line"></i> 血圧を見る</button>
-        <button onclick="inlineHelp()" class="buddy-action-btn" style="display:flex;align-items:center;gap:4px;padding:7px 12px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.7);border-radius:18px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;"><i class="fas fa-question-circle"></i> 使い方</button>
+    <!-- インラインアクションバー（1行横スクロール） -->
+    <div id="buddy-action-bar" style="flex-shrink:0;background:rgba(10,30,50,0.95);border-top:1px solid rgba(255,255,255,0.1);padding:5px 8px;">
+      <div style="display:flex;gap:4px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;touch-action:pan-x;">
+        <button onclick="inlineBuddyTalk()" class="buddy-action-btn" style="display:flex;align-items:center;gap:3px;padding:6px 10px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);color:rgba(255,255,255,0.9);border-radius:16px;font-size:0.68rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;"><i class="fas fa-comment-dots"></i> 話す</button>
+        <button onclick="inlineFoodCheck()" class="buddy-action-btn" style="display:flex;align-items:center;gap:3px;padding:6px 10px;background:rgba(32,201,151,0.2);border:1px solid rgba(32,201,151,0.4);color:rgba(255,255,255,0.9);border-radius:16px;font-size:0.68rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;"><i class="fas fa-utensils"></i> ごはん</button>
+        <button onclick="openStepInput()" class="buddy-action-btn" style="display:flex;align-items:center;gap:3px;padding:6px 10px;background:rgba(74,222,128,0.2);border:1px solid rgba(74,222,128,0.35);color:rgba(255,255,255,0.9);border-radius:16px;font-size:0.68rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;"><i class="fas fa-shoe-prints"></i> 歩数</button>
+        <button onclick="inlineHealthConsult()" class="buddy-action-btn" style="display:flex;align-items:center;gap:3px;padding:6px 10px;background:rgba(233,30,99,0.2);border:1px solid rgba(233,30,99,0.3);color:rgba(255,255,255,0.9);border-radius:16px;font-size:0.68rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;"><i class="fas fa-heartbeat"></i> 体調</button>
+        <button onclick="inlineMemberConsult()" class="buddy-action-btn" style="display:flex;align-items:center;gap:3px;padding:6px 10px;background:rgba(243,156,18,0.2);border:1px solid rgba(243,156,18,0.3);color:rgba(255,255,255,0.9);border-radius:16px;font-size:0.68rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;"><i class="fas fa-shield-alt"></i> 相談</button>
+        <button onclick="openSharedTank()" class="buddy-action-btn" style="display:flex;align-items:center;gap:3px;padding:6px 10px;background:rgba(26,122,181,0.25);border:1px solid rgba(26,122,181,0.4);color:rgba(255,255,255,0.9);border-radius:16px;font-size:0.68rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;"><i class="fas fa-water"></i> みんな</button>
+        <button onclick="inlineChallengeJoin()" class="buddy-action-btn" style="display:flex;align-items:center;gap:3px;padding:6px 10px;background:rgba(255,107,53,0.2);border:1px solid rgba(255,107,53,0.35);color:rgba(255,255,255,0.9);border-radius:16px;font-size:0.68rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;"><i class="fas fa-fire"></i> チャレンジ</button>
+        <button onclick="inlineTimelineView()" class="buddy-action-btn" style="display:flex;align-items:center;gap:3px;padding:6px 10px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);color:rgba(255,255,255,0.9);border-radius:16px;font-size:0.68rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;"><i class="fas fa-stream"></i> 投稿</button>
+        <button onclick="openFishBook()" class="buddy-action-btn" style="display:flex;align-items:center;gap:3px;padding:6px 10px;background:rgba(74,222,128,0.15);border:1px solid rgba(74,222,128,0.3);color:rgba(255,255,255,0.9);border-radius:16px;font-size:0.68rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;"><i class="fas fa-book"></i> 図鑑</button>
+        <button onclick="inlineTopicMenu()" class="buddy-action-btn" style="display:flex;align-items:center;gap:3px;padding:6px 10px;background:rgba(124,58,237,0.2);border:1px solid rgba(124,58,237,0.3);color:rgba(255,255,255,0.9);border-radius:16px;font-size:0.68rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;"><i class="fas fa-th-large"></i> メニュー</button>
+        <button id="bp-inline-btn" onclick="inlineBpRecord()" class="buddy-action-btn" style="display:none;align-items:center;gap:3px;padding:6px 10px;background:rgba(233,30,99,0.2);border:1px solid rgba(233,30,99,0.3);color:rgba(255,255,255,0.9);border-radius:16px;font-size:0.68rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;"><i class="fas fa-stethoscope"></i> 血圧</button>
+        <button id="bp-view-inline-btn" onclick="inlineBpView()" class="buddy-action-btn" style="display:none;align-items:center;gap:3px;padding:6px 10px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);color:rgba(255,255,255,0.9);border-radius:16px;font-size:0.68rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;"><i class="fas fa-chart-line"></i> 血圧</button>
+        <button onclick="inlineHelp()" class="buddy-action-btn" style="display:flex;align-items:center;gap:3px;padding:6px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.7);border-radius:16px;font-size:0.68rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;"><i class="fas fa-question-circle"></i> ヘルプ</button>
       </div>
     </div>
     <!-- 音声モードパネル（コンパクト） -->
@@ -10192,27 +10167,7 @@ function updateAquariumUI() {
   var voiceEl = document.getElementById('aq-voice');
   if (!info) return;
 
-  // コンディションバー更新
-  var condBar = document.getElementById('condition-bar');
-  if (condBar && _aq.status === 'alive') {
-    condBar.style.display = 'flex';
-    var h = Math.round(_aq.fish_health || 0);
-    var c = Math.round(_aq.water_clarity || 0);
-    var hColor = h > 70 ? '#4ade80' : h > 40 ? '#fbbf24' : '#ef4444';
-    var cColor = c > 70 ? '#4ade80' : c > 40 ? '#60a5fa' : '#ef4444';
-    var hBar = document.getElementById('cond-health-bar');
-    var cBar = document.getElementById('cond-clarity-bar');
-    if (hBar) { hBar.style.width = h + '%'; hBar.style.background = hColor; }
-    if (cBar) { cBar.style.width = c + '%'; cBar.style.background = cColor; }
-    var hVal = document.getElementById('cond-health-val');
-    var cVal = document.getElementById('cond-clarity-val');
-    if (hVal) { hVal.textContent = h + '%'; hVal.style.color = hColor; }
-    if (cVal) { cVal.textContent = c + '%'; cVal.style.color = cColor; }
-    var mood = document.getElementById('cond-mood');
-    if (mood) mood.textContent = h > 70 ? '😊' : h > 40 ? '😐' : '😢';
-  } else if (condBar) {
-    condBar.style.display = _aq.status === 'egg' ? 'none' : 'none';
-  }
+  // コンディションは水槽Canvas内に描画（drawAquarium内で処理）
 
   var spNames = {1:'ネオンテトラ',2:'グッピー',3:'メダカ',4:'プラティ',5:'ゼブラダニオ',6:'アカヒレ',7:'コリドラス',8:'ドジョウ',9:'エンゼル',10:'ベタ',11:'グラミー',12:'カージナル',13:'ラスボラ',14:'オトシン',15:'ローチ',16:'チェリー',17:'ディスカス',18:'琉金',19:'クマノミ',20:'エビ',21:'ラミレジィ',22:'アピスト',23:'錦鯉',24:'アロワナ',25:'エイ',26:'タツノオトシゴ',27:'リュウグウ',28:'マンタ',29:'クジラ',30:'フェニックス'};
   var stageNames = {1:'卵',2:'稚魚',3:'幼魚',4:'若魚',5:'成魚',6:'大人',7:'伝説'};
@@ -11303,6 +11258,39 @@ function drawAquarium() {
       ctx.fillText(_aq.fish_name, _aqFish.x, _aqFish.y - sizeScale * 16 - 4);
       ctx.shadowBlur = 0;
       ctx.restore();
+
+      // コンディションバーを魚の下に描画
+      if (alive) {
+        var bx = _aqFish.x;
+        var by = _aqFish.y + sizeScale * 12 + 6;
+        var bw = 60;
+        var bh = 4;
+        ctx.save();
+        ctx.globalAlpha = 0.7;
+        // 元気度バー
+        var hVal = Math.round(_aq.fish_health || 0);
+        var hCol = hVal > 70 ? '#4ade80' : hVal > 40 ? '#fbbf24' : '#ef4444';
+        ctx.fillStyle = 'rgba(255,255,255,0.15)';
+        ctx.fillRect(bx - bw/2, by, bw, bh);
+        ctx.fillStyle = hCol;
+        ctx.fillRect(bx - bw/2, by, bw * hVal / 100, bh);
+        // 水質バー
+        var cVal = Math.round(_aq.water_clarity || 0);
+        var cCol = cVal > 70 ? '#60a5fa' : cVal > 40 ? '#fbbf24' : '#ef4444';
+        ctx.fillStyle = 'rgba(255,255,255,0.15)';
+        ctx.fillRect(bx - bw/2, by + bh + 2, bw, bh);
+        ctx.fillStyle = cCol;
+        ctx.fillRect(bx - bw/2, by + bh + 2, bw * cVal / 100, bh);
+        // ラベル
+        ctx.globalAlpha = 0.5;
+        ctx.fillStyle = '#fff';
+        ctx.font = '7px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('♥' + hVal + '%', bx - bw/2, by - 2);
+        ctx.textAlign = 'right';
+        ctx.fillText('💧' + cVal + '%', bx + bw/2, by - 2);
+        ctx.restore();
+      }
     }
 
     // ゲスト魚を描画

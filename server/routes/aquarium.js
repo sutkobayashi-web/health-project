@@ -170,9 +170,16 @@ router.get('/', authUser, (req, res) => {
   let aq = db.prepare('SELECT * FROM user_aquarium WHERE user_id = ?').get(req.uid);
 
   if (!aq) {
-    // 初回: 自動で卵を付与
-    db.prepare(`INSERT INTO user_aquarium (user_id, status, egg_started_at, generation) VALUES (?, 'egg', ?, 1)`)
-      .run(req.uid, new Date().toISOString());
+    // 初回: 自動で卵を付与 + 過去の食事投稿を餌カウントに反映
+    const pastMeals = db.prepare("SELECT COUNT(*) as cnt FROM posts WHERE user_id = ? AND category LIKE '%食事%'").get(req.uid);
+    const pastFeedCount = pastMeals ? pastMeals.cnt : 0;
+    const shouldHatch = pastFeedCount >= 3; // 過去に3食以上 → 即孵化
+    db.prepare(`INSERT INTO user_aquarium (user_id, status, egg_started_at, generation, total_feeds)
+      VALUES (?, ?, ?, 1, ?)`)
+      .run(req.uid, shouldHatch ? 'alive' : 'egg', new Date().toISOString(), pastFeedCount);
+    if (shouldHatch) {
+      db.prepare(`UPDATE user_aquarium SET hatched_at = datetime('now'), growth_stage = 2, days_alive = 1 WHERE user_id = ?`).run(req.uid);
+    }
     aq = db.prepare('SELECT * FROM user_aquarium WHERE user_id = ?').get(req.uid);
   }
 

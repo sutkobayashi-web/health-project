@@ -10039,6 +10039,9 @@ function loadAquariumData() {
         // 餌チェック
         checkDailyFeed();
 
+        // 来てた訪問者をチェック → ゲストとして水槽に表示
+        if (_aq.status === 'alive') checkPendingVisits();
+
         // 日次減衰チェック
         if (_aq.status === 'alive') {
           fetch('/api/aquarium/daily-decay', { method:'POST', headers:{'Content-Type':'application/json','x-user-id':currentUser.uid}, body:JSON.stringify({uid:currentUser.uid}) })
@@ -10304,6 +10307,48 @@ function checkFullRecovery() {
       }
     }
   }).catch(function() {});
+}
+
+// 来てた訪問者を水槽にゲスト表示
+function checkPendingVisits() {
+  if (!currentUser) return;
+  fetch('/api/aquarium/pending-visits?uid=' + currentUser.uid, { headers:{'x-user-id':currentUser.uid} })
+    .then(function(r){return r.json();}).then(function(d){
+      if (!d.success || !d.visits || !d.visits.length) return;
+      d.visits.forEach(function(v, idx) {
+        var fromLeft = idx % 2 === 0;
+        var guest = {
+          x: fromLeft ? -30 : (_aqW || 300) + 30,
+          y: 40 + Math.random() * ((_aqH || 400) * 0.4),
+          vx: fromLeft ? 1.5 : -1.5,
+          vy: (Math.random() - 0.5) * 0.3,
+          targetX: (_aqW || 300) * 0.3 + Math.random() * (_aqW || 300) * 0.4,
+          targetY: 30 + Math.random() * ((_aqH || 400) - 80),
+          tailPhase: Math.random() * Math.PI * 2,
+          hue: v.hue || 200,
+          speciesId: v.species_id || 0,
+          size: 0.35 + (v.fish_size || 30) / 100 * 0.4,
+          speed: 0.2 + (v.fish_speed || 50) / 100 * 0.4,
+          color: (v.fish_color || 50) / 100,
+          name: v.fish_name || '名前なし',
+          nickname: v.nickname || '???',
+          species: '',
+          isFry: false,
+          stayTotal: (v.stay_duration || 60) * 60,
+          stayLeft: (v.stay_duration || 60) * 60,
+          entering: true,
+          leaving: false,
+          opacity: 0,
+          commented: true,
+          farewellSaid: true,
+          myClarity: (_aq ? _aq.water_clarity : 50) || 50,
+        };
+        setTimeout(function() {
+          _aqGuests.push(guest);
+          addBuddyMessage('ai', '🐟 ' + v.fish_name + '（' + v.nickname + '）が遊びに来てたよ！\nしばらく一緒に泳いでいくみたい');
+        }, idx * 2000);
+      });
+    }).catch(function(){});
 }
 
 // アクセス時にナビゲーション（魚の状態に応じた提案）

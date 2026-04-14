@@ -906,16 +906,27 @@ router.post('/visit', authUser, (req, res) => {
     db.prepare(`INSERT INTO buddy_messages (user_id, role, content, created_at) VALUES (?, 'ai', ?, datetime('now'))`)
       .run(targetUid, '🐟 ' + (myAq.fish_name || myUser.nickname + 'の魚') + 'が遊びに来たよ！しばらく一緒に泳いでいくみたい。');
 
-    // トラッキング用: 訪問ログ
+    // 訪問ログ（非同期表示用に魚データも保存）
     try {
       db.exec(`CREATE TABLE IF NOT EXISTS visit_log (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         visitor_uid TEXT NOT NULL,
         host_uid TEXT NOT NULL,
+        visitor_data TEXT DEFAULT '{}',
         stay_duration INTEGER DEFAULT 60,
+        shown INTEGER DEFAULT 0,
         created_at TEXT DEFAULT (datetime('now'))
       )`);
-      db.prepare('INSERT INTO visit_log (visitor_uid, host_uid, stay_duration) VALUES (?, ?, ?)').run(req.uid, targetUid, stayDuration);
+      db.prepare('INSERT INTO visit_log (visitor_uid, host_uid, visitor_data, stay_duration) VALUES (?, ?, ?, ?)')
+        .run(req.uid, targetUid, JSON.stringify({
+          nickname: myUser.nickname,
+          fish_name: myAq.fish_name || '名前なし',
+          species_id: myAq.fish_species_id,
+          hue: species ? species.hue : 200,
+          fish_size: Math.round(myAq.fish_size),
+          fish_speed: Math.round(myAq.fish_speed),
+          fish_color: Math.round(myAq.fish_color),
+        }), stayDuration);
     } catch(e) {}
 
     res.json({
@@ -938,6 +949,40 @@ router.post('/visit', authUser, (req, res) => {
     });
   } catch(e) {
     res.json({ success: false, msg: e.message });
+  }
+});
+
+// ---------- 来てた訪問者を取得（非同期訪問表示用） ----------
+router.get('/pending-visits', authUser, (req, res) => {
+  const db = getDb();
+  try {
+    // visit_logテーブルが存在するか確認
+    try { db.prepare('SELECT 1 FROM visit_log LIMIT 1').get(); } catch(e) { return res.json({ success: true, visits: [] }); }
+
+    // 未表示の訪問を取得（直近24時間以内）
+    const visits = db.prepare(`SELECT id, visitor_uid, visitor_data, stay_duration, created_at
+      FROM visit_log WHERE host_uid = ? AND shown = 0 AND created_at > datetime('now', '-1 day')
+      ORDER BY created_at DESC LIMIT 3`).all(req.uid);
+
+    if (visits.length > 0) {
+      // 表示済みにマーク
+      const ids = visits.map(v => v.id);
+      db.prepare('UPDATE visit_log SET shown = 1 WHERE id IN (' + ids.join(',') + ')').run();
+    }
+
+    const result = visits.map(v => {
+      let data = {};
+      try { data = JSON.parse(v.visitor_data); } catch(e) {}
+      return {
+        ...data,
+        stay_duration: v.stay_duration,
+        visited_at: v.created_at,
+      };
+    });
+
+    res.json({ success: true, visits: result });
+  } catch(e) {
+    res.json({ success: true, visits: [] });
   }
 });
 

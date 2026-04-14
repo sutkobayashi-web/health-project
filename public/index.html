@@ -2234,6 +2234,11 @@ function onLoginSuccess() {
     // ログイン後は常に天の声チャットから開始
     sessionStorage.removeItem('healthCurrentTab');
   } catch(e) {}
+  // アクアリウム初期化（手動ログイン時はmain-appが非表示だったため再初期化が必要）
+  setTimeout(function() {
+    resizeAquarium();
+    loadAquariumData();
+  }, 300);
 }
 
 function loadMyUnread() {

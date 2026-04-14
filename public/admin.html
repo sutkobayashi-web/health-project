@@ -424,10 +424,10 @@ if(localStorage.getItem('co_heart_admin_token') && localStorage.getItem('co_hear
     <div class="nav-item" onclick="switchTab('food')" id="nav-food">
       <i class="fas fa-utensils nav-icon" style="color:#20c997;"></i><div class="nav-label" style="font-size:0.55rem;">食事</div>
     </div>
-    <div class="nav-item" onclick="window.location.href='/knowledge'" id="nav-knowledge">
+    <div class="nav-item" onclick="window.location.href='/knowledge?from=admin'" id="nav-knowledge">
       <i class="fas fa-book-open nav-icon" style="color:#f39c12;"></i><div class="nav-label" style="font-size:0.55rem;">学習</div>
     </div>
-    <div class="nav-item" onclick="window.location.href='/guide'" id="nav-guide">
+    <div class="nav-item" onclick="window.location.href='/guide?from=admin'" id="nav-guide">
       <i class="fas fa-map-signs nav-icon" style="color:#667eea;"></i><div class="nav-label" style="font-size:0.55rem;">ガイド</div>
     </div>
     <!-- 管理系 -->
@@ -440,7 +440,7 @@ if(localStorage.getItem('co_heart_admin_token') && localStorage.getItem('co_hear
       <i class="fas fa-database nav-icon" style="color:#f59e0b;"></i>
       <div class="nav-label" style="font-size:0.55rem; line-height:1.2;">バック<br>アップ</div>
     </div>
-    <div class="nav-item" onclick="window.location.href='/whitepaper'" id="nav-whitepaper">
+    <div class="nav-item" onclick="window.location.href='/whitepaper?from=admin'" id="nav-whitepaper">
       <i class="fas fa-file-alt nav-icon" style="color:#78909c;"></i>
       <div class="nav-label" style="font-size:0.55rem; line-height:1.2;">ホワイト<br>ペーパー</div>
     </div>

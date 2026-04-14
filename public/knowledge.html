@@ -411,7 +411,7 @@ body.sheet-open { overflow: hidden !important; position: fixed !important; width
 <!-- ====== Header ====== -->
 <header class="kb-header">
   <div class="kb-header-left">
-    <a href="/admin" class="btn-back"><i class="fas fa-arrow-left"></i> 管理画面</a>
+    <a href="/admin" class="btn-back" onclick="var from=new URLSearchParams(window.location.search).get('from');window.location.href=from==='admin'?'/admin':'/';return false;"><i class="fas fa-arrow-left"></i> 戻る</a>
     <div class="kb-title-group">
       <div class="kb-title-main"><i class="fas fa-book-open"></i> 健康づくりナレッジベース</div>
       <div class="kb-title-sub">健康推進メンバー向け 学習ガイド</div>

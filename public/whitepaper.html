@@ -96,7 +96,8 @@ body { font-family: 'Noto Sans JP', sans-serif; background: #f8f9fc; margin: 0; 
 </head>
 <body>
 
-<div class="wp-header">
+<div class="wp-header" style="position:relative;">
+  <a onclick="var from=new URLSearchParams(window.location.search).get('from');window.location.href=from==='admin'?'/admin':'/';return false;" href="/" style="position:absolute;top:12px;left:12px;background:rgba(255,255,255,0.2);color:white;border:1px solid rgba(255,255,255,0.3);border-radius:20px;padding:5px 14px;font-size:0.75rem;font-weight:700;text-decoration:none;cursor:pointer;"><i class="fas fa-arrow-left"></i> 戻る</a>
   <div style="font-size:2.5rem; margin-bottom:12px;">🏥</div>
   <h1>CoWell</h1>
   <div class="subtitle">共感駆動型ボトムアップ健康経営システム ― 設計思想書</div>

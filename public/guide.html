@@ -84,7 +84,7 @@ body {
 
 <!-- ヘッダー -->
 <div class="header">
-  <a href="/" onclick="if(window.parent!==window){window.parent.switchAppTab('buddy');return false;}"><i class="fas fa-arrow-left"></i> 戻る</a>
+  <a href="/" onclick="if(window.parent!==window){window.parent.switchAppTab('buddy');return false;}if(new URLSearchParams(window.location.search).get('from')==='admin'){window.location.href='/admin';return false;}"><i class="fas fa-arrow-left"></i> 戻る</a>
   <div>
     <div class="title">3分でわかる Aqua-CoWell</div>
     <div class="sub">使い方ガイド</div>

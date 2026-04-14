@@ -9993,8 +9993,8 @@ function initAquarium() {
   window.addEventListener('resize', resizeAquarium);
   loadAquariumData();
   requestAnimationFrame(drawAquarium);
-  // 訪問魚タイマー開始
-  startVisitorTimer();
+  // ランダム訪問は廃止（「遊びに行く」非同期訪問に統一）
+  // startVisitorTimer();
 }
 
 function resizeAquarium() {
@@ -10311,9 +10311,11 @@ function checkFullRecovery() {
   }).catch(function() {});
 }
 
-// 来てた訪問者を水槽にゲスト表示
+// 来てた訪問者を水槽にゲスト表示（1回のみ）
+var _pendingVisitsChecked = false;
 function checkPendingVisits() {
-  if (!currentUser) return;
+  if (!currentUser || _pendingVisitsChecked) return;
+  _pendingVisitsChecked = true;
   fetch('/api/aquarium/pending-visits?uid=' + currentUser.uid, { headers:{'x-user-id':currentUser.uid} })
     .then(function(r){return r.json();}).then(function(d){
       if (!d.success || !d.visits || !d.visits.length) return;
@@ -11795,6 +11797,51 @@ function toggleSharedRanking() {
 function closeSharedTank() {
   var el = document.getElementById('shared-tank-overlay');
   if (el) el.remove();
+  // チャット履歴クリア + ゲスト魚クリア + コンディション挨拶
+  var buddyMsgs = document.getElementById('buddy-messages');
+  if (buddyMsgs) buddyMsgs.innerHTML = '';
+  _buddyHistory = []; _buddyMoodChecked = false; _buddyTurnCount = 0;
+  _aqGuests = [];
+  // コンディション挨拶を表示
+  setTimeout(showConditionGreeting, 500);
+}
+
+function showConditionGreeting() {
+  if (!currentUser || !_aq || _aq.status !== 'alive') return;
+  var hour = new Date().getHours();
+  var greeting = hour < 10 ? 'おはよう！' : hour < 18 ? 'やぁ！' : 'お疲れ〜！';
+  var fishName = _aq.fish_name || '魚';
+  var health = Math.round(_aq.fish_health || 0);
+  var clarity = Math.round(_aq.water_clarity || 0);
+
+  // コンディションに応じたメッセージ
+  var conditionMsg;
+  if (health > 70 && clarity > 70) {
+    conditionMsg = greeting + '今日の僕はすごく元気だよ！水もきれいでキラキラ✨';
+  } else if (health > 70) {
+    conditionMsg = greeting + '体は元気なんだけど、水がちょっと気になるな...';
+  } else if (health > 40 && clarity > 40) {
+    conditionMsg = greeting + 'まぁまぁかな。もうちょっと元気になりたいなぁ...';
+  } else if (health > 40) {
+    conditionMsg = greeting + 'うーん、水が濁ってきた...体もちょっとだるいかも';
+  } else {
+    conditionMsg = greeting + '正直しんどい...ごはんくれると嬉しいな...';
+  }
+  addBuddyMessage('ai', conditionMsg);
+
+  // 食事状況に応じた追加メッセージ
+  var todayStr = new Date().toISOString().split('T')[0];
+  var fedToday = _aq.last_feed_date === todayStr;
+  var consec = _aq.consecutive_feed_days || 0;
+  setTimeout(function() {
+    if (fedToday && consec >= 3) {
+      addBuddyMessage('ai', consec + '日連続でごはんくれてるね！嬉しいよ🐟');
+    } else if (fedToday) {
+      addBuddyMessage('ai', '今日のごはん、ありがとう！');
+    } else if (consec > 0) {
+      addBuddyMessage('ai', 'お腹空いたな...今日のごはんまだかな？🐟');
+    }
+  }, 1500);
 }
 
 function openSharedTank() {

@@ -804,22 +804,22 @@
         <canvas id="aquarium-canvas" style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:1;"></canvas>
         <div id="aq-voice" style="display:none;"></div>
       </div>
-      <!-- サイドコンディション -->
-      <div id="condition-side" style="width:80px;background:rgba(10,30,50,0.95);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:6px 4px;border-left:1px solid rgba(255,255,255,0.1);">
-        <div id="cond-side-mood" style="font-size:22px;">😐</div>
+      <!-- サイドコンディション（水槽と等分） -->
+      <div id="condition-side" style="flex:1;background:rgba(10,30,50,0.95);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:8px 12px;border-left:1px solid rgba(255,255,255,0.1);">
+        <div id="cond-side-mood" style="font-size:28px;">😐</div>
         <div style="width:100%;">
-          <div style="display:flex;align-items:center;gap:2px;">
-            <span style="font-size:7px;color:rgba(255,255,255,0.5);">♥</span>
-            <div style="flex:1;height:4px;background:rgba(255,255,255,0.1);border-radius:2px;overflow:hidden;"><div id="cond-side-health" style="width:50%;height:100%;background:#4ade80;border-radius:2px;transition:width 0.5s;"></div></div>
-            <span id="cond-side-health-val" style="font-size:7px;color:#4ade80;font-weight:700;min-width:20px;text-align:right;">50</span>
+          <div style="display:flex;align-items:center;gap:4px;margin-bottom:4px;">
+            <span style="font-size:9px;color:rgba(255,255,255,0.5);">♥ 元気</span>
+            <div style="flex:1;height:6px;background:rgba(255,255,255,0.1);border-radius:3px;overflow:hidden;"><div id="cond-side-health" style="width:50%;height:100%;background:#4ade80;border-radius:3px;transition:width 0.5s;"></div></div>
+            <span id="cond-side-health-val" style="font-size:10px;color:#4ade80;font-weight:800;min-width:24px;text-align:right;">50</span>
           </div>
-          <div style="display:flex;align-items:center;gap:2px;margin-top:2px;">
-            <span style="font-size:7px;color:rgba(255,255,255,0.5);">💧</span>
-            <div style="flex:1;height:4px;background:rgba(255,255,255,0.1);border-radius:2px;overflow:hidden;"><div id="cond-side-clarity" style="width:50%;height:100%;background:#60a5fa;border-radius:2px;transition:width 0.5s;"></div></div>
-            <span id="cond-side-clarity-val" style="font-size:7px;color:#60a5fa;font-weight:700;min-width:20px;text-align:right;">50</span>
+          <div style="display:flex;align-items:center;gap:4px;">
+            <span style="font-size:9px;color:rgba(255,255,255,0.5);">💧 水質</span>
+            <div style="flex:1;height:6px;background:rgba(255,255,255,0.1);border-radius:3px;overflow:hidden;"><div id="cond-side-clarity" style="width:50%;height:100%;background:#60a5fa;border-radius:3px;transition:width 0.5s;"></div></div>
+            <span id="cond-side-clarity-val" style="font-size:10px;color:#60a5fa;font-weight:800;min-width:24px;text-align:right;">50</span>
           </div>
         </div>
-        <button onclick="openSharedTank()" style="background:rgba(26,122,181,0.4);border:1px solid rgba(26,122,181,0.6);color:#fff;border-radius:6px;padding:3px 0;font-size:8px;font-weight:700;cursor:pointer;width:100%;text-align:center;">🌊 みんな</button>
+        <button onclick="openSharedTank()" style="background:rgba(26,122,181,0.4);border:1px solid rgba(26,122,181,0.6);color:#fff;border-radius:8px;padding:5px 0;font-size:10px;font-weight:700;cursor:pointer;width:100%;text-align:center;">🌊 みんなの水槽</button>
       </div>
     </div>
     <!-- チャットメッセージエリア（水槽の下） -->
@@ -11938,13 +11938,15 @@ function initSharedTankCanvas(data) {
 
   // 魚オブジェクト生成
   var fishes = data.fish.map(function(f, i) {
+    var hn = (f.fish_health || 50) / 100;
+    var initDepth = H * (0.2 + (1 - hn) * 0.4); // 元気ない→深い位置から
     return {
       x: 30 + Math.random() * (W - 60),
-      y: 30 + Math.random() * (H * 0.6),
-      vx: (Math.random() - 0.5) * 1.5,
-      vy: (Math.random() - 0.5) * 0.5,
+      y: initDepth + Math.random() * (H * 0.2),
+      vx: (Math.random() - 0.5) * (0.5 + hn),
+      vy: (Math.random() - 0.5) * 0.3,
       targetX: Math.random() * W,
-      targetY: 30 + Math.random() * (H * 0.55),
+      targetY: initDepth + Math.random() * (H * hn * 0.3),
       tailPhase: Math.random() * Math.PI * 2,
       hue: f.hue,
       size: 0.6 + (f.fish_size || 30) / 100 * 0.8,
@@ -12146,19 +12148,33 @@ function initSharedTankCanvas(data) {
     // 全魚描画
     for (var fi = 0; fi < fishes.length; fi++) {
       var f = fishes[fi];
+      // 元気度に応じた泳ぎ方パラメータ
+      var hNorm = (f.health || 50) / 100; // 0〜1
+      var moveSpeed = 0.01 + hNorm * 0.04; // 元気ない:0.01 元気:0.05
+      var moveFreq = 80 + Math.round((1 - hNorm) * 200); // 元気:80フレーム毎 元気ない:280フレーム毎
+      var swimDepthMin = 20 + (1 - hNorm) * H * 0.3; // 元気ない→下に沈む
+      var swimDepthMax = H * (0.3 + hNorm * 0.3); // 元気→上まで泳ぐ
+      var damping = 0.95 + hNorm * 0.03; // 元気ない:0.95(鈍い) 元気:0.98(滑らか)
+      var wobble = 0.005 + hNorm * 0.02; // 元気ない:ほぼ揺れない 元気:揺れる
+
       // 移動
-      if (frame % 150 === fi % 150) { f.targetX = 30+Math.random()*(W-60); f.targetY = 20+Math.random()*(H*0.55); }
+      if (frame % moveFreq === fi % moveFreq) {
+        f.targetX = 30 + Math.random() * (W - 60);
+        f.targetY = swimDepthMin + Math.random() * (swimDepthMax - swimDepthMin);
+      }
       var dx = f.targetX-f.x, dy = f.targetY-f.y, dist = Math.sqrt(dx*dx+dy*dy);
-      if (dist>3) { f.vx += (dx/dist)*f.speed*0.03; f.vy += (dy/dist)*f.speed*0.03; }
-      f.vx *= 0.97; f.vy *= 0.97;
-      f.vy += Math.sin(frame*0.02+fi)*0.01;
+      if (dist>3) { f.vx += (dx/dist)*f.speed*moveSpeed; f.vy += (dy/dist)*f.speed*moveSpeed; }
+      f.vx *= damping; f.vy *= damping;
+      f.vy += Math.sin(frame*wobble+fi)*0.01;
       f.x += f.vx; f.y += f.vy;
       if (f.x<20) { f.x=20; f.vx*=-0.5; } if (f.x>W-20) { f.x=W-20; f.vx*=-0.5; }
       if (f.y<15) { f.y=15; f.vy*=-0.5; } if (f.y>H*0.65) { f.y=H*0.65; f.vy*=-0.5; }
-      f.tailPhase += 0.03 + f.speed*0.03;
+      // 尾びれの速度も元気度で変わる
+      f.tailPhase += 0.01 + hNorm * 0.05;
 
-      // 描画
+      // 描画（元気ない魚は少し透明に）
       ctx.save();
+      if (hNorm < 0.3) ctx.globalAlpha = 0.5 + hNorm;
       ctx.translate(f.x, f.y);
 
       if (f.isFry) {

@@ -793,21 +793,42 @@
     <div id="buddy-header-name" style="display:none;">Aqua-CoWell</div>
     <div id="buddy-header-streak" style="display:none;"><span id="buddy-streak-icon">🌰</span><span id="buddy-streak-text">0日</span></div>
     <button id="buddy-inbox-btn" style="display:none;"><span id="buddy-news-badge" style="display:none;">0</span></button>
-    <!-- 魚ステータスバー -->
-    <div id="aq-info" style="flex-shrink:0;background:linear-gradient(135deg,#0e4a7a,#0a3d6b);padding:10px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(255,255,255,0.15);">
+    <!-- コンディションバー（常に表示） -->
+    <div id="aq-info" style="flex-shrink:0;background:linear-gradient(135deg,#0e4a7a,#0a3d6b);padding:8px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(255,255,255,0.15);">
       <div style="font-size:11px;color:rgba(255,255,255,0.6);">読み込み中...</div>
     </div>
-    <!-- チャットメッセージエリア（水槽全画面） -->
-    <div id="aquarium-container" style="flex:1;position:relative;overflow:hidden;background:linear-gradient(180deg,#1a7ab5,#0e5a8a,#0a3d6b);">
-      <!-- 水槽Canvas（背景全体） -->
+    <!-- コンディションバー（元気度+水質のビジュアルバー） -->
+    <div id="condition-bar" style="flex-shrink:0;background:rgba(10,30,50,0.95);padding:6px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,0.08);display:none;">
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px;">
+          <span style="font-size:8px;color:rgba(255,255,255,0.5);width:28px;">元気</span>
+          <div style="flex:1;height:5px;background:rgba(255,255,255,0.08);border-radius:3px;overflow:hidden;">
+            <div id="cond-health-bar" style="width:50%;height:100%;background:#4ade80;border-radius:3px;transition:width 0.5s;"></div>
+          </div>
+          <span id="cond-health-val" style="font-size:9px;color:#4ade80;font-weight:700;width:28px;text-align:right;">50%</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:4px;">
+          <span style="font-size:8px;color:rgba(255,255,255,0.5);width:28px;">水質</span>
+          <div style="flex:1;height:5px;background:rgba(255,255,255,0.08);border-radius:3px;overflow:hidden;">
+            <div id="cond-clarity-bar" style="width:50%;height:100%;background:#60a5fa;border-radius:3px;transition:width 0.5s;"></div>
+          </div>
+          <span id="cond-clarity-val" style="font-size:9px;color:#60a5fa;font-weight:700;width:28px;text-align:right;">50%</span>
+        </div>
+      </div>
+      <div id="cond-mood" style="font-size:18px;">😐</div>
+      <button onclick="openSharedTank()" style="background:rgba(26,122,181,0.3);border:1px solid rgba(26,122,181,0.5);color:rgba(255,255,255,0.9);border-radius:8px;padding:4px 10px;font-size:9px;font-weight:700;cursor:pointer;flex-shrink:0;"><i class="fas fa-water"></i> みんな</button>
+    </div>
+    <!-- 水槽ミニビュー + チャットエリア -->
+    <div id="aquarium-container" style="height:30vh;max-height:180px;position:relative;overflow:hidden;background:linear-gradient(180deg,#1a7ab5,#0e5a8a,#0a3d6b);flex-shrink:0;">
+      <!-- 水槽Canvas -->
       <canvas id="aquarium-canvas" style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:1;"></canvas>
-      <!-- 削除ボタンはaq-infoバーに移動済み -->
-      <!-- 天の声（吹き出し表示エリア） -->
       <div id="aq-voice" style="display:none;"></div>
-      <!-- チャット吹き出し（水槽の上に浮かぶ） -->
-      <div id="buddy-messages" style="position:absolute;top:0;left:0;right:0;bottom:0;z-index:3;overflow-y:auto;overscroll-behavior:contain;padding:12px;padding-top:8px;display:flex;flex-direction:column;gap:8px;justify-content:flex-end;"></div>
+    </div>
+    <!-- チャットメッセージエリア（水槽の下） -->
+    <div style="flex:1;position:relative;overflow:hidden;background:#0a2540;">
+      <div id="buddy-messages" style="position:absolute;top:0;left:0;right:0;bottom:0;z-index:3;overflow-y:auto;overscroll-behavior:contain;padding:12px;padding-top:8px;display:flex;flex-direction:column;gap:8px;justify-content:flex-end;background:linear-gradient(180deg,#0d2f4f,#0a2540);"></div>
       <!-- 入口カード -->
-      <div id="buddy-entry-cards" style="display:none;position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(10,40,70,0.85);backdrop-filter:blur(8px);overflow-y:auto;padding:18px 14px;z-index:5;"></div>
+      <div id="buddy-entry-cards" style="display:none;position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(10,40,70,0.95);backdrop-filter:blur(8px);overflow-y:auto;padding:18px 14px;z-index:5;"></div>
     </div>
     <!-- インラインアクションバー（2行×横スクロール） -->
     <div id="buddy-action-bar" style="flex-shrink:0;background:rgba(10,30,50,0.9);border-top:1px solid rgba(255,255,255,0.1);padding:6px 8px;display:flex;flex-direction:column;gap:4px;">
@@ -10170,6 +10191,28 @@ function updateAquariumUI() {
   var info = document.getElementById('aq-info');
   var voiceEl = document.getElementById('aq-voice');
   if (!info) return;
+
+  // コンディションバー更新
+  var condBar = document.getElementById('condition-bar');
+  if (condBar && _aq.status === 'alive') {
+    condBar.style.display = 'flex';
+    var h = Math.round(_aq.fish_health || 0);
+    var c = Math.round(_aq.water_clarity || 0);
+    var hColor = h > 70 ? '#4ade80' : h > 40 ? '#fbbf24' : '#ef4444';
+    var cColor = c > 70 ? '#4ade80' : c > 40 ? '#60a5fa' : '#ef4444';
+    var hBar = document.getElementById('cond-health-bar');
+    var cBar = document.getElementById('cond-clarity-bar');
+    if (hBar) { hBar.style.width = h + '%'; hBar.style.background = hColor; }
+    if (cBar) { cBar.style.width = c + '%'; cBar.style.background = cColor; }
+    var hVal = document.getElementById('cond-health-val');
+    var cVal = document.getElementById('cond-clarity-val');
+    if (hVal) { hVal.textContent = h + '%'; hVal.style.color = hColor; }
+    if (cVal) { cVal.textContent = c + '%'; cVal.style.color = cColor; }
+    var mood = document.getElementById('cond-mood');
+    if (mood) mood.textContent = h > 70 ? '😊' : h > 40 ? '😐' : '😢';
+  } else if (condBar) {
+    condBar.style.display = _aq.status === 'egg' ? 'none' : 'none';
+  }
 
   var spNames = {1:'ネオンテトラ',2:'グッピー',3:'メダカ',4:'プラティ',5:'ゼブラダニオ',6:'アカヒレ',7:'コリドラス',8:'ドジョウ',9:'エンゼル',10:'ベタ',11:'グラミー',12:'カージナル',13:'ラスボラ',14:'オトシン',15:'ローチ',16:'チェリー',17:'ディスカス',18:'琉金',19:'クマノミ',20:'エビ',21:'ラミレジィ',22:'アピスト',23:'錦鯉',24:'アロワナ',25:'エイ',26:'タツノオトシゴ',27:'リュウグウ',28:'マンタ',29:'クジラ',30:'フェニックス'};
   var stageNames = {1:'卵',2:'稚魚',3:'幼魚',4:'若魚',5:'成魚',6:'大人',7:'伝説'};

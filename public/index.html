@@ -2241,6 +2241,8 @@ function onLoginSuccess() {
   setTimeout(function() {
     resizeAquarium();
     loadAquariumData();
+    // メイン画面を共有水槽にする（ログイン1秒後に自動オープン）
+    setTimeout(function() { if (typeof openSharedTank === 'function') openSharedTank(); }, 700);
   }, 300);
 }
 
@@ -11818,10 +11820,10 @@ function openSharedTank() {
 
       // ヘッダー
       var header = '<div style="padding:10px 16px;background:rgba(10,40,70,0.95);display:flex;align-items:center;gap:10px;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,0.1);">' +
-        '<button onclick="closeSharedTank()" style="background:rgba(255,255,255,0.15);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:14px;"><i class="fas fa-arrow-left"></i></button>' +
-        '<div style="flex:1;"><div style="font-weight:800;font-size:14px;color:#fff;">🌊 仲間を見る</div>' +
-        '<div style="font-size:10px;color:rgba(255,255,255,0.5);">' + d.fish.length + '匹 + 卵' + d.eggs.length + '個</div></div>' +
-        '<button onclick="toggleSharedRanking()" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);color:#fbbf24;padding:5px 12px;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0;">🏆 TOP5</button>' +
+        '<button onclick="closeSharedTank()" style="background:linear-gradient(135deg,#667eea,#764ba2);border:none;color:#fff;padding:6px 14px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:700;display:flex;align-items:center;gap:4px;"><i class="fas fa-comment-dots"></i> チャット</button>' +
+        '<div style="flex:1;text-align:center;"><div style="font-weight:800;font-size:14px;color:#fff;">🌊 Aqua-CoWell</div>' +
+        '<div style="font-size:10px;color:rgba(255,255,255,0.5);">' + d.fish.length + '匹が泳いでるよ 🐟 自分の魚をタップ！</div></div>' +
+        '<button onclick="toggleSharedRanking()" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);color:#fbbf24;padding:5px 12px;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0;">🏆</button>' +
         '</div>';
 
       // 水槽Canvas
@@ -12178,25 +12180,63 @@ function showFishDetail(el) {
     var rankNames = {common:'コモン',uncommon:'アンコモン',rare:'レア',ultra:'超レア',legend:'伝説'};
     var rankColors = {common:'#94a3b8',uncommon:'#60a5fa',rare:'#fbbf24',ultra:'#c084fc',legend:'#f87171'};
     var rc = rankColors[f.rank] || '#94a3b8';
-    var html = '<div style="position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px;" onclick="if(event.target===this)this.remove()">' +
-      '<div style="background:#0d2440;border:1px solid rgba(255,255,255,0.15);border-radius:16px;padding:20px;max-width:300px;width:100%;color:#fff;">' +
-      '<div style="text-align:center;margin-bottom:12px;">' +
-      '<div style="font-size:24px;margin-bottom:4px;">🐟</div>' +
-      '<div style="font-size:16px;font-weight:800;">' + f.fish_name + '</div>' +
-      '<div style="font-size:11px;color:rgba(255,255,255,0.5);">' + f.nickname + 'の魚</div>' +
-      '<div style="font-size:10px;color:' + rc + ';margin-top:4px;">' + (rankNames[f.rank]||'') + ' / ' + f.species_name + '</div>' +
-      '</div>' +
-      '<div style="font-size:12px;line-height:2;color:rgba(255,255,255,0.8);">' +
-      '元気度: ' + f.fish_health + '% ' + (f.fish_health>70?'😊':f.fish_health>40?'😐':'😢') + '<br>' +
-      '色の鮮やかさ: ' + f.fish_color + '%<br>' +
-      '成長: Stage ' + f.growth_stage + '<br>' +
-      '飼育日数: ' + (f.days_alive||0) + '日' +
-      (f.is_mine ? '<br><span style="color:#4ade80;">⭐ あなたの魚です</span>' : '') +
-      '</div>' +
-      (f.is_mine ? '' : '<button onclick="visitFish(\'' + (f.user_id||'') + '\',\'' + (f.nickname||'').replace(/'/g,"\\'") + '\');this.closest(\'div[style*=fixed]\').remove()" style="width:100%;margin-top:12px;padding:10px;background:linear-gradient(135deg,#1a7ab5,#0e5a8a);border:none;border-radius:8px;color:#fff;cursor:pointer;font-weight:700;font-size:0.85rem;"><i class="fas fa-fish" style="margin-right:6px;"></i>遊びに行く</button>') +
-      '<button onclick="this.closest(\'div[style*=fixed]\').remove()" style="width:100%;margin-top:6px;padding:8px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:8px;color:#fff;cursor:pointer;">閉じる</button>' +
-      '</div></div>';
-    document.body.insertAdjacentHTML('beforeend', html);
+    var healthBar = Math.round(f.fish_health / 10);
+    var healthColor = f.fish_health > 70 ? '#4ade80' : f.fish_health > 40 ? '#fbbf24' : '#ef4444';
+    var colorBar = Math.round(f.fish_color / 10);
+
+    if (f.is_mine) {
+      // ===== 自分の魚 → コンディション画面 =====
+      var html = '<div style="position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px;" onclick="if(event.target===this)this.remove()">' +
+        '<div style="background:#0d2440;border:2px solid #4ade80;border-radius:16px;padding:20px;max-width:320px;width:100%;color:#fff;">' +
+        '<div style="text-align:center;margin-bottom:14px;">' +
+          '<div style="font-size:12px;color:#4ade80;font-weight:700;margin-bottom:4px;">⭐ マイコンディション</div>' +
+          '<div style="font-size:18px;font-weight:900;">' + f.fish_name + '</div>' +
+          '<div style="font-size:10px;color:' + rc + ';margin-top:2px;">' + (rankNames[f.rank]||'') + ' / ' + f.species_name + '</div>' +
+        '</div>' +
+        // 元気度バー
+        '<div style="margin-bottom:10px;">' +
+          '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px;"><span>元気度</span><span style="color:'+healthColor+';font-weight:800;">'+f.fish_health+'%</span></div>' +
+          '<div style="height:8px;background:rgba(255,255,255,0.1);border-radius:4px;overflow:hidden;"><div style="width:'+f.fish_health+'%;height:100%;background:'+healthColor+';border-radius:4px;"></div></div>' +
+        '</div>' +
+        // 色の鮮やかさバー
+        '<div style="margin-bottom:10px;">' +
+          '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px;"><span>色の鮮やかさ</span><span style="font-weight:800;">'+f.fish_color+'%</span></div>' +
+          '<div style="height:8px;background:rgba(255,255,255,0.1);border-radius:4px;overflow:hidden;"><div style="width:'+f.fish_color+'%;height:100%;background:#60a5fa;border-radius:4px;"></div></div>' +
+        '</div>' +
+        // ステータス
+        '<div style="display:flex;gap:8px;margin-bottom:12px;">' +
+          '<div style="flex:1;background:rgba(255,255,255,0.06);border-radius:8px;padding:8px;text-align:center;">' +
+            '<div style="font-size:9px;color:rgba(255,255,255,0.5);">Stage</div><div style="font-size:14px;font-weight:800;">'+f.growth_stage+'</div></div>' +
+          '<div style="flex:1;background:rgba(255,255,255,0.06);border-radius:8px;padding:8px;text-align:center;">' +
+            '<div style="font-size:9px;color:rgba(255,255,255,0.5);">日数</div><div style="font-size:14px;font-weight:800;">'+(f.days_alive||0)+'日</div></div>' +
+          '<div style="flex:1;background:rgba(255,255,255,0.06);border-radius:8px;padding:8px;text-align:center;">' +
+            '<div style="font-size:9px;color:rgba(255,255,255,0.5);">気分</div><div style="font-size:18px;">'+(f.fish_health>70?'😊':f.fish_health>40?'😐':'😢')+'</div></div>' +
+        '</div>' +
+        // ごはんボタン
+        '<button onclick="this.closest(\'div[style*=fixed]\').remove();closeSharedTank();setTimeout(function(){inlineFoodCheck()},300)" style="width:100%;padding:10px;background:linear-gradient(135deg,#20c997,#38d9a9);border:none;border-radius:8px;color:#fff;cursor:pointer;font-weight:700;font-size:0.85rem;margin-bottom:6px;"><i class="fas fa-utensils" style="margin-right:6px;"></i>ごはんをあげる</button>' +
+        '<button onclick="this.closest(\'div[style*=fixed]\').remove();closeSharedTank()" style="width:100%;padding:8px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:8px;color:#fff;cursor:pointer;font-size:0.8rem;">💬 チャットに戻る</button>' +
+        '</div></div>';
+      document.body.insertAdjacentHTML('beforeend', html);
+    } else {
+      // ===== 他人の魚 → 詳細+遊びに行く =====
+      var html = '<div style="position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px;" onclick="if(event.target===this)this.remove()">' +
+        '<div style="background:#0d2440;border:1px solid rgba(255,255,255,0.15);border-radius:16px;padding:20px;max-width:300px;width:100%;color:#fff;">' +
+        '<div style="text-align:center;margin-bottom:12px;">' +
+          '<div style="font-size:24px;margin-bottom:4px;">🐟</div>' +
+          '<div style="font-size:16px;font-weight:800;">' + f.fish_name + '</div>' +
+          '<div style="font-size:11px;color:rgba(255,255,255,0.5);">' + f.nickname + 'の魚</div>' +
+          '<div style="font-size:10px;color:' + rc + ';margin-top:4px;">' + (rankNames[f.rank]||'') + ' / ' + f.species_name + '</div>' +
+        '</div>' +
+        '<div style="margin-bottom:8px;">' +
+          '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px;"><span>元気度</span><span style="color:'+healthColor+';font-weight:800;">'+f.fish_health+'%</span></div>' +
+          '<div style="height:6px;background:rgba(255,255,255,0.1);border-radius:3px;overflow:hidden;"><div style="width:'+f.fish_health+'%;height:100%;background:'+healthColor+';border-radius:3px;"></div></div>' +
+        '</div>' +
+        '<div style="font-size:11px;color:rgba(255,255,255,0.6);margin-bottom:10px;">Stage ' + f.growth_stage + ' / ' + (f.days_alive||0) + '日目</div>' +
+        '<button onclick="visitFish(\'' + (f.user_id||'') + '\',\'' + (f.nickname||'').replace(/'/g,"\\'") + '\');this.closest(\'div[style*=fixed]\').remove()" style="width:100%;padding:10px;background:linear-gradient(135deg,#1a7ab5,#0e5a8a);border:none;border-radius:8px;color:#fff;cursor:pointer;font-weight:700;font-size:0.85rem;margin-bottom:6px;"><i class="fas fa-fish" style="margin-right:6px;"></i>遊びに行く</button>' +
+        '<button onclick="this.closest(\'div[style*=fixed]\').remove()" style="width:100%;padding:8px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:8px;color:#fff;cursor:pointer;">閉じる</button>' +
+        '</div></div>';
+      document.body.insertAdjacentHTML('beforeend', html);
+    }
   } catch(e) {}
 }
 

@@ -902,9 +902,31 @@ router.post('/visit', authUser, (req, res) => {
 
     const species = FISH_SPECIES.find(s => s.id === myAq.fish_species_id);
 
-    // 訪問通知を相手に送る（buddy_messagesに記録）
+    // 訪問通知を相手に送る（水質に応じたメッセージ）
+    const visitorName = myAq.fish_name || myUser.nickname + 'の魚';
+    let hostMsg;
+    if (targetClarity > 70) {
+      const msgs = [
+        '🐟 ' + visitorName + 'が遊びに来たよ！「わぁ、ここの水きれい！ずっといたい！」',
+        '🐟 ' + visitorName + 'が泳いできた！「水がキラキラしてる...すごいね」',
+        '🐟 ' + visitorName + 'がやってきた！「居心地いいなぁ。もう少しいさせて」',
+      ];
+      hostMsg = msgs[Math.floor(Math.random() * msgs.length)];
+    } else if (targetClarity > 40) {
+      const msgs = [
+        '🐟 ' + visitorName + 'が遊びに来たよ！「おじゃまします〜」',
+        '🐟 ' + visitorName + 'がちょっと寄ってきた。「こんにちは！遊ぼう」',
+      ];
+      hostMsg = msgs[Math.floor(Math.random() * msgs.length)];
+    } else {
+      const msgs = [
+        '🐟 ' + visitorName + 'が来たけど...「ゴホッ...水がちょっと...💦」',
+        '🐟 ' + visitorName + 'がそーっと入ってきた。「う...目がしみる...😰」',
+      ];
+      hostMsg = msgs[Math.floor(Math.random() * msgs.length)];
+    }
     db.prepare(`INSERT INTO buddy_messages (user_id, role, content, created_at) VALUES (?, 'ai', ?, datetime('now'))`)
-      .run(targetUid, '🐟 ' + (myAq.fish_name || myUser.nickname + 'の魚') + 'が遊びに来たよ！しばらく一緒に泳いでいくみたい。');
+      .run(targetUid, hostMsg);
 
     // 訪問ログ（非同期表示用に魚データも保存）
     try {
@@ -945,7 +967,10 @@ router.post('/visit', authUser, (req, res) => {
       },
       target_nickname: targetUser.nickname,
       target_clarity: targetClarity,
-      msg: (myAq.fish_name || 'あなたの魚') + 'が' + targetUser.nickname + 'の水槽に遊びに行ったよ！'
+      target_fish_name: targetAq.fish_name || '名前なし',
+      target_species_id: targetAq.fish_species_id || 0,
+      msg: (myAq.fish_name || 'あなたの魚') + 'が' + targetUser.nickname + 'の水槽に遊びに行ったよ！',
+      reaction: targetClarity > 70 ? 'happy' : targetClarity > 40 ? 'normal' : 'cough'
     });
   } catch(e) {
     res.json({ success: false, msg: e.message });

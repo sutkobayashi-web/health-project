@@ -10345,7 +10345,24 @@ function checkPendingVisits() {
         };
         setTimeout(function() {
           _aqGuests.push(guest);
-          addBuddyMessage('ai', '🐟 ' + v.fish_name + '（' + v.nickname + '）が遊びに来てたよ！\nしばらく一緒に泳いでいくみたい');
+          var myClarity = (_aq ? _aq.water_clarity : 50) || 50;
+          var visitMsg;
+          if (myClarity > 70) {
+            var ms = [
+              '🐟 ' + v.fish_name + '（' + v.nickname + '）が遊びに来てたよ！\n「ここの水きれい！もうちょっといさせて」って',
+              '🐟 ' + v.fish_name + '（' + v.nickname + '）がやってきた！\n「水がキラキラしてる...居心地いいなぁ」',
+            ];
+            visitMsg = ms[Math.floor(Math.random()*ms.length)];
+          } else if (myClarity > 40) {
+            visitMsg = '🐟 ' + v.fish_name + '（' + v.nickname + '）が遊びに来てたよ！\nしばらく一緒に泳いでいくみたい';
+          } else {
+            var ms2 = [
+              '🐟 ' + v.fish_name + '（' + v.nickname + '）が来たけど...\n「ゴホッ...水が...💦」って言ってる。ごめんね...',
+              '🐟 ' + v.fish_name + '（' + v.nickname + '）がそーっと入ってきた\n「うっ...目がしみる...😰」長くはいられないかも',
+            ];
+            visitMsg = ms2[Math.floor(Math.random()*ms2.length)];
+          }
+          addBuddyMessage('ai', visitMsg);
         }, idx * 2000);
       });
     }).catch(function(){});
@@ -12192,6 +12209,15 @@ function visitFish(targetUid, targetNick) {
     body: JSON.stringify({ uid: currentUser.uid, targetUid: targetUid })
   }).then(function(r) { return r.json(); }).then(function(d) {
     if (!d.success) { alert(d.msg || '遊びに行けませんでした'); return; }
+    // 出発メッセージ
+    var fishName = _aq ? (_aq.fish_name || 'あなたの魚') : 'あなたの魚';
+    if (d.reaction === 'happy') {
+      addBuddyMessage('ai', '🐟 ' + fishName + '「' + targetNick + 'のとこ行ってくる！水きれいらしいよ」');
+    } else if (d.reaction === 'cough') {
+      addBuddyMessage('ai', '🐟 ' + fishName + '「' + targetNick + 'のとこ行ってみる...ちょっと心配だけど」');
+    } else {
+      addBuddyMessage('ai', '🐟 ' + fishName + '「' + targetNick + 'のとこ遊びに行ってくるね！」');
+    }
     // 共有水槽を閉じて訪問水槽を開く
     closeSharedTank();
     setTimeout(function() { openVisitTank(d, targetNick); }, 200);
@@ -12199,6 +12225,7 @@ function visitFish(targetUid, targetNick) {
 }
 
 function openVisitTank(visitData, hostNick) {
+  _visitReaction = visitData.reaction || 'normal';
   var overlay = document.createElement('div');
   overlay.id = 'visit-tank-overlay';
   overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:#041e35;display:flex;flex-direction:column;';
@@ -12220,11 +12247,29 @@ function openVisitTank(visitData, hostNick) {
   setTimeout(function() { initVisitTankCanvas(visitData, staySeconds); }, 100);
 }
 
+var _visitReaction = 'normal';
 function closeVisitTank() {
   var el = document.getElementById('visit-tank-overlay');
   if (el) el.remove();
-  // 自分の水槽にメッセージ
-  addBuddyMessage('ai', '🐟 ただいま！楽しかったよ');
+  // 帰還メッセージ（水質に応じて）
+  var fishName = _aq ? (_aq.fish_name || '魚') : '魚';
+  if (_visitReaction === 'happy') {
+    var msgs = [
+      '🐟 ' + fishName + '「ただいま！あっちの水すごくきれいだった...うちもあんな風にならないかなぁ」',
+      '🐟 ' + fishName + '「帰ってきた！楽しかったよ。あの水槽、居心地よかったなぁ」',
+      '🐟 ' + fishName + '「いい所だった✨ ねぇ、うちの水ももっときれいにならない？」',
+    ];
+    addBuddyMessage('ai', msgs[Math.floor(Math.random()*msgs.length)]);
+  } else if (_visitReaction === 'cough') {
+    var msgs2 = [
+      '🐟 ' + fishName + '「ただいま...ゴホッ...やっぱりうちが一番落ち着くよ」',
+      '🐟 ' + fishName + '「帰ってきた💦 あっちの水、ちょっと目にしみた...」',
+    ];
+    addBuddyMessage('ai', msgs2[Math.floor(Math.random()*msgs2.length)]);
+  } else {
+    addBuddyMessage('ai', '🐟 ' + fishName + '「ただいま！楽しかったよ」');
+  }
+  _visitReaction = 'normal';
 }
 
 function initVisitTankCanvas(visitData, staySeconds) {

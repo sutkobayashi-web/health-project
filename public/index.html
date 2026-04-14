@@ -11810,7 +11810,30 @@ function initSharedTankCanvas(data) {
       isMine: f.is_mine,
       isFry: !f.species_id,
       speciesId: f.species_id || 0,
+      userId: f.user_id || '',
+      _raw: f,
     };
+  });
+
+  // 魚タップ検出
+  canvas.style.pointerEvents = 'auto';
+  canvas.addEventListener('click', function(e) {
+    var rect = canvas.getBoundingClientRect();
+    var cx = (e.clientX - rect.left);
+    var cy = (e.clientY - rect.top);
+    // 最も近い魚を探す
+    var closest = null, closestDist = 40; // 40px以内
+    fishes.forEach(function(f) {
+      var dx = f.x - cx, dy = f.y - cy;
+      var dist = Math.sqrt(dx*dx + dy*dy);
+      if (dist < closestDist) { closestDist = dist; closest = f; }
+    });
+    if (closest && closest._raw) {
+      // 魚詳細モーダルを表示
+      var dummy = document.createElement('div');
+      dummy.dataset.info = encodeURIComponent(JSON.stringify(closest._raw));
+      showFishDetail(dummy);
+    }
   });
 
   // 卵オブジェクト

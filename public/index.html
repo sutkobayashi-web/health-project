@@ -9891,11 +9891,27 @@ function preloadFishImages() {
         cx.drawImage(img, 0, 0);
         var d = cx.getImageData(0, 0, c.width, c.height);
         var px = d.data;
+        // まず四隅のピクセルから背景色を推定
+        var corners = [
+          [px[0],px[1],px[2]], // 左上
+          [(c.width-1)*4,(c.width-1)*4+1,(c.width-1)*4+2].map(function(idx){return px[idx];}), // 右上
+          [((c.height-1)*c.width)*4,((c.height-1)*c.width)*4+1,((c.height-1)*c.width)*4+2].map(function(idx){return px[idx];}), // 左下
+        ];
+        var bgR=0,bgG=0,bgB=0;
+        corners.forEach(function(c2){bgR+=c2[0];bgG+=c2[1];bgB+=c2[2];});
+        bgR=Math.round(bgR/3); bgG=Math.round(bgG/3); bgB=Math.round(bgB/3);
+        // 背景色との距離で透過判定（輝度ベース）
         for (var i = 0; i < px.length; i += 4) {
           var r = px[i], g = px[i+1], b = px[i+2];
-          if (r > 225 && g > 225 && b > 225) {
-            var w = Math.min(r, g, b);
-            px[i+3] = w > 240 ? 0 : Math.round((240 - w) / 15 * 255);
+          // 背景色との色差（ユークリッド距離）
+          var dr = r - bgR, dg = g - bgG, db = b - bgB;
+          var dist = Math.sqrt(dr*dr + dg*dg + db*db);
+          if (dist < 35) {
+            // 背景色に非常に近い → 完全透過
+            px[i+3] = 0;
+          } else if (dist < 60) {
+            // やや近い → 半透過（エッジのアンチエイリアス用）
+            px[i+3] = Math.round((dist - 35) / 25 * 255);
           }
         }
         cx.putImageData(d, 0, 0);
@@ -11743,13 +11759,13 @@ function initSharedTankCanvas(data) {
     frame++;
     ctx.clearRect(0, 0, W, H);
 
-    // 水の背景
-    var cNorm = (data.avg_clarity || 50) / 100;
-    var wHue = 195 + (1-cNorm)*20;
+    // 水の背景（共有水槽は常にきれいな水で表示）
+    var cNorm = Math.max(0.8, (data.avg_clarity || 50) / 100);
+    var wHue = 195;
     var g = ctx.createLinearGradient(0,0,0,H);
-    g.addColorStop(0, 'hsla('+wHue+','+(55+cNorm*20)+'%,'+(38+cNorm*18)+'%,1)');
-    g.addColorStop(0.6, 'hsla('+(wHue+5)+','+(50+cNorm*15)+'%,'+(28+cNorm*12)+'%,1)');
-    g.addColorStop(1, 'hsla('+(wHue+10)+','+(40+cNorm*12)+'%,'+(18+cNorm*10)+'%,1)');
+    g.addColorStop(0, 'hsla('+wHue+',70%,52%,1)');
+    g.addColorStop(0.5, 'hsla(198,65%,38%,1)');
+    g.addColorStop(1, 'hsla(202,60%,22%,1)');
     ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
 
     // 水草

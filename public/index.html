@@ -11721,11 +11721,93 @@ function initSharedTankCanvas(data) {
     };
   });
 
-  // 水草
+  // ===== 水槽装飾オブジェクト生成 =====
+
+  // 水草（多め・種類豊富に）
   var plants = [];
-  for (var p = 0; p < 8; p++) {
-    plants.push({ x: 15 + Math.random()*(W-30), segs: 3+Math.floor(Math.random()*3), h: 30+Math.random()*60, w: 2+Math.random()*3, phase: Math.random()*Math.PI*2, hue: 100+Math.random()*40 });
+  for (var p = 0; p < 18; p++) {
+    var pType = p < 5 ? 'tall' : p < 12 ? 'medium' : 'short';
+    var pH = pType === 'tall' ? 70+Math.random()*50 : pType === 'medium' ? 35+Math.random()*35 : 15+Math.random()*20;
+    var pW = pType === 'tall' ? 3+Math.random()*2 : pType === 'medium' ? 2+Math.random()*2 : 1.5+Math.random()*1.5;
+    plants.push({
+      x: 10 + (p / 18) * (W - 20) + (Math.random()-0.5)*30,
+      segs: pType === 'tall' ? 5+Math.floor(Math.random()*3) : pType === 'medium' ? 3+Math.floor(Math.random()*2) : 2,
+      h: pH, w: pW,
+      phase: Math.random()*Math.PI*2,
+      hue: 85 + Math.random()*60, // 緑〜黄緑〜深緑
+      type: pType,
+    });
   }
+
+  // 岩
+  var rocks = [];
+  var rockPositions = [0.08, 0.25, 0.55, 0.75, 0.92];
+  rockPositions.forEach(function(rx, ri) {
+    rocks.push({
+      x: W * rx + (Math.random()-0.5)*20,
+      y: H - 8,
+      w: 18 + Math.random()*25,
+      h: 12 + Math.random()*18,
+      hue: 20 + Math.random()*30,
+      lightness: 25 + Math.random()*15,
+      shape: Math.random(), // 形状バリエーション
+    });
+    // 小石を隣に
+    if (Math.random() > 0.3) {
+      rocks.push({
+        x: W * rx + 15 + Math.random()*20,
+        y: H - 5,
+        w: 6 + Math.random()*10,
+        h: 5 + Math.random()*8,
+        hue: 15 + Math.random()*40,
+        lightness: 30 + Math.random()*15,
+        shape: Math.random(),
+      });
+    }
+  });
+
+  // 砂利の底面
+  var gravel = [];
+  for (var gi2 = 0; gi2 < 60; gi2++) {
+    gravel.push({
+      x: Math.random() * W,
+      y: H - 2 - Math.random()*8,
+      r: 1 + Math.random()*2.5,
+      hue: 25 + Math.random()*30,
+      lightness: 35 + Math.random()*20,
+    });
+  }
+
+  // 水車（右奥に1台）
+  var waterWheel = {
+    x: W * 0.85,
+    y: H - 40,
+    radius: 18,
+    angle: 0,
+    spokes: 6,
+  };
+
+  // 泡発生源
+  var bubbleSources = [
+    { x: W * 0.15, rate: 0.015 },
+    { x: W * 0.5, rate: 0.008 },
+    { x: W * 0.85, rate: 0.02 },
+  ];
+  var bubbles = [];
+
+  // 光の筋
+  var lightRays = [];
+  for (var lr = 0; lr < 4; lr++) {
+    lightRays.push({
+      x: W * 0.15 + lr * W * 0.22,
+      w: 15 + Math.random()*25,
+      alpha: 0.03 + Math.random()*0.04,
+      speed: 0.2 + Math.random()*0.3,
+    });
+  }
+
+  // 宝箱（左奥に1つ）
+  var treasure = { x: W * 0.18, y: H - 18, open: false, sparkle: 0 };
 
   // 情報パネル
   var infoEl = document.getElementById('shared-tank-info');
@@ -11768,21 +11850,166 @@ function initSharedTankCanvas(data) {
     g.addColorStop(1, 'hsla(202,60%,22%,1)');
     ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
 
-    // 水草
+    // ===== 砂利の底面 =====
+    for (var gri = 0; gri < gravel.length; gri++) {
+      var gr = gravel[gri];
+      ctx.fillStyle = 'hsla('+gr.hue+',30%,'+gr.lightness+'%,0.6)';
+      ctx.beginPath(); ctx.arc(gr.x, gr.y, gr.r, 0, Math.PI*2); ctx.fill();
+    }
+
+    // ===== 岩 =====
+    for (var ri2 = 0; ri2 < rocks.length; ri2++) {
+      var rk = rocks[ri2];
+      ctx.save();
+      ctx.translate(rk.x, rk.y);
+      // 岩本体
+      var rkG = ctx.createRadialGradient(-rk.w*0.2, -rk.h*0.3, 0, 0, 0, Math.max(rk.w,rk.h));
+      rkG.addColorStop(0, 'hsla('+rk.hue+',20%,'+(rk.lightness+15)+'%,0.9)');
+      rkG.addColorStop(1, 'hsla('+rk.hue+',15%,'+rk.lightness+'%,0.85)');
+      ctx.fillStyle = rkG;
+      ctx.beginPath();
+      if (rk.shape > 0.5) {
+        // 丸い岩
+        ctx.ellipse(0, -rk.h*0.4, rk.w*0.5, rk.h*0.5, 0, 0, Math.PI*2);
+      } else {
+        // 角ばった岩
+        ctx.moveTo(-rk.w*0.5, 0);
+        ctx.lineTo(-rk.w*0.4, -rk.h*0.7);
+        ctx.lineTo(-rk.w*0.1, -rk.h*0.9);
+        ctx.lineTo(rk.w*0.3, -rk.h*0.75);
+        ctx.lineTo(rk.w*0.5, -rk.h*0.3);
+        ctx.lineTo(rk.w*0.45, 0);
+        ctx.closePath();
+      }
+      ctx.fill();
+      // 岩のハイライト
+      ctx.fillStyle = 'rgba(255,255,255,0.08)';
+      ctx.beginPath(); ctx.ellipse(-rk.w*0.15, -rk.h*0.5, rk.w*0.2, rk.h*0.15, -0.3, 0, Math.PI*2); ctx.fill();
+      // 苔
+      if (rk.w > 15) {
+        ctx.fillStyle = 'hsla(110,40%,30%,0.4)';
+        ctx.beginPath(); ctx.ellipse(0, -rk.h*0.1, rk.w*0.3, 3, 0, 0, Math.PI); ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    // ===== 宝箱 =====
+    ctx.save();
+    ctx.translate(treasure.x, treasure.y);
+    // 箱本体
+    ctx.fillStyle = '#6b4226';
+    ctx.fillRect(-12, -10, 24, 14);
+    // 蓋
+    ctx.fillStyle = '#8b5a2b';
+    ctx.beginPath(); ctx.moveTo(-13,-10); ctx.lineTo(-11,-16); ctx.lineTo(11,-16); ctx.lineTo(13,-10); ctx.closePath(); ctx.fill();
+    // 金具
+    ctx.fillStyle = '#ffd700';
+    ctx.fillRect(-3, -13, 6, 4);
+    ctx.fillRect(-2, -6, 4, 3);
+    // 横帯
+    ctx.strokeStyle = '#b8860b'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(-12,-3); ctx.lineTo(12,-3); ctx.stroke();
+    // キラキラ
+    treasure.sparkle += 0.05;
+    if (Math.sin(treasure.sparkle) > 0.7) {
+      ctx.fillStyle = 'rgba(255,215,0,'+(0.3+Math.sin(treasure.sparkle*3)*0.3)+')';
+      ctx.beginPath(); ctx.arc(0, -18, 2, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(6, -14, 1.5, 0, Math.PI*2); ctx.fill();
+    }
+    ctx.restore();
+
+    // ===== 水車 =====
+    ctx.save();
+    ctx.translate(waterWheel.x, waterWheel.y);
+    waterWheel.angle += 0.008;
+    // 支柱
+    ctx.fillStyle = 'hsla(25,30%,30%,0.7)';
+    ctx.fillRect(-2, 0, 4, 35);
+    // 水車本体
+    ctx.strokeStyle = 'hsla(30,25%,35%,0.8)'; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.arc(0, 0, waterWheel.radius, 0, Math.PI*2); ctx.stroke();
+    // 中心
+    ctx.fillStyle = 'hsla(30,20%,40%,0.9)';
+    ctx.beginPath(); ctx.arc(0, 0, 3, 0, Math.PI*2); ctx.fill();
+    // スポーク（羽根）
+    for (var sp = 0; sp < waterWheel.spokes; sp++) {
+      var sAngle = waterWheel.angle + (sp / waterWheel.spokes) * Math.PI * 2;
+      var sx1 = Math.cos(sAngle) * 3, sy1 = Math.sin(sAngle) * 3;
+      var sx2 = Math.cos(sAngle) * waterWheel.radius, sy2 = Math.sin(sAngle) * waterWheel.radius;
+      ctx.strokeStyle = 'hsla(25,25%,35%,0.7)'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(sx1, sy1); ctx.lineTo(sx2, sy2); ctx.stroke();
+      // パドル（板）
+      var padAngle = sAngle + Math.PI*0.5;
+      ctx.fillStyle = 'hsla(30,30%,32%,0.6)';
+      ctx.save();
+      ctx.translate(sx2, sy2);
+      ctx.rotate(padAngle);
+      ctx.fillRect(-5, -1.5, 10, 3);
+      ctx.restore();
+    }
+    ctx.restore();
+
+    // ===== 水草（種類豊富） =====
     var t = frame * 0.02;
     for (var pi = 0; pi < plants.length; pi++) {
       var pp = plants[pi];
       for (var s = 0; s < pp.segs; s++) {
         var st = s/pp.segs;
-        var sway = Math.sin(t+pp.phase+s*0.5)*(5+s*2)*cNorm;
-        var segH = pp.h/pp.segs*cNorm;
+        var swayAmt = pp.type === 'tall' ? 6+s*2.5 : pp.type === 'medium' ? 4+s*1.5 : 2+s;
+        var sway = Math.sin(t+pp.phase+s*0.5)*swayAmt;
+        var segH = pp.h/pp.segs;
         var y1 = H-2-s*segH, y2 = H-2-(s+1)*segH;
         var x1 = pp.x+sway*st, x2 = pp.x+sway*(st+1/pp.segs)*1.3;
         var w = pp.w*(1-st*0.4);
-        ctx.fillStyle = 'hsla('+pp.hue+','+(50+cNorm*30)+'%,'+(25+cNorm*15)+'%,'+(0.5+cNorm*0.4)+')';
+        var sat = pp.type === 'tall' ? 55 : pp.type === 'medium' ? 45 : 35;
+        var lit = pp.type === 'tall' ? 32 : pp.type === 'medium' ? 28 : 25;
+        ctx.fillStyle = 'hsla('+pp.hue+','+sat+'%,'+lit+'%,0.8)';
         ctx.beginPath(); ctx.moveTo(x1-w,y1); ctx.quadraticCurveTo(x2,(y1+y2)/2,x2-w/2,y2);
         ctx.lineTo(x2+w/2,y2); ctx.quadraticCurveTo(x2,(y1+y2)/2,x1+w,y1); ctx.closePath(); ctx.fill();
+        // 葉のディテール（大きい水草のみ）
+        if (pp.type === 'tall' && s > 1 && s % 2 === 0) {
+          var leafX = x2 + (s%3===0?1:-1)*8;
+          var leafY = (y1+y2)/2;
+          ctx.fillStyle = 'hsla('+(pp.hue+10)+',50%,35%,0.5)';
+          ctx.beginPath(); ctx.ellipse(leafX, leafY, 6, 2.5, (s%3===0?0.3:-0.3), 0, Math.PI*2); ctx.fill();
+        }
       }
+    }
+
+    // ===== 光の筋 =====
+    for (var lri = 0; lri < lightRays.length; lri++) {
+      var lr2 = lightRays[lri];
+      var lx = lr2.x + Math.sin(frame * 0.005 + lri) * 20;
+      var lAlpha = lr2.alpha * (0.7 + Math.sin(frame*0.01+lri*1.5)*0.3);
+      var lrG = ctx.createLinearGradient(lx, 0, lx + lr2.w, H);
+      lrG.addColorStop(0, 'rgba(255,255,200,'+lAlpha+')');
+      lrG.addColorStop(0.5, 'rgba(255,255,200,'+(lAlpha*0.5)+')');
+      lrG.addColorStop(1, 'rgba(255,255,200,0)');
+      ctx.fillStyle = lrG;
+      ctx.beginPath();
+      ctx.moveTo(lx, 0); ctx.lineTo(lx + lr2.w*0.6, 0);
+      ctx.lineTo(lx + lr2.w*1.5, H); ctx.lineTo(lx + lr2.w*0.5, H);
+      ctx.closePath(); ctx.fill();
+    }
+
+    // ===== 泡 =====
+    bubbleSources.forEach(function(bs) {
+      if (Math.random() < bs.rate) {
+        bubbles.push({ x: bs.x + (Math.random()-0.5)*8, y: H-10, r: 1+Math.random()*2.5, speed: 0.3+Math.random()*0.5, wobble: Math.random()*Math.PI*2 });
+      }
+    });
+    for (var bi = bubbles.length-1; bi >= 0; bi--) {
+      var bb = bubbles[bi];
+      bb.y -= bb.speed;
+      bb.x += Math.sin(frame*0.05+bb.wobble)*0.3;
+      if (bb.y < -5) { bubbles.splice(bi, 1); continue; }
+      ctx.strokeStyle = 'rgba(200,230,255,'+(0.3+bb.r*0.1)+')';
+      ctx.lineWidth = 0.5;
+      ctx.fillStyle = 'rgba(200,235,255,0.08)';
+      ctx.beginPath(); ctx.arc(bb.x, bb.y, bb.r, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+      // ハイライト
+      ctx.fillStyle = 'rgba(255,255,255,0.25)';
+      ctx.beginPath(); ctx.arc(bb.x-bb.r*0.3, bb.y-bb.r*0.3, bb.r*0.3, 0, Math.PI*2); ctx.fill();
     }
 
     // 全魚描画

@@ -12108,10 +12108,27 @@ function showFishDetail(el) {
       '飼育日数: ' + (f.days_alive||0) + '日' +
       (f.is_mine ? '<br><span style="color:#4ade80;">⭐ あなたの魚です</span>' : '') +
       '</div>' +
-      '<button onclick="this.closest(\'div[style*=fixed]\').remove()" style="width:100%;margin-top:12px;padding:8px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:8px;color:#fff;cursor:pointer;">閉じる</button>' +
+      (f.is_mine ? '' : '<button onclick="visitFish(\'' + (f.user_id||'') + '\',\'' + (f.nickname||'').replace(/'/g,"\\'") + '\');this.closest(\'div[style*=fixed]\').remove()" style="width:100%;margin-top:12px;padding:10px;background:linear-gradient(135deg,#1a7ab5,#0e5a8a);border:none;border-radius:8px;color:#fff;cursor:pointer;font-weight:700;font-size:0.85rem;"><i class="fas fa-fish" style="margin-right:6px;"></i>遊びに行く</button>') +
+      '<button onclick="this.closest(\'div[style*=fixed]\').remove()" style="width:100%;margin-top:6px;padding:8px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:8px;color:#fff;cursor:pointer;">閉じる</button>' +
       '</div></div>';
     document.body.insertAdjacentHTML('beforeend', html);
   } catch(e) {}
+}
+
+function visitFish(targetUid, targetNick) {
+  if (!currentUser || !targetUid) return;
+  track('visit_fish', targetNick);
+  fetch('/api/aquarium/visit', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-user-id': currentUser.uid },
+    body: JSON.stringify({ uid: currentUser.uid, targetUid: targetUid })
+  }).then(function(r) { return r.json(); }).then(function(d) {
+    if (d.success) {
+      addBuddyMessage('ai', '🐟 ' + d.msg);
+    } else {
+      addBuddyMessage('ai', d.msg || '遊びに行けませんでした');
+    }
+  }).catch(function() {});
 }
 
 // ページ読み込み時にアクアリウム初期化

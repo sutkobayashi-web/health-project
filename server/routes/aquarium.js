@@ -879,6 +879,68 @@ router.get('/visitors', authUser, (req, res) => {
   }
 });
 
+// ---------- 遊びに行く（自分の魚を相手の水槽に送る） ----------
+router.post('/visit', authUser, (req, res) => {
+  const db = getDb();
+  try {
+    const { targetUid } = req.body;
+    if (!targetUid || targetUid === req.uid) return res.json({ success: false, msg: '自分には遊びに行けません' });
+
+    // 自分の魚
+    const myAq = db.prepare('SELECT * FROM user_aquarium WHERE user_id = ?').get(req.uid);
+    if (!myAq || myAq.status !== 'alive') return res.json({ success: false, msg: '魚が元気な時だけ遊びに行けます' });
+    const myUser = db.prepare('SELECT nickname FROM users WHERE id = ?').get(req.uid);
+
+    // 相手の魚
+    const targetAq = db.prepare('SELECT * FROM user_aquarium WHERE user_id = ?').get(targetUid);
+    if (!targetAq || targetAq.status !== 'alive') return res.json({ success: false, msg: '相手の魚がいません' });
+    const targetUser = db.prepare('SELECT nickname FROM users WHERE id = ?').get(targetUid);
+
+    // 水質に応じた滞在時間
+    const targetClarity = targetAq.water_clarity || 50;
+    const stayDuration = targetClarity > 70 ? 120 : targetClarity > 40 ? 60 : 20;
+
+    const species = FISH_SPECIES.find(s => s.id === myAq.fish_species_id);
+
+    // 訪問通知を相手に送る（buddy_messagesに記録）
+    db.prepare(`INSERT INTO buddy_messages (user_id, role, content, created_at) VALUES (?, 'ai', ?, datetime('now'))`)
+      .run(targetUid, '🐟 ' + (myAq.fish_name || myUser.nickname + 'の魚') + 'が遊びに来たよ！しばらく一緒に泳いでいくみたい。');
+
+    // トラッキング用: 訪問ログ
+    try {
+      db.exec(`CREATE TABLE IF NOT EXISTS visit_log (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        visitor_uid TEXT NOT NULL,
+        host_uid TEXT NOT NULL,
+        stay_duration INTEGER DEFAULT 60,
+        created_at TEXT DEFAULT (datetime('now'))
+      )`);
+      db.prepare('INSERT INTO visit_log (visitor_uid, host_uid, stay_duration) VALUES (?, ?, ?)').run(req.uid, targetUid, stayDuration);
+    } catch(e) {}
+
+    res.json({
+      success: true,
+      visitor: {
+        nickname: myUser.nickname,
+        fish_name: myAq.fish_name || '名前なし',
+        species_name: species ? species.name : '魚',
+        species_id: myAq.fish_species_id,
+        hue: species ? species.hue : 200,
+        fish_health: Math.round(myAq.fish_health),
+        fish_color: Math.round(myAq.fish_color),
+        fish_size: Math.round(myAq.fish_size),
+        fish_speed: Math.round(myAq.fish_speed),
+        stay_duration: stayDuration,
+      },
+      target_nickname: targetUser.nickname,
+      target_clarity: targetClarity,
+      msg: (myAq.fish_name || 'あなたの魚') + 'が' + targetUser.nickname + 'の水槽に遊びに行ったよ！'
+    });
+  } catch(e) {
+    res.json({ success: false, msg: e.message });
+  }
+});
+
 // ---------- みんなの水槽 ----------
 router.get('/shared-tank', authUser, (req, res) => {
   const db = getDb();

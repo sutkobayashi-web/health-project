@@ -488,3 +488,56 @@ function voteAvatar(voterId, targetUserId) {
 function getAvatarRanking() {
   return api('/avatar-challenge/ranking');
 }
+
+// =============================================
+// 行動トラッキング（実データ収集基盤）
+// =============================================
+var _trackQueue = [];
+var _trackTimer = null;
+var _screenEnterTime = 0;
+var _currentScreen = '';
+
+function track(event, target, value, duration) {
+  if (!currentUser) return;
+  _trackQueue.push({ event: event, target: target || '', value: value || '', duration: duration || 0 });
+  // 10件溜まるか5秒後にバッチ送信
+  if (_trackQueue.length >= 10) _flushTrack();
+  else if (!_trackTimer) _trackTimer = setTimeout(_flushTrack, 5000);
+}
+
+function _flushTrack() {
+  if (_trackTimer) { clearTimeout(_trackTimer); _trackTimer = null; }
+  if (_trackQueue.length === 0 || !currentUser) return;
+  var batch = _trackQueue.splice(0, 50);
+  fetch('/api/track', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ uid: currentUser.uid, events: batch })
+  }).catch(function() {});
+}
+
+// 画面滞在時間計測
+function trackScreenEnter(screen) {
+  if (_currentScreen && _screenEnterTime) {
+    var dur = Math.round((Date.now() - _screenEnterTime) / 1000);
+    if (dur > 0 && dur < 3600) track('screen_time', _currentScreen, '', dur);
+  }
+  _currentScreen = screen;
+  _screenEnterTime = Date.now();
+  track('screen_enter', screen);
+}
+
+// ページ離脱時にフラッシュ
+window.addEventListener('visibilitychange', function() {
+  if (document.visibilityState === 'hidden') {
+    if (_currentScreen && _screenEnterTime) {
+      var dur = Math.round((Date.now() - _screenEnterTime) / 1000);
+      if (dur > 0 && dur < 3600) track('screen_time', _currentScreen, '', dur);
+    }
+    track('app_background');
+    _flushTrack();
+  } else {
+    track('app_foreground');
+  }
+});
+window.addEventListener('beforeunload', _flushTrack);

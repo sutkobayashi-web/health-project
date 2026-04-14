@@ -1731,6 +1731,7 @@ function openAdminFromUser() {
 
 // ★ ログアウト
 function doUserLogout() {
+  track('logout'); _flushTrack();
   if (!confirm("ログアウトしますか？")) return;
   // 天の声チャット履歴をサーバーから削除
   if (currentUser && currentUser.uid) {
@@ -2206,6 +2207,8 @@ function skipOnboarding() {
 function onLoginSuccess() {
   document.getElementById('auth-modal').style.display = 'none';
   document.getElementById('main-app').style.display = 'block';
+  track('login', window._isAutoLogin ? 'auto' : 'manual');
+  trackScreenEnter('buddy_chat');
   // 自動ログイン抑制フラグをクリア（次回通常起動時は自動ログイン復活）
   localStorage.removeItem('co_heart_no_autologin');
   // 初回オンボーディング
@@ -2969,6 +2972,7 @@ var _selectedEmpathyType = null;
 
 // クイック共感（タイプ選択→即送信）
 function quickEmpathy(el, typeKey, row) {
+  track('empathy', typeKey);
   var p = _postCache[row];
   if (!p) return;
   // ボタンを選択状態に
@@ -3741,6 +3745,7 @@ function toggleFoodSubmit() {
 }
 
 function submitFoodPost() {
+  track('food_post_submit');
   if (!selectedFoodData) return alert("写真を選択してください");
   if (!document.getElementById('food-confirm').checked) return alert("確認チェックを入れてください");
   if (isSubmitting) return;
@@ -4452,6 +4457,7 @@ function hideLoading() { document.getElementById('loading-overlay').style.displa
 <script>
 var _currentAppTab = 'buddy';
 function switchAppTab(tab) {
+  trackScreenEnter(tab);
   // タブ状態を保存
   try { sessionStorage.setItem('healthCurrentTab', tab); } catch(e) {}
 
@@ -6739,6 +6745,7 @@ var _inlineFoodBase64 = null;
 var _inlineFoodDataUrl = null;
 
 function inlineFoodCheck() {
+  track('food_check_open');
   hideActionBar();
   addBuddyMessage('ai', '今日のごはん見せて！🍽️\n写真撮るだけでOKだよ📸');
   setTimeout(function() {
@@ -7866,6 +7873,7 @@ function doSpeak(text, msgEl, onDone, btnEl) {
 
 // 投稿のAIコメント用 TTS
 function speakPostAnalysis(btnEl) {
+  track('nutrition_analysis_view');
   var text = btnEl.getAttribute('data-text');
   if (!text) return;
   ensureAudioContext();
@@ -7932,6 +7940,7 @@ function onBuddyInputBlur() {
 }
 
 function sendBuddyMessage() {
+  track('buddy_chat_send');
   var input = document.getElementById('buddy-input');
   var msg = input.value.trim();
   if (!msg) return;
@@ -9171,6 +9180,7 @@ function loadThemeVoting() {
 }
 
 function doVoteTheme(themeId) {
+  track('theme_vote', themeId);
   if (!currentUser) return;
   var comment = (document.getElementById('vote-comment-input') || {}).value || '';
   voteTheme(themeId, currentUser.uid, comment).then(function(res) {
@@ -9315,6 +9325,7 @@ function renderChallengeEntry(c, cid) {
 }
 
 function doJoinChallenge(cid) {
+  track('challenge_join', cid);
   if (!currentUser) return;
   joinChallenge(cid, currentUser.uid, currentUser.nickname, currentUser.avatar).then(function(res) {
     if (res.success) { loadChallengeDetail(cid); loadBuddyChallengeBar(); }
@@ -10040,19 +10051,8 @@ function loadAquariumData() {
     }).catch(function(){});
 }
 
-// ===== デモ魚データ（共有水槽で色とりどりに表示） =====
-var DEMO_FISH = [
-  { species_id: 1,  fish_name: 'ネオン',     nickname: 'さとう',   hue: 200, fish_size: 35, fish_speed: 55, fish_color: 80, fish_health: 85, species_name: 'ネオンテトラ', rank: 'common', growth_stage: 5, days_alive: 45 },
-  { species_id: 10, fish_name: 'ルビー',     nickname: 'たなか',   hue: 240, fish_size: 50, fish_speed: 45, fish_color: 90, fish_health: 72, species_name: 'ベタ', rank: 'uncommon', growth_stage: 6, days_alive: 78 },
-  { species_id: 17, fish_name: 'キング',     nickname: 'すずき',   hue: 280, fish_size: 65, fish_speed: 35, fish_color: 95, fish_health: 90, species_name: 'ディスカス', rank: 'rare', growth_stage: 7, days_alive: 120 },
-  { species_id: 3,  fish_name: 'ひかり',     nickname: 'やまだ',   hue: 45,  fish_size: 30, fish_speed: 60, fish_color: 70, fish_health: 65, species_name: 'メダカ', rank: 'common', growth_stage: 4, days_alive: 30 },
-  { species_id: 19, fish_name: 'ニモ',       nickname: 'いとう',   hue: 25,  fish_size: 45, fish_speed: 50, fish_color: 88, fish_health: 80, species_name: 'クマノミ', rank: 'rare', growth_stage: 6, days_alive: 95 },
-  { species_id: 23, fish_name: 'にしき',     nickname: 'わたなべ', hue: 5,   fish_size: 75, fish_speed: 30, fish_color: 98, fish_health: 92, species_name: '錦鯉', rank: 'ultra', growth_stage: 8, days_alive: 180 },
-  { species_id: 6,  fish_name: 'あかね',     nickname: 'はやし',   hue: 0,   fish_size: 32, fish_speed: 58, fish_color: 75, fish_health: 70, species_name: 'アカヒレ', rank: 'common', growth_stage: 5, days_alive: 50 },
-  { species_id: 21, fish_name: 'コバルト',   nickname: 'おおた',   hue: 220, fish_size: 42, fish_speed: 48, fish_color: 92, fish_health: 88, species_name: 'コバルトブルーラミレジィ', rank: 'rare', growth_stage: 6, days_alive: 100 },
-  { species_id: 30, fish_name: 'フェニックス', nickname: 'もりた', hue: 15,  fish_size: 55, fish_speed: 40, fish_color: 99, fish_health: 95, species_name: 'フェニックスフィッシュ', rank: 'legend', growth_stage: 9, days_alive: 250 },
-  { species_id: 4,  fish_name: 'みかん',     nickname: 'こばやし', hue: 25,  fish_size: 38, fish_speed: 52, fish_color: 82, fish_health: 75, species_name: 'プラティ', rank: 'common', growth_stage: 5, days_alive: 55 },
-];
+// ===== デモ魚データ（現在無効） =====
+var DEMO_FISH = [];
 
 function showEggOpening() {
   var overlay = document.createElement('div');
@@ -10242,6 +10242,7 @@ function showAqVoice(text) {
 
 // 餌をあげる
 function manualFeed() {
+  track('aquarium_feed');
   if (!currentUser || !_aq) return;
   fetch('/api/aquarium/manual-feed', {
     method: 'POST',
@@ -10266,6 +10267,7 @@ function manualFeed() {
 
 // 水換え
 function doWaterChange() {
+  track('aquarium_water_change');
   if (!currentUser || !_aq) return;
   fetch('/api/aquarium/water-change', {
     method: 'POST',
@@ -10452,6 +10454,7 @@ function giveHealthAdvice() {
 }
 
 function showEggStatus() {
+  track('egg_status_open');
   var existing = document.getElementById('status-panel');
   if (existing) { existing.remove(); return; }
   if (!_aq) return;
@@ -10505,6 +10508,7 @@ function showEggStatus() {
 }
 
 function showStatusPanel() {
+  track('status_panel_open');
   var existing = document.getElementById('status-panel');
   if (existing) { existing.remove(); return; }
   var d = window._aqStatusData;
@@ -10566,6 +10570,7 @@ function showStatusPanel() {
 function openFishMenu() { renameFish(); }
 
 function showFishGuide() {
+  track('fish_guide_open');
   var html = '<div style="position:fixed;inset:0;background:rgba(0,10,25,0.95);z-index:9999;overflow-y:auto;padding:16px;" onclick="if(event.target===this)this.remove()">' +
     '<div style="max-width:400px;margin:0 auto;color:#fff;">' +
       '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">' +
@@ -11729,6 +11734,7 @@ function closeSharedTank() {
 }
 
 function openSharedTank() {
+  track('shared_tank_open');
   if (!currentUser) return;
   fetch('/api/aquarium/shared-tank?uid=' + currentUser.uid, { headers:{'x-user-id':currentUser.uid} })
     .then(function(r){return r.json();}).then(function(d){

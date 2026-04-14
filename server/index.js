@@ -110,6 +110,54 @@ app.use('/api/recruit-chat', require('./routes/recruit-chat'));
 app.use('/api/box', require('./routes/box-manager'));
 app.use('/api/aquarium', require('./routes/aquarium'));
 
+// ===== 行動トラッキング（実データ収集基盤） =====
+const { getDb } = require('./services/db');
+(function initEventLog() {
+  const db = getDb();
+  db.exec(`CREATE TABLE IF NOT EXISTS event_log (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id TEXT NOT NULL,
+    event TEXT NOT NULL,
+    target TEXT DEFAULT '',
+    value TEXT DEFAULT '',
+    duration INTEGER DEFAULT 0,
+    created_at TEXT DEFAULT (datetime('now'))
+  )`);
+  db.exec(`CREATE INDEX IF NOT EXISTS idx_event_log_user ON event_log(user_id, created_at DESC)`);
+  db.exec(`CREATE INDEX IF NOT EXISTS idx_event_log_event ON event_log(event, created_at DESC)`);
+})();
+
+app.post('/api/track', (req, res) => {
+  try {
+    const { uid, events } = req.body;
+    if (!uid || !events || !Array.isArray(events)) return res.json({ ok: false });
+    const db = getDb();
+    const stmt = db.prepare('INSERT INTO event_log (user_id, event, target, value, duration) VALUES (?, ?, ?, ?, ?)');
+    const insertMany = db.transaction((evts) => {
+      for (const e of evts) {
+        stmt.run(uid, e.event || '', e.target || '', e.value || '', e.duration || 0);
+      }
+    });
+    insertMany(events.slice(0, 50)); // 1回最大50件
+    res.json({ ok: true });
+  } catch (e) { res.json({ ok: false }); }
+});
+
+// トラッキングデータ集計（管理者用）
+app.get('/api/track/summary', (req, res) => {
+  try {
+    const db = getDb();
+    const days = parseInt(req.query.days) || 7;
+    // イベント種別ごとの件数
+    const byEvent = db.prepare(`SELECT event, COUNT(*) as cnt, COUNT(DISTINCT user_id) as users FROM event_log WHERE created_at > datetime('now', '-' || ? || ' days') GROUP BY event ORDER BY cnt DESC`).all(days);
+    // 日別アクティブユーザー
+    const daily = db.prepare(`SELECT date(created_at) as d, COUNT(DISTINCT user_id) as users, COUNT(*) as events FROM event_log WHERE created_at > datetime('now', '-' || ? || ' days') GROUP BY d ORDER BY d`).all(days);
+    // 離脱予兆（7日以上アクセスなし）
+    const atRisk = db.prepare(`SELECT user_id, MAX(created_at) as last_seen FROM event_log GROUP BY user_id HAVING last_seen < datetime('now', '-7 days')`).all();
+    res.json({ success: true, byEvent, daily, atRisk });
+  } catch (e) { res.json({ success: false }); }
+});
+
 // ヘルスチェック
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });

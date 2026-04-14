@@ -440,9 +440,11 @@ router.post('/manual-feed', authUser, (req, res) => {
     updated_at=datetime('now')
     WHERE user_id=?`).run(newColor, newHealth, newMood, feedDate, consecutive, req.uid);
 
-  db.prepare(`INSERT INTO aquarium_feed_log (user_id, feed_date, feed_type) VALUES (?,?,?)
-    ON CONFLICT(user_id, feed_date) DO UPDATE SET feed_type='manual'`)
-    .run(req.uid, feedDate, 'manual');
+  // 今日の手動餌ログが無ければ追加（ON CONFLICTはUNIQUE制約不要の方式に変更）
+  const existingManual = db.prepare("SELECT id FROM aquarium_feed_log WHERE user_id=? AND feed_date=? AND feed_type='manual'").get(req.uid, feedDate);
+  if (!existingManual) {
+    db.prepare(`INSERT INTO aquarium_feed_log (user_id, feed_date, feed_type) VALUES (?,?,?)`).run(req.uid, feedDate, 'manual');
+  }
 
   let voice = '';
   if (consecutive >= 7) {

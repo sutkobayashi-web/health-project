@@ -1206,7 +1206,7 @@
   </div>
 </div>
 
-<script src="/js/api.js?v=20260323a"></script>
+<script src="/js/api.js?v=20260414"></script>
 <script>
 // ====== グローバル変数 ======
 var currentUser = null;
@@ -1235,7 +1235,7 @@ var avatarList = [
 
 // ====== カスタムアバター描画（外部ファイル） ======
 </script>
-<script src="/js/avatar-render.js?v=20260403"></script>
+<script src="/js/avatar-render.js?v=20260414"></script>
 <script>
 var _AVATAR_RENDER_LOADED = true; // 外部ファイルから読み込み済み
 
@@ -9871,6 +9871,48 @@ var _aqFrame = 0;
 var _aqW = 0, _aqH = 0;
 var _aqFood = [];
 
+// 魚画像プリロード
+var _fishImages = {};
+var _fishImagesLoading = false;
+function preloadFishImages() {
+  if (_fishImagesLoading) return;
+  _fishImagesLoading = true;
+  var ids = ['egg','fry'];
+  for (var i = 1; i <= 30; i++) ids.push('fish_' + i);
+  var loaded = 0;
+  ids.forEach(function(id) {
+    var img = new Image();
+    img.onload = function() {
+      // 白背景→透過変換（オフスクリーンCanvas）
+      try {
+        var c = document.createElement('canvas');
+        c.width = img.naturalWidth; c.height = img.naturalHeight;
+        var cx = c.getContext('2d');
+        cx.drawImage(img, 0, 0);
+        var d = cx.getImageData(0, 0, c.width, c.height);
+        var px = d.data;
+        for (var i = 0; i < px.length; i += 4) {
+          var r = px[i], g = px[i+1], b = px[i+2];
+          if (r > 225 && g > 225 && b > 225) {
+            var w = Math.min(r, g, b);
+            px[i+3] = w > 240 ? 0 : Math.round((240 - w) / 15 * 255);
+          }
+        }
+        cx.putImageData(d, 0, 0);
+        // Canvas自体をキャッシュ（Imageに戻さない）
+        _fishImages[id] = c;
+      } catch(e) {
+        // 変換失敗時は元画像をそのまま使う
+        _fishImages[id] = img;
+      }
+      loaded++;
+    };
+    img.onerror = function() { loaded++; };
+    img.src = '/fish/' + id + '.png';
+  });
+}
+preloadFishImages();
+
 function initAquarium() {
   var wrap = document.getElementById('aquarium-container');
   if (!wrap) return;
@@ -9881,7 +9923,8 @@ function initAquarium() {
   window.addEventListener('resize', resizeAquarium);
   loadAquariumData();
   requestAnimationFrame(drawAquarium);
-  // ゲスト魚は無効化（自分の水槽は自分の魚だけ）
+  // 訪問魚タイマー開始
+  startVisitorTimer();
 }
 
 function resizeAquarium() {
@@ -10208,13 +10251,13 @@ function checkDailyFeed() {
     } else if (clarity < 40) {
       tips.push('水がちょっと濁ってるかも...💧\n「💧水換」で少しきれいになるよ。\n食事・歩数・野菜の3つが揃うと水がキラキラに✨');
     } else if (obesity > 60) {
-      tips.push('最近お腹が重い...🐟\n揚げ物が続いてるからかな。\n野菜やサラダを食べると体が軽くなるかも');
+      tips.push('最近お腹が重い...🐟\n脂っこいもの続いてるからかな。\n野菜やサラダを食べると体が軽くなるかも');
     } else if (hp > 60) {
-      tips.push('なんだか顔が赤い気がする...😰\n塩辛いもの多くなかった？\n薄味のごはんだと楽になるかも');
+      tips.push('なんだか水がピリピリする...🧂\n塩辛いもの多くなかった？\n薄味のごはんだと楽になるかも');
     } else if (liver > 50) {
       tips.push('水が黄色っぽい...🍺\nお酒の後は水が汚れやすいんだ。\n今日は休肝日にしてくれると助かるな');
     } else if (mental > 50) {
-      tips.push('最近ちょっと寂しかったよ...😢\n毎日来てくれると元気になるんだ。\n話しかけてくれるだけでも嬉しいよ');
+      tips.push('最近ちょっと寂しかったよ...📱\n毎日来てくれると元気になるんだ。\n話しかけてくれるだけでも嬉しいよ');
     } else if (checkups === 0 && days > 7) {
       tips.push('そういえば、まだ検査してもらったことないな...🔬\n上のメニューの「🔬検査」で水質を調べてくれない？\n早めに気づけると安心だよ');
     } else if (consec >= 7) {
@@ -10297,19 +10340,19 @@ function giveHealthAdvice() {
     advice.push('❤️ 元気がないよ...\n→ 毎日「🐟餌」ボタンで餌をあげて\n→ 食事の写真を撮ると栄養たっぷりの餌に');
   }
   if (d.obesity > 50) {
-    advice.push('⚖️ ちょっと太ってきたかも...\n→ 揚げ物を減らして野菜を増やすと体が軽くなるよ\n→ 歩数を記録すると肥満リスクが下がる');
+    advice.push('🍖 脂質が多めだね...\n→ 揚げ物を減らして野菜を増やすと体が軽くなるよ\n→ 歩数を記録すると脂質の値が下がる');
   }
   if (d.hp > 50) {
-    advice.push('🩺 血圧が心配...\n→ 塩分の少ない食事にすると楽になるよ\n→ 「🔬検査」で早期発見を');
+    advice.push('🧂 塩分が高めだね...\n→ 塩分の少ない食事にすると楽になるよ\n→ 「🔬検査」で水質をチェックしよう');
   }
   if (d.liver > 40) {
-    advice.push('🍺 肝臓が疲れてるかも...\n→ お酒を控えると水がきれいになるよ\n→ 休肝日を作ってあげて');
+    advice.push('🍺 飲酒が多めかも...\n→ お酒を控えると水がきれいになるよ\n→ 休肝日を作ってあげて');
   }
   if (d.mental > 40) {
-    advice.push('😢 ちょっと寂しい...\n→ 毎日アプリに来て話しかけてくれると元気になるよ\n→ 連続日数が増えるとメンタルが回復');
+    advice.push('📱 最近あまり来てないね...\n→ 毎日アプリに来て話しかけてくれると元気になるよ\n→ 連続アクセスで元気が回復');
   }
   if (d.checkups === 0 && d.days > 5) {
-    advice.push('🔬 まだ検査したことないね\n→ 魚名の横の「📊状態」から見えない病気が分かるよ\n→ 早期発見が大事！');
+    advice.push('🔬 まだ検査したことないね\n→ 魚名の横の「📊状態」から水質の詳細が分かるよ\n→ 定期チェックが大事！');
   }
 
   // 3要素アドバイス
@@ -10317,7 +10360,7 @@ function giveHealthAdvice() {
 
   // 良い状態なら褒める
   if (d.health > 70 && d.clarity > 60 && d.obesity < 30 && d.hp < 30) {
-    advice = ['🎉 すごい！とても元気だよ！\n水もきれいだし、リスクも低い。\nこの調子で続けてね！\n\n🏆 仲間の中でもトップクラスだよ'];
+    advice = ['🎉 すごい！とても元気だよ！\n水もきれいだし、食事のバランスもいい感じ。\nこの調子で続けてね！\n\n🏆 仲間の中でもトップクラスだよ'];
   }
 
   // チャットにアドバイスを順番に表示
@@ -10365,13 +10408,13 @@ function showStatusPanel() {
         '</div>' +
       '</div>' +
 
-      // リスク値
-      '<div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.6);margin-bottom:6px;">⚠️ リスク値</div>' +
-      riskBar('肥満', d.obesity, d.obesity>60?'#ef4444':d.obesity>30?'#fbbf24':'#4ade80') +
-      riskBar('高血圧', d.hp, d.hp>60?'#ef4444':d.hp>30?'#fbbf24':'#4ade80') +
-      riskBar('糖尿病', d.diabetes, d.diabetes>60?'#ef4444':d.diabetes>30?'#fbbf24':'#4ade80') +
-      riskBar('肝臓', d.liver, d.liver>60?'#ef4444':d.liver>30?'#fbbf24':'#4ade80') +
-      riskBar('メンタル', d.mental, d.mental>60?'#ef4444':d.mental>30?'#fbbf24':'#4ade80') +
+      // 食事傾向5要素
+      '<div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.6);margin-bottom:6px;">📊 食事の傾向</div>' +
+      riskBar('🍖 脂質', d.obesity, d.obesity>60?'#ef4444':d.obesity>30?'#fbbf24':'#4ade80') +
+      riskBar('🧂 塩分', d.hp, d.hp>60?'#ef4444':d.hp>30?'#fbbf24':'#4ade80') +
+      riskBar('🍺 飲酒', d.liver, d.liver>60?'#ef4444':d.liver>30?'#fbbf24':'#4ade80') +
+      riskBar('⚖️ バランス', d.diabetes, d.diabetes>60?'#ef4444':d.diabetes>30?'#fbbf24':'#4ade80') +
+      riskBar('📱 アクセス', d.mental, d.mental>60?'#ef4444':d.mental>30?'#fbbf24':'#4ade80') +
 
       // 記録
       '<div style="display:flex;gap:8px;margin-top:10px;font-size:10px;color:rgba(255,255,255,0.5);">' +
@@ -10401,9 +10444,9 @@ function showFishGuide() {
       '<div style="background:rgba(255,255,255,0.06);border-radius:12px;padding:14px;margin-bottom:10px;">' +
         '<div style="font-size:13px;font-weight:700;color:#4ade80;margin-bottom:8px;">🥚 はじめかた</div>' +
         '<div style="font-size:12px;line-height:1.8;color:rgba(255,255,255,0.8);">' +
-          '1. 卵が届いたら、ごはんの写真を<b>3回</b>記録<br>' +
-          '2. 小さな<b>稚魚</b>が生まれる（まだ透明）<br>' +
-          '3. 食事を続けると色がついて<b>種類が決まる</b>！<br>' +
+          '1. 卵が届いたら名前をつけよう<br>' +
+          '2. 1日後に小さな<b>稚魚</b>が生まれる（まだ透明）<br>' +
+          '3. 食事<b>10回</b> + <b>5日連続</b>で種類が決まる！<br>' +
           '4. 食事パターンで<b>30種類</b>の魚に進化<br>' +
         '</div>' +
       '</div>' +
@@ -10446,7 +10489,7 @@ function showFishGuide() {
           '🏃 5,000歩 → 泳ぎが速く<br>' +
           '🏃‍♂️ 7,000歩 → ウロコがキラキラ<br>' +
           '🔥 10,000歩 → 全速力！色も最高に鮮やか<br><br>' +
-          '歩数は肥満・糖尿病リスクも軽減します' +
+          '歩数は脂質の値を下げる効果もあります' +
         '</div>' +
       '</div>' +
 
@@ -10454,13 +10497,13 @@ function showFishGuide() {
       '<div style="background:rgba(255,255,255,0.06);border-radius:12px;padding:14px;margin-bottom:10px;">' +
         '<div style="font-size:13px;font-weight:700;color:#fbbf24;margin-bottom:8px;">🔬 水質検査（健診）</div>' +
         '<div style="font-size:12px;line-height:1.8;color:rgba(255,255,255,0.8);">' +
-          '月1回の水質検査で、見えない病気を早期発見。<br><br>' +
+          '月1回の水質検査で、食事の傾向を詳しくチェック。<br><br>' +
           '検査しないと…<br>' +
-          '😨 <b>自覚症状がないまま</b>病気が進行<br>' +
+          '😨 <b>気づかないうちに</b>水質が悪化<br>' +
           '💀 Stage 3で突然倒れることも<br><br>' +
           '検査すれば…<br>' +
-          '✅ Stage 1で発見 → 食事改善で回復可能！<br>' +
-          '🏥 「もっと早く検査していれば…」を防ぐ' +
+          '✅ 早期に気づいて食事改善で回復可能！<br>' +
+          '🔍 食事の傾向を見える化できる' +
         '</div>' +
       '</div>' +
 
@@ -10471,19 +10514,52 @@ function showFishGuide() {
           'マイページの設定から血圧記録をONにすると、<br>' +
           'メニューに「血圧を測る」が出現。<br>' +
           '血圧計の写真を撮るだけでAIが数値を読み取り！<br><br>' +
-          '塩分の多い食事が続くと<br>魚の高血圧リスクも上がります🐟' +
+          '塩分の多い食事が続くと<br>魚の塩分値も上がります🐟' +
         '</div>' +
       '</div>' +
 
-      // 成長と死
+      // 成長条件
       '<div style="background:rgba(255,255,255,0.06);border-radius:12px;padding:14px;margin-bottom:10px;">' +
-        '<div style="font-size:13px;font-weight:700;color:#c084fc;margin-bottom:8px;">📈 成長と寿命</div>' +
+        '<div style="font-size:13px;font-weight:700;color:#c084fc;margin-bottom:8px;">📈 成長の条件</div>' +
         '<div style="font-size:12px;line-height:1.8;color:rgba(255,255,255,0.8);">' +
-          '🐣 稚魚 → 🐟 幼魚 → 若魚 → 成魚 → 大人 → <b>伝説</b><br><br>' +
-          '<b>⚠️ 放置すると…</b><br>' +
-          '3日放置 → 元気がなくなる<br>' +
+          '<table style="width:100%;border-collapse:collapse;font-size:11px;">' +
+            '<tr style="border-bottom:1px solid rgba(255,255,255,0.1);">' +
+              '<td style="padding:4px 0;color:#c084fc;white-space:nowrap;">🥚→🐣 稚魚</td>' +
+              '<td style="padding:4px 6px;">1日経過</td>' +
+            '</tr>' +
+            '<tr style="border-bottom:1px solid rgba(255,255,255,0.1);">' +
+              '<td style="padding:4px 0;color:#60a5fa;white-space:nowrap;">🐣→🐟 種類決定</td>' +
+              '<td style="padding:4px 6px;">食事<b>10回</b> + <b>5日連続</b></td>' +
+            '</tr>' +
+            '<tr style="border-bottom:1px solid rgba(255,255,255,0.1);">' +
+              '<td style="padding:4px 0;color:#4ade80;white-space:nowrap;">🐟→若魚</td>' +
+              '<td style="padding:4px 6px;"><b>21日</b> + 食事25回</td>' +
+            '</tr>' +
+            '<tr style="border-bottom:1px solid rgba(255,255,255,0.1);">' +
+              '<td style="padding:4px 0;color:#fbbf24;white-space:nowrap;">若魚→成魚</td>' +
+              '<td style="padding:4px 6px;"><b>45日</b> + バランス60↑ + 7日連続</td>' +
+            '</tr>' +
+            '<tr style="border-bottom:1px solid rgba(255,255,255,0.1);">' +
+              '<td style="padding:4px 0;color:#f97316;white-space:nowrap;">成魚→大人</td>' +
+              '<td style="padding:4px 6px;"><b>75日</b> + 水質検査2回↑</td>' +
+            '</tr>' +
+            '<tr>' +
+              '<td style="padding:4px 0;color:#f87171;white-space:nowrap;">大人→<b>伝説</b></td>' +
+              '<td style="padding:4px 6px;"><b>120日</b> + 水質60%↑ + 元気60%↑</td>' +
+            '</tr>' +
+          '</table>' +
+          '<div style="margin-top:8px;font-size:10px;color:rgba(255,255,255,0.5);">※ 食事パターンで30種類の魚に進化します</div>' +
+        '</div>' +
+      '</div>' +
+
+      // 放置と寿命
+      '<div style="background:rgba(255,255,255,0.06);border-radius:12px;padding:14px;margin-bottom:10px;">' +
+        '<div style="font-size:13px;font-weight:700;color:#f87171;margin-bottom:8px;">⚠️ 放置と寿命</div>' +
+        '<div style="font-size:12px;line-height:1.8;color:rgba(255,255,255,0.8);">' +
+          '2日放置 → 水が濁り始める<br>' +
+          '4日放置 → 酸素不足で苦しそう<br>' +
           '7日放置 → 病気になる<br>' +
-          '10日放置 → <b>死んでしまう</b><br><br>' +
+          '<b>10日放置 → 死んでしまう</b><br><br>' +
           '<b>🏆 180日育てると…</b><br>' +
           '大往生！褒賞がもらえて、新しい卵が届く<br><br>' +
           '死んでしまっても新しい卵がもらえます。<br>' +
@@ -10707,10 +10783,15 @@ function drawAquarium() {
   // 卵
   if (isEgg) {
     var eggY = _aqH/2 + Math.sin(_aqFrame*0.03)*3;
-    ctx.fillStyle = '#f5f0e0';
-    ctx.beginPath(); ctx.ellipse(_aqW/2, eggY, 28, 36, 0, 0, Math.PI*2); ctx.fill();
-    ctx.strokeStyle = '#d4c9a8'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.ellipse(_aqW/2, eggY, 28, 36, 0, 0, Math.PI*2); ctx.stroke();
+    var eggImg = _fishImages['egg'];
+    if (eggImg) {
+      ctx.drawImage(eggImg, _aqW/2 - 36, eggY - 42, 72, 84);
+    } else {
+      ctx.fillStyle = '#f5f0e0';
+      ctx.beginPath(); ctx.ellipse(_aqW/2, eggY, 28, 36, 0, 0, Math.PI*2); ctx.fill();
+      ctx.strokeStyle = '#d4c9a8'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.ellipse(_aqW/2, eggY, 28, 36, 0, 0, Math.PI*2); ctx.stroke();
+    }
     // 卵の名前表示
     if (_aq && _aq.fish_name) {
       ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.font = '11px sans-serif'; ctx.textAlign = 'center';
@@ -10750,8 +10831,27 @@ function drawAquarium() {
     var hue=_aq.fish_species_id?(_aqSpeciesHue()||200):200;
     var isFry = _aq && !_aq.fish_species_id && alive; // 稚魚判定
 
-    if (isFry) {
-      // ===== 稚魚専用デザイン =====
+    // ===== 画像描画 =====
+    var fishImgKey = isFry ? 'fry' : (_aq.fish_species_id ? 'fish_' + _aq.fish_species_id : 'fry');
+    var fishImg = _fishImages[fishImgKey];
+
+    if (fishImg && !isDead) {
+      // 画像で描画（画像は左向き、Canvas描画は右向き基準なのでX反転）
+      ctx.scale(-1, 1);
+      var imgW, imgH;
+      if (isFry) {
+        imgW = 30; imgH = 30;
+        ctx.globalAlpha = 0.8;
+      } else {
+        var shape = _aqSpeciesShape();
+        imgW = Math.max(shape.bodyRx * 2.5, 40);
+        imgH = imgW * ((fishImg.naturalHeight || fishImg.height) / (fishImg.naturalWidth || fishImg.width));
+      }
+      ctx.drawImage(fishImg, -imgW/2, -imgH/2, imgW, imgH);
+      if (isFry) ctx.globalAlpha = 1;
+      ctx.restore();
+    } else if (isFry) {
+      // ===== 稚魚専用デザイン（フォールバック） =====
       ctx.globalAlpha = 0.7;
       var fryPhase = _aqFrame * 0.04;
       // 透明な楕円ボディ
@@ -10979,6 +11079,23 @@ function _aqSpeciesHue() {
 
 // 魚種別の体を描画する共通関数
 function drawFishBody(ctx, hue, colNorm, speciesId, tailPhase, eNorm, isMine, frame) {
+  // 画像があれば画像で描画
+  var imgKey = speciesId ? 'fish_' + speciesId : 'fry';
+  var fishImg = _fishImages[imgKey];
+  if (fishImg) {
+    // 画像は左向き、Canvas描画は右向き基準なのでX反転
+    ctx.scale(-1, 1);
+    var imgW = speciesId ? 40 : 24;
+    var imgH = imgW * ((fishImg.naturalHeight || fishImg.height) / (fishImg.naturalWidth || fishImg.width));
+    ctx.drawImage(fishImg, -imgW/2, -imgH/2, imgW, imgH);
+    ctx.scale(-1, 1); // 反転を戻す
+    if (isMine) {
+      ctx.strokeStyle = 'rgba(74,222,128,0.6)'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.ellipse(0, 0, imgW/2+4, imgH/2+4, 0, 0, Math.PI*2); ctx.stroke();
+    }
+    return;
+  }
+  // フォールバック: 従来のCanvas描画
   var sat=40+colNorm*55, light=35+colNorm*20;
   // 体型を取得（speciesId直接指定）
   var shapes = {
@@ -11136,8 +11253,9 @@ function openFishBook() {
         html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">';
         species.forEach(function(s) {
           if (s.discovered) {
-            html += '<div style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:8px 10px;">';
-            html += '<div style="font-size:12px;font-weight:700;color:#fff;">🐟 ' + s.name + '</div>';
+            html += '<div style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:8px 10px;text-align:center;">';
+            html += '<img src="/fish/fish_' + s.id + '.png" style="width:56px;height:56px;object-fit:contain;margin-bottom:4px;" onerror="this.style.display=\'none\'">';
+            html += '<div style="font-size:12px;font-weight:700;color:#fff;">' + s.name + '</div>';
             html += '<div style="font-size:10px;color:rgba(255,255,255,0.5);margin-top:2px;">' + s.desc + '</div>';
             html += '</div>';
           } else {
@@ -11192,47 +11310,137 @@ function openFishHistory() {
     }).catch(function(){});
 }
 
-// ゲスト魚システム
-var _aqGuests = []; // { x, y, vx, vy, tailPhase, hue, size, speed, color, name, nickname, stayLeft, entering, leaving }
+// ゲスト魚システム（訪問イベント）
+var _aqGuests = [];
+var _aqVisitorTimer = null;
+var _aqLastVisitorLoad = 0;
+var _aqVisitorBlock = {}; // { nickname: blockUntilClarity } 水質改善まで再訪問拒否
 
-function loadCommunityFish() {
-  if (!currentUser) return;
-  fetch('/api/aquarium/shared-tank?uid=' + currentUser.uid, { headers:{'x-user-id':currentUser.uid} })
+function loadVisitors() {
+  if (!currentUser || !_aq || _aq.status !== 'alive') return;
+  // 既に訪問中のゲストがいたら新規ロードしない
+  if (_aqGuests.length > 0) return;
+  // 最低60秒間隔
+  var now = Date.now();
+  if (now - _aqLastVisitorLoad < 60000) return;
+  _aqLastVisitorLoad = now;
+
+  fetch('/api/aquarium/visitors?uid=' + currentUser.uid, { headers:{'x-user-id':currentUser.uid} })
     .then(function(r){return r.json();}).then(function(d){
-      if (!d.success) return;
-      // 自分以外の魚をゲストとして常駐表示
-      _aqGuests = [];
-      d.fish.forEach(function(f) {
-        if (f.is_mine) return; // 自分はスキップ
-        var isFry = !f.fish_species_id;
-        _aqGuests.push({
-          x: 20 + Math.random() * (_aqW - 40),
-          y: 30 + Math.random() * (_aqH - 80),
-          vx: (Math.random() - 0.5) * 0.6,
+      if (!d.success || !d.visitors || !d.visitors.length) return;
+      var myClarity = d.my_clarity || 50;
+
+      // 水質が改善したら拒否リストをクリア
+      Object.keys(_aqVisitorBlock).forEach(function(nick) {
+        if (myClarity >= _aqVisitorBlock[nick]) delete _aqVisitorBlock[nick];
+      });
+
+      // 拒否リスト中の魚を除外
+      var allowed = d.visitors.filter(function(v) { return !_aqVisitorBlock[v.nickname]; });
+      if (!allowed.length) return;
+
+      allowed.forEach(function(v, idx) {
+        // 画面外から入場
+        var fromLeft = Math.random() > 0.5;
+        var guest = {
+          x: fromLeft ? -30 : _aqW + 30,
+          y: 40 + Math.random() * (_aqH * 0.4),
+          vx: fromLeft ? 1.5 : -1.5,
           vy: (Math.random() - 0.5) * 0.3,
-          targetX: Math.random() * _aqW,
+          targetX: _aqW * 0.3 + Math.random() * _aqW * 0.4,
           targetY: 30 + Math.random() * (_aqH - 80),
           tailPhase: Math.random() * Math.PI * 2,
-          hue: f.hue || 200,
-          size: isFry ? 0.3 : 0.35 + (f.fish_size || 30) / 100 * 0.4,
-          speed: 0.2 + (f.fish_speed || 50) / 100 * 0.4,
-          color: (f.fish_color || 50) / 100,
-          name: f.fish_name,
-          nickname: f.nickname,
-          species: f.species_name,
-          health: f.fish_health,
-          isFry: isFry,
-          stayLeft: 999999, // 常駐
-          entering: false,
+          hue: v.hue || 200,
+          speciesId: v.species_id,
+          size: 0.35 + (v.fish_size || 30) / 100 * 0.4,
+          speed: 0.2 + (v.fish_speed || 50) / 100 * 0.4,
+          color: (v.fish_color || 50) / 100,
+          name: v.fish_name,
+          nickname: v.nickname,
+          species: v.species_name,
+          isFry: false,
+          stayTotal: v.stay_duration * 60,
+          stayLeft: v.stay_duration * 60, // 秒→フレーム数(60fps想定)
+          entering: true,
           leaving: false,
-          opacity: 0.45, // 背景表示なので薄め
-        });
+          opacity: 0,
+          commented: false,
+          farewellSaid: false,
+          myClarity: myClarity,
+        };
+        // 少し時間差で入場
+        setTimeout(function() {
+          _aqGuests.push(guest);
+          // 入場コメント
+          var greet = myClarity > 70
+            ? ['おじゃまします〜！水がきれいだね✨', 'わぁ、ここの水最高！泳ぎやすい〜', 'きれいな水槽！しばらくいていい？']
+            : myClarity > 40
+            ? ['ちょっと寄ってくね〜', 'こんにちは！遊びに来たよ', 'へぇ、ここが' + (_aq.fish_name||'') + 'のおうちか〜']
+            : ['う...水がちょっと...😰', 'ここの水、大丈夫...？', 'ゴホッ...濁ってない？'];
+          var msg = v.fish_name + '（' + v.nickname + 'の' + v.species_name + '）が遊びに来たよ！\n🐟「' + greet[Math.floor(Math.random()*greet.length)] + '」';
+          addBuddyMessage('ai', msg);
+        }, idx * 3000);
       });
     }).catch(function(){});
 }
 
-// 旧loadVisitors互換
-function loadVisitors() { loadCommunityFish(); }
+// 滞在中コメント（水質に応じて）
+function visitorMidComment(g) {
+  if (g.commented) return;
+  g.commented = true;
+  var comments;
+  if (g.myClarity > 70) {
+    comments = [
+      '水草もイキイキしてる〜！いい環境だね',
+      'ここの水、飲めそうなくらいきれい！',
+      (_aq.fish_name||'') + 'は幸せだね〜。こんなきれいな水で暮らせて',
+    ];
+  } else if (g.myClarity > 40) {
+    comments = [
+      'まぁまぁかな〜。もうちょっと水換えするといいかも',
+      'ちょっと藻が多いかな...？',
+      '悪くはないけど、もうちょっと野菜食べてあげてね',
+    ];
+  } else {
+    comments = [
+      'ゴホゴホ...ちょっと無理かも...',
+      'ここの水、目がしみる...早く帰りたい',
+      'ごめん、息苦しい...💦',
+    ];
+  }
+  var msg = '🐟 ' + g.name + '「' + comments[Math.floor(Math.random()*comments.length)] + '」';
+  addBuddyMessage('ai', msg);
+}
+
+// 退出コメント
+function visitorFarewell(g) {
+  if (g.farewellSaid) return;
+  g.farewellSaid = true;
+  var bye;
+  if (g.myClarity > 70) {
+    bye = ['また来るね！楽しかった✨', 'ここ最高！また遊ぼう〜', 'バイバイ！水がきれいで長居しちゃった'];
+  } else if (g.myClarity > 40) {
+    bye = ['じゃあね〜またね', 'そろそろ帰るね。水換えしてね〜', 'バイバイ！次はもっときれいだといいな'];
+  } else {
+    bye = ['もう限界...バイバイ💦', 'ここは...ちょっと...もう来ないかも', 'はぁはぁ...やっと帰れる...'];
+    // 水質が悪くて帰った→水質60%以上に改善するまで再訪問しない
+    _aqVisitorBlock[g.nickname] = 60;
+  }
+  var msg = '🐟 ' + g.name + '「' + bye[Math.floor(Math.random()*bye.length)] + '」\n' + g.nickname + 'の' + g.name + 'が帰っていった';
+  addBuddyMessage('ai', msg);
+}
+
+// 定期的に訪問者をチェック（90秒ごと）
+function startVisitorTimer() {
+  if (_aqVisitorTimer) return;
+  _aqVisitorTimer = setInterval(function() {
+    loadVisitors();
+  }, 90000);
+  // 初回は10秒後
+  setTimeout(loadVisitors, 10000);
+}
+// loadCommunityFish互換
+function loadCommunityFish() { loadVisitors(); }
 
 function drawGuests(ctx) {
   for (var gi = _aqGuests.length - 1; gi >= 0; gi--) {
@@ -11240,24 +11448,30 @@ function drawGuests(ctx) {
 
     // 入場アニメーション
     if (g.entering) {
-      g.opacity = Math.min(1, g.opacity + 0.02);
-      if (g.opacity >= 1) g.entering = false;
+      g.opacity = Math.min(0.8, g.opacity + 0.015);
+      if (g.opacity >= 0.8) g.entering = false;
     }
 
     // 滞在カウントダウン
     g.stayLeft--;
+
+    // 滞在の中間でコメント（残り半分になった時）
+    if (!g.entering && !g.leaving && !g.commented && g.stayLeft < (g.stayTotal || 9999) * 0.4) {
+      visitorMidComment(g);
+    }
+
+    // 退出開始
     if (g.stayLeft <= 0 && !g.leaving) {
       g.leaving = true;
-      g.targetX = g.x < _aqW / 2 ? -40 : _aqW + 40;
+      g.targetX = g.x < _aqW / 2 ? -50 : _aqW + 50;
       g.targetY = g.y;
+      visitorFarewell(g);
     }
 
     // 退場アニメーション
     if (g.leaving) {
-      g.opacity = Math.max(0, g.opacity - 0.015);
+      g.opacity = Math.max(0, g.opacity - 0.01);
       if (g.opacity <= 0) {
-        // 帰ったメッセージ
-        showAqVoice(g.nickname + 'の' + g.name + 'が帰っていったよ');
         _aqGuests.splice(gi, 1);
         continue;
       }
@@ -11266,22 +11480,29 @@ function drawGuests(ctx) {
     // 移動
     var dx = g.targetX - g.x, dy = g.targetY - g.y;
     var dist = Math.sqrt(dx*dx + dy*dy);
-    if (dist > 5 && !g.leaving) {
-      g.vx += (dx / dist) * g.speed * 0.03;
-      g.vy += (dy / dist) * g.speed * 0.03;
+    if (dist > 5) {
+      var moveSpd = g.leaving ? 0.08 : 0.03;
+      g.vx += (dx / dist) * g.speed * moveSpd;
+      g.vy += (dy / dist) * g.speed * moveSpd;
     }
-    if (!g.leaving && dist < 30 && Math.random() < 0.01) {
-      g.targetX = _aqW * 0.2 + Math.random() * _aqW * 0.6;
-      g.targetY = 30 + Math.random() * (_aqH - 80);
+    if (!g.leaving && dist < 30 && Math.random() < 0.008) {
+      // 水質が悪いと落ち着かない（頻繁に移動）
+      var restless = g.myClarity < 40 ? 0.03 : 0.008;
+      if (Math.random() < restless) {
+        g.targetX = _aqW * 0.15 + Math.random() * _aqW * 0.7;
+        g.targetY = 25 + Math.random() * (_aqH - 70);
+      }
     }
     g.vx *= 0.97; g.vy *= 0.97;
     g.vy += Math.sin(_aqFrame * 0.02 + gi) * 0.01;
     g.x += g.vx; g.y += g.vy;
     g.tailPhase += 0.04 + g.speed * 0.03;
 
-    // 壁バウンド
-    if(g.x<15){g.x=15;g.vx*=-0.5;}if(g.x>_aqW-15){g.x=_aqW-15;g.vx*=-0.5;}
-    if(g.y<15){g.y=15;g.vy*=-0.5;}if(g.y>_aqH-30){g.y=_aqH-30;g.vy*=-0.5;}
+    // 壁バウンド（退出時は除外）
+    if (!g.leaving) {
+      if(g.x<15){g.x=15;g.vx*=-0.5;}if(g.x>_aqW-15){g.x=_aqW-15;g.vx*=-0.5;}
+      if(g.y<15){g.y=15;g.vy*=-0.5;}if(g.y>_aqH-30){g.y=_aqH-30;g.vy*=-0.5;}
+    }
 
     // 描画
     ctx.save();
@@ -11290,55 +11511,32 @@ function drawGuests(ctx) {
     var flip = g.vx > 0.03 ? 1 : g.vx < -0.03 ? -1 : 1;
     ctx.scale(flip * g.size, g.size);
 
-    if (g.isFry) {
-      // 稚魚ゲスト: 透明な小さい点
-      var fryG = ctx.createRadialGradient(0,0,0,0,0,8);
-      fryG.addColorStop(0,'rgba(200,230,255,0.35)');fryG.addColorStop(1,'rgba(200,230,255,0.05)');
-      ctx.fillStyle=fryG;ctx.beginPath();ctx.ellipse(0,0,8,4,0,0,Math.PI*2);ctx.fill();
-      ctx.fillStyle='rgba(0,0,0,0.4)';ctx.beginPath();ctx.arc(4,-0.5,1.8,0,Math.PI*2);ctx.fill();
-      var ftw=Math.sin(g.tailPhase)*2;
-      ctx.fillStyle='rgba(180,220,255,0.2)';ctx.beginPath();ctx.moveTo(-6,0);ctx.lineTo(-10,-2+ftw);ctx.lineTo(-10,2+ftw);ctx.closePath();ctx.fill();
+    // 画像で描画
+    var gImgKey = g.speciesId ? 'fish_' + g.speciesId : 'fry';
+    var gImg = _fishImages[gImgKey];
+    if (gImg) {
+      ctx.scale(-1, 1);
+      var gW = 40, gH = gW * ((gImg.naturalHeight || gImg.height) / (gImg.naturalWidth || gImg.width));
+      ctx.drawImage(gImg, -gW/2, -gH/2, gW, gH);
       ctx.restore();
     } else {
-      // 通常ゲスト魚
-      var sat = 40 + g.color * 50;
-      var light = 35 + g.color * 18;
-
-      // 尾
-      var tw = Math.sin(g.tailPhase) * (4 + g.speed * 4);
-      ctx.fillStyle = 'hsla('+g.hue+','+(sat-10)+'%,'+(light+5)+'%,0.5)';
-      ctx.beginPath(); ctx.moveTo(-14,0); ctx.quadraticCurveTo(-22,-6+tw,-28,-9+tw);
-      ctx.quadraticCurveTo(-22,tw,-28,9+tw); ctx.quadraticCurveTo(-22,6+tw,-14,0); ctx.fill();
-
-    // 体
-    var bg = ctx.createLinearGradient(0,-9,0,9);
-    bg.addColorStop(0, 'hsla('+g.hue+','+sat+'%,'+(light+12)+'%,1)');
-    bg.addColorStop(0.5, 'hsla('+g.hue+','+sat+'%,'+light+'%,1)');
-    bg.addColorStop(1, 'hsla('+(g.hue+10)+','+(sat-10)+'%,'+(light-5)+'%,1)');
-    ctx.fillStyle = bg; ctx.beginPath(); ctx.ellipse(0,0,17,9,0,0,Math.PI*2); ctx.fill();
-
-    // 蛍光ライン
-    if (g.color > 0.3) {
-      ctx.strokeStyle = 'hsla('+g.hue+',100%,'+(60+g.color*20)+'%,'+(0.2+g.color*0.3)+')';
-      ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(-12,-1.5); ctx.quadraticCurveTo(0,-2,8,-0.5); ctx.stroke();
+      // フォールバック
+      drawFishBody(ctx, g.hue, g.color, g.speciesId, g.tailPhase, g.speed, false, _aqFrame);
+      ctx.restore();
     }
 
-    // 目
-    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(11,-1.5,3,0,Math.PI*2); ctx.fill();
-    ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(11.5,-1.5,1.8,0,Math.PI*2); ctx.fill();
-
-    ctx.restore();
-    } // end else (通常ゲスト魚)
-
-    // 名前タグ（常駐ゲストは常に表示）
-    if (!g.leaving && g.opacity > 0.2) {
+    // 名前タグ + 「遊びに来てるよ」
+    if (g.opacity > 0.2) {
       ctx.save();
-      ctx.globalAlpha = 0.4;
-      ctx.fillStyle = 'rgba(255,255,255,0.7)';
-      ctx.font = '8px sans-serif';
+      ctx.globalAlpha = g.opacity * 0.7;
+      ctx.fillStyle = '#fff';
+      ctx.font = '9px sans-serif';
       ctx.textAlign = 'center';
-      ctx.shadowColor = 'rgba(0,0,0,0.4)'; ctx.shadowBlur = 2;
-      ctx.fillText(g.name || g.nickname, g.x, g.y - g.size*12 - 3);
+      ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 3;
+      ctx.fillText(g.name + ' (' + g.nickname + ')', g.x, g.y - g.size * 14 - 6);
+      ctx.font = '7px sans-serif';
+      ctx.fillStyle = 'rgba(255,255,200,0.8)';
+      ctx.fillText('遊びに来てるよ', g.x, g.y - g.size * 14 + 4);
       ctx.shadowBlur = 0;
       ctx.restore();
     }

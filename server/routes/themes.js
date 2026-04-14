@@ -204,12 +204,28 @@ ${reactionContext}
 ※各テーマに必ず3つの具体的アクションプラン案(action_plans)を含めること。エビデンスに基づき、EASTフレームワークで設計すること。`;
 
     // Groq → Geminiフォールバック付きAPI呼び出し
-    const aiResult = await callAIWithFallback('JSON出力専門AI。指定JSON形式のみ出力。', prompt);
+    const { callGeminiText } = require('../services/ai');
+    const aiResult = await callGeminiText('JSON出力専門AI。指定JSON形式のみ出力。マークダウンのコードブロックは使わない。', prompt, { max_tokens: 8192 });
     if (!aiResult) return res.json({ success: false, msg: 'AI生成失敗' });
-    const jsonMatch = aiResult.match(/\[[\s\S]*\]/);
-    if (!jsonMatch) return res.json({ success: false, msg: 'AI出力形式エラー' });
+    // JSONパース: コードブロック除去 + 制御文字除去
+    let cleaned = aiResult.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+    // 改行・タブを正規化
+    cleaned = cleaned.replace(/[\x00-\x1f]/g, (m) => m === '\n' || m === '\r' || m === '\t' ? m : ' ');
+    const jsonMatch = cleaned.match(/\[[\s\S]*\]/);
+    if (!jsonMatch) return res.json({ success: false, msg: 'AI出力形式エラー: JSON配列が見つかりません' });
 
-    const themesData = JSON.parse(jsonMatch[0]);
+    let themesData;
+    try {
+      themesData = JSON.parse(jsonMatch[0]);
+    } catch (parseErr) {
+      // リトライ: 末尾のゴミを除去して再パース
+      const fixedJson = jsonMatch[0].replace(/,\s*\]/g, ']').replace(/,\s*\}/g, '}');
+      try {
+        themesData = JSON.parse(fixedJson);
+      } catch (e2) {
+        return res.json({ success: false, msg: 'AI出力JSON解析失敗: ' + parseErr.message, raw: jsonMatch[0].substring(0, 200) });
+      }
+    }
 
     // サイクル番号を取得
     const lastCycle = db.prepare("SELECT MAX(cycle_number) as n FROM vote_cycles").get();

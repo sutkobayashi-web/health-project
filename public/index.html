@@ -797,12 +797,30 @@
     <div id="aq-info" style="flex-shrink:0;background:linear-gradient(135deg,#0e4a7a,#0a3d6b);padding:8px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(255,255,255,0.15);">
       <div style="font-size:11px;color:rgba(255,255,255,0.6);">読み込み中...</div>
     </div>
-    <!-- コンディションバーは水槽Canvas内に描画（condition-bar廃止） -->
-    <!-- 水槽ミニビュー + チャットエリア -->
-    <div id="aquarium-container" style="height:18vh;max-height:110px;position:relative;overflow:hidden;background:linear-gradient(180deg,#1a7ab5,#0e5a8a,#0a3d6b);flex-shrink:0;">
-      <!-- 水槽Canvas -->
-      <canvas id="aquarium-canvas" style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:1;"></canvas>
-      <div id="aq-voice" style="display:none;"></div>
+    <!-- 水槽 + サイドコンディション -->
+    <div style="display:flex;flex-shrink:0;height:18vh;max-height:120px;">
+      <!-- 水槽 -->
+      <div id="aquarium-container" style="flex:1;position:relative;overflow:hidden;background:linear-gradient(180deg,#1a7ab5,#0e5a8a,#0a3d6b);">
+        <canvas id="aquarium-canvas" style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:1;"></canvas>
+        <div id="aq-voice" style="display:none;"></div>
+      </div>
+      <!-- サイドコンディション -->
+      <div id="condition-side" style="width:80px;background:rgba(10,30,50,0.95);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:6px 4px;border-left:1px solid rgba(255,255,255,0.1);">
+        <div id="cond-side-mood" style="font-size:22px;">😐</div>
+        <div style="width:100%;">
+          <div style="display:flex;align-items:center;gap:2px;">
+            <span style="font-size:7px;color:rgba(255,255,255,0.5);">♥</span>
+            <div style="flex:1;height:4px;background:rgba(255,255,255,0.1);border-radius:2px;overflow:hidden;"><div id="cond-side-health" style="width:50%;height:100%;background:#4ade80;border-radius:2px;transition:width 0.5s;"></div></div>
+            <span id="cond-side-health-val" style="font-size:7px;color:#4ade80;font-weight:700;min-width:20px;text-align:right;">50</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:2px;margin-top:2px;">
+            <span style="font-size:7px;color:rgba(255,255,255,0.5);">💧</span>
+            <div style="flex:1;height:4px;background:rgba(255,255,255,0.1);border-radius:2px;overflow:hidden;"><div id="cond-side-clarity" style="width:50%;height:100%;background:#60a5fa;border-radius:2px;transition:width 0.5s;"></div></div>
+            <span id="cond-side-clarity-val" style="font-size:7px;color:#60a5fa;font-weight:700;min-width:20px;text-align:right;">50</span>
+          </div>
+        </div>
+        <button onclick="openSharedTank()" style="background:rgba(26,122,181,0.4);border:1px solid rgba(26,122,181,0.6);color:#fff;border-radius:6px;padding:3px 0;font-size:8px;font-weight:700;cursor:pointer;width:100%;text-align:center;">🌊 みんな</button>
+      </div>
     </div>
     <!-- チャットメッセージエリア（水槽の下） -->
     <div style="flex:1;position:relative;overflow:hidden;background:#0a2540;">
@@ -10167,7 +10185,28 @@ function updateAquariumUI() {
   var voiceEl = document.getElementById('aq-voice');
   if (!info) return;
 
-  // コンディションは水槽Canvas内に描画（drawAquarium内で処理）
+  // サイドコンディションパネル更新
+  if (_aq.status === 'alive') {
+    var h2 = Math.round(_aq.fish_health || 0);
+    var c2 = Math.round(_aq.water_clarity || 0);
+    var hC2 = h2 > 70 ? '#4ade80' : h2 > 40 ? '#fbbf24' : '#ef4444';
+    var cC2 = c2 > 70 ? '#60a5fa' : c2 > 40 ? '#fbbf24' : '#ef4444';
+    var hBar2 = document.getElementById('cond-side-health');
+    var cBar2 = document.getElementById('cond-side-clarity');
+    if (hBar2) { hBar2.style.width = h2+'%'; hBar2.style.background = hC2; }
+    if (cBar2) { cBar2.style.width = c2+'%'; cBar2.style.background = cC2; }
+    var hVal2 = document.getElementById('cond-side-health-val');
+    var cVal2 = document.getElementById('cond-side-clarity-val');
+    if (hVal2) { hVal2.textContent = h2; hVal2.style.color = hC2; }
+    if (cVal2) { cVal2.textContent = c2; cVal2.style.color = cC2; }
+    var mood2 = document.getElementById('cond-side-mood');
+    if (mood2) mood2.textContent = h2 > 70 ? '😊' : h2 > 40 ? '😐' : '😢';
+    var condSide = document.getElementById('condition-side');
+    if (condSide) condSide.style.display = 'flex';
+  } else {
+    var condSide2 = document.getElementById('condition-side');
+    if (condSide2) condSide2.style.display = 'none';
+  }
 
   var spNames = {1:'ネオンテトラ',2:'グッピー',3:'メダカ',4:'プラティ',5:'ゼブラダニオ',6:'アカヒレ',7:'コリドラス',8:'ドジョウ',9:'エンゼル',10:'ベタ',11:'グラミー',12:'カージナル',13:'ラスボラ',14:'オトシン',15:'ローチ',16:'チェリー',17:'ディスカス',18:'琉金',19:'クマノミ',20:'エビ',21:'ラミレジィ',22:'アピスト',23:'錦鯉',24:'アロワナ',25:'エイ',26:'タツノオトシゴ',27:'リュウグウ',28:'マンタ',29:'クジラ',30:'フェニックス'};
   var stageNames = {1:'卵',2:'稚魚',3:'幼魚',4:'若魚',5:'成魚',6:'大人',7:'伝説'};
@@ -11259,38 +11298,7 @@ function drawAquarium() {
       ctx.shadowBlur = 0;
       ctx.restore();
 
-      // コンディションバーを魚の下に描画
-      if (alive) {
-        var bx = _aqFish.x;
-        var by = _aqFish.y + sizeScale * 12 + 6;
-        var bw = 60;
-        var bh = 4;
-        ctx.save();
-        ctx.globalAlpha = 0.7;
-        // 元気度バー
-        var hVal = Math.round(_aq.fish_health || 0);
-        var hCol = hVal > 70 ? '#4ade80' : hVal > 40 ? '#fbbf24' : '#ef4444';
-        ctx.fillStyle = 'rgba(255,255,255,0.15)';
-        ctx.fillRect(bx - bw/2, by, bw, bh);
-        ctx.fillStyle = hCol;
-        ctx.fillRect(bx - bw/2, by, bw * hVal / 100, bh);
-        // 水質バー
-        var cVal = Math.round(_aq.water_clarity || 0);
-        var cCol = cVal > 70 ? '#60a5fa' : cVal > 40 ? '#fbbf24' : '#ef4444';
-        ctx.fillStyle = 'rgba(255,255,255,0.15)';
-        ctx.fillRect(bx - bw/2, by + bh + 2, bw, bh);
-        ctx.fillStyle = cCol;
-        ctx.fillRect(bx - bw/2, by + bh + 2, bw * cVal / 100, bh);
-        // ラベル
-        ctx.globalAlpha = 0.5;
-        ctx.fillStyle = '#fff';
-        ctx.font = '7px sans-serif';
-        ctx.textAlign = 'left';
-        ctx.fillText('♥' + hVal + '%', bx - bw/2, by - 2);
-        ctx.textAlign = 'right';
-        ctx.fillText('💧' + cVal + '%', bx + bw/2, by - 2);
-        ctx.restore();
-      }
+      // コンディションはサイドパネルに表示（updateConditionSide）
     }
 
     // ゲスト魚を描画

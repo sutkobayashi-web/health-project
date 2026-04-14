@@ -9983,6 +9983,20 @@ function loadAquariumData() {
     }).catch(function(){});
 }
 
+// ===== デモ魚データ（共有水槽で色とりどりに表示） =====
+var DEMO_FISH = [
+  { species_id: 1,  fish_name: 'ネオン',     nickname: 'さとう',   hue: 200, fish_size: 35, fish_speed: 55, fish_color: 80, fish_health: 85, species_name: 'ネオンテトラ', rank: 'common', growth_stage: 5, days_alive: 45 },
+  { species_id: 10, fish_name: 'ルビー',     nickname: 'たなか',   hue: 240, fish_size: 50, fish_speed: 45, fish_color: 90, fish_health: 72, species_name: 'ベタ', rank: 'uncommon', growth_stage: 6, days_alive: 78 },
+  { species_id: 17, fish_name: 'キング',     nickname: 'すずき',   hue: 280, fish_size: 65, fish_speed: 35, fish_color: 95, fish_health: 90, species_name: 'ディスカス', rank: 'rare', growth_stage: 7, days_alive: 120 },
+  { species_id: 3,  fish_name: 'ひかり',     nickname: 'やまだ',   hue: 45,  fish_size: 30, fish_speed: 60, fish_color: 70, fish_health: 65, species_name: 'メダカ', rank: 'common', growth_stage: 4, days_alive: 30 },
+  { species_id: 19, fish_name: 'ニモ',       nickname: 'いとう',   hue: 25,  fish_size: 45, fish_speed: 50, fish_color: 88, fish_health: 80, species_name: 'クマノミ', rank: 'rare', growth_stage: 6, days_alive: 95 },
+  { species_id: 23, fish_name: 'にしき',     nickname: 'わたなべ', hue: 5,   fish_size: 75, fish_speed: 30, fish_color: 98, fish_health: 92, species_name: '錦鯉', rank: 'ultra', growth_stage: 8, days_alive: 180 },
+  { species_id: 6,  fish_name: 'あかね',     nickname: 'はやし',   hue: 0,   fish_size: 32, fish_speed: 58, fish_color: 75, fish_health: 70, species_name: 'アカヒレ', rank: 'common', growth_stage: 5, days_alive: 50 },
+  { species_id: 21, fish_name: 'コバルト',   nickname: 'おおた',   hue: 220, fish_size: 42, fish_speed: 48, fish_color: 92, fish_health: 88, species_name: 'コバルトブルーラミレジィ', rank: 'rare', growth_stage: 6, days_alive: 100 },
+  { species_id: 30, fish_name: 'フェニックス', nickname: 'もりた', hue: 15,  fish_size: 55, fish_speed: 40, fish_color: 99, fish_health: 95, species_name: 'フェニックスフィッシュ', rank: 'legend', growth_stage: 9, days_alive: 250 },
+  { species_id: 4,  fish_name: 'みかん',     nickname: 'こばやし', hue: 25,  fish_size: 38, fish_speed: 52, fish_color: 82, fish_health: 75, species_name: 'プラティ', rank: 'common', growth_stage: 5, days_alive: 55 },
+];
+
 function showEggOpening() {
   var overlay = document.createElement('div');
   overlay.id = 'egg-opening';
@@ -11601,6 +11615,15 @@ function openSharedTank() {
     .then(function(r){return r.json();}).then(function(d){
       if (!d.success) return;
 
+      // デモ魚を追加（実ユーザーと重複しないnicknameで）
+      var existingNicks = {};
+      d.fish.forEach(function(f) { existingNicks[f.nickname] = true; });
+      DEMO_FISH.forEach(function(df) {
+        if (!existingNicks[df.nickname]) {
+          d.fish.push({ species_id: df.species_id, fish_name: df.fish_name, nickname: df.nickname, hue: df.hue, fish_size: df.fish_size, fish_speed: df.fish_speed, fish_color: df.fish_color, fish_health: df.fish_health, species_name: df.species_name, rank: df.rank, growth_stage: df.growth_stage, days_alive: df.days_alive, is_mine: false });
+        }
+      });
+
       var overlay = document.createElement('div');
       overlay.id = 'shared-tank-overlay';
       overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:#041e35;display:flex;flex-direction:column;';
@@ -11783,11 +11806,20 @@ function initSharedTankCanvas(data) {
         if(f.isMine){ctx.strokeStyle='rgba(74,222,128,0.5)';ctx.lineWidth=1.5;ctx.beginPath();ctx.ellipse(0,0,14,8,0,0,Math.PI*2);ctx.stroke();}
         ctx.globalAlpha=1;ctx.restore();
       } else {
-      // ===== 成魚デザイン（共通描画関数使用） =====
+      // ===== 成魚デザイン（画像あれば画像、なければベクター） =====
       var flip = f.vx > 0.03 ? 1 : f.vx < -0.03 ? -1 : 1;
-      ctx.scale(flip * f.size, f.size);
-      drawFishBody(ctx, f.hue, f.color, f.speciesId, f.tailPhase, f.speed, f.isMine, frame);
-      ctx.restore();
+      var fishImgKey = f.speciesId ? 'fish_' + f.speciesId : 'fry';
+      var fishImg = _fishImages[fishImgKey];
+      if (fishImg) {
+        ctx.scale(-flip * f.size, f.size);
+        var imgW = 40, imgH = imgW * ((fishImg.naturalHeight || fishImg.height) / (fishImg.naturalWidth || fishImg.width));
+        ctx.drawImage(fishImg, -imgW/2, -imgH/2, imgW, imgH);
+        ctx.restore();
+      } else {
+        ctx.scale(flip * f.size, f.size);
+        drawFishBody(ctx, f.hue, f.color, f.speciesId, f.tailPhase, f.speed, f.isMine, frame);
+        ctx.restore();
+      }
       } // end else (成魚デザイン)
 
       // 魚の名前（一緒に泳ぐ）

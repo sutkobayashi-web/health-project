@@ -1,7 +1,7 @@
 {
   "name": "CoWell",
   "short_name": "CoWell",
-  "description": "みんなの声で、職場をもっと元気に",
+  "description": "歩いて海を探索する冒険RPG",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#667eea",

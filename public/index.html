@@ -11453,15 +11453,15 @@ function escapeToFreeText() {
 function showBackToRpgButton() {
   var existing = document.getElementById('rpg-back-btn');
   if (existing) existing.remove();
-  var container = document.getElementById('aquarium-container');
-  if (!container) return;
+  // チャット領域(buddy-messagesの親)の右上に控えめ配置
+  var area = document.getElementById('buddy-messages');
+  if (!area || !area.parentNode) return;
   var backBtn = document.createElement('button');
   backBtn.id = 'rpg-back-btn';
   backBtn.innerHTML = '<i class="fas fa-arrow-left" style="margin-right:3px;font-size:9px;"></i>戻る';
-  // 歩数FAB(bottom:40px right:14px, 52px)の真下に控えめ配置
-  backBtn.style.cssText = 'position:absolute;bottom:6px;right:20px;background:rgba(0,0,0,0.45);backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.7);font-size:10px;font-weight:600;padding:3px 10px;border-radius:10px;cursor:pointer;z-index:20;font-family:inherit;';
+  backBtn.style.cssText = 'position:absolute;top:6px;right:8px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);color:rgba(255,255,255,0.8);font-size:10px;font-weight:600;padding:3px 10px;border-radius:10px;cursor:pointer;z-index:20;font-family:inherit;';
   backBtn.onclick = returnToRpgMode;
-  container.appendChild(backBtn);
+  area.parentNode.appendChild(backBtn);
 }
 
 function returnToRpgMode() {

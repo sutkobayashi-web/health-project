@@ -11041,10 +11041,11 @@ function openStepInput() {
         html += '</div>';
       }
 
-      // カメラ撮影ボタン
+      // ライブスキャン & カメラ撮影ボタン
       html += '<div style="margin-bottom:12px;">';
+      html += '<button onclick="startLiveScan()" style="width:100%;padding:12px;background:linear-gradient(135deg,#10b981,#059669);border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 12px rgba(16,185,129,0.4);margin-bottom:6px;"><i class="fas fa-video"></i> かざして読み取り <span style="font-size:10px;background:rgba(255,255,255,0.25);padding:2px 6px;border-radius:8px;font-weight:700;">NEW</span></button>';
       html += '<input type="file" id="step-file-input" accept="image/*" style="display:none;" onchange="onStepPhoto(this)">';
-      html += '<button onclick="document.getElementById(\'step-file-input\').click()" style="width:100%;padding:12px;background:linear-gradient(135deg,#0ea5e9,#0891b2);border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 4px 12px rgba(14,165,233,0.3);"><i class="fas fa-camera"></i> 撮影 / スクショ選択</button>';
+      html += '<button onclick="document.getElementById(\'step-file-input\').click()" style="width:100%;padding:10px;background:rgba(14,165,233,0.2);border:1px solid rgba(14,165,233,0.4);border-radius:10px;color:#bae6fd;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;"><i class="fas fa-image"></i> 写真 / スクショから選ぶ</button>';
       html += '<div id="step-preview-area" style="display:none;margin-top:8px;text-align:center;">';
       html += '<img id="step-preview-img" style="max-width:100%;max-height:120px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);">';
       html += '</div>';
@@ -11063,6 +11064,150 @@ function openStepInput() {
       html += '</div></div>';
       document.body.insertAdjacentHTML('beforeend', html);
     }).catch(function(){});
+}
+
+// ===== ライブスキャン(かざして読み取り) =====
+var _liveScanStream = null;
+var _liveScanInterval = null;
+var _liveScanProcessing = false;
+var _liveScanBusy = false;
+
+async function startLiveScan() {
+  var existing = document.getElementById('live-scan-overlay');
+  if (existing) existing.remove();
+
+  var overlay = document.createElement('div');
+  overlay.id = 'live-scan-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:10001;background:#000;display:flex;flex-direction:column;';
+
+  overlay.innerHTML =
+    '<div style="padding:12px 16px;background:rgba(0,0,0,0.8);color:#fff;display:flex;align-items:center;gap:10px;">' +
+      '<button onclick="stopLiveScan()" style="background:rgba(255,255,255,0.15);border:none;color:#fff;padding:6px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;"><i class="fas fa-times"></i> 閉じる</button>' +
+      '<div style="flex:1;font-weight:800;font-size:13px;">歩数計・画面にかざす</div>' +
+    '</div>' +
+    '<div style="flex:1;position:relative;overflow:hidden;">' +
+      '<video id="live-scan-video" autoplay playsinline muted style="width:100%;height:100%;object-fit:cover;"></video>' +
+      '<canvas id="live-scan-canvas" style="display:none;"></canvas>' +
+      // ガイド枠
+      '<div id="live-scan-frame" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:75%;max-width:340px;height:140px;border:3px solid rgba(251,191,36,0.8);border-radius:14px;box-shadow:0 0 0 9999px rgba(0,0,0,0.4);pointer-events:none;"></div>' +
+      '<div style="position:absolute;top:calc(50% - 90px);left:50%;transform:translateX(-50%);color:#fde68a;font-size:11px;font-weight:700;text-align:center;text-shadow:0 1px 3px rgba(0,0,0,0.9);background:rgba(0,0,0,0.5);padding:4px 12px;border-radius:12px;">数字をこの枠内に合わせる</div>' +
+      '<div id="live-scan-result" style="position:absolute;bottom:20px;left:50%;transform:translateX(-50%);min-width:200px;text-align:center;"></div>' +
+    '</div>' +
+    '<div style="padding:14px 16px;background:rgba(0,0,0,0.8);display:flex;flex-direction:column;gap:8px;">' +
+      '<button id="live-scan-capture-btn" onclick="captureLiveScan()" style="width:100%;padding:14px;background:linear-gradient(135deg,#fbbf24,#f97316);border:none;border-radius:14px;color:#fff;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 4px 14px rgba(251,191,36,0.4);"><i class="fas fa-camera" style="margin-right:6px;"></i>今すぐ読み取る</button>' +
+      '<div id="live-scan-status" style="font-size:10px;color:rgba(255,255,255,0.55);text-align:center;">2秒ごとに自動スキャン中...</div>' +
+    '</div>';
+
+  document.body.appendChild(overlay);
+
+  try {
+    var stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } },
+      audio: false,
+    });
+    _liveScanStream = stream;
+    var video = document.getElementById('live-scan-video');
+    video.srcObject = stream;
+    await video.play();
+    // 自動スキャン開始
+    _liveScanInterval = setInterval(tryLiveScanFrame, 2500);
+  } catch (e) {
+    alert('カメラを利用できません: ' + e.message + '\n\n設定でカメラ許可を確認してください。');
+    stopLiveScan();
+  }
+}
+
+function stopLiveScan() {
+  if (_liveScanInterval) { clearInterval(_liveScanInterval); _liveScanInterval = null; }
+  if (_liveScanStream) {
+    _liveScanStream.getTracks().forEach(function(t){ t.stop(); });
+    _liveScanStream = null;
+  }
+  _liveScanBusy = false;
+  var el = document.getElementById('live-scan-overlay');
+  if (el) el.remove();
+}
+
+function captureLiveScan() {
+  tryLiveScanFrame(true);
+}
+
+async function tryLiveScanFrame(manual) {
+  if (_liveScanBusy) return;
+  var video = document.getElementById('live-scan-video');
+  var canvas = document.getElementById('live-scan-canvas');
+  if (!video || !video.videoWidth) return;
+  _liveScanBusy = true;
+  var status = document.getElementById('live-scan-status');
+  if (status) status.textContent = manual ? '読み取り中...' : 'スキャン中...';
+
+  try {
+    // ガイド枠に対応する映像の中央部分だけを切り出してOCR(処理軽量化)
+    var vw = video.videoWidth, vh = video.videoHeight;
+    // 中央75% x 30%の範囲
+    var cw = Math.round(vw * 0.75);
+    var ch = Math.round(vh * 0.30);
+    var cx = Math.round((vw - cw) / 2);
+    var cy = Math.round((vh - ch) / 2);
+    canvas.width = cw; canvas.height = ch;
+    var cctx = canvas.getContext('2d');
+    cctx.drawImage(video, cx, cy, cw, ch, 0, 0, cw, ch);
+    var dataUrl = canvas.toDataURL('image/jpeg', 0.75);
+    var base64 = dataUrl.split(',')[1];
+
+    var res = await fetch('/api/aquarium/steps-ocr', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-user-id': currentUser.uid },
+      body: JSON.stringify({ uid: currentUser.uid, imageBase64: base64, mimeType: 'image/jpeg' })
+    }).then(function(r){return r.json();});
+
+    var resultEl = document.getElementById('live-scan-result');
+    if (res && res.success && res.data && res.data.steps !== null) {
+      var conf = res.data.confidence;
+      if ((manual || conf === 'high') && resultEl) {
+        // 高確度 or 手動 → 即確認
+        clearInterval(_liveScanInterval);
+        _liveScanInterval = null;
+        resultEl.innerHTML =
+          '<div style="background:linear-gradient(135deg,#10b981,#059669);padding:16px 20px;border-radius:16px;box-shadow:0 6px 20px rgba(16,185,129,0.5);color:#fff;">' +
+            '<div style="font-size:11px;opacity:0.85;">読み取り成功 (' + conf + ')</div>' +
+            '<div style="font-size:32px;font-weight:900;">' + res.data.steps.toLocaleString() + '<span style="font-size:13px;font-weight:700;opacity:0.8;"> 歩</span></div>' +
+            '<div style="display:flex;gap:6px;margin-top:8px;">' +
+              '<button onclick="confirmLiveScan(' + res.data.steps + ')" style="flex:1;padding:8px;background:rgba(255,255,255,0.3);border:none;color:#fff;border-radius:8px;font-size:12px;font-weight:800;cursor:pointer;">この数字で記録</button>' +
+              '<button onclick="resumeLiveScan()" style="padding:8px 12px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.3);color:#fff;border-radius:8px;font-size:11px;cursor:pointer;">再スキャン</button>' +
+            '</div>' +
+          '</div>';
+        if (status) status.textContent = '✓ 読み取り完了';
+      } else {
+        // 低確度 → 自動スキャン継続
+        if (status) status.textContent = 'もう少し近づけて...（読取中 ' + res.data.steps + '? ' + conf + '）';
+      }
+    } else {
+      if (status) status.textContent = manual ? '読み取れませんでした。数字を枠内に' : 'スキャン中...';
+    }
+  } catch (e) {
+    console.error('live scan error:', e);
+    if (status) status.textContent = 'エラー: ' + e.message;
+  } finally {
+    _liveScanBusy = false;
+  }
+}
+
+function resumeLiveScan() {
+  var resultEl = document.getElementById('live-scan-result');
+  if (resultEl) resultEl.innerHTML = '';
+  if (!_liveScanInterval) {
+    _liveScanInterval = setInterval(tryLiveScanFrame, 2500);
+  }
+}
+
+function confirmLiveScan(steps) {
+  stopLiveScan();
+  // step-modal の入力欄に反映して送信
+  var input = document.getElementById('step-input');
+  if (input) input.value = steps;
+  // 自動送信
+  setTimeout(function() { if (typeof submitSteps === 'function') submitSteps(); }, 200);
 }
 
 function onStepPhoto(input) {

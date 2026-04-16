@@ -5458,7 +5458,11 @@ function dismissBuddySetupPrompt(checkbox) {
 
 function addBuddyMessage(role, text) {
   // RPG質問が表示中は新規メッセージを抑制（履歴には残す）
-  if (_rpgCurrentQuestionId && (typeof _currentAppTab === 'undefined' || _currentAppTab === 'buddy')) {
+  // ただしチャット/音声モードに入っていれば抑制しない
+  var chatBar = document.getElementById('text-input-bar');
+  var voicePanel = document.getElementById('voice-mode-panel');
+  var inChatMode = (chatBar && chatBar.style.display !== 'none') || (voicePanel && voicePanel.style.display !== 'none');
+  if (!inChatMode && _rpgCurrentQuestionId && (typeof _currentAppTab === 'undefined' || _currentAppTab === 'buddy')) {
     _buddyHistory.push({ role: role, content: text });
     return;
   }
@@ -11268,6 +11272,13 @@ function pickQuestion() {
 
 // 問いかけUIを表示
 function showRpgQuestion(qid) {
+  // 自由文/音声モード中は問いかけを出さない(会話を壊さない)
+  var bar = document.getElementById('text-input-bar');
+  if (bar && bar.style.display !== 'none') return;
+  var vp = document.getElementById('voice-mode-panel');
+  if (vp && vp.style.display !== 'none') return;
+  // 「戻る」ボタンがある(自由チャット中) も割り込まない
+  if (document.getElementById('rpg-back-btn')) return;
   var q = RPG_QUESTIONS[qid];
   if (!q) return;
   _rpgCurrentQuestionId = qid;

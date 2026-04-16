@@ -568,11 +568,13 @@ router.get('/shared-ocean', authUser, (req, res) => {
 router.get('/discovery', authUser, (req, res) => {
   const db = getDb();
   const discovered = db.prepare('SELECT fish_id, area_id, discovered_at FROM rpg_fish_discovery WHERE user_id = ? ORDER BY discovered_at').all(req.uid);
+  const progress = db.prepare('SELECT total_steps FROM adventure_progress WHERE user_id = ?').get(req.uid);
+  const totalSteps = progress ? progress.total_steps : 0;
 
   const byArea = {};
   RPG_AREAS.forEach(a => {
     byArea[a.id] = {
-      area: a,
+      area: { ...a, unlocked: totalSteps >= a.stepsRequired },
       fish: RPG_FISH.filter(f => f.area === a.id).map(f => ({
         ...f,
         discovered: discovered.some(d => d.fish_id === f.id),
@@ -590,6 +592,7 @@ router.get('/discovery', authUser, (req, res) => {
       id: f.id, name: f.name, area: f.area, rarity: f.rarity, hue: f.hue, desc: f.desc,
       discovered: discovered.some(d => d.fish_id === f.id),
     })),
+    total_steps: totalSteps,
   });
 });
 

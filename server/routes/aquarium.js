@@ -525,6 +525,38 @@ router.get('/steps', authUser, (req, res) => {
   });
 });
 
+// ---------- 同じエリアの仲間を取得 ----------
+router.get('/companions', authUser, (req, res) => {
+  const db = getDb();
+  try {
+    // 自分のエリアを取得
+    const me = db.prepare('SELECT current_area FROM adventure_progress WHERE user_id = ?').get(req.uid);
+    if (!me) return res.json({ success: true, companions: [] });
+
+    // 同じエリアの他ユーザー（最大10人）
+    const companions = db.prepare(`SELECT ap.user_id, ap.fish_name, ap.avatar_hue, ap.hero_variant, ap.total_steps, u.nickname
+      FROM adventure_progress ap
+      JOIN users u ON ap.user_id = u.id
+      WHERE ap.current_area = ? AND ap.user_id != ?
+      ORDER BY ap.total_steps DESC LIMIT 10`).all(me.current_area, req.uid);
+
+    res.json({
+      success: true,
+      area: me.current_area,
+      companions: companions.map(c => ({
+        user_id: c.user_id,
+        nickname: c.nickname || '???',
+        fish_name: c.fish_name || '',
+        avatar_hue: c.avatar_hue || 200,
+        hero_variant: c.hero_variant || 1,
+        total_steps: c.total_steps,
+      })),
+    });
+  } catch (e) {
+    res.json({ success: false, error: e.message });
+  }
+});
+
 // ---------- みんなの海（共有マップ） ----------
 router.get('/shared-ocean', authUser, (req, res) => {
   const db = getDb();

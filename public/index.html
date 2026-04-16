@@ -9896,6 +9896,7 @@ var _aqCanvas = null;
 var _aqCtx = null;
 var _rpgFish = { x:0, y:0, vx:1, vy:0.3, targetX:0, targetY:0, tailPhase:0, breathPhase:0, angle:0 };
 var _rpgAreaFish = []; // 現在エリアの魚たち
+var _rpgCompanions = []; // 同じエリアの仲間
 var _aqBubbles = [];
 var _rpgParticles = [];
 var _aqFrame = 0;
@@ -10169,7 +10170,39 @@ function loadAdventureData() {
 
       // エリアの魚を初期化
       initAreaFish(data.area_fish || []);
+      // 同じエリアの仲間を取得
+      loadCompanions();
     }).catch(function(e){ console.error('loadAdventureData error:', e); });
+}
+
+function loadCompanions() {
+  if (!currentUser) return;
+  fetch('/api/aquarium/companions?uid=' + currentUser.uid, { headers: { 'x-user-id': currentUser.uid } })
+    .then(function(r){return r.json();}).then(function(d){
+      if (!d.success) return;
+      initCompanions(d.companions || []);
+    }).catch(function(){});
+}
+
+function initCompanions(list) {
+  _rpgCompanions = list.map(function(c) {
+    var variant = HERO_VARIANTS.find(function(v){return v.id === (c.hero_variant || 1);}) || HERO_VARIANTS[0];
+    return {
+      user_id: c.user_id,
+      nickname: c.nickname,
+      fish_name: c.fish_name,
+      hueRotate: variant.hueRotate,
+      total_steps: c.total_steps,
+      x: 20 + Math.random() * (_aqW - 40),
+      y: 40 + Math.random() * (_aqH - 80),
+      vx: (Math.random() - 0.5) * 0.6,
+      vy: (Math.random() - 0.5) * 0.3,
+      targetX: Math.random() * _aqW,
+      targetY: 40 + Math.random() * (_aqH - 80),
+      tailPhase: Math.random() * Math.PI * 2,
+      size: 0.7 + Math.random() * 0.2, // 主人公(1.0)より少し小さい
+    };
+  });
 }
 
 // 互換用
@@ -10466,10 +10499,54 @@ function drawOcean() {
     }
   });
 
+  // 仲間(同じエリアの他ユーザー)を描画
+  drawCompanions(ctx);
+
   // 主人公の魚を描画
   drawHeroFish(ctx);
 
   requestAnimationFrame(drawOcean);
+}
+
+function drawCompanions(ctx) {
+  if (!_rpgHeroImage || _rpgCompanions.length === 0) return;
+  _rpgCompanions.forEach(function(c) {
+    c.tailPhase += 0.05;
+    if (_aqFrame % 150 === 0) {
+      c.targetX = 20 + Math.random() * (_aqW - 40);
+      c.targetY = 40 + Math.random() * (_aqH - 80);
+    }
+    var dx = c.targetX - c.x, dy = c.targetY - c.y;
+    var dist = Math.sqrt(dx*dx + dy*dy);
+    if (dist > 1) { c.vx += (dx/dist) * 0.03; c.vy += (dy/dist) * 0.02; }
+    c.vx *= 0.96; c.vy *= 0.96;
+    c.x += c.vx; c.y += c.vy;
+    if (c.x < 15) c.x = 15; if (c.x > _aqW - 15) c.x = _aqW - 15;
+    if (c.y < 20) c.y = 20; if (c.y > _aqH - 25) c.y = _aqH - 25;
+
+    var s = 36 * c.size;
+    ctx.save();
+    ctx.globalAlpha = 0.85;
+    ctx.translate(c.x, c.y);
+    var flip = c.vx > 0.05 ? -1 : 1;
+    ctx.scale(flip, 1);
+    // 色相回転はCanvasのfilterで適用（仲間ごとに色が違う）
+    ctx.filter = 'hue-rotate(' + c.hueRotate + 'deg)';
+    var bob = Math.sin(c.tailPhase) * 1.5;
+    ctx.drawImage(_rpgHeroImage, -s/2, -s/2 + bob, s, s);
+    ctx.filter = 'none';
+    ctx.restore();
+
+    // ニックネーム（小さく上に）
+    ctx.save();
+    ctx.font = 'bold 9px "Noto Sans JP", sans-serif';
+    ctx.fillStyle = 'rgba(255,255,255,0.75)';
+    ctx.textAlign = 'center';
+    ctx.shadowColor = 'rgba(0,0,0,0.9)';
+    ctx.shadowBlur = 3;
+    ctx.fillText(c.nickname, c.x, c.y - s/2 - 3);
+    ctx.restore();
+  });
 }
 
 function drawHeroFish(ctx) {

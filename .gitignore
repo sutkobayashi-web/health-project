@@ -4,3 +4,6 @@ server/db/*.db
 uploads/*
 !uploads/.gitkeep
 *.log
+public/fish/
+public/bg/
+public/fish_backup/

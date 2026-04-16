@@ -11457,8 +11457,9 @@ function showBackToRpgButton() {
   if (!container) return;
   var backBtn = document.createElement('button');
   backBtn.id = 'rpg-back-btn';
-  backBtn.innerHTML = '<i class="fas fa-arrow-left" style="margin-right:4px;"></i>RPGに戻る';
-  backBtn.style.cssText = 'position:absolute;top:8px;right:12px;background:linear-gradient(135deg,rgba(251,191,36,0.9),rgba(249,115,22,0.9));border:1.5px solid rgba(255,255,255,0.4);color:#fff;font-size:11px;font-weight:800;padding:7px 14px;border-radius:16px;cursor:pointer;z-index:20;box-shadow:0 3px 10px rgba(251,191,36,0.4);font-family:inherit;';
+  backBtn.innerHTML = '<i class="fas fa-arrow-left" style="margin-right:3px;font-size:9px;"></i>戻る';
+  // 歩数FAB(bottom:40px right:14px, 52px)の真下に控えめ配置
+  backBtn.style.cssText = 'position:absolute;bottom:6px;right:20px;background:rgba(0,0,0,0.45);backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.7);font-size:10px;font-weight:600;padding:3px 10px;border-radius:10px;cursor:pointer;z-index:20;font-family:inherit;';
   backBtn.onclick = returnToRpgMode;
   container.appendChild(backBtn);
 }

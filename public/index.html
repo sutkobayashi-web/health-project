@@ -10563,7 +10563,7 @@ function drawOcean() {
     if (f.y > _aqH - 20) f.y = _aqH - 20;
 
     var img = _rpgFishImages[f.id];
-    var baseSize = f.size * 50; // PNG用サイズ
+    var baseSize = f.size * 75; // PNG用サイズ(50→75 大きく)
 
     // 未発見の魚は影のように描画
     if (!f.discovered) {
@@ -10649,7 +10649,7 @@ function drawCompanions(ctx) {
     if (c.y < waterTop + 20) c.y = waterTop + 20;
     if (c.y > _aqH - 25) c.y = _aqH - 25;
 
-    var s = 36 * c.size;
+    var s = 54 * c.size;
     ctx.save();
     ctx.globalAlpha = 0.85;
     ctx.translate(c.x, c.y);
@@ -10711,7 +10711,7 @@ function drawHeroFish(ctx) {
 
   // 主人公PNG画像があれば使う
   if (_rpgHeroImage) {
-    var hs = 64;
+    var hs = 88;
     ctx.save();
     ctx.translate(f.x, f.y);
     var _flip = f.vx > 0.05 ? -1 : 1; // 画像は左向き、右進行時は反転

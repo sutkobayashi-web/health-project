@@ -826,11 +826,12 @@
         </div>
       </div>
 
-      <!-- 左側の小さなアイコン: 海図・図鑑・ボトル -->
+      <!-- 左側の小さなアイコン: 海図・図鑑・ボトル・時計 -->
       <div style="position:absolute;top:48px;left:10px;z-index:11;display:flex;flex-direction:column;gap:8px;">
         <button onclick="openRpgMap()" title="海図" style="width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,0.45);backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,0.25);color:#93c5fd;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.4);transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'"><i class="fas fa-map-marked-alt"></i></button>
         <button onclick="openFishBook()" title="図鑑" style="width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,0.45);backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,0.25);color:#c4b5fd;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.4);transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'"><i class="fas fa-book"></i></button>
         <button onclick="openBottleList()" title="ボトル" style="width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,0.45);backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,0.25);color:#fbbf24;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.4);transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'"><i class="fas fa-wine-bottle"></i></button>
+        <button onclick="openClockMode()" title="時計モード(待受け)" style="width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,0.45);backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,0.25);color:#f0abfc;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.4);transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'"><i class="far fa-clock"></i></button>
       </div>
 
       <!-- 右下のFAB: 歩数記録（主役） -->
@@ -11583,6 +11584,193 @@ function openFishBook() {
 }
 
 // ===== 海図（RPGマップ） =====
+// ===== 時計モード (フルスクリーン海＋大時計、待受け代わり) =====
+var _clockModeCanvas = null;
+var _clockModeCtx = null;
+var _clockModeAnimId = null;
+var _clockModeFish = { x:0, y:0, vx:1, vy:0.3, targetX:0, targetY:0, tailPhase:0 };
+var _clockModeBubbles = [];
+var _clockModeFrame = 0;
+var _clockModeTimeEl = null;
+var _clockModeDateEl = null;
+var _clockW = 0, _clockH = 0;
+
+function openClockMode() {
+  var existing = document.getElementById('clock-mode-overlay');
+  if (existing) existing.remove();
+  var chapter = _rpg ? (_rpg.area.chapter || 1) : 1;
+  var areaId = _rpg && _rpg.area ? _rpg.area.id : '1-1';
+
+  var overlay = document.createElement('div');
+  overlay.id = 'clock-mode-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:10000;background:#000;overflow:hidden;';
+
+  overlay.innerHTML =
+    '<canvas id="clock-canvas" style="position:absolute;inset:0;width:100%;height:100%;"></canvas>' +
+    '<div style="position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;">' +
+      '<div id="clock-time" style="font-size:clamp(4rem,22vw,11rem);font-weight:200;color:rgba(255,255,255,0.95);text-shadow:0 2px 30px rgba(0,0,0,0.8),0 0 60px rgba(0,0,0,0.5);letter-spacing:0.02em;font-family:\'Helvetica Neue\',sans-serif;line-height:1;">--:--</div>' +
+      '<div id="clock-date" style="font-size:clamp(0.9rem,3.5vw,1.3rem);font-weight:500;color:rgba(255,255,255,0.85);text-shadow:0 1px 10px rgba(0,0,0,0.8);margin-top:14px;letter-spacing:0.08em;">--</div>' +
+      '<div id="clock-area" style="font-size:clamp(0.7rem,2.5vw,0.95rem);color:rgba(255,255,255,0.55);text-shadow:0 1px 4px rgba(0,0,0,0.9);margin-top:20px;letter-spacing:0.1em;">--</div>' +
+    '</div>' +
+    '<button id="clock-exit-btn" style="position:absolute;top:14px;right:14px;z-index:3;width:42px;height:42px;border-radius:50%;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.25);color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;" onclick="closeClockMode()"><i class="fas fa-times"></i></button>' +
+    '<button id="clock-dl-btn" style="position:absolute;top:14px;left:14px;z-index:3;height:36px;border-radius:18px;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.25);color:#fff;font-size:11px;font-weight:700;cursor:pointer;padding:0 12px;font-family:inherit;" onclick="downloadClockBg()"><i class="fas fa-download" style="margin-right:4px;"></i>待受けに保存</button>';
+
+  document.body.appendChild(overlay);
+
+  // フルスクリーンAPI (対応端末)
+  try { if (overlay.requestFullscreen) overlay.requestFullscreen().catch(function(){}); } catch(e) {}
+
+  _clockModeCanvas = document.getElementById('clock-canvas');
+  _clockModeCtx = _clockModeCanvas.getContext('2d');
+  _clockModeTimeEl = document.getElementById('clock-time');
+  _clockModeDateEl = document.getElementById('clock-date');
+
+  // サイズ設定
+  resizeClockCanvas();
+  window.addEventListener('resize', resizeClockCanvas);
+
+  // エリア名表示
+  var areaEl = document.getElementById('clock-area');
+  if (areaEl && _rpg) {
+    var chapterNames = {1:'はじまりの浅瀬',2:'珊瑚礁の迷宮',3:'外洋の試練',4:'深海への招待',5:'海溝の神殿'};
+    areaEl.textContent = chapterNames[chapter] + ' — ' + (_rpg.area.name || '');
+  }
+
+  // 魚の初期位置
+  _clockModeFish.x = _clockW / 2;
+  _clockModeFish.y = _clockH * 0.75;
+  _clockModeFish.targetX = _clockW / 2;
+  _clockModeFish.targetY = _clockH * 0.7;
+
+  // 時計更新
+  updateClockTime();
+  if (window._clockModeTimer) clearInterval(window._clockModeTimer);
+  window._clockModeTimer = setInterval(updateClockTime, 1000);
+
+  // アニメ開始
+  drawClockMode();
+}
+
+function resizeClockCanvas() {
+  if (!_clockModeCanvas) return;
+  var r = devicePixelRatio || 1;
+  _clockW = window.innerWidth;
+  _clockH = window.innerHeight;
+  _clockModeCanvas.width = _clockW * r;
+  _clockModeCanvas.height = _clockH * r;
+  _clockModeCtx.setTransform(r, 0, 0, r, 0, 0);
+}
+
+function updateClockTime() {
+  if (!_clockModeTimeEl) return;
+  var now = new Date();
+  var hh = String(now.getHours()).padStart(2, '0');
+  var mm = String(now.getMinutes()).padStart(2, '0');
+  _clockModeTimeEl.textContent = hh + ':' + mm;
+  var days = ['日','月','火','水','木','金','土'];
+  var dateStr = now.getFullYear() + '年' + (now.getMonth()+1) + '月' + now.getDate() + '日 (' + days[now.getDay()] + ')';
+  if (_clockModeDateEl) _clockModeDateEl.textContent = dateStr;
+}
+
+function drawClockMode() {
+  if (!_clockModeCtx) return;
+  var ctx = _clockModeCtx;
+  _clockModeFrame++;
+
+  // 背景画像描画
+  var chapter = _rpg ? (_rpg.area.chapter || 1) : 1;
+  var areaId = _rpg && _rpg.area ? _rpg.area.id : '1-1';
+  var bgImg = (areaId && _rpgAreaBgImages[areaId]) || _rpgBgImages[chapter];
+  if (bgImg) {
+    var iw = bgImg.naturalWidth, ih = bgImg.naturalHeight;
+    var scale = Math.max(_clockW / iw, _clockH / ih);
+    var dw = iw * scale, dh = ih * scale;
+    var dx = (_clockW - dw) / 2, dy = (_clockH - dh) / 2;
+    ctx.drawImage(bgImg, dx, dy, dw, dh);
+    // 時計を読みやすくする暗めオーバーレイ
+    ctx.fillStyle = 'rgba(0,0,0,0.35)';
+    ctx.fillRect(0, 0, _clockW, _clockH);
+  } else {
+    var grad = ctx.createLinearGradient(0, 0, 0, _clockH);
+    grad.addColorStop(0, '#0ea5e9');
+    grad.addColorStop(1, '#041628');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, _clockW, _clockH);
+  }
+
+  // 泡アニメ
+  if (_clockModeFrame % 60 === 0 && _clockModeBubbles.length < 20) {
+    _clockModeBubbles.push({ x: Math.random() * _clockW, y: _clockH + 5, r: 2 + Math.random() * 4, speed: 0.3 + Math.random() * 0.6 });
+  }
+  ctx.save();
+  _clockModeBubbles.forEach(function(b) {
+    b.y -= b.speed;
+    b.x += Math.sin(_clockModeFrame * 0.03 + b.y * 0.05) * 0.4;
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  });
+  _clockModeBubbles = _clockModeBubbles.filter(function(b) { return b.y > -10; });
+  ctx.restore();
+
+  // 主人公の魚ゆっくり泳ぐ
+  var f = _clockModeFish;
+  f.tailPhase += 0.04;
+  if (_clockModeFrame % 180 === 0) {
+    f.targetX = 60 + Math.random() * (_clockW - 120);
+    f.targetY = _clockH * 0.55 + Math.random() * _clockH * 0.3;
+  }
+  var dx = f.targetX - f.x, dy = f.targetY - f.y;
+  var dist = Math.sqrt(dx*dx + dy*dy);
+  if (dist > 1) { f.vx += (dx/dist) * 0.02; f.vy += (dy/dist) * 0.015; }
+  f.vx *= 0.97; f.vy *= 0.97;
+  f.x += f.vx; f.y += f.vy;
+
+  if (_rpgHeroImage) {
+    var hs = Math.min(_clockW, _clockH) * 0.1;
+    ctx.save();
+    ctx.globalAlpha = 0.9;
+    ctx.translate(f.x, f.y);
+    var flip = f.vx > 0.02 ? -1 : 1;
+    ctx.scale(flip, 1);
+    var bob = Math.sin(f.tailPhase) * 2;
+    ctx.drawImage(_rpgHeroImage, -hs/2, -hs/2 + bob, hs, hs);
+    ctx.restore();
+  }
+
+  _clockModeAnimId = requestAnimationFrame(drawClockMode);
+}
+
+function closeClockMode() {
+  if (window._clockModeTimer) { clearInterval(window._clockModeTimer); window._clockModeTimer = null; }
+  if (_clockModeAnimId) { cancelAnimationFrame(_clockModeAnimId); _clockModeAnimId = null; }
+  window.removeEventListener('resize', resizeClockCanvas);
+  try { if (document.fullscreenElement) document.exitFullscreen().catch(function(){}); } catch(e) {}
+  var el = document.getElementById('clock-mode-overlay');
+  if (el) el.remove();
+  _clockModeCanvas = null;
+  _clockModeCtx = null;
+}
+
+// 現在の背景をDL(スマホの待受け設定用)
+function downloadClockBg() {
+  var chapter = _rpg ? (_rpg.area.chapter || 1) : 1;
+  var areaId = _rpg && _rpg.area ? _rpg.area.id : '1-1';
+  var bgUrl = '/bg/area_' + areaId + '.png';
+  var a = document.createElement('a');
+  a.href = bgUrl;
+  a.download = 'cowell_' + areaId + '.png';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(function() { a.remove(); }, 100);
+  // iOS対策: 長押し保存を案内
+  setTimeout(function() {
+    alert('画像を保存しました。\n\n📱 iPhone: 写真アプリから開いて → 共有 → 壁紙に設定\n🤖 Android: ギャラリーから画像長押し → 壁紙に設定');
+  }, 500);
+}
+
 // ===== Web Push 通知 =====
 function urlBase64ToUint8Array(base64String) {
   var padding = '='.repeat((4 - base64String.length % 4) % 4);

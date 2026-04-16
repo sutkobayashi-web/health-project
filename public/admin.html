@@ -403,9 +403,6 @@ if(localStorage.getItem('co_heart_admin_token') && localStorage.getItem('co_hear
     <div class="nav-item" onclick="switchTab('v2challenge')" id="nav-v2challenge">
       <i class="fas fa-fire nav-icon" style="color:#ff6b35;"></i><div class="nav-label" style="font-size:0.55rem; line-height:1.2;">チャレンジ<br>管理</div>
     </div>
-    <div class="nav-item" onclick="switchTab('avatarchallenge')" id="nav-avatarchallenge">
-      <i class="fas fa-palette nav-icon" style="color:#ff9800;"></i><div class="nav-label" style="font-size:0.55rem; line-height:1.2;">アバター<br>投票</div>
-    </div>
     <div class="nav-item" onclick="switchTab('v2kpi')" id="nav-v2kpi">
       <i class="fas fa-chart-line nav-icon" style="color:#20c997;"></i><div class="nav-label" style="font-size:0.55rem; line-height:1.2;">KPI<br>成果</div>
     </div>
@@ -524,48 +521,6 @@ if(localStorage.getItem('co_heart_admin_token') && localStorage.getItem('co_hear
         <div><div class="section-title">チャレンジ管理</div><div class="section-subtitle">アクションプランの作成・実行管理</div></div>
       </div>
       <div id="v2-challenges-list"></div>
-    </div>
-
-    <!-- ====== アバターチャレンジ管理 ====== -->
-    <div id="tab-avatarchallenge" class="tab-view">
-      <div class="section-header">
-        <div class="section-icon" style="background:linear-gradient(135deg,#ff9800,#f57c00);"><i class="fas fa-palette"></i></div>
-        <div><div class="section-title">アバターチャレンジ</div><div class="section-subtitle">オンボーディング用アバター投票企画</div></div>
-      </div>
-      <div class="card mb-3">
-        <div class="card-body">
-          <h6 class="fw-bold mb-3"><i class="fas fa-cog me-2"></i>開催設定</h6>
-          <div class="mb-2">
-            <label class="form-label fw-bold" style="font-size:0.85rem;">ステータス</label>
-            <select id="avc-status" class="form-select form-select-sm">
-              <option value="inactive">未開催</option>
-              <option value="active">開催中</option>
-              <option value="ended">終了</option>
-            </select>
-          </div>
-          <div class="row mb-2">
-            <div class="col-6">
-              <label class="form-label fw-bold" style="font-size:0.85rem;">開始日</label>
-              <input type="date" id="avc-start" class="form-control form-control-sm">
-            </div>
-            <div class="col-6">
-              <label class="form-label fw-bold" style="font-size:0.85rem;">終了日</label>
-              <input type="date" id="avc-end" class="form-control form-control-sm">
-            </div>
-          </div>
-          <div class="mb-3">
-            <label class="form-label fw-bold" style="font-size:0.85rem;">1人あたりの投票数上限</label>
-            <input type="number" id="avc-maxvotes" class="form-control form-control-sm" value="5" min="1" max="20">
-          </div>
-          <button onclick="saveAvatarChallengeConfig()" class="btn btn-warning w-100 fw-bold"><i class="fas fa-save me-1"></i>設定を保存</button>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-body">
-          <h6 class="fw-bold mb-3"><i class="fas fa-trophy me-2"></i>現在のランキング</h6>
-          <div id="avc-admin-ranking"></div>
-        </div>
-      </div>
     </div>
 
     <!-- ====== v2: KPI・成果 ====== -->
@@ -932,7 +887,6 @@ if(localStorage.getItem('co_heart_admin_token') && localStorage.getItem('co_hear
         <tr style="border-bottom:1px solid #f0f0f0;"><td style="padding:6px 0; font-weight:700;"><i class="fas fa-inbox" style="color:#667eea; width:20px;"></i> 投稿一覧</td><td style="padding:6px 0;">社員の投稿を確認・コメント・議論する</td></tr>
         <tr style="border-bottom:1px solid #f0f0f0;"><td style="padding:6px 0; font-weight:700;"><i class="fas fa-chart-pie" style="color:#667eea; width:20px;"></i> ダッシュボード</td><td style="padding:6px 0;">全体状況・テーマ凝集・健診分析・CoWellコイン</td></tr>
         <tr style="border-bottom:1px solid #f0f0f0;"><td style="padding:6px 0; font-weight:700;"><i class="fas fa-fire" style="color:#ff6b35; width:20px;"></i> チャレンジ管理</td><td style="padding:6px 0;">プラン候補の確認・AI評議会・賛同</td></tr>
-        <tr style="border-bottom:1px solid #f0f0f0;"><td style="padding:6px 0; font-weight:700;"><i class="fas fa-palette" style="color:#ff9800; width:20px;"></i> アバター投票</td><td style="padding:6px 0;">アバターチャレンジの管理</td></tr>
         <tr style="border-bottom:1px solid #f0f0f0;"><td style="padding:6px 0; font-weight:700;"><i class="fas fa-chart-line" style="color:#20c997; width:20px;"></i> KPI成果</td><td style="padding:6px 0;">チャレンジのKPI進捗・ランキング確認</td></tr>
         <tr style="border-bottom:1px solid #f0f0f0;"><td style="padding:6px 0; font-weight:700;"><i class="fas fa-user-md" style="color:#9c27b0; width:20px;"></i> 専門家連携</td><td style="padding:6px 0;">専門家アドバイザーへの助言依頼</td></tr>
         <tr style="border-bottom:1px solid #f0f0f0;"><td style="padding:6px 0; font-weight:700;"><i class="fas fa-envelope-open-text" style="color:#667eea; width:20px;"></i> メール</td><td style="padding:6px 0;">個人宛お知らせ・全体配信</td></tr>
@@ -1227,7 +1181,7 @@ if(localStorage.getItem('co_heart_admin_token') && localStorage.getItem('co_hear
 
 <script src="/js/api.js?v=20260410c"></script>
 <script src="/js/avatar-render.js?v=20260410a"></script>
-<script src="/js/admin-core.js?v=20260414"></script>
+<script src="/js/admin-core.js?v=20260416_2"></script>
 <script src="/js/admin-inbox.js?v=20260410d"></script>
 <script src="/js/admin-matrix.js?v=20260410a"></script>
 <script src="/js/admin-proposal.js?v=20260410a"></script>
@@ -1255,49 +1209,6 @@ function toggleAdminFontSize() {
 }
 applyAdminFontSize();
 
-// ====== アバターチャレンジ管理 ======
-function loadAvatarChallengeAdmin() {
-  getAvatarChallengeConfig().then(function(res) {
-    if (!res || !res.success || !res.config) return;
-    var c = res.config;
-    document.getElementById('avc-status').value = c.status || 'inactive';
-    document.getElementById('avc-start').value = (c.start_date || '').slice(0, 10);
-    document.getElementById('avc-end').value = (c.end_date || '').slice(0, 10);
-    document.getElementById('avc-maxvotes').value = c.max_votes || 5;
-  });
-  loadAvatarChallengeRankingAdmin();
-}
-function saveAvatarChallengeConfig() {
-  var status = document.getElementById('avc-status').value;
-  var start = document.getElementById('avc-start').value || null;
-  var end = document.getElementById('avc-end').value || null;
-  var maxVotes = parseInt(document.getElementById('avc-maxvotes').value) || 5;
-  updateAvatarChallengeConfig(status, start, end, maxVotes).then(function(res) {
-    if (res && res.success) alert('保存しました');
-    else alert('保存失敗: ' + (res.msg || ''));
-  });
-}
-function loadAvatarChallengeRankingAdmin() {
-  getAvatarRanking().then(function(res) {
-    if (!res || !res.success) return;
-    var ranking = res.ranking || [];
-    var html = '';
-    if (ranking.length === 0) {
-      html = '<p class="text-muted text-center">まだ投票がありません</p>';
-    } else {
-      html = '<table class="table table-sm"><thead><tr><th>#</th><th>アバター</th><th>ニックネーム</th><th>部署</th><th>得票</th></tr></thead><tbody>';
-      ranking.forEach(function(u, i) {
-        html += '<tr><td>' + (i + 1) + '</td>';
-        html += '<td><span style="display:inline-flex;width:32px;height:32px;align-items:center;justify-content:center;border-radius:50%;overflow:hidden;background:#f8f8f8;">' + getAvatarHtml(u.avatar || '😀', 32) + '</span></td>';
-        html += '<td>' + (u.nickname || '') + '</td>';
-        html += '<td>' + (u.department || '') + '</td>';
-        html += '<td class="fw-bold text-danger">' + u.vote_count + '</td></tr>';
-      });
-      html += '</tbody></table>';
-    }
-    document.getElementById('avc-admin-ranking').innerHTML = html;
-  });
-}
 </script>
 
 </body>

@@ -196,6 +196,18 @@ function initRpgTables() {
     created_at TEXT DEFAULT (datetime('now'))
   )`);
 
+  // ユーザー選択回答ログ（RPG問いかけ）
+  db.exec(`CREATE TABLE IF NOT EXISTS user_choices (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id TEXT NOT NULL,
+    question_id TEXT NOT NULL,
+    choice_id TEXT NOT NULL,
+    choice_tag TEXT DEFAULT '',
+    created_at TEXT DEFAULT (datetime('now'))
+  )`);
+  db.exec("CREATE INDEX IF NOT EXISTS idx_user_choices_user ON user_choices(user_id, created_at DESC)");
+  db.exec("CREATE INDEX IF NOT EXISTS idx_user_choices_q ON user_choices(question_id)");
+
   // 旧テーブルがあればデータ移行
   try {
     const hasOldTable = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='user_aquarium'").get();
@@ -523,6 +535,26 @@ router.get('/steps', authUser, (req, res) => {
     week_total: weekTotal.total,
     recent,
   });
+});
+
+// ---------- RPG問いかけの選択回答を記録 ----------
+router.post('/choice', authUser, (req, res) => {
+  const { question_id, choice_id, choice_tag } = req.body;
+  if (!question_id || !choice_id) return res.status(400).json({ error: '質問IDと選択IDが必要' });
+  const db = getDb();
+  db.prepare('INSERT INTO user_choices (user_id, question_id, choice_id, choice_tag) VALUES (?, ?, ?, ?)')
+    .run(req.uid, question_id, choice_id, choice_tag || '');
+  res.json({ success: true });
+});
+
+// ---------- 選択回答の集計（管理者用） ----------
+router.get('/choices/stats', authUser, (req, res) => {
+  const db = getDb();
+  const days = parseInt(req.query.days) || 7;
+  const byQuestion = db.prepare(`SELECT question_id, choice_id, choice_tag, COUNT(*) as cnt, COUNT(DISTINCT user_id) as users
+    FROM user_choices WHERE created_at > datetime('now', '-' || ? || ' days')
+    GROUP BY question_id, choice_id ORDER BY question_id, cnt DESC`).all(days);
+  res.json({ success: true, stats: byQuestion });
 });
 
 // ---------- 同じエリアの仲間を取得 ----------

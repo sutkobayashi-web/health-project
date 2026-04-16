@@ -80,6 +80,9 @@
   .voice-wave span:nth-child(4) { height:14px; animation-delay:0.3s; }
   .voice-wave span:nth-child(5) { height:8px; animation-delay:0.4s; }
   @keyframes voiceWave { 0%,100%{transform:scaleY(0.4);} 50%{transform:scaleY(1);} }
+  @keyframes fadeInSlow { 0%{opacity:0;transform:translateY(10px);} 100%{opacity:1;transform:translateY(0);} }
+  .rpg-choice:hover { background:rgba(251,191,36,0.2) !important; border-color:rgba(251,191,36,0.6) !important; transform:translateX(4px); }
+  .rpg-choice:active { transform:scale(0.98); }
   @keyframes voicePulseIdle { 0%,100%{box-shadow:0 4px 20px rgba(124,58,237,0.35);} 50%{box-shadow:0 4px 28px rgba(124,58,237,0.55), 0 0 0 6px rgba(167,139,250,0.15);} }
   /* 音声再生中ハイライト */
   .buddy-bubble.speaking { box-shadow:0 0 0 2px #0ea5e9, 0 0 12px rgba(14,165,233,0.3); }
@@ -854,8 +857,8 @@
         </div>
       </div>
     </div>
-    <!-- 入力バー -->
-    <div id="text-input-bar" style="flex-shrink:0;background:rgba(10,30,50,0.95);border-top:1px solid rgba(255,255,255,0.1);padding:8px 12px;">
+    <!-- 入力バー（冒険画面では非表示、広場から天の声画面に入ると表示） -->
+    <div id="text-input-bar" style="display:none;flex-shrink:0;background:rgba(10,30,50,0.95);border-top:1px solid rgba(255,255,255,0.1);padding:8px 12px;">
       <div style="display:flex;align-items:center;gap:8px;">
         <span id="header-voice-btn" style="cursor:pointer;color:white;background:linear-gradient(135deg,#a78bfa,#7c3aed);height:38px;padding:0 12px;border-radius:19px;display:flex;align-items:center;justify-content:center;gap:4px;font-size:0.72rem;font-weight:700;flex-shrink:0;box-shadow:0 2px 8px rgba(124,58,237,0.3);" onclick="toggleVoiceMode()"><i class="fas fa-microphone"></i>音声</span>
         <input type="text" id="buddy-input" placeholder="メッセージを入力..." style="flex:1;border:1px solid rgba(255,255,255,0.2);border-radius:20px;padding:10px 14px;font-size:0.88rem;outline:none;background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.9);" onkeydown="if(event.key==='Enter')sendBuddyMessage()" onfocus="onBuddyInputFocus()" onblur="onBuddyInputBlur()">
@@ -5447,6 +5450,11 @@ function dismissBuddySetupPrompt(checkbox) {
 }
 
 function addBuddyMessage(role, text) {
+  // RPG質問が表示中は新規メッセージを抑制（履歴には残す）
+  if (_rpgCurrentQuestionId && (typeof _currentAppTab === 'undefined' || _currentAppTab === 'buddy')) {
+    _buddyHistory.push({ role: role, content: text });
+    return;
+  }
   var msgs = document.getElementById('buddy-messages');
   var time = new Date().toLocaleTimeString('ja-JP', {hour:'2-digit', minute:'2-digit'});
   var isAI = role === 'ai' || role === 'assistant' || role === 'model';
@@ -10172,6 +10180,13 @@ function loadAdventureData() {
       initAreaFish(data.area_fish || []);
       // 同じエリアの仲間を取得
       loadCompanions();
+      // RPG選択式チャット: 未回答の質問があれば表示
+      setTimeout(function() {
+        if (!_rpgCurrentQuestionId) {
+          var qid = pickQuestion();
+          if (qid) showRpgQuestion(qid);
+        }
+      }, 1500);
     }).catch(function(e){ console.error('loadAdventureData error:', e); });
 }
 
@@ -11028,6 +11043,215 @@ function showFishEncounter(fish) {
 // 章ごとの背景ファイル名
 var CHAPTER_BG_FILES = { 1: 'ch1_shore', 2: 'ch2_reef', 3: 'ch3_ocean', 4: 'ch4_deepsea', 5: 'ch5_trench' };
 var CHAPTER_NAMES_CLIENT = { 1: 'はじまりの浅瀬', 2: '珊瑚礁の迷宮', 3: '外洋の試練', 4: '深海への招待', 5: '海溝の神殿' };
+
+// ===================================
+// RPG問いかけライブラリ（選択式チャット）
+// ===================================
+var RPG_QUESTIONS = {
+  mood_daily: {
+    ask: '今日の海は、どんな気分？',
+    options: [
+      { id: 'calm',     label: '🌊 穏やか',       tag: 'mood=calm' },
+      { id: 'energy',   label: '⚡ 元気',         tag: 'mood=energetic' },
+      { id: 'tired',    label: '😮‍💨 疲れた',    tag: 'mood=tired' },
+      { id: 'unclear',  label: '🤔 なんとなく',   tag: 'mood=unclear' },
+    ],
+    reply: {
+      calm:    '...いい日だな。ゆっくり泳ごう。',
+      energy:  'その調子！今日はいつもより遠くまで行けそうだ。',
+      tired:   'そういう日もある。無理せず、浅瀬で浮いてるだけでいい。',
+      unclear: 'そういう時は...海の音を聞いてるといい。',
+    },
+  },
+  body_signal: {
+    ask: '体のどこか、気になる？',
+    options: [
+      { id: 'none',      label: '👍 大丈夫',       tag: 'body=ok' },
+      { id: 'back',      label: '🦴 腰・背中',     tag: 'body=back' },
+      { id: 'sleep',     label: '😴 眠り浅い',     tag: 'body=sleep' },
+      { id: 'stomach',   label: '🍽️ お腹の調子',   tag: 'body=digest' },
+      { id: 'stress',    label: '🌀 気持ちが重い', tag: 'body=mental' },
+    ],
+    reply: {
+      none:    'よかった。今日も穏やかに。',
+      back:    '腰、長く座ってない？ときどき立つだけでも違う。',
+      sleep:   '深い海に潜ると、よく眠れるって言うよ。',
+      stomach: '温かいものを、ゆっくりと。',
+      stress:  'ここでは、誰にも話さなくていい。ただ泳いでて。',
+    },
+  },
+  discovery_today: {
+    ask: '今日、何か見つけた？',
+    options: [
+      { id: 'view',      label: '✨ 綺麗なもの',    tag: 'discovery=beauty' },
+      { id: 'people',    label: '👥 誰かと話した', tag: 'discovery=social' },
+      { id: 'idea',      label: '💡 気づき',       tag: 'discovery=insight' },
+      { id: 'nothing',   label: '🤷 特になし',     tag: 'discovery=none' },
+    ],
+    reply: {
+      view:    '...綺麗なものを見た日は、記憶に残るな。',
+      people:  '海でも陸でも、誰かといるのはいい。',
+      idea:    '心に留めておいて。いつか形になる。',
+      nothing: 'そんな日もある。明日、何か見つかるかも。',
+    },
+  },
+  peer_feeling: {
+    ask: '仲間のこと、どう感じる？',
+    options: [
+      { id: 'support',   label: '🤝 助けられてる',  tag: 'peer=support' },
+      { id: 'compete',   label: '🏃 負けたくない',  tag: 'peer=compete' },
+      { id: 'lonely',    label: '😐 特に何も',      tag: 'peer=none' },
+      { id: 'worry',     label: '💭 気がかりな人', tag: 'peer=worry' },
+    ],
+    reply: {
+      support: 'いい仲間に恵まれてるな。',
+      compete: 'その気持ちが、海を進ませる。',
+      lonely:  'ここにいるだけで十分だ。',
+      worry:   '思ってる時点で、もう助けになってる。',
+    },
+  },
+  pace_today: {
+    ask: 'このペース、どう？',
+    options: [
+      { id: 'natural',   label: '🌊 ちょうどいい',  tag: 'pace=ok' },
+      { id: 'fast',      label: '⚡ もう少し速く',  tag: 'pace=fast' },
+      { id: 'slow',      label: '🐢 ゆっくりで',    tag: 'pace=slow' },
+      { id: 'break',     label: '🏝️ 一息つきたい',  tag: 'pace=rest' },
+    ],
+    reply: {
+      natural: 'そのリズムで。',
+      fast:    '沖合は風が強い。気をつけて。',
+      slow:    '海は急がない。深く味わって。',
+      break:   '浅瀬でひと休み。いつでも戻っていい。',
+    },
+  },
+};
+
+var _rpgCurrentQuestionId = null;
+
+// ユーザーの最後の回答日時（localStorage）
+function getLastAnswerTime(qid) {
+  try { return parseInt(localStorage.getItem('rpg_q_' + qid) || '0'); } catch(e) { return 0; }
+}
+function setLastAnswerTime(qid) {
+  try { localStorage.setItem('rpg_q_' + qid, String(Date.now())); } catch(e) {}
+}
+
+// 今、聞くべき質問を選ぶ
+function pickQuestion() {
+  var now = Date.now();
+  var dayMs = 24 * 60 * 60 * 1000;
+  var candidates = [];
+  Object.keys(RPG_QUESTIONS).forEach(function(qid) {
+    var last = getLastAnswerTime(qid);
+    if (now - last > dayMs) candidates.push(qid);
+  });
+  if (candidates.length === 0) return null;
+  return candidates[Math.floor(Math.random() * candidates.length)];
+}
+
+// 問いかけUIを表示
+function showRpgQuestion(qid) {
+  var q = RPG_QUESTIONS[qid];
+  if (!q) return;
+  _rpgCurrentQuestionId = qid;
+  var area = document.getElementById('buddy-messages');
+  if (!area) return;
+  area.innerHTML = ''; // クリア
+  area.style.justifyContent = 'center';
+  area.style.alignItems = 'center';
+  area.style.padding = '20px 16px';
+  area.style.textAlign = 'center';
+
+  var box = document.createElement('div');
+  box.style.cssText = 'max-width:420px;width:100%;';
+  var askHtml = '<div style="color:rgba(255,255,255,0.6);font-size:10px;letter-spacing:2px;margin-bottom:6px;">天の声</div>';
+  askHtml += '<div style="color:#fff;font-size:16px;font-weight:700;line-height:1.5;margin-bottom:18px;text-shadow:0 1px 4px rgba(0,0,0,0.5);">' + q.ask + '</div>';
+  askHtml += '<div id="rpg-choice-list" style="display:flex;flex-direction:column;gap:8px;">';
+  q.options.forEach(function(opt) {
+    askHtml += '<button onclick="answerRpgQuestion(\'' + opt.id + '\')" class="rpg-choice" style="padding:12px 16px;background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;color:#fff;font-size:13px;font-weight:600;cursor:pointer;text-align:left;transition:all 0.15s;font-family:inherit;">' + opt.label + '</button>';
+  });
+  askHtml += '</div>';
+  // エスケープハッチ: 自分で書く
+  askHtml += '<div style="margin-top:14px;"><button onclick="escapeToFreeText()" style="background:none;border:1px dashed rgba(255,255,255,0.2);color:rgba(255,255,255,0.5);font-size:11px;padding:6px 14px;border-radius:14px;cursor:pointer;font-family:inherit;">✏️ 自分で書きたい</button></div>';
+
+  box.innerHTML = askHtml;
+  area.appendChild(box);
+}
+
+// 選択回答処理
+function answerRpgQuestion(choiceId) {
+  var qid = _rpgCurrentQuestionId;
+  if (!qid) return;
+  var q = RPG_QUESTIONS[qid];
+  var opt = q.options.find(function(o){ return o.id === choiceId; });
+  if (!opt) return;
+
+  // サーバーに記録
+  fetch('/api/aquarium/choice', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-user-id': currentUser.uid },
+    body: JSON.stringify({ uid: currentUser.uid, question_id: qid, choice_id: choiceId, choice_tag: opt.tag })
+  }).catch(function(){});
+
+  setLastAnswerTime(qid);
+
+  // 返事アニメーション
+  var area = document.getElementById('buddy-messages');
+  if (!area) return;
+  area.innerHTML = '<div style="max-width:420px;width:100%;text-align:center;">' +
+    '<div style="color:rgba(255,255,255,0.5);font-size:11px;margin-bottom:8px;">あなた: ' + opt.label + '</div>' +
+    '<div style="color:#fde68a;font-size:14px;font-weight:600;line-height:1.6;text-shadow:0 1px 4px rgba(0,0,0,0.5);animation:fadeInSlow 0.8s ease;">' + q.reply[choiceId] + '</div>' +
+    '</div>';
+  // 5秒後にフェードアウト
+  setTimeout(function() {
+    if (area.children[0]) area.children[0].style.transition = 'opacity 1s';
+    if (area.children[0]) area.children[0].style.opacity = '0.3';
+  }, 5000);
+  _rpgCurrentQuestionId = null;
+}
+
+// エスケープハッチ: 自由文チャットに切り替え（冒険画面内で）
+function escapeToFreeText() {
+  _rpgCurrentQuestionId = null;
+  var bar = document.getElementById('text-input-bar');
+  if (bar) bar.style.display = 'block';
+  var area = document.getElementById('buddy-messages');
+  if (area) {
+    area.innerHTML = '';
+    area.style.justifyContent = 'flex-end';
+    area.style.padding = '12px';
+    area.style.textAlign = 'left';
+    // フリーチャット開始の一言
+    if (typeof addBuddyMessage === 'function') {
+      addBuddyMessage('ai', '何でも話していいよ。ここでの声は大切に受け取るからね。');
+    }
+    // 戻るボタン
+    var backBtn = document.createElement('button');
+    backBtn.textContent = '↩ RPGに戻る';
+    backBtn.style.cssText = 'position:absolute;top:6px;right:8px;background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.7);font-size:10px;padding:4px 10px;border-radius:12px;cursor:pointer;z-index:10;';
+    backBtn.onclick = returnToRpgMode;
+    area.parentNode.appendChild(backBtn);
+    area.parentNode.id = area.parentNode.id || '';
+    backBtn.id = 'rpg-back-btn';
+  }
+  var input = document.getElementById('buddy-input');
+  if (input) setTimeout(function(){ input.focus(); }, 200);
+}
+
+function returnToRpgMode() {
+  var bar = document.getElementById('text-input-bar');
+  if (bar) bar.style.display = 'none';
+  var backBtn = document.getElementById('rpg-back-btn');
+  if (backBtn) backBtn.remove();
+  var area = document.getElementById('buddy-messages');
+  if (area) area.innerHTML = '';
+  // 次の問いかけを出すか、静かに戻る
+  setTimeout(function() {
+    var qid = pickQuestion();
+    if (qid) showRpgQuestion(qid);
+  }, 300);
+}
 
 function openFishBook() {
   if (typeof track === 'function') track('fish_book_open');

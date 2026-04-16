@@ -671,11 +671,11 @@
       </div>
     </div>
     <!-- ボタン -->
-    <div style="padding:6px 18px;display:flex;gap:6px;">
-      <!-- 天の声設定ボタン廃止 -->
-      <button onclick="openCoinShop()" style="flex:1;padding:8px 4px;background:linear-gradient(135deg,#f59e0b,#d97706);color:white;border:none;border-radius:10px;font-size:0.7rem;font-weight:700;cursor:pointer;"><i class="fas fa-store"></i> ショップ</button>
-      <button onclick="openAdminFromUser()" style="flex:1;padding:8px 4px;background:white;color:#d63384;border:1.5px solid #d63384;border-radius:10px;font-size:0.7rem;font-weight:700;cursor:pointer;"><i class="fas fa-shield-alt"></i> 推進メンバー</button>
-      <button onclick="closeMyPosts();openProfileEditModal();" style="flex:1;padding:8px 4px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;border-radius:10px;font-size:0.7rem;font-weight:700;cursor:pointer;"><i class="fas fa-edit"></i> 編集</button>
+    <div style="padding:6px 18px;display:flex;gap:6px;flex-wrap:wrap;">
+      <button onclick="closeMyPosts();openHeroChangeModal();" style="flex:1;min-width:72px;padding:8px 4px;background:linear-gradient(135deg,#0ea5e9,#0891b2);color:white;border:none;border-radius:10px;font-size:0.7rem;font-weight:700;cursor:pointer;"><i class="fas fa-palette"></i> すがた</button>
+      <button onclick="openCoinShop()" style="flex:1;min-width:72px;padding:8px 4px;background:linear-gradient(135deg,#f59e0b,#d97706);color:white;border:none;border-radius:10px;font-size:0.7rem;font-weight:700;cursor:pointer;"><i class="fas fa-store"></i> ショップ</button>
+      <button onclick="openAdminFromUser()" style="flex:1;min-width:72px;padding:8px 4px;background:white;color:#d63384;border:1.5px solid #d63384;border-radius:10px;font-size:0.7rem;font-weight:700;cursor:pointer;"><i class="fas fa-shield-alt"></i> 推進</button>
+      <button onclick="closeMyPosts();openProfileEditModal();" style="flex:1;min-width:72px;padding:8px 4px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;border-radius:10px;font-size:0.7rem;font-weight:700;cursor:pointer;"><i class="fas fa-edit"></i> 編集</button>
     </div>
     <!-- 個人パスポート (マイCoWell) 入口 -->
     <div style="padding:4px 18px 6px;">
@@ -827,7 +827,6 @@
         <button onclick="openStepInput()" class="buddy-action-btn" style="display:flex;align-items:center;gap:5px;padding:10px 18px;background:linear-gradient(135deg,rgba(251,191,36,0.35),rgba(249,115,22,0.25));border:1px solid rgba(251,191,36,0.5);color:#fff;border-radius:20px;font-size:0.82rem;font-weight:800;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;box-shadow:0 2px 8px rgba(251,191,36,0.3);"><i class="fas fa-camera"></i> 今日の👣を記録</button>
         <button onclick="openRpgMap()" class="buddy-action-btn" style="display:flex;align-items:center;gap:5px;padding:10px 16px;background:rgba(59,130,246,0.2);border:1px solid rgba(59,130,246,0.4);color:rgba(255,255,255,0.9);border-radius:20px;font-size:0.78rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;"><i class="fas fa-map-marked-alt"></i> 海図</button>
         <button onclick="openFishBook()" class="buddy-action-btn" style="display:flex;align-items:center;gap:5px;padding:10px 16px;background:rgba(168,85,247,0.2);border:1px solid rgba(168,85,247,0.35);color:rgba(255,255,255,0.9);border-radius:20px;font-size:0.78rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;"><i class="fas fa-book"></i> 図鑑</button>
-        <button onclick="openSharedOcean()" class="buddy-action-btn" style="display:flex;align-items:center;gap:5px;padding:10px 16px;background:rgba(14,165,233,0.2);border:1px solid rgba(14,165,233,0.4);color:rgba(255,255,255,0.9);border-radius:20px;font-size:0.78rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;"><i class="fas fa-water"></i> みんなの海</button>
       </div>
     </div>
     <!-- 音声モードパネル（コンパクト） -->
@@ -4421,18 +4420,18 @@ function hideLoading() { document.getElementById('loading-overlay').style.displa
     <i class="fas fa-water bnav-icon"></i>
     <span class="bnav-label">冒険</span>
   </div>
-  <div class="bnav-item" id="bnav-menu" onclick="switchAppTab('menu');">
-    <i class="fas fa-compass bnav-icon"></i>
-    <span class="bnav-label">記録</span>
+  <div class="bnav-item" id="bnav-challenge" onclick="openSharedOcean();">
+    <i class="fas fa-users bnav-icon"></i>
+    <span class="bnav-label">仲間</span>
   </div>
   <div class="bnav-item" id="bnav-inbox" onclick="switchAppTab('inbox');">
     <i class="fas fa-bell bnav-icon"></i>
     <span class="bnav-label">通知</span>
     <span class="bnav-badge" id="bnav-inbox-badge"></span>
   </div>
-  <div class="bnav-item" id="bnav-challenge" onclick="openHeroChangeModal();">
-    <i class="fas fa-palette bnav-icon"></i>
-    <span class="bnav-label">すがた</span>
+  <div class="bnav-item" id="bnav-menu" onclick="switchAppTab('menu');">
+    <i class="fas fa-compass bnav-icon"></i>
+    <span class="bnav-label">記録</span>
   </div>
   <div class="bnav-item" id="bnav-mypage" onclick="switchAppTab('mypage');">
     <i class="fas fa-user bnav-icon"></i>

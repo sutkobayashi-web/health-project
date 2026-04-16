@@ -11749,7 +11749,7 @@ function drawClockMode() {
 
   // 避けるべきエリア(時計中央) - 魚が時計の真ん中に来ないように
   var cxC = _clockW / 2, cyC = _clockH / 2;
-  var avoidR = Math.min(_clockW, _clockH) * 0.22;
+  var avoidR = Math.min(_clockW, _clockH) * 0.3;
 
   // エリアの魚(背景的に泳ぐ)
   _clockModeAreaFish.forEach(function(af) {
@@ -11770,7 +11770,7 @@ function drawClockMode() {
     if (af.x < 20) af.x = 20; if (af.x > _clockW - 20) af.x = _clockW - 20;
     if (af.y < 40) af.y = 40; if (af.y > _clockH - 40) af.y = _clockH - 40;
 
-    var afSize = Math.min(_clockW, _clockH) * 0.06 * af.size;
+    var afSize = Math.min(_clockW, _clockH) * 0.14 * af.size;
     var afImg = _rpgFishImages[af.id];
     ctx.save();
     ctx.globalAlpha = af.alpha;
@@ -11811,7 +11811,7 @@ function drawClockMode() {
       if (c.x < 25) c.x = 25; if (c.x > _clockW - 25) c.x = _clockW - 25;
       if (c.y < 40) c.y = 40; if (c.y > _clockH - 40) c.y = _clockH - 40;
 
-      var cSize = Math.min(_clockW, _clockH) * 0.075 * (c.size || 0.8);
+      var cSize = Math.min(_clockW, _clockH) * 0.16 * (c.size || 0.8);
       ctx.save();
       ctx.globalAlpha = 0.75;
       ctx.translate(c.x, c.y);
@@ -11843,7 +11843,7 @@ function drawClockMode() {
   f.x += f.vx; f.y += f.vy;
 
   if (_rpgHeroImage) {
-    var hs = Math.min(_clockW, _clockH) * 0.11;
+    var hs = Math.min(_clockW, _clockH) * 0.22;
     ctx.save();
     ctx.globalAlpha = 0.95;
     ctx.translate(f.x, f.y);

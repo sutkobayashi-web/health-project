@@ -5,7 +5,8 @@
 const fs = require('fs');
 const path = require('path');
 
-const API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyA0MexJsJWaaFz_q-lUMUru3YcDMh6HCRM';
+const API_KEY = process.env.GEMINI_API_KEY;
+if (!API_KEY) { console.error('GEMINI_API_KEY環境変数が必要です'); process.exit(1); }
 const OUTPUT_DIR = path.join(__dirname, 'public', 'fish');
 const BG_DIR = path.join(__dirname, 'public', 'bg');
 const MODEL = 'gemini-2.5-flash-image';

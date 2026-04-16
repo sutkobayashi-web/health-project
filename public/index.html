@@ -4430,9 +4430,9 @@ function hideLoading() { document.getElementById('loading-overlay').style.displa
     <span class="bnav-label">通知</span>
     <span class="bnav-badge" id="bnav-inbox-badge"></span>
   </div>
-  <div class="bnav-item" id="bnav-challenge" onclick="openFishBook();">
-    <i class="fas fa-book bnav-icon"></i>
-    <span class="bnav-label">図鑑</span>
+  <div class="bnav-item" id="bnav-challenge" onclick="openHeroChangeModal();">
+    <i class="fas fa-palette bnav-icon"></i>
+    <span class="bnav-label">すがた</span>
   </div>
   <div class="bnav-item" id="bnav-mypage" onclick="switchAppTab('mypage');">
     <i class="fas fa-user bnav-icon"></i>
@@ -10019,13 +10019,71 @@ function preloadBgImage(chapter) {
   img.src = '/bg/' + name + '.png';
 }
 
-function preloadRpgImages() {
-  // 主人公だけは即ロード（白背景を透明化）
+// 8バリアントの色相回転値（degrees）
+var HERO_VARIANTS = [
+  { id: 1, name: 'シアン',  hueRotate: 0,   bgHue: 190 },
+  { id: 2, name: 'ブルー',  hueRotate: 30,  bgHue: 220 },
+  { id: 3, name: 'パープル', hueRotate: 70,  bgHue: 280 },
+  { id: 4, name: 'ピンク',  hueRotate: 120, bgHue: 330 },
+  { id: 5, name: 'レッド',  hueRotate: 150, bgHue: 0 },
+  { id: 6, name: 'オレンジ', hueRotate: 185, bgHue: 30 },
+  { id: 7, name: 'グリーン', hueRotate: 250, bgHue: 140 },
+  { id: 8, name: 'ティール', hueRotate: 290, bgHue: 170 },
+];
+var _rpgCurrentVariant = 1;
+
+function getVariantHueRotate(variant) {
+  var v = HERO_VARIANTS.find(function(h) { return h.id === variant; });
+  return v ? v.hueRotate : 0;
+}
+
+// 主人公画像を色相回転してCanvasに適用
+function applyHueRotate(srcCanvas, hueRotate) {
+  if (!hueRotate || hueRotate === 0) return srcCanvas;
+  var c = document.createElement('canvas');
+  c.width = srcCanvas.width || srcCanvas.naturalWidth;
+  c.height = srcCanvas.height || srcCanvas.naturalHeight;
+  var cx = c.getContext('2d');
+  cx.filter = 'hue-rotate(' + hueRotate + 'deg)';
+  cx.drawImage(srcCanvas, 0, 0);
+  cx.filter = 'none';
+  return c;
+}
+
+var _heroVariantCache = {};
+function loadHeroVariant(variant) {
+  variant = parseInt(variant) || 1;
+  _rpgCurrentVariant = variant;
+  if (_heroVariantCache[variant]) {
+    _rpgHeroImage = _heroVariantCache[variant];
+    return;
+  }
+  // ベース画像（透明化済みCanvas）があればそれを元に色相回転
+  if (_rpgHeroImage && _rpgHeroImage.tagName === 'CANVAS') {
+    _heroVariantCache[variant] = applyHueRotate(_rpgHeroImage, getVariantHueRotate(variant));
+    _rpgHeroImage = _heroVariantCache[variant];
+    return;
+  }
+  // 初回: ベース画像をロード
   var hero = new Image();
   hero.crossOrigin = 'anonymous';
-  hero.onload = function() { _rpgHeroImage = removeImageBg(hero); };
+  hero.onload = function() {
+    var base = removeImageBg(hero);
+    _heroVariantCache[1] = base.tagName === 'CANVAS' ? base : (function(){
+      var c = document.createElement('canvas');
+      c.width = hero.naturalWidth; c.height = hero.naturalHeight;
+      c.getContext('2d').drawImage(hero, 0, 0);
+      return c;
+    })();
+    // 要求されたvariantに変換
+    _heroVariantCache[variant] = applyHueRotate(_heroVariantCache[1], getVariantHueRotate(variant));
+    _rpgHeroImage = _heroVariantCache[variant];
+  };
   hero.src = '/fish/hero.png';
-  // その他は現在エリアがわかってから遅延ロード
+}
+
+function preloadRpgImages() {
+  loadHeroVariant(1);
 }
 
 // ============================================================
@@ -10071,6 +10129,9 @@ function loadAdventureData() {
       if (data.area && data.area.chapter) preloadBgImage(data.area.chapter);
       // 現在エリアの魚を即ロード
       (data.area_fish || []).forEach(function(f) { preloadFishImage(f.id); });
+      // ユーザー選択の主人公バリアント適用
+      var userVariant = (data.progress && data.progress.hero_variant) || 1;
+      if (userVariant !== _rpgCurrentVariant) loadHeroVariant(userVariant);
 
       // UI更新を先に（ラベルの「読み込み中...」を早く解消）
       updateRpgUI();
@@ -10538,11 +10599,24 @@ function showAdventureOpening() {
   overlay.id = 'egg-opening';
   overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:linear-gradient(180deg,#0ea5e9 0%,#0891b2 30%,#0a3d6b 70%,#041e35 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;overflow-y:auto;';
 
+  // 8バリアントの選択肢HTML
+  var variantsHtml = '';
+  HERO_VARIANTS.forEach(function(v) {
+    variantsHtml += '<div onclick="selectHeroVariant(' + v.id + ')" data-variant="' + v.id + '" class="hero-choice" style="width:72px;height:72px;border-radius:14px;background:radial-gradient(circle,hsla(' + v.bgHue + ',80%,60%,0.25),transparent 70%);display:flex;align-items:center;justify-content:center;cursor:pointer;border:2px solid rgba(255,255,255,0.2);transition:all 0.2s;overflow:hidden;">' +
+      '<img src="/fish/hero.png" style="width:64px;height:64px;filter:hue-rotate(' + v.hueRotate + 'deg);" onload="makeFishImgTransparent(this)">' +
+      '</div>';
+  });
+
   overlay.innerHTML = '' +
     '<div style="text-align:center;max-width:340px;width:100%;">' +
       '<div id="egg-anim" style="font-size:60px;margin-bottom:16px;">🐟</div>' +
       '<div id="egg-story" style="color:rgba(255,255,255,0.9);font-size:14px;line-height:1.8;text-align:center;min-height:100px;"></div>' +
       '<button id="egg-skip-intro" onclick="skipIntroStory()" style="margin-top:8px;background:none;border:1px solid rgba(255,255,255,0.2);border-radius:8px;color:rgba(255,255,255,0.5);font-size:11px;padding:6px 14px;cursor:pointer;">スキップ ▸</button>' +
+      '<div id="hero-select-area" style="display:none;margin-top:16px;">' +
+        '<div style="color:rgba(255,255,255,0.85);font-size:13px;margin-bottom:10px;">🐟 あなたの魚を選んでね</div>' +
+        '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;justify-items:center;margin-bottom:14px;">' + variantsHtml + '</div>' +
+        '<button onclick="confirmHeroSelection()" style="width:100%;padding:12px;background:linear-gradient(135deg,#0ea5e9,#0891b2);border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;">この魚に決める</button>' +
+      '</div>' +
       '<div id="egg-name-area" style="display:none;margin-top:16px;">' +
         '<div style="color:rgba(255,255,255,0.6);font-size:12px;margin-bottom:8px;">この魚に名前をつけてあげて</div>' +
         '<input type="text" id="egg-name-input" placeholder="例: ネオン、ブルー、ポチ" maxlength="20" style="width:100%;padding:14px 16px;background:rgba(255,255,255,0.1);border:2px solid rgba(255,255,255,0.25);border-radius:14px;color:#fff;font-size:16px;font-weight:600;text-align:center;outline:none;" onfocus="this.style.borderColor=\'rgba(74,222,128,0.6)\'" onblur="this.style.borderColor=\'rgba(255,255,255,0.25)\'">' +
@@ -10558,7 +10632,7 @@ function showAdventureOpening() {
     { text: '見て。ここから先は、まだ誰も行ったことがない海だ。', delay: 1500 },
     { text: 'あなたが歩いた分だけ、この海の中を進める。', delay: 3000 },
     { text: '新しい魚に出会えるかもしれない。', delay: 4000 },
-    { text: '...この魚が、あなたの分身だ。名前をつけてやってくれ。', delay: 5000, showName: true },
+    { text: 'まずは...あなたの分身を選んでくれ。', delay: 5000, showSelect: true },
   ];
 
   var storyEl = document.getElementById('egg-story');
@@ -10569,20 +10643,78 @@ function showAdventureOpening() {
         accumulated += (accumulated ? '<br>' : '') + line.text;
         storyEl.innerHTML = accumulated;
       }
-      if (line.showName) {
-        document.getElementById('egg-name-area').style.display = 'block';
-        setTimeout(function() { document.getElementById('egg-name-input').focus(); }, 300);
+      if (line.showSelect) {
+        document.getElementById('hero-select-area').style.display = 'block';
       }
     }, line.delay);
   });
 }
 
 function skipIntroStory() {
-  var nameArea = document.getElementById('egg-name-area');
+  var selArea = document.getElementById('hero-select-area');
   var skipBtn = document.getElementById('egg-skip-intro');
-  if (nameArea) nameArea.style.display = 'block';
+  if (selArea) selArea.style.display = 'block';
   if (skipBtn) skipBtn.style.display = 'none';
+}
+
+// 魚選択時のハイライト
+var _selectedHeroVariant = 1;
+function selectHeroVariant(variant) {
+  _selectedHeroVariant = variant;
+  document.querySelectorAll('.hero-choice').forEach(function(el) {
+    if (parseInt(el.dataset.variant) === variant) {
+      el.style.borderColor = '#22d3ee';
+      el.style.transform = 'scale(1.1)';
+      el.style.boxShadow = '0 0 20px rgba(34,211,238,0.5)';
+    } else {
+      el.style.borderColor = 'rgba(255,255,255,0.2)';
+      el.style.transform = 'scale(1)';
+      el.style.boxShadow = 'none';
+    }
+  });
+}
+
+// 魚選択確定 → 名前入力へ
+function confirmHeroSelection() {
+  fetch('/api/aquarium/hero-variant', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-user-id': currentUser.uid },
+    body: JSON.stringify({ uid: currentUser.uid, variant: _selectedHeroVariant })
+  }).then(function(r) { return r.json(); }).catch(function() {});
+  loadHeroVariant(_selectedHeroVariant);
+  document.getElementById('hero-select-area').style.display = 'none';
+  document.getElementById('egg-name-area').style.display = 'block';
   setTimeout(function() { var inp = document.getElementById('egg-name-input'); if (inp) inp.focus(); }, 200);
+}
+
+// 設定/マイページから主人公を変更
+function openHeroChangeModal() {
+  var variantsHtml = '';
+  HERO_VARIANTS.forEach(function(v) {
+    var isCurrent = v.id === _rpgCurrentVariant;
+    variantsHtml += '<div onclick="changeHeroVariant(' + v.id + ')" style="width:72px;height:72px;border-radius:14px;background:radial-gradient(circle,hsla(' + v.bgHue + ',80%,60%,0.25),transparent 70%);display:flex;align-items:center;justify-content:center;cursor:pointer;border:2px solid ' + (isCurrent ? '#22d3ee' : 'rgba(255,255,255,0.2)') + ';overflow:hidden;">' +
+      '<img src="/fish/hero.png" style="width:64px;height:64px;filter:hue-rotate(' + v.hueRotate + 'deg);" onload="makeFishImgTransparent(this)">' +
+      '</div>';
+  });
+  var html = '<div id="hero-change-modal" style="position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;" onclick="if(event.target===this)this.remove()">' +
+    '<div style="background:#0d2440;border:1px solid rgba(255,255,255,0.15);border-radius:16px;padding:24px;max-width:340px;width:100%;color:#fff;" onclick="event.stopPropagation()">' +
+      '<h3 style="font-size:15px;margin-bottom:14px;text-align:center;">🐟 主人公を変える</h3>' +
+      '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;justify-items:center;">' + variantsHtml + '</div>' +
+      '<button onclick="document.getElementById(\'hero-change-modal\').remove()" style="width:100%;margin-top:16px;padding:10px;background:none;border:1px solid rgba(255,255,255,0.2);border-radius:8px;color:rgba(255,255,255,0.6);font-size:12px;cursor:pointer;">閉じる</button>' +
+    '</div></div>';
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+function changeHeroVariant(variant) {
+  fetch('/api/aquarium/hero-variant', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-user-id': currentUser.uid },
+    body: JSON.stringify({ uid: currentUser.uid, variant: variant })
+  }).then(function(r) { return r.json(); }).catch(function() {});
+  loadHeroVariant(variant);
+  var m = document.getElementById('hero-change-modal');
+  if (m) m.remove();
+  if (typeof addNarration === 'function') addNarration('...色が変わったな。新しい気分で行こう。');
 }
 
 function submitAdventureName() {
@@ -10958,8 +11090,9 @@ function openSharedOcean() {
         html += '</div>';
 
         // アバター
-        html += '<div style="width:40px;height:40px;border-radius:50%;background:hsla(' + e.avatar_hue + ',60%,40%,0.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;">';
-        html += '<img src="/fish/hero.png" style="width:36px;height:36px;object-fit:contain;" onload="makeFishImgTransparent(this)" onerror="this.outerHTML=\'<span style=&quot;font-size:18px;&quot;>🐟</span>\'">';
+        var userVariant = HERO_VARIANTS.find(function(v){return v.id === (e.hero_variant || 1);}) || HERO_VARIANTS[0];
+        html += '<div style="width:40px;height:40px;border-radius:50%;background:hsla(' + userVariant.bgHue + ',70%,50%,0.25);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;">';
+        html += '<img src="/fish/hero.png" style="width:36px;height:36px;object-fit:contain;filter:hue-rotate(' + userVariant.hueRotate + 'deg);" onload="makeFishImgTransparent(this)" onerror="this.outerHTML=\'<span style=&quot;font-size:18px;&quot;>🐟</span>\'">';
         html += '</div>';
 
         html += '<div style="flex:1;min-width:0;">';

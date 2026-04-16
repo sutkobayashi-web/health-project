@@ -157,12 +157,15 @@ function initRpgTables() {
     current_chapter INTEGER DEFAULT 1,
     fish_name TEXT DEFAULT '',
     avatar_hue INTEGER DEFAULT 200,
+    hero_variant INTEGER DEFAULT 1,
     started_at TEXT DEFAULT (datetime('now')),
     last_step_date TEXT DEFAULT '',
     consecutive_days INTEGER DEFAULT 0,
     created_at TEXT DEFAULT (datetime('now')),
     updated_at TEXT DEFAULT (datetime('now'))
   )`);
+  // 既存テーブルへの列追加（エラー無視）
+  try { db.exec("ALTER TABLE adventure_progress ADD COLUMN hero_variant INTEGER DEFAULT 1"); } catch(e) {}
 
   // 魚発見ログ（RPG版）
   db.exec(`CREATE TABLE IF NOT EXISTS rpg_fish_discovery (
@@ -271,6 +274,7 @@ router.get('/', authUser, (req, res) => {
       current_chapter: progress.current_chapter,
       fish_name: progress.fish_name,
       avatar_hue: progress.avatar_hue,
+      hero_variant: progress.hero_variant || 1,
       consecutive_days: progress.consecutive_days,
       started_at: progress.started_at,
     },
@@ -313,6 +317,22 @@ router.post('/avatar-color', authUser, (req, res) => {
   db.prepare('UPDATE adventure_progress SET avatar_hue = ?, updated_at = datetime(\'now\') WHERE user_id = ?')
     .run(parseInt(hue) || 200, req.uid);
   res.json({ success: true });
+});
+
+// ---------- API: 主人公のパターンを変える ----------
+router.post('/hero-variant', authUser, (req, res) => {
+  const { variant } = req.body;
+  const v = parseInt(variant);
+  if (!v || v < 1 || v > 8) return res.status(400).json({ error: 'variantは1〜8' });
+  const db = getDb();
+  // 行がなければ作る
+  const exists = db.prepare('SELECT 1 FROM adventure_progress WHERE user_id = ?').get(req.uid);
+  if (!exists) {
+    db.prepare("INSERT INTO adventure_progress (user_id, hero_variant) VALUES (?, ?)").run(req.uid, v);
+  } else {
+    db.prepare('UPDATE adventure_progress SET hero_variant = ?, updated_at = datetime(\'now\') WHERE user_id = ?').run(v, req.uid);
+  }
+  res.json({ success: true, variant: v });
 });
 
 // ---------- 歩数OCR ----------
@@ -521,6 +541,7 @@ router.get('/shared-ocean', authUser, (req, res) => {
         nickname: p.nickname || '???',
         fish_name: p.fish_name || '',
         avatar_hue: p.avatar_hue || 200,
+        hero_variant: p.hero_variant || 1,
         total_steps: p.total_steps,
         current_area: p.current_area,
         area_name: area.name,

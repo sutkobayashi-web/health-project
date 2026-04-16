@@ -807,7 +807,7 @@
     <div id="aquarium-container" style="flex:2;position:relative;overflow:hidden;background:linear-gradient(180deg,#0ea5e9,#0891b2,#0a3d6b);">
       <canvas id="aquarium-canvas" style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:1;"></canvas>
       <!-- 語り部つぶやき（画面下部に半透明オーバーレイ） -->
-      <div id="narrator-overlay" style="position:absolute;bottom:0;left:0;right:0;z-index:10;padding:8px 90px 8px 14px;background:linear-gradient(transparent,rgba(0,0,0,0.7));pointer-events:none;">
+      <div id="narrator-overlay" style="position:absolute;bottom:0;left:0;right:0;z-index:10;padding:8px 78px 8px 14px;background:linear-gradient(transparent,rgba(0,0,0,0.7));pointer-events:none;">
         <div id="narrator-text" style="color:rgba(255,255,255,0.85);font-size:12px;line-height:1.6;text-shadow:0 1px 3px rgba(0,0,0,0.8);"></div>
       </div>
       <!-- 次のエリアまでのプログレス -->
@@ -828,9 +828,9 @@
       </div>
 
       <!-- 右下のFAB: 歩数記録（主役） -->
-      <button id="step-fab" onclick="openStepInput()" title="今日の歩数を記録" style="position:absolute;bottom:40px;right:14px;z-index:12;width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#fbbf24,#f97316);border:3px solid rgba(255,255,255,0.35);color:#fff;font-size:20px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;box-shadow:0 6px 20px rgba(251,191,36,0.5),0 0 30px rgba(251,191,36,0.3);animation:stepFabPulse 2.5s ease-in-out infinite;">
-        <i class="fas fa-camera" style="font-size:18px;"></i>
-        <i class="fas fa-shoe-prints" style="font-size:10px;opacity:0.85;"></i>
+      <button id="step-fab" onclick="openStepInput()" title="今日の歩数を記録" style="position:absolute;bottom:40px;right:14px;z-index:12;width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#fbbf24,#f97316);border:2.5px solid rgba(255,255,255,0.35);color:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;box-shadow:0 5px 16px rgba(251,191,36,0.5),0 0 22px rgba(251,191,36,0.3);animation:stepFabPulse 2.5s ease-in-out infinite;">
+        <i class="fas fa-camera" style="font-size:15px;"></i>
+        <i class="fas fa-shoe-prints" style="font-size:9px;opacity:0.85;"></i>
       </button>
 
       <div id="aq-voice" style="display:none;"></div>
@@ -11208,16 +11208,63 @@ function answerRpgQuestion(choiceId) {
   // 返事アニメーション
   var area = document.getElementById('buddy-messages');
   if (!area) return;
-  area.innerHTML = '<div style="max-width:420px;width:100%;text-align:center;">' +
+  area.innerHTML = '<div id="rpg-reply-box" style="max-width:420px;width:100%;text-align:center;">' +
     '<div style="color:rgba(255,255,255,0.5);font-size:11px;margin-bottom:8px;">あなた: ' + opt.label + '</div>' +
     '<div style="color:#fde68a;font-size:14px;font-weight:600;line-height:1.6;text-shadow:0 1px 4px rgba(0,0,0,0.5);animation:fadeInSlow 0.8s ease;">' + q.reply[choiceId] + '</div>' +
     '</div>';
-  // 5秒後にフェードアウト
-  setTimeout(function() {
-    if (area.children[0]) area.children[0].style.transition = 'opacity 1s';
-    if (area.children[0]) area.children[0].style.opacity = '0.3';
-  }, 5000);
   _rpgCurrentQuestionId = null;
+
+  // 5秒後にフェード → もっと話したい人向けの小さな続きUIを表示
+  setTimeout(function() {
+    var box = document.getElementById('rpg-reply-box');
+    if (box) { box.style.transition = 'opacity 1s'; box.style.opacity = '0.25'; }
+    showRpgFollowup();
+  }, 5000);
+}
+
+// 返事フェード後: もっと話したい人向けの選択肢（チャット or 音声）
+function showRpgFollowup() {
+  var area = document.getElementById('buddy-messages');
+  if (!area) return;
+  var followup = document.createElement('div');
+  followup.id = 'rpg-followup';
+  followup.style.cssText = 'margin-top:18px;opacity:0;animation:fadeInSlow 1s ease forwards;animation-delay:0.3s;display:flex;flex-direction:column;align-items:center;gap:10px;';
+  followup.innerHTML =
+    '<div style="color:rgba(255,255,255,0.4);font-size:10px;letter-spacing:2px;">もっと話したいときは</div>' +
+    '<div style="display:flex;gap:10px;">' +
+      '<button onclick="dismissRpgFollowup();escapeToFreeText();" style="display:flex;align-items:center;gap:6px;padding:8px 16px;background:rgba(14,165,233,0.2);border:1px solid rgba(14,165,233,0.4);border-radius:20px;color:#bae6fd;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;"><i class="fas fa-comment"></i> 書く</button>' +
+      '<button onclick="dismissRpgFollowup();startRpgVoiceChat();" style="display:flex;align-items:center;gap:6px;padding:8px 16px;background:rgba(124,58,237,0.2);border:1px solid rgba(124,58,237,0.4);border-radius:20px;color:#c4b5fd;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;"><i class="fas fa-microphone"></i> 話す</button>' +
+    '</div>';
+  area.appendChild(followup);
+}
+
+function dismissRpgFollowup() {
+  var el = document.getElementById('rpg-followup');
+  if (el) el.remove();
+}
+
+// 音声対話モード
+function startRpgVoiceChat() {
+  _rpgCurrentQuestionId = null;
+  var area = document.getElementById('buddy-messages');
+  if (area) {
+    area.innerHTML = '';
+    area.style.justifyContent = 'flex-end';
+    area.style.padding = '12px';
+    area.style.textAlign = 'left';
+  }
+  if (typeof addBuddyMessage === 'function') {
+    addBuddyMessage('ai', 'マイクを押して話してね。何でも聞くよ。');
+  }
+  // 戻るボタン
+  var backBtn = document.createElement('button');
+  backBtn.id = 'rpg-back-btn';
+  backBtn.textContent = '↩ RPGに戻る';
+  backBtn.style.cssText = 'position:absolute;top:6px;right:8px;background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.7);font-size:10px;padding:4px 10px;border-radius:12px;cursor:pointer;z-index:10;';
+  backBtn.onclick = returnToRpgMode;
+  if (area && area.parentNode) area.parentNode.appendChild(backBtn);
+  // 音声パネルを表示
+  if (typeof toggleVoiceMode === 'function') toggleVoiceMode();
 }
 
 // エスケープハッチ: 自由文チャットに切り替え（冒険画面内で）
@@ -11251,6 +11298,11 @@ function escapeToFreeText() {
 function returnToRpgMode() {
   var bar = document.getElementById('text-input-bar');
   if (bar) bar.style.display = 'none';
+  var voicePanel = document.getElementById('voice-mode-panel');
+  if (voicePanel && voicePanel.style.display !== 'none') {
+    // 音声パネルが開いていれば閉じる
+    if (typeof toggleVoiceMode === 'function') toggleVoiceMode();
+  }
   var backBtn = document.getElementById('rpg-back-btn');
   if (backBtn) backBtn.remove();
   var area = document.getElementById('buddy-messages');

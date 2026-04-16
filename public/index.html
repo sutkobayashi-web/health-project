@@ -10998,7 +10998,7 @@ function openStepInput() {
       var html = '<div style="position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;" onclick="if(event.target===this)this.remove()" id="step-modal">';
       html += '<div style="background:#0d2440;border:1px solid rgba(255,255,255,0.15);border-radius:16px;padding:24px;max-width:320px;width:100%;color:#fff;">';
       html += '<h3 style="font-size:15px;margin-bottom:4px;text-align:center;"><i class="fas fa-camera" style="margin-right:6px;color:#fbbf24;"></i>今日の<i class="fas fa-shoe-prints"></i>を記録</h3>';
-      html += '<div style="font-size:11px;color:rgba(255,255,255,0.5);text-align:center;margin-bottom:12px;">万歩計を撮影するだけ</div>';
+      html += '<div style="font-size:11px;color:rgba(255,255,255,0.55);text-align:center;margin-bottom:12px;line-height:1.5;">万歩計・スマートウォッチ<br>スマホのヘルスケア画面もOK</div>';
 
       // 冒険の進捗
       if (totalSteps > 0) {
@@ -11010,8 +11010,8 @@ function openStepInput() {
 
       // カメラ撮影ボタン
       html += '<div style="margin-bottom:12px;">';
-      html += '<input type="file" id="step-file-input" accept="image/*" capture="environment" style="display:none;" onchange="onStepPhoto(this)">';
-      html += '<button onclick="document.getElementById(\'step-file-input\').click()" style="width:100%;padding:12px;background:linear-gradient(135deg,#0ea5e9,#0891b2);border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 4px 12px rgba(14,165,233,0.3);"><i class="fas fa-camera"></i> 万歩計を撮影</button>';
+      html += '<input type="file" id="step-file-input" accept="image/*" style="display:none;" onchange="onStepPhoto(this)">';
+      html += '<button onclick="document.getElementById(\'step-file-input\').click()" style="width:100%;padding:12px;background:linear-gradient(135deg,#0ea5e9,#0891b2);border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 4px 12px rgba(14,165,233,0.3);"><i class="fas fa-camera"></i> 撮影 / スクショ選択</button>';
       html += '<div id="step-preview-area" style="display:none;margin-top:8px;text-align:center;">';
       html += '<img id="step-preview-img" style="max-width:100%;max-height:120px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);">';
       html += '</div>';

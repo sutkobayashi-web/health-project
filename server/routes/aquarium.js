@@ -385,20 +385,33 @@ router.post('/steps-ocr', authUser, async (req, res) => {
     const { imageBase64, mimeType } = req.body;
     if (!imageBase64 || !mimeType) return res.json({ success: false, msg: '画像データが必要です' });
 
-    const systemPrompt = `あなたは万歩計・歩数計・スマートウォッチの液晶表示を読み取る専門AIです。
-画像に表示されている歩数の数値を正確に読み取ってください。
+    const systemPrompt = `あなたは歩数を読み取る専門AIです。以下のいずれかから「今日の歩数」を正確に読み取ってください:
+
+【対応する入力】
+1. 万歩計・歩数計（ハード機器の液晶表示）
+2. スマートウォッチ（Apple Watch / Garmin等）の歩数画面
+3. スマホのヘルスケアアプリ画面/スクリーンショット:
+   - iOS「ヘルスケア」アプリ（歩数カード、グラフ下の数値）
+   - Google Fit / Android標準
+   - Samsung Health
+   - Fitbit アプリ
+   - Huawei Health 等
+4. 手書きメモ
 
 【出力ルール】
 - 必ず以下のJSON形式のみを出力してください。前後に説明文を付けないこと。
 - 読み取れない場合はnullにしてください。
 - steps=歩数（整数）
 
-{"steps": 数値またはnull, "confidence": "high"または"medium"または"low", "note": "補足(読み取りにくい場合等)"}
+{"steps": 数値またはnull, "confidence": "high"または"medium"または"low", "note": "補足"}
 
-【注意】
-- 万歩計・歩数計・スマートウォッチ・スマホの歩数画面以外の画像の場合: {"steps": null, "confidence": "low", "note": "歩数計の画像ではありません"}
-- 数値が部分的にしか見えない場合もできるだけ推定してください
-- カンマ区切り(例: 8,500)は数値として読み取ってください`;
+【読取りルール】
+- 画面に「今日」「Today」「本日」のラベルがあればその数値を優先
+- 複数の数値があれば一番大きい「step」「歩数」のラベル付きを選ぶ
+- 週合計・月合計ではなく「1日あたりの歩数」を読む
+- カンマ区切り(例: 8,500)は数値として読み取る
+- 数値が部分的にしか見えない場合もできるだけ推定
+- 歩数を示す画像でない場合: {"steps": null, "confidence": "low", "note": "歩数が読み取れる画像ではありません"}`;
 
     const result = await callGeminiVision(systemPrompt, imageBase64, mimeType);
     let parsed = null;

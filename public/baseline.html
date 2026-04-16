@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>事前ベースライン歩数記録シート - CoWell</title>
+<style>
+* { box-sizing: border-box; }
+body { font-family: 'Yu Gothic','Meiryo',sans-serif; max-width:720px;margin:0 auto;padding:20px;color:#222; }
+h1 { text-align:center; font-size:1.3rem; margin-bottom:6px; }
+.sub { text-align:center; font-size:0.85rem; color:#666; margin-bottom:20px; }
+.meta { display:flex;gap:20px;margin-bottom:14px;font-size:0.9rem; }
+.meta label { display:flex;align-items:center;gap:4px; }
+.meta input { border:1px solid #666;padding:3px 6px;min-width:120px; }
+table { width:100%;border-collapse:collapse;margin-bottom:20px; }
+th,td { border:1px solid #333;padding:8px 10px;text-align:center;font-size:0.95rem; }
+th { background:#e8eaf6;font-weight:700; }
+td.day { background:#f9f9ff; }
+td.input { height:40px; }
+.note { font-size:0.8rem;color:#555;line-height:1.7;background:#fff9e6;padding:12px 14px;border-left:3px solid #f59e0b;border-radius:0 8px 8px 0;margin-top:16px; }
+@media print {
+  body { padding:10mm;}
+  .no-print { display:none; }
+}
+.button { display:inline-block;padding:10px 20px;background:#0ea5e9;color:white;border:none;border-radius:8px;cursor:pointer;font-size:0.9rem;text-decoration:none; }
+</style>
+</head>
+<body>
+
+<div class="no-print" style="text-align:center;margin-bottom:16px;">
+  <button class="button" onclick="window.print()">🖨 印刷する</button>
+</div>
+
+<h1>CoWell 事前ベースライン 歩数記録シート</h1>
+<div class="sub">5月11日のアプリ開始前、直近1週間の歩数を記録してください</div>
+
+<div class="meta">
+  <label>氏名: <input type="text" style="width:200px;"></label>
+  <label>部署: <input type="text" style="width:150px;"></label>
+  <label>社員番号: <input type="text" style="width:100px;"></label>
+</div>
+
+<table>
+  <thead>
+    <tr>
+      <th style="width:50px;">No.</th>
+      <th style="width:120px;">日付</th>
+      <th style="width:80px;">曜日</th>
+      <th>歩数</th>
+      <th style="width:160px;">メモ（任意）</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>1</td><td class="input"></td><td class="input"></td><td class="input"></td><td class="input"></td></tr>
+    <tr><td>2</td><td class="input"></td><td class="input"></td><td class="input"></td><td class="input"></td></tr>
+    <tr><td>3</td><td class="input"></td><td class="input"></td><td class="input"></td><td class="input"></td></tr>
+    <tr><td>4</td><td class="input"></td><td class="input"></td><td class="input"></td><td class="input"></td></tr>
+    <tr><td>5</td><td class="input"></td><td class="input"></td><td class="input"></td><td class="input"></td></tr>
+    <tr><td>6</td><td class="input"></td><td class="input"></td><td class="input"></td><td class="input"></td></tr>
+    <tr><td>7</td><td class="input"></td><td class="input"></td><td class="input"></td><td class="input"></td></tr>
+    <tr><td colspan="3"><strong>合計</strong></td><td class="input"></td><td></td></tr>
+    <tr><td colspan="3"><strong>1日平均</strong></td><td class="input"></td><td></td></tr>
+  </tbody>
+</table>
+
+<div class="note">
+<strong>記録方法:</strong><br>
+1. 支給された歩数計／スマホのヘルスケアアプリの「今日の歩数」を毎日夕方に記録<br>
+2. 1週間分まとめてこの用紙に転記<br>
+3. 合計と1日平均を計算<br>
+4. 5月11日のアプリ説明会までに推進メンバーへ提出<br>
+<br>
+<strong>目的:</strong> このデータは、CoWellアプリ導入による身体活動量の変化を測定するための<strong>基準値</strong>として使用します。個別の氏名はデータ解析時には匿名化されます。<br>
+<br>
+<strong>測定期間の目安:</strong> 2026年5月1日（木）〜5月7日（水）の7日間 <br>
+<br>
+<strong>問合せ:</strong> 健康推進メンバー／西村氏（帝京大学大学院）
+</div>
+
+<div class="no-print" style="text-align:center;margin-top:20px;">
+  <a href="/" class="button" style="background:#94a3b8;">アプリに戻る</a>
+</div>
+
+</body>
+</html>

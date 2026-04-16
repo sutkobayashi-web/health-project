@@ -110,6 +110,47 @@ app.use('/api/recruit-chat', require('./routes/recruit-chat'));
 app.use('/api/box', require('./routes/box-manager'));
 app.use('/api/aquarium', require('./routes/aquarium'));
 
+// ===== Web Push 通知 =====
+const push = require('./services/push');
+
+app.get('/api/push/public-key', (req, res) => {
+  res.json({ publicKey: push.getPublicKey() });
+});
+
+app.post('/api/push/subscribe', (req, res) => {
+  const { uid, subscription } = req.body;
+  if (!uid || !subscription || !subscription.endpoint) return res.status(400).json({ success: false, msg: 'invalid params' });
+  const ok = push.saveSubscription(uid, subscription);
+  res.json({ success: ok });
+});
+
+app.post('/api/push/unsubscribe', (req, res) => {
+  const { endpoint } = req.body;
+  if (!endpoint) return res.status(400).json({ success: false });
+  push.removeSubscription(endpoint);
+  res.json({ success: true });
+});
+
+// 管理者テスト用: 自分宛てにテスト通知
+app.post('/api/push/test', (req, res) => {
+  const { uid, title, body } = req.body;
+  if (!uid) return res.status(400).json({ success: false });
+  push.sendToUser(uid, {
+    title: title || 'CoWellテスト通知',
+    body: body || '通知が届けばOK！',
+    tag: 'test',
+    url: '/',
+  }, 'test').then(r => res.json({ success: true, ...r }));
+});
+
+// 定時リマインダーを起動
+push.scheduleEveningReminder();
+
+// ===== Google Fit 連携 =====
+const fitRoutes = require('./routes/fit');
+app.use('/api/fit', fitRoutes);
+if (fitRoutes.scheduleDailyFit) fitRoutes.scheduleDailyFit();
+
 // ===== 行動トラッキング（実データ収集基盤） =====
 const { getDb } = require('./services/db');
 (function initEventLog() {

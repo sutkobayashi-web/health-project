@@ -10950,6 +10950,7 @@ function openFishBook() {
       html += '<div style="font-size:11px;color:rgba(255,255,255,0.5);">' + d.discovered + '/' + d.total + '</div>';
       html += '</div>';
 
+      html += '<style>@keyframes legendPulse{0%,100%{opacity:0.4}50%{opacity:0.9}}</style>';
       html += '<div style="padding:16px;">';
       var rarityColors = { common: '#94a3b8', uncommon: '#22c55e', rare: '#3b82f6', ultra: '#a855f7', legend: '#f59e0b' };
 
@@ -10970,12 +10971,24 @@ function openFishBook() {
         html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;">';
         areaFish.forEach(function(f) {
           var rc = rarityColors[f.rarity] || '#94a3b8';
+          // 伝説ランクは未発見でもチラ見せ（ワクワク誘発）
+          var isLegendTier = (f.rarity === 'legend' || f.rarity === 'ultra');
           if (f.discovered) {
             html += '<div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:10px;text-align:center;">';
             html += '<div style="height:80px;display:flex;align-items:center;justify-content:center;margin-bottom:4px;"><img src="/fish/rpg_' + f.id + '.png" style="max-width:80px;max-height:80px;" onload="makeFishImgTransparent(this)" onerror="this.outerHTML=\'🐟\'"></div>';
             html += '<div style="font-size:12px;font-weight:700;color:#fff;">' + f.name + '</div>';
             html += '<div style="font-size:9px;color:' + rc + ';font-weight:700;text-transform:uppercase;">' + f.rarity + '</div>';
             html += '<div style="font-size:9px;color:rgba(255,255,255,0.4);margin-top:2px;">' + f.desc + '</div>';
+            html += '</div>';
+          } else if (isLegendTier) {
+            // 伝説・超レアは画像をオーラ付きで見せる(名前は伏せる)
+            var glow = f.rarity === 'legend' ? rc : rc;
+            html += '<div style="background:radial-gradient(circle,' + glow + '22,rgba(255,255,255,0.03));border:1px solid ' + glow + '44;border-radius:10px;padding:10px;text-align:center;position:relative;overflow:hidden;">';
+            html += '<div style="position:absolute;inset:0;background:radial-gradient(circle,' + glow + '33,transparent 70%);animation:legendPulse 3s ease-in-out infinite;pointer-events:none;"></div>';
+            html += '<div style="height:80px;display:flex;align-items:center;justify-content:center;margin-bottom:4px;position:relative;"><img src="/fish/rpg_' + f.id + '.png" style="max-width:80px;max-height:80px;filter:drop-shadow(0 0 10px ' + glow + ');" onload="makeFishImgTransparent(this)" onerror="this.outerHTML=\'✨\'"></div>';
+            html += '<div style="font-size:12px;font-weight:700;color:' + glow + ';position:relative;">? ? ?</div>';
+            html += '<div style="font-size:9px;color:' + rc + ';font-weight:700;text-transform:uppercase;position:relative;">' + f.rarity + '</div>';
+            html += '<div style="font-size:9px;color:rgba(255,255,255,0.5);margin-top:2px;position:relative;font-style:italic;">奥深くで待つ...</div>';
             html += '</div>';
           } else {
             html += '<div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);border-radius:10px;padding:10px;text-align:center;opacity:0.5;">';

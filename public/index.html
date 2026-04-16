@@ -10006,6 +10006,7 @@ function preloadFishImage(id) {
   img.src = '/fish/rpg_' + id + '.png';
 }
 
+// 章背景(後方互換)
 function preloadBgImage(chapter) {
   if (_rpgBgImages[chapter] || _rpgBgLoading[chapter]) return;
   _rpgBgLoading[chapter] = true;
@@ -10016,6 +10017,19 @@ function preloadBgImage(chapter) {
   img.onload = function() { _rpgBgImages[chapter] = img; };
   img.onerror = function() { _rpgBgLoading[chapter] = false; };
   img.src = '/bg/' + name + '.png';
+}
+
+// エリア固有の背景
+var _rpgAreaBgImages = {}; // areaId -> Image
+var _rpgAreaBgLoading = {};
+function preloadAreaBgImage(areaId) {
+  if (!areaId) return;
+  if (_rpgAreaBgImages[areaId] || _rpgAreaBgLoading[areaId]) return;
+  _rpgAreaBgLoading[areaId] = true;
+  var img = new Image();
+  img.onload = function() { _rpgAreaBgImages[areaId] = img; };
+  img.onerror = function() { _rpgAreaBgLoading[areaId] = false; };
+  img.src = '/bg/area_' + areaId + '.png';
 }
 
 // 8バリアントの色相回転値（degrees）
@@ -10124,7 +10138,8 @@ function loadAdventureData() {
       if (!data.success) return;
       _rpg = data;
 
-      // 現在の章の背景を即ロード
+      // 現在エリアの背景を即ロード(エリア固有→章フォールバック)
+      if (data.area && data.area.id) preloadAreaBgImage(data.area.id);
       if (data.area && data.area.chapter) preloadBgImage(data.area.chapter);
       // 現在エリアの魚を即ロード
       (data.area_fish || []).forEach(function(f) { preloadFishImage(f.id); });
@@ -10262,8 +10277,9 @@ function drawOcean() {
 
   // 背景グラデーション
   var chapter = _rpg ? (_rpg.area.chapter || 1) : 1;
-  // 背景画像があれば使用、なければグラデーション
-  var bgImg = _rpgBgImages[chapter];
+  var areaId = _rpg && _rpg.area ? _rpg.area.id : null;
+  // エリア固有の背景優先 → なければ章背景 → なければグラデーション
+  var bgImg = (areaId && _rpgAreaBgImages[areaId]) || _rpgBgImages[chapter];
   if (bgImg) {
     // 画像を画面いっぱいに描画（縦横比維持でcover）
     var iw = bgImg.naturalWidth, ih = bgImg.naturalHeight;
@@ -10963,93 +10979,75 @@ function openFishBook() {
       Object.keys(d.by_area).forEach(function(areaId) {
         var a = d.by_area[areaId];
         var ch = a.area.chapter;
-        if (!chaptersData[ch]) chaptersData[ch] = { areas: [], fish: [] };
-        chaptersData[ch].areas.push(a);
-        a.fish.forEach(function(f) { chaptersData[ch].fish.push(f); });
+        if (!chaptersData[ch]) chaptersData[ch] = [];
+        chaptersData[ch].push(a);
       });
 
       html += '<div style="padding:12px;">';
 
       Object.keys(chaptersData).forEach(function(chStr) {
         var ch = parseInt(chStr);
-        var chData = chaptersData[ch];
-        var areas = chData.areas;
-        var allFish = chData.fish;
-        var bgFile = CHAPTER_BG_FILES[ch];
+        var areas = chaptersData[ch];
         var chapterName = CHAPTER_NAMES_CLIENT[ch];
-        var firstAreaUnlocked = areas[0].area.unlocked;
-        var allUnlocked = areas.every(function(a){ return a.area.unlocked; });
-        var discoveredInCh = allFish.filter(function(f){return f.discovered;}).length;
         var accentColor = ch === 5 ? '#f59e0b' : ch === 4 ? '#a855f7' : ch === 3 ? '#3b82f6' : ch === 2 ? '#22c55e' : '#38bdf8';
 
-        // 章カード(1章=1枚)
-        html += '<div style="position:relative;height:180px;margin-bottom:12px;border-radius:16px;overflow:hidden;box-shadow:0 6px 20px rgba(0,0,0,0.5);' + (ch === 5 ? 'animation:shimmer 3s ease-in-out infinite;' : '') + '">';
-        // BG画像
-        var bgFilter = !firstAreaUnlocked ? 'brightness(0.35) blur(3px) saturate(0.4)' : 'brightness(0.9)';
-        html += '<img src="/bg/' + bgFile + '.png" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:' + bgFilter + ';" onerror="this.parentNode.style.background=\'linear-gradient(180deg,' + accentColor + ',#0a1628)\';this.style.display=\'none\';">';
-        // 上部暗めオーバーレイ
-        html += '<div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0.5) 0%,transparent 30%,transparent 60%,rgba(0,0,0,0.85) 100%);"></div>';
-
-        // ヘッダー(上部)
-        html += '<div style="position:absolute;top:0;left:0;right:0;padding:12px 14px;color:#fff;">';
-        html += '<div style="display:flex;align-items:center;gap:8px;">';
-        html += '<span style="font-size:10px;font-weight:900;background:' + accentColor + ';color:#fff;padding:3px 8px;border-radius:10px;letter-spacing:1px;">第' + ch + '章</span>';
-        html += '<span style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.9);text-shadow:0 1px 2px rgba(0,0,0,0.9);">' + (firstAreaUnlocked ? chapterName : '???') + '</span>';
-        html += '<span style="margin-left:auto;font-size:11px;font-weight:700;background:rgba(0,0,0,0.5);padding:3px 10px;border-radius:10px;"><i class="fas fa-fish"></i> ' + discoveredInCh + '/' + allFish.length + '</span>';
-        html += '</div>';
+        // 章ヘッダー
+        html += '<div style="font-size:14px;font-weight:900;color:#fff;margin:14px 4px 8px;padding-left:10px;border-left:4px solid ' + accentColor + ';">';
+        html += '第' + ch + '章 — ' + chapterName;
         html += '</div>';
 
-        // ロック時は大きな鍵
-        if (!firstAreaUnlocked) {
-          html += '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;color:rgba(255,255,255,0.7);">';
-          html += '<div style="font-size:50px;"><i class="fas fa-lock"></i></div>';
-          html += '<div style="font-size:11px;font-weight:700;margin-top:4px;">👣 ' + (areas[0].area.stepsRequired - (d.total_steps || 0)).toLocaleString() + ' で到達</div>';
-          html += '</div>';
-        }
+        // 各エリアのカード(エリア固有背景)
+        areas.forEach(function(areaData) {
+          var area = areaData.area;
+          var areaFish = areaData.fish;
+          var discoveredInArea = areaFish.filter(function(f){return f.discovered;}).length;
+          var isLocked = !area.unlocked;
+          var hasLegend = areaFish.some(function(f){return !f.discovered && (f.rarity==='legend'||f.rarity==='ultra');});
 
-        // 下部: 3エリアの進捗
-        html += '<div style="position:absolute;bottom:0;left:0;right:0;padding:10px 14px;color:#fff;">';
-        if (firstAreaUnlocked) {
-          html += '<div style="display:flex;gap:6px;margin-bottom:6px;">';
-          areas.forEach(function(a) {
-            var aFish = a.fish;
-            var disc = aFish.filter(function(f){return f.discovered;}).length;
-            var aUnlocked = a.area.unlocked;
-            html += '<div style="flex:1;background:' + (aUnlocked ? 'rgba(0,0,0,0.55)' : 'rgba(0,0,0,0.3)') + ';border:1px solid ' + (aUnlocked ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.08)') + ';border-radius:8px;padding:4px 6px;text-align:center;">';
-            html += '<div style="font-size:9px;color:' + (aUnlocked ? '#fff' : 'rgba(255,255,255,0.4)') + ';font-weight:700;">' + (aUnlocked ? a.area.name : '🔒') + '</div>';
-            html += '<div style="font-size:9px;color:' + (aUnlocked ? '#fde68a' : 'rgba(255,255,255,0.3)') + ';font-weight:700;">' + (aUnlocked ? disc + '/' + aFish.length : '---') + '</div>';
+          // エリアカード(背景画像メイン)
+          html += '<div style="position:relative;height:140px;margin-bottom:8px;border-radius:14px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.4);' + (ch === 5 ? 'animation:shimmer 3s ease-in-out infinite;' : '') + '">';
+          var bgFilter = isLocked ? 'brightness(0.35) blur(4px) saturate(0.4)' : 'brightness(0.85)';
+          html += '<img src="/bg/area_' + area.id + '.png" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:' + bgFilter + ';" onerror="this.src=\'/bg/' + (CHAPTER_BG_FILES[ch] || 'ch1_shore') + '.png\';">';
+          html += '<div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0.4) 0%,transparent 35%,transparent 55%,rgba(0,0,0,0.8) 100%);"></div>';
+
+          // ロック時アイコン
+          if (isLocked) {
+            html += '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;color:rgba(255,255,255,0.6);">';
+            html += '<div style="font-size:32px;"><i class="fas fa-lock"></i></div>';
+            html += '<div style="font-size:10px;font-weight:700;margin-top:2px;text-shadow:0 1px 2px rgba(0,0,0,0.9);"><i class="fas fa-shoe-prints"></i> ' + (area.stepsRequired - (d.total_steps || 0)).toLocaleString() + ' で到達</div>';
             html += '</div>';
-          });
+          }
+
+          // 上部: エリアバッジ
+          html += '<div style="position:absolute;top:8px;left:10px;right:10px;display:flex;align-items:center;gap:6px;">';
+          html += '<span style="font-size:9px;font-weight:900;background:' + accentColor + ';color:#fff;padding:2px 7px;border-radius:8px;">' + area.id + '</span>';
+          html += '<span style="font-size:11px;font-weight:800;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,0.9);">' + (isLocked ? '???' : area.name) + '</span>';
+          html += '<span style="margin-left:auto;font-size:10px;font-weight:700;background:rgba(0,0,0,0.5);padding:2px 7px;border-radius:8px;color:#fde68a;"><i class="fas fa-fish"></i> ' + discoveredInArea + '/' + areaFish.length + '</span>';
           html += '</div>';
-        }
-        html += '</div>';
 
-        html += '</div>'; // 章カード end
-
-        // 章内の発見済み魚(タグ状)
-        if (firstAreaUnlocked && discoveredInCh > 0) {
-          html += '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px;padding:0 4px;">';
-          allFish.forEach(function(f) {
-            if (f.discovered) {
+          // 下部: エリア情報＋発見魚サムネ
+          html += '<div style="position:absolute;bottom:0;left:0;right:0;padding:8px 10px;color:#fff;">';
+          if (!isLocked) {
+            html += '<div style="font-size:10px;color:rgba(255,255,255,0.85);text-shadow:0 1px 2px rgba(0,0,0,0.9);margin-bottom:4px;font-style:italic;">' + area.desc + '</div>';
+            // 発見魚サムネ列
+            html += '<div style="display:flex;gap:4px;flex-wrap:wrap;">';
+            areaFish.forEach(function(f) {
               var rc = rarityColors[f.rarity] || '#94a3b8';
-              html += '<div style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.08);border:1px solid ' + rc + '66;border-radius:20px;padding:3px 10px 3px 3px;">';
-              html += '<div style="width:30px;height:30px;border-radius:50%;background:' + rc + '33;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;"><img src="/fish/rpg_' + f.id + '.png" style="width:28px;height:28px;" onload="makeFishImgTransparent(this)" onerror="this.outerHTML=\'🐟\'"></div>';
-              html += '<span style="font-size:11px;color:#fff;font-weight:700;">' + f.name + '</span>';
-              html += '</div>';
+              if (f.discovered) {
+                html += '<div style="width:28px;height:28px;border-radius:50%;background:' + rc + '88;border:1.5px solid ' + rc + ';display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;" title="' + f.name + '"><img src="/fish/rpg_' + f.id + '.png" style="width:26px;height:26px;" onload="makeFishImgTransparent(this)" onerror="this.outerHTML=\'🐟\'"></div>';
+              }
+            });
+            // 残り未発見アイコン
+            var undisc = areaFish.length - discoveredInArea;
+            if (undisc > 0) {
+              html += '<div style="width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,0.5);border:1.5px dashed ' + (hasLegend ? '#fbbf24' : 'rgba(255,255,255,0.4)') + ';display:flex;align-items:center;justify-content:center;font-size:10px;color:' + (hasLegend ? '#fbbf24' : 'rgba(255,255,255,0.6)') + ';font-weight:900;">' + (hasLegend ? '✨' : '+' + undisc) + '</div>';
             }
-          });
-          var undisc = allFish.length - discoveredInCh;
-          if (undisc > 0) {
-            var hasLegend = allFish.some(function(f){return !f.discovered && (f.rarity==='legend'||f.rarity==='ultra');});
-            html += '<div style="display:flex;align-items:center;gap:6px;background:' + (hasLegend ? 'rgba(245,158,11,0.18)' : 'rgba(255,255,255,0.04)') + ';border:1px dashed ' + (hasLegend ? 'rgba(245,158,11,0.6)' : 'rgba(255,255,255,0.2)') + ';border-radius:20px;padding:4px 10px;">';
-            html += '<span style="font-size:11px;color:' + (hasLegend ? '#fbbf24' : 'rgba(255,255,255,0.5)') + ';font-weight:700;">' + (hasLegend ? '✨ まだ見ぬ伝説 ' : '❓ あと ') + undisc + '匹</span>';
             html += '</div>';
           }
           html += '</div>';
-        } else if (!firstAreaUnlocked) {
-          // 未到達章: 下に余白だけ
-          html += '<div style="margin-bottom:8px;"></div>';
-        }
+
+          html += '</div>'; // エリアカード end
+        });
       });
 
       html += '</div>';

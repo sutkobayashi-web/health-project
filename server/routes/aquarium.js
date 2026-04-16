@@ -17,25 +17,25 @@ function authUser(req, res, next) {
 // ---------- RPGステージマスタ ----------
 const RPG_AREAS = [
   // 第1章: はじまりの浅瀬
-  { id: '1-1', chapter: 1, name: '波打ち際', stepsRequired: 0,      bgColor: '#0ea5e9', depth: '0m',  desc: '光がきらめく浅い海。冒険はここから' },
-  { id: '1-2', chapter: 1, name: '岩陰の入り江', stepsRequired: 20000,  bgColor: '#0891b2', depth: '3m',  desc: '岩の隙間に何かが隠れている' },
-  { id: '1-3', chapter: 1, name: '浅瀬の珊瑚棚', stepsRequired: 50000,  bgColor: '#0284c7', depth: '8m',  desc: '色とりどりの珊瑚が広がる' },
+  { id: '1-1', chapter: 1, name: '波打ち際', stepsRequired: 0,      bgColor: '#0ea5e9', depth: '0m',  bgFile: 'area_1-1', desc: '光がきらめく浅い海。冒険はここから' },
+  { id: '1-2', chapter: 1, name: '岩陰の入り江', stepsRequired: 20000,  bgColor: '#0891b2', depth: '3m',  bgFile: 'area_1-2', desc: '岩の隙間に何かが隠れている' },
+  { id: '1-3', chapter: 1, name: '浅瀬の珊瑚棚', stepsRequired: 50000,  bgColor: '#0284c7', depth: '8m',  bgFile: 'area_1-3', desc: '色とりどりの珊瑚が広がる' },
   // 第2章: 珊瑚礁の迷宮
-  { id: '2-1', chapter: 2, name: '珊瑚の門', stepsRequired: 100000, bgColor: '#0369a1', depth: '15m', desc: '巨大な珊瑚のアーチが出迎える' },
-  { id: '2-2', chapter: 2, name: '色彩の回廊', stepsRequired: 140000, bgColor: '#075985', depth: '25m', desc: '虹色の魚が群れをなして泳ぐ' },
-  { id: '2-3', chapter: 2, name: '珊瑚の宮殿', stepsRequired: 190000, bgColor: '#0c4a6e', depth: '35m', desc: '珊瑚礁の奥深く、神秘的な空間' },
+  { id: '2-1', chapter: 2, name: '珊瑚の門', stepsRequired: 100000, bgColor: '#0369a1', depth: '15m', bgFile: 'area_2-1', desc: '巨大な珊瑚のアーチが出迎える' },
+  { id: '2-2', chapter: 2, name: '色彩の回廊', stepsRequired: 140000, bgColor: '#075985', depth: '25m', bgFile: 'area_2-2', desc: '虹色の魚が群れをなして泳ぐ' },
+  { id: '2-3', chapter: 2, name: '珊瑚の宮殿', stepsRequired: 190000, bgColor: '#0c4a6e', depth: '35m', bgFile: 'area_2-3', desc: '珊瑚礁の奥深く、神秘的な空間' },
   // 第3章: 外洋の試練
-  { id: '3-1', chapter: 3, name: '大海原の入口', stepsRequired: 250000, bgColor: '#1e3a5f', depth: '50m', desc: '珊瑚礁を抜け、果てしない海が広がる' },
-  { id: '3-2', chapter: 3, name: '潮流の道', stepsRequired: 310000, bgColor: '#1e3050', depth: '80m', desc: '強い潮流が渦巻く海域' },
-  { id: '3-3', chapter: 3, name: '外洋の果て', stepsRequired: 370000, bgColor: '#172554', depth: '120m', desc: '光が届きにくくなってきた' },
+  { id: '3-1', chapter: 3, name: '大海原の入口', stepsRequired: 250000, bgColor: '#1e3a5f', depth: '50m', bgFile: 'area_3-1', desc: '珊瑚礁を抜け、果てしない海が広がる' },
+  { id: '3-2', chapter: 3, name: '潮流の道', stepsRequired: 310000, bgColor: '#1e3050', depth: '80m', bgFile: 'area_3-2', desc: '強い潮流が渦巻く海域' },
+  { id: '3-3', chapter: 3, name: '外洋の果て', stepsRequired: 370000, bgColor: '#172554', depth: '120m', bgFile: 'area_3-3', desc: '光が届きにくくなってきた' },
   // 第4章: 深海への招待
-  { id: '4-1', chapter: 4, name: '薄暮の境界', stepsRequired: 420000, bgColor: '#0f172a', depth: '200m', desc: '太陽の光が消え、別世界が始まる' },
-  { id: '4-2', chapter: 4, name: '静寂の深淵', stepsRequired: 490000, bgColor: '#0a0f1a', depth: '500m', desc: '音のない世界。かすかに光るものが...' },
-  { id: '4-3', chapter: 4, name: '発光生物の園', stepsRequired: 550000, bgColor: '#050a14', depth: '800m', desc: '闇の中に無数の光が瞬く' },
+  { id: '4-1', chapter: 4, name: '薄暮の境界', stepsRequired: 420000, bgColor: '#0f172a', depth: '200m', bgFile: 'area_4-1', desc: '太陽の光が消え、別世界が始まる' },
+  { id: '4-2', chapter: 4, name: '静寂の深淵', stepsRequired: 490000, bgColor: '#0a0f1a', depth: '500m', bgFile: 'area_4-2', desc: '音のない世界。かすかに光るものが...' },
+  { id: '4-3', chapter: 4, name: '発光生物の園', stepsRequired: 550000, bgColor: '#050a14', depth: '800m', bgFile: 'area_4-3', desc: '闇の中に無数の光が瞬く' },
   // 第5章: 海溝の神殿
-  { id: '5-1', chapter: 5, name: '海溝の入口', stepsRequired: 600000, bgColor: '#030712', depth: '2000m', desc: '世界で最も深い場所への入口' },
-  { id: '5-2', chapter: 5, name: '神殿の回廊', stepsRequired: 680000, bgColor: '#020510', depth: '5000m', desc: '太古の遺跡のような地形が続く' },
-  { id: '5-3', chapter: 5, name: '伝説の間', stepsRequired: 780000, bgColor: '#010308', depth: '10000m', desc: '誰も辿り着いたことのない場所' },
+  { id: '5-1', chapter: 5, name: '海溝の入口', stepsRequired: 600000, bgColor: '#030712', depth: '2000m', bgFile: 'area_5-1', desc: '世界で最も深い場所への入口' },
+  { id: '5-2', chapter: 5, name: '神殿の回廊', stepsRequired: 680000, bgColor: '#020510', depth: '5000m', bgFile: 'area_5-2', desc: '太古の遺跡のような地形が続く' },
+  { id: '5-3', chapter: 5, name: '伝説の間', stepsRequired: 780000, bgColor: '#010308', depth: '10000m', bgFile: 'area_5-3', desc: '誰も辿り着いたことのない場所' },
 ];
 
 const CHAPTER_NAMES = {

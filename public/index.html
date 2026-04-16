@@ -9903,6 +9903,32 @@ var _aqFrame = 0;
 var _aqW = 0, _aqH = 0;
 var _rpgBgColor = '#0ea5e9';
 
+// 画像プリロード
+var _rpgFishImages = {};  // id -> Image
+var _rpgBgImages = {};     // chapter -> Image
+var _rpgHeroImage = null;
+function preloadRpgImages() {
+  // 主人公
+  var hero = new Image();
+  hero.onload = function() { _rpgHeroImage = hero; };
+  hero.src = '/fish/hero.png';
+  // 30魚
+  for (var i = 1; i <= 30; i++) {
+    (function(id) {
+      var img = new Image();
+      img.onload = function() { _rpgFishImages[id] = img; };
+      img.src = '/fish/rpg_' + id + '.png';
+    })(i);
+  }
+  // 章背景
+  var bgNames = { 1: 'ch1_shore', 2: 'ch2_reef', 3: 'ch3_ocean', 4: 'ch4_deepsea', 5: 'ch5_trench' };
+  Object.keys(bgNames).forEach(function(ch) {
+    var img = new Image();
+    img.onload = function() { _rpgBgImages[ch] = img; };
+    img.src = '/bg/' + bgNames[ch] + '.png';
+  });
+}
+
 // ============================================================
 // RPG描画・データ・UI関数群
 // ============================================================
@@ -9913,6 +9939,7 @@ function initAquarium() {
   _aqCanvas = document.getElementById('aquarium-canvas');
   if (!_aqCanvas) return;
   _aqCtx = _aqCanvas.getContext('2d');
+  preloadRpgImages();
   resizeAquarium();
   window.addEventListener('resize', resizeAquarium);
   loadAdventureData();
@@ -10070,14 +10097,31 @@ function drawOcean() {
   _aqFrame++;
 
   // 背景グラデーション
-  var grad = ctx.createLinearGradient(0, 0, 0, _aqH);
-  grad.addColorStop(0, _rpgBgColor);
-  grad.addColorStop(1, '#0a1628');
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, _aqW, _aqH);
+  var chapter = _rpg ? (_rpg.area.chapter || 1) : 1;
+  // 背景画像があれば使用、なければグラデーション
+  var bgImg = _rpgBgImages[chapter];
+  if (bgImg) {
+    // 画像を画面いっぱいに描画（縦横比維持でcover）
+    var iw = bgImg.naturalWidth, ih = bgImg.naturalHeight;
+    var scale = Math.max(_aqW / iw, _aqH / ih);
+    var dw = iw * scale, dh = ih * scale;
+    var dx = (_aqW - dw) / 2, dy = (_aqH - dh) / 2;
+    ctx.drawImage(bgImg, dx, dy, dw, dh);
+    // 深海は上から暗めのオーバーレイ
+    if (chapter >= 4) {
+      ctx.fillStyle = 'rgba(0,0,0,0.3)';
+      ctx.fillRect(0, 0, _aqW, _aqH);
+    }
+  } else {
+    // フォールバック
+    var grad = ctx.createLinearGradient(0, 0, 0, _aqH);
+    grad.addColorStop(0, _rpgBgColor);
+    grad.addColorStop(1, '#0a1628');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, _aqW, _aqH);
+  }
 
   // 光の筋（浅い海域のみ）
-  var chapter = _rpg ? (_rpg.area.chapter || 1) : 1;
   if (chapter <= 3) {
     ctx.save();
     var lightAlpha = chapter === 1 ? 0.08 : chapter === 2 ? 0.05 : 0.02;
@@ -10167,7 +10211,7 @@ function drawOcean() {
     ctx.restore();
   }
 
-  // エリアの��を描画
+  // エリアの魚を描画（PNG画像ベース）
   _rpgAreaFish.forEach(function(f) {
     f.tailPhase += 0.06;
     if (_aqFrame % 80 === 0) {
@@ -10182,54 +10226,63 @@ function drawOcean() {
     if (f.x < 10) f.x = 10; if (f.x > _aqW - 10) f.x = _aqW - 10;
     if (f.y < 10) f.y = 10; if (f.y > _aqH - 20) f.y = _aqH - 20;
 
-    ctx.save();
-    ctx.globalAlpha = f.alpha;
-    ctx.translate(f.x, f.y);
-    var flip = f.vx > 0 ? 1 : -1;
-    ctx.scale(flip, 1);
-    var s = f.size * 12;
-    // 魚の体
-    ctx.beginPath();
-    ctx.ellipse(0, 0, s, s * 0.5, 0, 0, Math.PI * 2);
-    var rColor = f.rarity === 'legend' ? ',90%,60%)' : f.rarity === 'ultra' ? ',80%,55%)' : f.rarity === 'rare' ? ',70%,50%)' : ',60%,45%)';
-    ctx.fillStyle = 'hsl(' + f.hue + rColor;
-    ctx.fill();
-    // 尾びれ
-    var tw = Math.sin(f.tailPhase) * s * 0.4;
-    ctx.beginPath();
-    ctx.moveTo(-s, 0);
-    ctx.lineTo(-s * 1.5, -s * 0.4 + tw);
-    ctx.lineTo(-s * 1.5, s * 0.4 + tw);
-    ctx.closePath();
-    ctx.fillStyle = 'hsla(' + f.hue + ',60%,40%,' + (f.alpha * 0.8) + ')';
-    ctx.fill();
-    // 目
-    ctx.beginPath();
-    ctx.arc(s * 0.4, -s * 0.1, s * 0.12, 0, Math.PI * 2);
-    ctx.fillStyle = '#fff';
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(s * 0.4, -s * 0.1, s * 0.06, 0, Math.PI * 2);
-    ctx.fillStyle = '#000';
-    ctx.fill();
-    // レア以上は光彩
-    if (f.rarity === 'legend' || f.rarity === 'ultra') {
-      ctx.beginPath();
-      ctx.arc(0, 0, s * 1.3, 0, Math.PI * 2);
-      ctx.strokeStyle = 'hsla(' + f.hue + ',80%,70%,' + (0.2 + Math.sin(_aqFrame * 0.05) * 0.1) + ')';
-      ctx.lineWidth = 1;
-      ctx.stroke();
-    }
-    ctx.restore();
+    var img = _rpgFishImages[f.id];
+    var baseSize = f.size * 50; // PNG用サイズ
 
-    // 未発見の魚は「？」表示
+    // 未発見の魚は影のように描画
     if (!f.discovered) {
       ctx.save();
-      ctx.font = 'bold 10px sans-serif';
-      ctx.fillStyle = 'rgba(255,255,255,0.4)';
-      ctx.textAlign = 'center';
-      ctx.fillText('?', f.x, f.y - f.size * 14);
+      ctx.globalAlpha = 0.35;
+      ctx.translate(f.x, f.y);
+      var flip = f.vx > 0 ? -1 : 1;
+      ctx.scale(flip, 1);
+      // 魚の画像を黒シルエットに
+      if (img) {
+        ctx.filter = 'brightness(0) saturate(0) blur(0.5px)';
+        var bob = Math.sin(f.tailPhase) * 2;
+        ctx.drawImage(img, -baseSize/2, -baseSize/2 + bob, baseSize, baseSize);
+        ctx.filter = 'none';
+      } else {
+        ctx.fillStyle = '#000';
+        ctx.beginPath();
+        ctx.ellipse(0, 0, baseSize * 0.35, baseSize * 0.18, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
       ctx.restore();
+      // ？マーク
+      ctx.save();
+      ctx.font = 'bold 14px sans-serif';
+      ctx.fillStyle = 'rgba(255,255,255,0.6)';
+      ctx.textAlign = 'center';
+      ctx.fillText('?', f.x, f.y - baseSize * 0.35);
+      ctx.restore();
+    } else {
+      ctx.save();
+      ctx.translate(f.x, f.y);
+      var flip2 = f.vx > 0 ? -1 : 1; // 画像は左向きなので右に泳ぐときは反転
+      ctx.scale(flip2, 1);
+      var bob2 = Math.sin(f.tailPhase) * 1.5;
+      if (img) {
+        ctx.drawImage(img, -baseSize/2, -baseSize/2 + bob2, baseSize, baseSize);
+      } else {
+        // フォールバック楕円
+        ctx.beginPath();
+        ctx.ellipse(0, 0, baseSize * 0.35, baseSize * 0.18, 0, 0, Math.PI * 2);
+        ctx.fillStyle = 'hsl(' + f.hue + ',60%,50%)';
+        ctx.fill();
+      }
+      ctx.restore();
+
+      // レア以上は光彩
+      if (f.rarity === 'legend' || f.rarity === 'ultra') {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(f.x, f.y, baseSize * 0.55, 0, Math.PI * 2);
+        ctx.strokeStyle = 'hsla(' + f.hue + ',80%,70%,' + (0.3 + Math.sin(_aqFrame * 0.05) * 0.15) + ')';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.restore();
+      }
     }
   });
 
@@ -10244,14 +10297,14 @@ function drawHeroFish(ctx) {
   f.tailPhase += 0.08;
   f.breathPhase += 0.03;
 
-  // 移動
+  // 移動ロジックを先に実行（画像パスでもCanvasパスでも共通）
   if (_aqFrame % 120 === 0) {
     f.targetX = 30 + Math.random() * (_aqW - 60);
     f.targetY = 20 + Math.random() * (_aqH * 0.6);
   }
-  var dx = f.targetX - f.x, dy = f.targetY - f.y;
-  var dist = Math.sqrt(dx*dx + dy*dy);
-  if (dist > 1) { f.vx += (dx/dist) * 0.05; f.vy += (dy/dist) * 0.04; }
+  var _dx = f.targetX - f.x, _dy = f.targetY - f.y;
+  var _dist = Math.sqrt(_dx*_dx + _dy*_dy);
+  if (_dist > 1) { f.vx += (_dx/_dist) * 0.05; f.vy += (_dy/_dist) * 0.04; }
   f.vx *= 0.96; f.vy *= 0.96;
   f.vy += Math.sin(_aqFrame * 0.025) * 0.01;
   f.x += f.vx; f.y += f.vy;
@@ -10260,6 +10313,44 @@ function drawHeroFish(ctx) {
   if (f.y < 20) { f.y = 20; f.vy *= -0.5; }
   if (f.y > _aqH - 25) { f.y = _aqH - 25; f.vy *= -0.5; }
 
+  // 主人公PNG画像があれば使う
+  if (_rpgHeroImage) {
+    var hs = 64;
+    ctx.save();
+    ctx.translate(f.x, f.y);
+    var _flip = f.vx > 0.05 ? -1 : 1; // 画像は左向き、右進行時は反転
+    ctx.scale(_flip, 1);
+    var _bob = Math.sin(f.tailPhase) * 2;
+    ctx.drawImage(_rpgHeroImage, -hs/2, -hs/2 + _bob, hs, hs);
+    ctx.restore();
+
+    // 名前表示
+    if (_rpg && _rpg.progress.fish_name) {
+      ctx.save();
+      ctx.font = 'bold 11px "Noto Sans JP", sans-serif';
+      ctx.fillStyle = 'rgba(255,255,255,0.9)';
+      ctx.textAlign = 'center';
+      ctx.shadowColor = 'rgba(0,0,0,0.8)';
+      ctx.shadowBlur = 4;
+      ctx.fillText(_rpg.progress.fish_name, f.x, f.y - hs/2 - 4);
+      ctx.restore();
+    }
+    // ⭐マーク
+    ctx.save();
+    ctx.font = 'bold 10px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('⭐', f.x, f.y - hs/2 - 18);
+    ctx.restore();
+    return;
+  }
+
+  // フォールバック: 旧Canvas描画
+  return drawHeroFishFallback(ctx);
+}
+
+function drawHeroFishFallback(ctx) {
+  var f = _rpgFish;
+  // 移動ロジックは drawHeroFish 側で実行済み
   var hue = (_rpg && _rpg.progress) ? _rpg.progress.avatar_hue : 200;
   var s = 16;
 
@@ -10588,9 +10679,11 @@ function showFishEncounter(fish) {
 
   overlay.innerHTML = '<div style="text-align:center;color:#fff;padding:24px;">' +
     '<div style="font-size:11px;letter-spacing:3px;color:' + color + ';margin-bottom:8px;">' + label + '</div>' +
-    '<div style="width:80px;height:80px;margin:0 auto 12px;border-radius:50%;background:radial-gradient(circle,hsla(' + fish.hue + ',80%,60%,0.3),transparent);display:flex;align-items:center;justify-content:center;">' +
-      '<div style="font-size:50px;">🐟</div>' +
+    '<div style="width:180px;height:180px;margin:0 auto 12px;border-radius:20px;background:radial-gradient(circle,hsla(' + fish.hue + ',80%,60%,0.25),transparent 70%);display:flex;align-items:center;justify-content:center;position:relative;animation:fishShine 2s ease-in-out infinite;">' +
+      '<img src="/fish/rpg_' + fish.id + '.png" style="max-width:160px;max-height:160px;filter:drop-shadow(0 4px 20px hsla(' + fish.hue + ',80%,60%,0.6));" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\';">' +
+      '<div style="display:none;font-size:80px;align-items:center;justify-content:center;">🐟</div>' +
     '</div>' +
+    '<style>@keyframes fishShine{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}</style>' +
     '<div style="font-size:22px;font-weight:900;margin-bottom:4px;">' + fish.name + '</div>' +
     '<div style="font-size:12px;color:rgba(255,255,255,0.6);max-width:260px;margin:0 auto;">' + fish.desc + '</div>' +
     '<div style="font-size:11px;color:rgba(255,255,255,0.3);margin-top:12px;">図鑑に記録された</div>' +
@@ -10642,14 +10735,14 @@ function openFishBook() {
           var rc = rarityColors[f.rarity] || '#94a3b8';
           if (f.discovered) {
             html += '<div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:10px;text-align:center;">';
-            html += '<div style="font-size:28px;margin-bottom:4px;">🐟</div>';
+            html += '<div style="height:80px;display:flex;align-items:center;justify-content:center;margin-bottom:4px;"><img src="/fish/rpg_' + f.id + '.png" style="max-width:80px;max-height:80px;" onerror="this.outerHTML=\'🐟\'"></div>';
             html += '<div style="font-size:12px;font-weight:700;color:#fff;">' + f.name + '</div>';
             html += '<div style="font-size:9px;color:' + rc + ';font-weight:700;text-transform:uppercase;">' + f.rarity + '</div>';
             html += '<div style="font-size:9px;color:rgba(255,255,255,0.4);margin-top:2px;">' + f.desc + '</div>';
             html += '</div>';
           } else {
-            html += '<div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);border-radius:10px;padding:10px;text-align:center;opacity:0.4;">';
-            html += '<div style="font-size:28px;margin-bottom:4px;">❓</div>';
+            html += '<div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);border-radius:10px;padding:10px;text-align:center;opacity:0.5;">';
+            html += '<div style="height:80px;display:flex;align-items:center;justify-content:center;margin-bottom:4px;"><img src="/fish/rpg_' + f.id + '.png" style="max-width:80px;max-height:80px;filter:brightness(0) opacity(0.3);" onerror="this.outerHTML=\'❓\'"></div>';
             html += '<div style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.3);">???</div>';
             html += '<div style="font-size:9px;color:rgba(255,255,255,0.2);">未発見</div>';
             html += '</div>';
@@ -10759,8 +10852,8 @@ function openSharedOcean() {
         html += '</div>';
 
         // アバター
-        html += '<div style="width:36px;height:36px;border-radius:50%;background:hsl(' + e.avatar_hue + ',60%,40%);display:flex;align-items:center;justify-content:center;flex-shrink:0;">';
-        html += '<span style="font-size:18px;">🐟</span>';
+        html += '<div style="width:40px;height:40px;border-radius:50%;background:hsla(' + e.avatar_hue + ',60%,40%,0.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;">';
+        html += '<img src="/fish/hero.png" style="width:36px;height:36px;object-fit:contain;" onerror="this.outerHTML=\'<span style=&quot;font-size:18px;&quot;>🐟</span>\'">';
         html += '</div>';
 
         html += '<div style="flex:1;min-width:0;">';

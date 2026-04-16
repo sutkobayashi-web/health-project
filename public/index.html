@@ -11246,7 +11246,7 @@ function dismissRpgFollowup() {
   if (el) el.remove();
 }
 
-// 音声対話モード
+// 音声対話モード（1タップ連続会話）
 function startRpgVoiceChat() {
   _rpgCurrentQuestionId = null;
   var area = document.getElementById('buddy-messages');
@@ -11257,7 +11257,7 @@ function startRpgVoiceChat() {
     area.style.textAlign = 'left';
   }
   if (typeof addBuddyMessage === 'function') {
-    addBuddyMessage('ai', 'マイクを押して話してね。何でも聞くよ。');
+    addBuddyMessage('ai', 'なんでも話してね。私が返事したらそのまま続けて話して。');
   }
   // 戻るボタン
   var backBtn = document.createElement('button');
@@ -11266,8 +11266,14 @@ function startRpgVoiceChat() {
   backBtn.style.cssText = 'position:absolute;top:6px;right:8px;background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.7);font-size:10px;padding:4px 10px;border-radius:12px;cursor:pointer;z-index:10;';
   backBtn.onclick = returnToRpgMode;
   if (area && area.parentNode) area.parentNode.appendChild(backBtn);
-  // 音声パネルを表示
-  if (typeof toggleVoiceMode === 'function') toggleVoiceMode();
+  // 音声パネルを表示 → すぐに連続モード起動
+  if (typeof toggleVoiceMode === 'function' && !window._voiceModeActive) toggleVoiceMode();
+  // 連続モード起動(OFF状態から)
+  setTimeout(function() {
+    if (typeof _continuousVoiceMode !== 'undefined' && !_continuousVoiceMode && typeof toggleContinuousVoice === 'function') {
+      toggleContinuousVoice();
+    }
+  }, 400);
 }
 
 // エスケープハッチ: 自由文チャットに切り替え（冒険画面内で）

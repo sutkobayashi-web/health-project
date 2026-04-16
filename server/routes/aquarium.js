@@ -208,6 +208,38 @@ function initRpgTables() {
   db.exec("CREATE INDEX IF NOT EXISTS idx_user_choices_user ON user_choices(user_id, created_at DESC)");
   db.exec("CREATE INDEX IF NOT EXISTS idx_user_choices_q ON user_choices(question_id)");
 
+  // ボトルメッセージ（章全体ブロードキャスト、匿名）
+  db.exec(`CREATE TABLE IF NOT EXISTS bottles (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    sender_uid TEXT NOT NULL,
+    chapter INTEGER NOT NULL,
+    message TEXT NOT NULL,
+    tag TEXT DEFAULT '',
+    flagged INTEGER DEFAULT 0,
+    created_at TEXT DEFAULT (datetime('now'))
+  )`);
+  db.exec("CREATE INDEX IF NOT EXISTS idx_bottles_chapter ON bottles(chapter, created_at DESC)");
+
+  db.exec(`CREATE TABLE IF NOT EXISTS bottle_reactions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    bottle_id INTEGER NOT NULL,
+    user_id TEXT NOT NULL,
+    reaction TEXT NOT NULL,
+    created_at TEXT DEFAULT (datetime('now')),
+    UNIQUE(bottle_id, user_id, reaction)
+  )`);
+
+  // スタンプ（指名・定型）
+  db.exec(`CREATE TABLE IF NOT EXISTS stamps (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    from_uid TEXT NOT NULL,
+    to_uid TEXT NOT NULL,
+    stamp_type TEXT NOT NULL,
+    seen INTEGER DEFAULT 0,
+    created_at TEXT DEFAULT (datetime('now'))
+  )`);
+  db.exec("CREATE INDEX IF NOT EXISTS idx_stamps_to ON stamps(to_uid, seen, created_at DESC)");
+
   // 旧テーブルがあればデータ移行
   try {
     const hasOldTable = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='user_aquarium'").get();
@@ -555,6 +587,106 @@ router.get('/choices/stats', authUser, (req, res) => {
     FROM user_choices WHERE created_at > datetime('now', '-' || ? || ' days')
     GROUP BY question_id, choice_id ORDER BY question_id, cnt DESC`).all(days);
   res.json({ success: true, stats: byQuestion });
+});
+
+// ---------- ボトルメッセージ送信 ----------
+router.post('/bottle', authUser, (req, res) => {
+  const { message, tag } = req.body;
+  if (!message || typeof message !== 'string') return res.status(400).json({ error: 'メッセージが必要' });
+  const trimmed = message.trim().slice(0, 50);
+  if (!trimmed) return res.status(400).json({ error: 'メッセージが必要' });
+  const db = getDb();
+  // 1日3本までチェック
+  const todayCount = db.prepare("SELECT COUNT(*) as c FROM bottles WHERE sender_uid = ? AND created_at > datetime('now','-1 day')").get(req.uid);
+  if (todayCount.c >= 3) return res.json({ success: false, msg: '今日はもう3本流したよ。また明日' });
+  // 禁止語フィルタ(簡易)
+  const banned = ['死ね', '殺', 'バカ', 'アホ', 'ブス', 'キモ'];
+  let flagged = 0;
+  for (const w of banned) if (trimmed.indexOf(w) !== -1) flagged = 1;
+  // 現在の章
+  const prog = db.prepare('SELECT current_chapter FROM adventure_progress WHERE user_id = ?').get(req.uid);
+  const chapter = prog ? prog.current_chapter : 1;
+  const result = db.prepare('INSERT INTO bottles (sender_uid, chapter, message, tag, flagged) VALUES (?,?,?,?,?)').run(req.uid, chapter, trimmed, tag || '', flagged);
+  res.json({ success: true, bottle_id: result.lastInsertRowid, flagged });
+});
+
+// ---------- ボトル一覧（同じ章） ----------
+router.get('/bottles', authUser, (req, res) => {
+  const db = getDb();
+  const prog = db.prepare('SELECT current_chapter FROM adventure_progress WHERE user_id = ?').get(req.uid);
+  if (!prog) return res.json({ success: true, bottles: [] });
+  const chapter = prog.current_chapter;
+  // 直近14日のボトル
+  const bottles = db.prepare(`SELECT b.id, b.sender_uid, b.message, b.tag, b.created_at
+    FROM bottles b
+    WHERE b.chapter = ? AND b.flagged = 0 AND b.created_at > datetime('now','-14 days')
+    ORDER BY b.created_at DESC LIMIT 50`).all(chapter);
+  // 各ボトルのリアクション集計
+  const result = bottles.map(b => {
+    const reactions = db.prepare("SELECT reaction, COUNT(*) as c FROM bottle_reactions WHERE bottle_id = ? GROUP BY reaction").all(b.id);
+    const myReactions = db.prepare("SELECT reaction FROM bottle_reactions WHERE bottle_id = ? AND user_id = ?").all(b.id, req.uid).map(r => r.reaction);
+    const reactionMap = {};
+    reactions.forEach(r => { reactionMap[r.reaction] = r.c; });
+    return {
+      id: b.id,
+      message: b.message,
+      tag: b.tag,
+      created_at: b.created_at,
+      is_mine: b.sender_uid === req.uid,
+      reactions: reactionMap,
+      my_reactions: myReactions,
+    };
+  });
+  res.json({ success: true, chapter, bottles: result });
+});
+
+// ---------- ボトルにリアクション ----------
+router.post('/bottle-react', authUser, (req, res) => {
+  const { bottle_id, reaction, remove } = req.body;
+  if (!bottle_id || !reaction) return res.status(400).json({ error: 'パラメータ不足' });
+  const db = getDb();
+  if (remove) {
+    db.prepare('DELETE FROM bottle_reactions WHERE bottle_id = ? AND user_id = ? AND reaction = ?').run(bottle_id, req.uid, reaction);
+  } else {
+    try {
+      db.prepare('INSERT INTO bottle_reactions (bottle_id, user_id, reaction) VALUES (?, ?, ?)').run(bottle_id, req.uid, reaction);
+    } catch (e) { /* UNIQUE violation = already reacted, ignore */ }
+  }
+  res.json({ success: true });
+});
+
+// ---------- スタンプ送信（指名） ----------
+router.post('/stamp', authUser, (req, res) => {
+  const { to_uid, stamp_type } = req.body;
+  if (!to_uid || !stamp_type) return res.status(400).json({ error: 'パラメータ不足' });
+  if (to_uid === req.uid) return res.status(400).json({ error: '自分には送れない' });
+  const allowed = ['cheer', 'like', 'thanks', 'see-you'];
+  if (allowed.indexOf(stamp_type) === -1) return res.status(400).json({ error: '不正なスタンプ' });
+  const db = getDb();
+  // 同日同スタンプ同相手は1回まで
+  const today = db.prepare("SELECT COUNT(*) as c FROM stamps WHERE from_uid = ? AND to_uid = ? AND stamp_type = ? AND created_at > datetime('now','-1 day')").get(req.uid, to_uid, stamp_type);
+  if (today.c >= 1) return res.json({ success: false, msg: '今日は同じスタンプをこの人に送ったよ' });
+  db.prepare('INSERT INTO stamps (from_uid, to_uid, stamp_type) VALUES (?, ?, ?)').run(req.uid, to_uid, stamp_type);
+  res.json({ success: true });
+});
+
+// ---------- 受信スタンプ取得 ----------
+router.get('/stamps-received', authUser, (req, res) => {
+  const db = getDb();
+  const stamps = db.prepare(`SELECT s.id, s.stamp_type, s.seen, s.created_at, u.nickname as from_nickname
+    FROM stamps s LEFT JOIN users u ON s.from_uid = u.id
+    WHERE s.to_uid = ? AND s.created_at > datetime('now','-14 days')
+    ORDER BY s.created_at DESC LIMIT 30`).all(req.uid);
+  // 未読数
+  const unseen = db.prepare("SELECT COUNT(*) as c FROM stamps WHERE to_uid = ? AND seen = 0").get(req.uid);
+  res.json({ success: true, stamps, unseen: unseen.c });
+});
+
+// ---------- スタンプ既読 ----------
+router.post('/stamps-mark-seen', authUser, (req, res) => {
+  const db = getDb();
+  db.prepare('UPDATE stamps SET seen = 1 WHERE to_uid = ? AND seen = 0').run(req.uid);
+  res.json({ success: true });
 });
 
 // ---------- 同じエリアの仲間を取得 ----------

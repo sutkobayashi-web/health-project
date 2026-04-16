@@ -836,6 +836,8 @@
     <!-- 語り部ログ（過去のつぶやきを表示、スクロール可） -->
     <div style="flex:1;position:relative;overflow:hidden;background:#0a2540;">
       <div id="buddy-messages" style="position:absolute;top:0;left:0;right:0;bottom:0;z-index:3;overflow-y:auto;overscroll-behavior:contain;padding:12px;padding-top:8px;display:flex;flex-direction:column;gap:8px;justify-content:flex-end;background:linear-gradient(180deg,#0d2f4f,#0a2540);"></div>
+      <!-- RPG問いかけ/アイドル入口: buddy-messagesの上に重ねる。チャット履歴は保持される -->
+      <div id="rpg-overlay" style="display:none;position:absolute;top:0;left:0;right:0;bottom:0;z-index:4;overflow-y:auto;padding:16px;background:linear-gradient(180deg,rgba(13,47,79,0.95),rgba(10,37,64,0.95));backdrop-filter:blur(2px);display:none;flex-direction:column;justify-content:center;align-items:center;text-align:center;"></div>
       <div id="buddy-entry-cards" style="display:none;"></div>
     </div>
     <!-- RPGアクションバー削除 → 海の中にフローティング配置（アイコン in aquarium-container） -->
@@ -11273,6 +11275,16 @@ function pickQuestion() {
   return candidates[Math.floor(Math.random() * candidates.length)];
 }
 
+// RPGオーバーレイ表示/非表示
+function showRpgOverlay() {
+  var ov = document.getElementById('rpg-overlay');
+  if (ov) ov.style.display = 'flex';
+}
+function hideRpgOverlay() {
+  var ov = document.getElementById('rpg-overlay');
+  if (ov) ov.style.display = 'none';
+}
+
 // 問いかけUIを表示
 function showRpgQuestion(qid) {
   // 自由文/音声モード中は問いかけを出さない(会話を壊さない)
@@ -11280,18 +11292,13 @@ function showRpgQuestion(qid) {
   if (bar && bar.style.display !== 'none') return;
   var vp = document.getElementById('voice-mode-panel');
   if (vp && vp.style.display !== 'none') return;
-  // 「戻る」ボタンがある(自由チャット中) も割り込まない
-  if (document.getElementById('rpg-back-btn')) return;
   var q = RPG_QUESTIONS[qid];
   if (!q) return;
   _rpgCurrentQuestionId = qid;
-  var area = document.getElementById('buddy-messages');
+  var area = document.getElementById('rpg-overlay');
   if (!area) return;
+  showRpgOverlay();
   area.innerHTML = '';
-  area.style.justifyContent = 'center';
-  area.style.alignItems = 'center';
-  area.style.padding = '10px 12px';
-  area.style.textAlign = 'center';
 
   var box = document.createElement('div');
   box.style.cssText = 'max-width:460px;width:100%;';
@@ -11328,9 +11335,10 @@ function answerRpgQuestion(choiceId) {
 
   setLastAnswerTime(qid);
 
-  // 返事アニメーション
-  var area = document.getElementById('buddy-messages');
+  // 返事アニメーション (オーバーレイに)
+  var area = document.getElementById('rpg-overlay');
   if (!area) return;
+  showRpgOverlay();
   area.innerHTML = '<div id="rpg-reply-box" style="max-width:420px;width:100%;text-align:center;">' +
     '<div style="color:rgba(255,255,255,0.5);font-size:11px;margin-bottom:8px;">あなた: ' + opt.label + '</div>' +
     '<div style="color:#fde68a;font-size:14px;font-weight:600;line-height:1.6;text-shadow:0 1px 4px rgba(0,0,0,0.5);animation:fadeInSlow 0.8s ease;">' + q.reply[choiceId] + '</div>' +
@@ -11365,21 +11373,16 @@ function dismissRpgFollowup() {
   if (el) el.remove();
 }
 
-// 質問なしの静かなときの常時入口（書く・話す）
+// 質問なしの静かなときの常時入口（書く・話す）: オーバーレイに表示
 function showRpgIdleEntry() {
-  // 既にチャット/音声モードなら何もしない
   var bar = document.getElementById('text-input-bar');
   if (bar && bar.style.display !== 'none') return;
   var vp = document.getElementById('voice-mode-panel');
   if (vp && vp.style.display !== 'none') return;
-  if (document.getElementById('rpg-back-btn')) return;
-  var area = document.getElementById('buddy-messages');
+  var area = document.getElementById('rpg-overlay');
   if (!area) return;
+  showRpgOverlay();
   area.innerHTML = '';
-  area.style.justifyContent = 'center';
-  area.style.alignItems = 'center';
-  area.style.padding = '20px 16px';
-  area.style.textAlign = 'center';
   var box = document.createElement('div');
   box.style.cssText = 'max-width:420px;width:100%;';
   box.innerHTML =
@@ -11409,16 +11412,9 @@ function startContinuousVoiceFromInput() {
 // 音声対話モード（1タップ連続会話）
 function startRpgVoiceChat() {
   _rpgCurrentQuestionId = null;
-  var area = document.getElementById('buddy-messages');
-  if (area) {
-    area.innerHTML = '';
-    area.style.justifyContent = 'flex-end';
-    area.style.alignItems = 'stretch';
-    area.style.padding = '12px';
-    area.style.textAlign = 'left';
-  }
+  hideRpgOverlay();
   showBackToRpgButton();
-  if (typeof addBuddyMessage === 'function') {
+  if (_buddyHistory && _buddyHistory.length === 0 && typeof addBuddyMessage === 'function') {
     addBuddyMessage('ai', 'なんでも話してね。私が返事したらそのまま続けて話して。');
   }
   if (typeof toggleVoiceMode === 'function' && !window._voiceModeActive) toggleVoiceMode();
@@ -11432,20 +11428,12 @@ function startRpgVoiceChat() {
 // エスケープハッチ: 自由文チャットに切り替え（冒険画面内で）
 function escapeToFreeText() {
   _rpgCurrentQuestionId = null;
+  hideRpgOverlay(); // 問いかけUIを隠してチャット履歴を見せる
   var bar = document.getElementById('text-input-bar');
   if (bar) bar.style.display = 'block';
-  var area = document.getElementById('buddy-messages');
-  if (area) {
-    area.innerHTML = '';
-    area.style.justifyContent = 'flex-end';
-    area.style.alignItems = 'stretch';
-    area.style.padding = '12px';
-    area.style.textAlign = 'left';
-  }
-  // 戻るボタン(aquarium-container内に固定配置で必ず見える)
   showBackToRpgButton();
-  // フリーチャット開始の一言
-  if (typeof addBuddyMessage === 'function') {
+  // 初回だけ挨拶（既にチャット履歴がある場合は追加しない）
+  if (_buddyHistory && _buddyHistory.length === 0 && typeof addBuddyMessage === 'function') {
     addBuddyMessage('ai', '何でも話していいよ。ここでの声は大切に受け取るからね。');
   }
   var input = document.getElementById('buddy-input');
@@ -11475,8 +11463,7 @@ function returnToRpgMode() {
     if (typeof toggleVoiceMode === 'function') toggleVoiceMode();
   }
   hideBackToRpgButton();
-  var area = document.getElementById('buddy-messages');
-  if (area) area.innerHTML = '';
+  // チャット履歴は消さない! オーバーレイを再表示するだけ
   setTimeout(function() {
     var qid = pickQuestion();
     if (qid) showRpgQuestion(qid);

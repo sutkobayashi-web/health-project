@@ -10087,7 +10087,10 @@ function applyHueRotate(srcCanvas, hueRotate) {
   return c;
 }
 
+// ベース画像(透明化済み、色相回転なし) - 全バリアントの元
+var _rpgHeroBase = null;
 var _heroVariantCache = {};
+
 function loadHeroVariant(variant) {
   variant = parseInt(variant) || 1;
   _rpgCurrentVariant = variant;
@@ -10095,9 +10098,8 @@ function loadHeroVariant(variant) {
     _rpgHeroImage = _heroVariantCache[variant];
     return;
   }
-  // ベース画像（透明化済みCanvas）があればそれを元に色相回転
-  if (_rpgHeroImage && _rpgHeroImage.tagName === 'CANVAS') {
-    _heroVariantCache[variant] = applyHueRotate(_rpgHeroImage, getVariantHueRotate(variant));
+  if (_rpgHeroBase) {
+    _heroVariantCache[variant] = applyHueRotate(_rpgHeroBase, getVariantHueRotate(variant));
     _rpgHeroImage = _heroVariantCache[variant];
     return;
   }
@@ -10105,15 +10107,21 @@ function loadHeroVariant(variant) {
   var hero = new Image();
   hero.crossOrigin = 'anonymous';
   hero.onload = function() {
-    var base = removeImageBg(hero);
-    _heroVariantCache[1] = base.tagName === 'CANVAS' ? base : (function(){
+    var processed = removeImageBg(hero);
+    if (processed.tagName === 'CANVAS') {
+      _rpgHeroBase = processed;
+    } else {
       var c = document.createElement('canvas');
       c.width = hero.naturalWidth; c.height = hero.naturalHeight;
       c.getContext('2d').drawImage(hero, 0, 0);
-      return c;
-    })();
-    // 要求されたvariantに変換
-    _heroVariantCache[variant] = applyHueRotate(_heroVariantCache[1], getVariantHueRotate(variant));
+      _rpgHeroBase = c;
+    }
+    // variant 1 はベースと同じ
+    _heroVariantCache[1] = _rpgHeroBase;
+    // 要求されたvariant適用
+    if (variant !== 1) {
+      _heroVariantCache[variant] = applyHueRotate(_rpgHeroBase, getVariantHueRotate(variant));
+    }
     _rpgHeroImage = _heroVariantCache[variant];
   };
   hero.src = '/fish/hero.png';
@@ -10632,7 +10640,9 @@ function drawOcean() {
 }
 
 function drawCompanions(ctx) {
-  if (!_rpgHeroImage || _rpgCompanions.length === 0) return;
+  // ベース画像(色相回転なし)を使う。無ければ_rpgHeroImageにフォールバック
+  var baseImg = _rpgHeroBase || _rpgHeroImage;
+  if (!baseImg || _rpgCompanions.length === 0) return;
   var waterTop = (AREA_WATER_LEVEL && _rpg && _rpg.area) ? (AREA_WATER_LEVEL[_rpg.area.id] || 0) * _aqH : 0;
   _rpgCompanions.forEach(function(c) {
     c.tailPhase += 0.05;
@@ -10655,10 +10665,10 @@ function drawCompanions(ctx) {
     ctx.translate(c.x, c.y);
     var flip = c.vx > 0.05 ? -1 : 1;
     ctx.scale(flip, 1);
-    // 色相回転はCanvasのfilterで適用（仲間ごとに色が違う）
+    // ベース画像に各仲間の色相回転(重ね掛けにならない)
     ctx.filter = 'hue-rotate(' + c.hueRotate + 'deg)';
     var bob = Math.sin(c.tailPhase) * 1.5;
-    ctx.drawImage(_rpgHeroImage, -s/2, -s/2 + bob, s, s);
+    ctx.drawImage(baseImg, -s/2, -s/2 + bob, s, s);
     ctx.filter = 'none';
     ctx.restore();
 

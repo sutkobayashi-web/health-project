@@ -10057,16 +10057,19 @@ function preloadAreaBgImage(areaId) {
   img.src = '/bg/area_' + areaId + '.png';
 }
 
-// 8バリアントの色相回転値（degrees）
+// 10種類の主人公魚（それぞれ違うデザイン）
+// 後方互換: hueRotateは0、使わない。imgFileで画像指定
 var HERO_VARIANTS = [
-  { id: 1, name: 'シアン',  hueRotate: 0,   bgHue: 190 },
-  { id: 2, name: 'ブルー',  hueRotate: 30,  bgHue: 220 },
-  { id: 3, name: 'パープル', hueRotate: 70,  bgHue: 280 },
-  { id: 4, name: 'ピンク',  hueRotate: 120, bgHue: 330 },
-  { id: 5, name: 'レッド',  hueRotate: 150, bgHue: 0 },
-  { id: 6, name: 'オレンジ', hueRotate: 185, bgHue: 30 },
-  { id: 7, name: 'グリーン', hueRotate: 250, bgHue: 140 },
-  { id: 8, name: 'ティール', hueRotate: 290, bgHue: 170 },
+  { id: 1,  name: 'シアンの勇者',   imgFile: 'hero_type_1',  bgHue: 190, hueRotate: 0 },
+  { id: 2,  name: '王冠の貴族',     imgFile: 'hero_type_2',  bgHue: 280, hueRotate: 0 },
+  { id: 3,  name: '赤のレーサー',   imgFile: 'hero_type_3',  bgHue: 0,   hueRotate: 0 },
+  { id: 4,  name: '銀の騎士',       imgFile: 'hero_type_4',  bgHue: 210, hueRotate: 0 },
+  { id: 5,  name: '青の幻獣',       imgFile: 'hero_type_5',  bgHue: 220, hueRotate: 0 },
+  { id: 6,  name: '龍の末裔',       imgFile: 'hero_type_6',  bgHue: 30,  hueRotate: 0 },
+  { id: 7,  name: '黒の忍者',       imgFile: 'hero_type_7',  bgHue: 240, hueRotate: 0 },
+  { id: 8,  name: '陽だまり',       imgFile: 'hero_type_8',  bgHue: 50,  hueRotate: 0 },
+  { id: 9,  name: '深淵の賢者',     imgFile: 'hero_type_9',  bgHue: 270, hueRotate: 0 },
+  { id: 10, name: '虹のきらめき',   imgFile: 'hero_type_10', bgHue: 300, hueRotate: 0 },
 ];
 var _rpgCurrentVariant = 1;
 
@@ -10088,44 +10091,51 @@ function applyHueRotate(srcCanvas, hueRotate) {
   return c;
 }
 
-// ベース画像(透明化済み、色相回転なし) - 全バリアントの元
-var _rpgHeroBase = null;
-var _heroVariantCache = {};
+// 10種類それぞれ個別画像をロード
+var _rpgHeroBase = null; // 仲間描画用ベース(variant 1の画像)
+var _heroVariantCache = {}; // variantId -> Canvas/Image
 
 function loadHeroVariant(variant) {
   variant = parseInt(variant) || 1;
   _rpgCurrentVariant = variant;
   if (_heroVariantCache[variant]) {
     _rpgHeroImage = _heroVariantCache[variant];
+    if (variant === 1 && !_rpgHeroBase) _rpgHeroBase = _heroVariantCache[1];
     return;
   }
-  if (_rpgHeroBase) {
-    _heroVariantCache[variant] = applyHueRotate(_rpgHeroBase, getVariantHueRotate(variant));
-    _rpgHeroImage = _heroVariantCache[variant];
-    return;
-  }
-  // 初回: ベース画像をロード
+  var variantDef = HERO_VARIANTS.find(function(v){return v.id === variant;}) || HERO_VARIANTS[0];
+  var imgFile = variantDef.imgFile || 'hero_type_1';
   var hero = new Image();
   hero.crossOrigin = 'anonymous';
   hero.onload = function() {
     var processed = removeImageBg(hero);
-    if (processed.tagName === 'CANVAS') {
-      _rpgHeroBase = processed;
-    } else {
-      var c = document.createElement('canvas');
-      c.width = hero.naturalWidth; c.height = hero.naturalHeight;
-      c.getContext('2d').drawImage(hero, 0, 0);
-      _rpgHeroBase = c;
-    }
-    // variant 1 はベースと同じ
-    _heroVariantCache[1] = _rpgHeroBase;
-    // 要求されたvariant適用
-    if (variant !== 1) {
-      _heroVariantCache[variant] = applyHueRotate(_rpgHeroBase, getVariantHueRotate(variant));
-    }
-    _rpgHeroImage = _heroVariantCache[variant];
+    _heroVariantCache[variant] = processed;
+    _rpgHeroImage = processed;
+    if (variant === 1) _rpgHeroBase = processed;
   };
-  hero.src = '/fish/hero.png';
+  hero.onerror = function() {
+    // フォールバック: 旧hero.png
+    var fb = new Image();
+    fb.crossOrigin = 'anonymous';
+    fb.onload = function() {
+      var p = removeImageBg(fb);
+      _heroVariantCache[variant] = p;
+      _rpgHeroImage = p;
+      if (variant === 1) _rpgHeroBase = p;
+    };
+    fb.src = '/fish/hero.png';
+  };
+  hero.src = '/fish/' + imgFile + '.png';
+  // variant 1 も並行ロード(仲間描画のベース用)
+  if (variant !== 1 && !_rpgHeroBase) {
+    var base = new Image();
+    base.crossOrigin = 'anonymous';
+    base.onload = function() {
+      _rpgHeroBase = removeImageBg(base);
+      _heroVariantCache[1] = _rpgHeroBase;
+    };
+    base.src = '/fish/hero_type_1.png';
+  }
 }
 
 function preloadRpgImages() {
@@ -10313,14 +10323,27 @@ function loadCompanions() {
     }).catch(function(){});
 }
 
+// 仲間画像キャッシュ (variantId -> Image)
+var _companionImageCache = {};
+function preloadCompanionVariant(variantId) {
+  if (_companionImageCache[variantId]) return;
+  var variantDef = HERO_VARIANTS.find(function(v){return v.id === variantId;}) || HERO_VARIANTS[0];
+  var img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.onload = function() { _companionImageCache[variantId] = removeImageBg(img); };
+  img.onerror = function() {};
+  img.src = '/fish/' + variantDef.imgFile + '.png';
+}
+
 function initCompanions(list) {
   _rpgCompanions = list.map(function(c) {
-    var variant = HERO_VARIANTS.find(function(v){return v.id === (c.hero_variant || 1);}) || HERO_VARIANTS[0];
+    var variantId = c.hero_variant || 1;
+    preloadCompanionVariant(variantId);
     return {
       user_id: c.user_id,
       nickname: c.nickname,
       fish_name: c.fish_name,
-      hueRotate: variant.hueRotate,
+      variantId: variantId,
       total_steps: c.total_steps,
       x: 20 + Math.random() * (_aqW - 40),
       y: 40 + Math.random() * (_aqH - 80),
@@ -10329,7 +10352,7 @@ function initCompanions(list) {
       targetX: Math.random() * _aqW,
       targetY: 40 + Math.random() * (_aqH - 80),
       tailPhase: Math.random() * Math.PI * 2,
-      size: 0.7 + Math.random() * 0.2, // 主人公(1.0)より少し小さい
+      size: 0.7 + Math.random() * 0.2,
     };
   });
 }
@@ -10641,9 +10664,8 @@ function drawOcean() {
 }
 
 function drawCompanions(ctx) {
-  // ベース画像(色相回転なし)を使う。無ければ_rpgHeroImageにフォールバック
-  var baseImg = _rpgHeroBase || _rpgHeroImage;
-  if (!baseImg || _rpgCompanions.length === 0) return;
+  var fallbackImg = _rpgHeroBase || _rpgHeroImage;
+  if (!fallbackImg || _rpgCompanions.length === 0) return;
   var waterTop = (AREA_WATER_LEVEL && _rpg && _rpg.area) ? (AREA_WATER_LEVEL[_rpg.area.id] || 0) * _aqH : 0;
   _rpgCompanions.forEach(function(c) {
     c.tailPhase += 0.05;
@@ -10661,16 +10683,14 @@ function drawCompanions(ctx) {
     if (c.y > _aqH - 25) c.y = _aqH - 25;
 
     var s = 54 * c.size;
+    var cImg = _companionImageCache[c.variantId] || fallbackImg;
     ctx.save();
     ctx.globalAlpha = 0.85;
     ctx.translate(c.x, c.y);
     var flip = c.vx > 0.05 ? -1 : 1;
     ctx.scale(flip, 1);
-    // ベース画像に各仲間の色相回転(重ね掛けにならない)
-    ctx.filter = 'hue-rotate(' + c.hueRotate + 'deg)';
     var bob = Math.sin(c.tailPhase) * 1.5;
-    ctx.drawImage(baseImg, -s/2, -s/2 + bob, s, s);
-    ctx.filter = 'none';
+    ctx.drawImage(cImg, -s/2, -s/2 + bob, s, s);
     ctx.restore();
 
     // ニックネーム（小さく上に）
@@ -10841,11 +10861,12 @@ function showAdventureOpening() {
   overlay.id = 'egg-opening';
   overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:linear-gradient(180deg,#0ea5e9 0%,#0891b2 30%,#0a3d6b 70%,#041e35 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;overflow-y:auto;';
 
-  // 8バリアントの選択肢HTML
+  // 10種類の選択肢HTML(5列×2段)
   var variantsHtml = '';
   HERO_VARIANTS.forEach(function(v) {
-    variantsHtml += '<div onclick="selectHeroVariant(' + v.id + ')" data-variant="' + v.id + '" class="hero-choice" style="width:72px;height:72px;border-radius:14px;background:radial-gradient(circle,hsla(' + v.bgHue + ',80%,60%,0.25),transparent 70%);display:flex;align-items:center;justify-content:center;cursor:pointer;border:2px solid rgba(255,255,255,0.2);transition:all 0.2s;overflow:hidden;">' +
-      '<img src="/fish/hero.png" style="width:64px;height:64px;filter:hue-rotate(' + v.hueRotate + 'deg);" onload="makeFishImgTransparent(this)">' +
+    variantsHtml += '<div onclick="selectHeroVariant(' + v.id + ')" data-variant="' + v.id + '" class="hero-choice" style="width:64px;height:76px;border-radius:12px;background:radial-gradient(circle,hsla(' + v.bgHue + ',80%,60%,0.25),transparent 70%);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;border:2px solid rgba(255,255,255,0.2);transition:all 0.2s;overflow:hidden;gap:2px;padding:4px;">' +
+      '<img src="/fish/' + v.imgFile + '.png" style="width:52px;height:52px;object-fit:contain;" onload="makeFishImgTransparent(this)" onerror="this.src=\'/fish/hero.png\';">' +
+      '<div style="font-size:8px;color:rgba(255,255,255,0.75);font-weight:700;text-align:center;line-height:1;">' + v.name + '</div>' +
       '</div>';
   });
 
@@ -10856,7 +10877,7 @@ function showAdventureOpening() {
       '<button id="egg-skip-intro" onclick="skipIntroStory()" style="margin-top:8px;background:none;border:1px solid rgba(255,255,255,0.2);border-radius:8px;color:rgba(255,255,255,0.5);font-size:11px;padding:6px 14px;cursor:pointer;">スキップ ▸</button>' +
       '<div id="hero-select-area" style="display:none;margin-top:16px;">' +
         '<div style="color:rgba(255,255,255,0.85);font-size:13px;margin-bottom:10px;">🐟 あなたの魚を選んでね</div>' +
-        '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;justify-items:center;margin-bottom:14px;">' + variantsHtml + '</div>' +
+        '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;justify-items:center;margin-bottom:14px;">' + variantsHtml + '</div>' +
         '<button onclick="confirmHeroSelection()" style="width:100%;padding:12px;background:linear-gradient(135deg,#0ea5e9,#0891b2);border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;">この魚に決める</button>' +
       '</div>' +
       '<div id="egg-name-area" style="display:none;margin-top:16px;">' +
@@ -10934,14 +10955,15 @@ function openHeroChangeModal() {
   var variantsHtml = '';
   HERO_VARIANTS.forEach(function(v) {
     var isCurrent = v.id === _rpgCurrentVariant;
-    variantsHtml += '<div onclick="changeHeroVariant(' + v.id + ')" style="width:72px;height:72px;border-radius:14px;background:radial-gradient(circle,hsla(' + v.bgHue + ',80%,60%,0.25),transparent 70%);display:flex;align-items:center;justify-content:center;cursor:pointer;border:2px solid ' + (isCurrent ? '#22d3ee' : 'rgba(255,255,255,0.2)') + ';overflow:hidden;">' +
-      '<img src="/fish/hero.png" style="width:64px;height:64px;filter:hue-rotate(' + v.hueRotate + 'deg);" onload="makeFishImgTransparent(this)">' +
+    variantsHtml += '<div onclick="changeHeroVariant(' + v.id + ')" style="width:64px;height:80px;border-radius:12px;background:radial-gradient(circle,hsla(' + v.bgHue + ',80%,60%,0.25),transparent 70%);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;border:2px solid ' + (isCurrent ? '#22d3ee' : 'rgba(255,255,255,0.2)') + ';overflow:hidden;padding:4px;gap:2px;">' +
+      '<img src="/fish/' + v.imgFile + '.png" style="width:52px;height:52px;object-fit:contain;" onload="makeFishImgTransparent(this)" onerror="this.src=\'/fish/hero.png\';">' +
+      '<div style="font-size:8px;color:rgba(255,255,255,0.75);font-weight:700;text-align:center;line-height:1;">' + v.name + '</div>' +
       '</div>';
   });
   var html = '<div id="hero-change-modal" style="position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;" onclick="if(event.target===this)this.remove()">' +
-    '<div style="background:#0d2440;border:1px solid rgba(255,255,255,0.15);border-radius:16px;padding:24px;max-width:340px;width:100%;color:#fff;" onclick="event.stopPropagation()">' +
+    '<div style="background:#0d2440;border:1px solid rgba(255,255,255,0.15);border-radius:16px;padding:20px;max-width:380px;width:100%;color:#fff;max-height:90vh;overflow-y:auto;" onclick="event.stopPropagation()">' +
       '<h3 style="font-size:15px;margin-bottom:14px;text-align:center;">🐟 主人公を変える</h3>' +
-      '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;justify-items:center;">' + variantsHtml + '</div>' +
+      '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;justify-items:center;">' + variantsHtml + '</div>' +
       '<button onclick="document.getElementById(\'hero-change-modal\').remove()" style="width:100%;margin-top:16px;padding:10px;background:none;border:1px solid rgba(255,255,255,0.2);border-radius:8px;color:rgba(255,255,255,0.6);font-size:12px;cursor:pointer;">閉じる</button>' +
     '</div></div>';
   document.body.insertAdjacentHTML('beforeend', html);
@@ -11662,7 +11684,7 @@ function openClockMode() {
   // 仲間の魚
   _clockModeCompanions = (_rpgCompanions || []).map(function(c) {
     return {
-      nickname: c.nickname, hueRotate: c.hueRotate,
+      nickname: c.nickname, variantId: c.variantId,
       x: 40 + Math.random() * (_clockW - 80),
       y: 80 + Math.random() * (_clockH - 200),
       vx: (Math.random() - 0.5) * 0.3,
@@ -11791,9 +11813,9 @@ function drawClockMode() {
     ctx.restore();
   });
 
-  // 仲間の魚
-  var baseForCompanion = _rpgHeroBase || _rpgHeroImage;
-  if (baseForCompanion) {
+  // 仲間の魚(各自のvariant画像使用)
+  var fallbackForCompanion = _rpgHeroBase || _rpgHeroImage;
+  if (fallbackForCompanion) {
     _clockModeCompanions.forEach(function(c) {
       c.tailPhase += 0.045;
       if (_clockModeFrame % 150 === 0) {
@@ -11812,15 +11834,14 @@ function drawClockMode() {
       if (c.y < 40) c.y = 40; if (c.y > _clockH - 40) c.y = _clockH - 40;
 
       var cSize = Math.min(_clockW, _clockH) * 0.16 * (c.size || 0.8);
+      var cImg2 = _companionImageCache[c.variantId] || fallbackForCompanion;
       ctx.save();
       ctx.globalAlpha = 0.75;
       ctx.translate(c.x, c.y);
       var cFlip = c.vx > 0 ? -1 : 1;
       ctx.scale(cFlip, 1);
-      ctx.filter = 'hue-rotate(' + c.hueRotate + 'deg)';
       var cBob = Math.sin(c.tailPhase) * 1.5;
-      ctx.drawImage(baseForCompanion, -cSize/2, -cSize/2 + cBob, cSize, cSize);
-      ctx.filter = 'none';
+      ctx.drawImage(cImg2, -cSize/2, -cSize/2 + cBob, cSize, cSize);
       ctx.restore();
     });
   }

@@ -146,11 +146,6 @@ app.post('/api/push/test', (req, res) => {
 // 定時リマインダーを起動
 push.scheduleEveningReminder();
 
-// ===== Google Fit 連携 =====
-const fitRoutes = require('./routes/fit');
-app.use('/api/fit', fitRoutes);
-if (fitRoutes.scheduleDailyFit) fitRoutes.scheduleDailyFit();
-
 // ===== 行動トラッキング（実データ収集基盤） =====
 const { getDb } = require('./services/db');
 (function initEventLog() {

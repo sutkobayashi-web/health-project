@@ -9910,11 +9910,99 @@ var _rpgHeroImage = null;
 var _rpgFishLoading = {};
 var _rpgBgLoading = {};
 
+// 透明化済みデータURLのキャッシュ（同じ画像を2回処理しないため）
+var _transparentImgCache = {};
+
+// <img>タグの白背景を透明化してsrcを置き換え（256pxにリサイズして高速化）
+function makeFishImgTransparent(imgEl) {
+  if (imgEl.dataset.transparentDone) return;
+  imgEl.dataset.transparentDone = '1';
+  var cacheKey = imgEl.src.split('/').pop();
+  if (_transparentImgCache[cacheKey]) {
+    imgEl.src = _transparentImgCache[cacheKey];
+    return;
+  }
+  try {
+    var maxDim = 256;
+    var iw = imgEl.naturalWidth, ih = imgEl.naturalHeight;
+    var scale = Math.min(1, maxDim / Math.max(iw, ih));
+    var w = Math.round(iw * scale), h = Math.round(ih * scale);
+    var c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    var cx = c.getContext('2d');
+    cx.drawImage(imgEl, 0, 0, w, h);
+    var d = cx.getImageData(0, 0, w, h);
+    var px = d.data;
+    var idxs = [0, (w - 1) * 4, ((h - 1) * w) * 4, ((h - 1) * w + w - 1) * 4];
+    var bgR = 0, bgG = 0, bgB = 0;
+    idxs.forEach(function(i) { bgR += px[i]; bgG += px[i+1]; bgB += px[i+2]; });
+    bgR = Math.round(bgR / 4); bgG = Math.round(bgG / 4); bgB = Math.round(bgB / 4);
+    if ((bgR + bgG + bgB) / 3 < 200) return; // 白背景じゃなければスキップ
+    for (var i = 0; i < px.length; i += 4) {
+      var dr = px[i] - bgR, dg = px[i+1] - bgG, db = px[i+2] - bgB;
+      var dist = Math.sqrt(dr * dr + dg * dg + db * db);
+      if (dist < 30) px[i+3] = 0;
+      else if (dist < 60) px[i+3] = Math.round((dist - 30) / 30 * 255);
+    }
+    cx.putImageData(d, 0, 0);
+    var dataUrl = c.toDataURL('image/png');
+    _transparentImgCache[cacheKey] = dataUrl;
+    imgEl.src = dataUrl;
+  } catch (e) { /* CORS等で失敗したら元画像のまま */ }
+}
+
+// 四隅の背景色を検出して透明化（白背景の魚画像用）
+function removeImageBg(img) {
+  try {
+    var c = document.createElement('canvas');
+    c.width = img.naturalWidth;
+    c.height = img.naturalHeight;
+    var cx = c.getContext('2d');
+    cx.drawImage(img, 0, 0);
+    var d = cx.getImageData(0, 0, c.width, c.height);
+    var px = d.data;
+    // 四隅+四辺中央から背景色平均を推定
+    var samples = [];
+    var idxs = [
+      0,                                      // TL
+      (c.width - 1) * 4,                      // TR
+      ((c.height - 1) * c.width) * 4,         // BL
+      ((c.height - 1) * c.width + c.width - 1) * 4, // BR
+      (Math.floor(c.width / 2)) * 4,          // TopCenter
+      ((c.height - 1) * c.width + Math.floor(c.width / 2)) * 4, // BotCenter
+    ];
+    idxs.forEach(function(i) { samples.push([px[i], px[i+1], px[i+2]]); });
+    var bgR = 0, bgG = 0, bgB = 0;
+    samples.forEach(function(s) { bgR += s[0]; bgG += s[1]; bgB += s[2]; });
+    bgR = Math.round(bgR / samples.length);
+    bgG = Math.round(bgG / samples.length);
+    bgB = Math.round(bgB / samples.length);
+    // 白に近い場合のみ処理（色背景は触らない）
+    var isLightBg = (bgR + bgG + bgB) / 3 > 200;
+    if (!isLightBg) return img;
+    // 閾値ベースで透明化
+    for (var i = 0; i < px.length; i += 4) {
+      var dr = px[i] - bgR, dg = px[i+1] - bgG, db = px[i+2] - bgB;
+      var dist = Math.sqrt(dr * dr + dg * dg + db * db);
+      if (dist < 30) {
+        px[i+3] = 0;
+      } else if (dist < 60) {
+        px[i+3] = Math.round((dist - 30) / 30 * 255);
+      }
+    }
+    cx.putImageData(d, 0, 0);
+    return c; // Canvas要素も drawImage() で描画可能
+  } catch (e) {
+    return img; // CORS等で失敗したら元画像を返す
+  }
+}
+
 function preloadFishImage(id) {
   if (_rpgFishImages[id] || _rpgFishLoading[id]) return;
   _rpgFishLoading[id] = true;
   var img = new Image();
-  img.onload = function() { _rpgFishImages[id] = img; };
+  img.crossOrigin = 'anonymous';
+  img.onload = function() { _rpgFishImages[id] = removeImageBg(img); };
   img.onerror = function() { _rpgFishLoading[id] = false; };
   img.src = '/fish/rpg_' + id + '.png';
 }
@@ -9932,9 +10020,10 @@ function preloadBgImage(chapter) {
 }
 
 function preloadRpgImages() {
-  // 主人公だけは即ロード
+  // 主人公だけは即ロード（白背景を透明化）
   var hero = new Image();
-  hero.onload = function() { _rpgHeroImage = hero; };
+  hero.crossOrigin = 'anonymous';
+  hero.onload = function() { _rpgHeroImage = removeImageBg(hero); };
   hero.src = '/fish/hero.png';
   // その他は現在エリアがわかってから遅延ロード
 }
@@ -10694,8 +10783,8 @@ function showFishEncounter(fish) {
 
   overlay.innerHTML = '<div style="text-align:center;color:#fff;padding:24px;">' +
     '<div style="font-size:11px;letter-spacing:3px;color:' + color + ';margin-bottom:8px;">' + label + '</div>' +
-    '<div style="width:180px;height:180px;margin:0 auto 12px;border-radius:20px;background:radial-gradient(circle,hsla(' + fish.hue + ',80%,60%,0.25),transparent 70%);display:flex;align-items:center;justify-content:center;position:relative;animation:fishShine 2s ease-in-out infinite;">' +
-      '<img src="/fish/rpg_' + fish.id + '.png" style="max-width:160px;max-height:160px;filter:drop-shadow(0 4px 20px hsla(' + fish.hue + ',80%,60%,0.6));" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\';">' +
+    '<div style="width:180px;height:180px;margin:0 auto 12px;border-radius:20px;background:radial-gradient(circle,hsla(' + fish.hue + ',80%,60%,0.25),transparent 70%);display:flex;align-items:center;justify-content:center;position:relative;animation:fishShine 2s ease-in-out infinite;overflow:hidden;">' +
+      '<img src="/fish/rpg_' + fish.id + '.png" class="fish-img-transparent" style="max-width:160px;max-height:160px;filter:drop-shadow(0 4px 20px hsla(' + fish.hue + ',80%,60%,0.6));" onload="makeFishImgTransparent(this)" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\';">' +
       '<div style="display:none;font-size:80px;align-items:center;justify-content:center;">🐟</div>' +
     '</div>' +
     '<style>@keyframes fishShine{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}</style>' +
@@ -10752,14 +10841,14 @@ function openFishBook() {
           var rc = rarityColors[f.rarity] || '#94a3b8';
           if (f.discovered) {
             html += '<div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:10px;text-align:center;">';
-            html += '<div style="height:80px;display:flex;align-items:center;justify-content:center;margin-bottom:4px;"><img src="/fish/rpg_' + f.id + '.png" style="max-width:80px;max-height:80px;" onerror="this.outerHTML=\'🐟\'"></div>';
+            html += '<div style="height:80px;display:flex;align-items:center;justify-content:center;margin-bottom:4px;"><img src="/fish/rpg_' + f.id + '.png" style="max-width:80px;max-height:80px;" onload="makeFishImgTransparent(this)" onerror="this.outerHTML=\'🐟\'"></div>';
             html += '<div style="font-size:12px;font-weight:700;color:#fff;">' + f.name + '</div>';
             html += '<div style="font-size:9px;color:' + rc + ';font-weight:700;text-transform:uppercase;">' + f.rarity + '</div>';
             html += '<div style="font-size:9px;color:rgba(255,255,255,0.4);margin-top:2px;">' + f.desc + '</div>';
             html += '</div>';
           } else {
             html += '<div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);border-radius:10px;padding:10px;text-align:center;opacity:0.5;">';
-            html += '<div style="height:80px;display:flex;align-items:center;justify-content:center;margin-bottom:4px;"><img src="/fish/rpg_' + f.id + '.png" style="max-width:80px;max-height:80px;filter:brightness(0) opacity(0.3);" onerror="this.outerHTML=\'❓\'"></div>';
+            html += '<div style="height:80px;display:flex;align-items:center;justify-content:center;margin-bottom:4px;"><img src="/fish/rpg_' + f.id + '.png" style="max-width:80px;max-height:80px;filter:brightness(0) opacity(0.3);" onload="makeFishImgTransparent(this)" onerror="this.outerHTML=\'❓\'"></div>';
             html += '<div style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.3);">???</div>';
             html += '<div style="font-size:9px;color:rgba(255,255,255,0.2);">未発見</div>';
             html += '</div>';
@@ -10870,7 +10959,7 @@ function openSharedOcean() {
 
         // アバター
         html += '<div style="width:40px;height:40px;border-radius:50%;background:hsla(' + e.avatar_hue + ',60%,40%,0.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;">';
-        html += '<img src="/fish/hero.png" style="width:36px;height:36px;object-fit:contain;" onerror="this.outerHTML=\'<span style=&quot;font-size:18px;&quot;>🐟</span>\'">';
+        html += '<img src="/fish/hero.png" style="width:36px;height:36px;object-fit:contain;" onload="makeFishImgTransparent(this)" onerror="this.outerHTML=\'<span style=&quot;font-size:18px;&quot;>🐟</span>\'">';
         html += '</div>';
 
         html += '<div style="flex:1;min-width:0;">';

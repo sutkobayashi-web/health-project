@@ -702,6 +702,134 @@ router.post('/stamps-mark-seen', authUser, (req, res) => {
   res.json({ success: true });
 });
 
+// ============================================================
+// Admin専用: 冒険ダッシュボード
+// ============================================================
+router.get('/admin/dashboard', (req, res) => {
+  // 簡易admin認証(クエリ or ヘッダー)
+  const adminToken = req.query.admin_token || req.headers['x-admin-token'];
+  if (!adminToken || adminToken !== (process.env.ADMIN_TOKEN || 'cowell-admin')) {
+    return res.status(403).json({ error: 'admin token required' });
+  }
+  const db = getDb();
+  try {
+    // 全ユーザー（adventure_progressを起点に）
+    const users = db.prepare(`SELECT ap.user_id, ap.total_steps, ap.current_area, ap.current_chapter,
+      ap.fish_name, ap.consecutive_days, ap.last_step_date, ap.started_at, ap.updated_at,
+      u.nickname, u.department
+      FROM adventure_progress ap LEFT JOIN users u ON ap.user_id = u.id`).all();
+
+    // 各ユーザーのセグメント計算
+    const segmented = users.map(u => {
+      // 過去30日のv2投稿数
+      let postsCount = 0;
+      try { postsCount = db.prepare("SELECT COUNT(*) c FROM posts WHERE user_id = ? AND created_at > datetime('now','-30 days')").get(u.user_id).c; } catch(e) {}
+      // 過去30日の歩数記録日数
+      let stepDays = 0;
+      try { stepDays = db.prepare("SELECT COUNT(*) c FROM step_log WHERE user_id = ? AND step_date >= date('now','-30 days')").get(u.user_id).c; } catch(e) {}
+      // 過去30日のチャットメッセージ数
+      let chatCount = 0;
+      try { chatCount = db.prepare("SELECT COUNT(*) c FROM buddy_messages WHERE user_id = ? AND role='user' AND created_at > datetime('now','-30 days')").get(u.user_id).c; } catch(e) {}
+      // 過去30日の選択回答数
+      let choiceCount = 0;
+      try { choiceCount = db.prepare("SELECT COUNT(*) c FROM user_choices WHERE user_id = ? AND created_at > datetime('now','-30 days')").get(u.user_id).c; } catch(e) {}
+      // 発見魚数
+      let fishCount = 0;
+      try { fishCount = db.prepare('SELECT COUNT(*) c FROM rpg_fish_discovery WHERE user_id = ?').get(u.user_id).c; } catch(e) {}
+
+      // セグメント分類
+      let segment;
+      const totalActivity = stepDays + postsCount + chatCount + choiceCount;
+      if (totalActivity === 0) segment = 'inactive';            // 完全離脱
+      else if (postsCount === 0 && stepDays >= 1) segment = 'walker_only'; // 無関心層(冒険のみ) ← 研究の核
+      else if (postsCount === 0 && choiceCount > 0) segment = 'lurker';   // 選択回答のみ
+      else segment = 'engaged';                                   // 意識高め層(投稿あり)
+
+      return {
+        user_id: u.user_id,
+        nickname: u.nickname || '???',
+        department: u.department || '',
+        total_steps: u.total_steps,
+        current_chapter: u.current_chapter,
+        current_area: u.current_area,
+        fish_name: u.fish_name || '',
+        consecutive_days: u.consecutive_days || 0,
+        last_step_date: u.last_step_date || '',
+        last_active: u.updated_at,
+        started_at: u.started_at,
+        // 30日活動指標
+        step_days_30d: stepDays,
+        posts_30d: postsCount,
+        chat_30d: chatCount,
+        choices_30d: choiceCount,
+        fish_discovered: fishCount,
+        segment: segment,
+      };
+    });
+
+    // セグメント集計
+    const segCounts = { inactive: 0, walker_only: 0, lurker: 0, engaged: 0 };
+    segmented.forEach(u => { segCounts[u.segment] = (segCounts[u.segment] || 0) + 1; });
+
+    // 全体歩数推移（過去30日、日次）
+    const dailySteps = db.prepare(`SELECT step_date, COUNT(DISTINCT user_id) as users, SUM(steps) as total_steps, AVG(steps) as avg_steps
+      FROM step_log WHERE step_date >= date('now','-30 days')
+      GROUP BY step_date ORDER BY step_date`).all();
+
+    // 章別人数
+    const chapterDist = db.prepare(`SELECT current_chapter, COUNT(*) as c FROM adventure_progress GROUP BY current_chapter`).all();
+
+    res.json({
+      success: true,
+      total_users: segmented.length,
+      segments: segCounts,
+      users: segmented.sort((a, b) => b.total_steps - a.total_steps),
+      daily_steps: dailySteps,
+      chapter_distribution: chapterDist,
+    });
+  } catch (e) {
+    res.json({ success: false, error: e.message });
+  }
+});
+
+// CSV エクスポート（研究用、匿名ID付き）
+router.get('/admin/export.csv', (req, res) => {
+  const adminToken = req.query.admin_token || req.headers['x-admin-token'];
+  if (!adminToken || adminToken !== (process.env.ADMIN_TOKEN || 'cowell-admin')) {
+    return res.status(403).send('admin token required');
+  }
+  const db = getDb();
+  try {
+    const users = db.prepare(`SELECT ap.user_id, ap.total_steps, ap.current_chapter, ap.consecutive_days,
+      ap.last_step_date, ap.started_at, u.department
+      FROM adventure_progress ap LEFT JOIN users u ON ap.user_id = u.id`).all();
+
+    let csv = 'anon_id,department,total_steps,current_chapter,consecutive_days,last_step_date,started_at,step_days_30d,posts_30d,chat_30d,choices_30d,fish_discovered,segment\n';
+    users.forEach((u, idx) => {
+      const anonId = 'A' + String(idx + 1).padStart(4, '0');
+      let stepDays = 0, posts = 0, chat = 0, choices = 0, fish = 0;
+      try { stepDays = db.prepare("SELECT COUNT(*) c FROM step_log WHERE user_id = ? AND step_date >= date('now','-30 days')").get(u.user_id).c; } catch(e) {}
+      try { posts = db.prepare("SELECT COUNT(*) c FROM posts WHERE user_id = ? AND created_at > datetime('now','-30 days')").get(u.user_id).c; } catch(e) {}
+      try { chat = db.prepare("SELECT COUNT(*) c FROM buddy_messages WHERE user_id = ? AND role='user' AND created_at > datetime('now','-30 days')").get(u.user_id).c; } catch(e) {}
+      try { choices = db.prepare("SELECT COUNT(*) c FROM user_choices WHERE user_id = ? AND created_at > datetime('now','-30 days')").get(u.user_id).c; } catch(e) {}
+      try { fish = db.prepare('SELECT COUNT(*) c FROM rpg_fish_discovery WHERE user_id = ?').get(u.user_id).c; } catch(e) {}
+      let segment;
+      const tot = stepDays + posts + chat + choices;
+      if (tot === 0) segment = 'inactive';
+      else if (posts === 0 && stepDays >= 1) segment = 'walker_only';
+      else if (posts === 0 && choices > 0) segment = 'lurker';
+      else segment = 'engaged';
+      csv += [anonId, u.department || '', u.total_steps, u.current_chapter, u.consecutive_days || 0,
+        u.last_step_date || '', u.started_at, stepDays, posts, chat, choices, fish, segment].join(',') + '\n';
+    });
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', 'attachment; filename="cowell_adventure_' + new Date().toISOString().slice(0,10) + '.csv"');
+    res.send('\ufeff' + csv); // BOM for Excel
+  } catch (e) {
+    res.status(500).send('Error: ' + e.message);
+  }
+});
+
 // ---------- 同じエリアの仲間を取得 ----------
 router.get('/companions', authUser, (req, res) => {
   const db = getDb();

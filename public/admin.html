@@ -396,8 +396,12 @@ if(localStorage.getItem('co_heart_admin_token') && localStorage.getItem('co_hear
     </div>
     <!-- 区切り -->
     <div style="border-top:1px solid rgba(255,255,255,0.1); margin:4px 0;"></div>
+    <!-- 冒険RPG (無関心層トラッキング) -->
+    <div class="nav-item active" onclick="switchTab('rpgdash')" id="nav-rpgdash">
+      <i class="fas fa-water nav-icon" style="color:#0ea5e9;"></i><div class="nav-label" style="font-size:0.55rem; line-height:1.2;">冒険<br>(無関心)</div>
+    </div>
     <!-- v2: 凝集型スキーム -->
-    <div class="nav-item active" onclick="switchTab('v2dash')" id="nav-v2dash">
+    <div class="nav-item" onclick="switchTab('v2dash')" id="nav-v2dash">
       <i class="fas fa-chart-pie nav-icon" style="color:#667eea;"></i><div class="nav-label" style="font-size:0.55rem; line-height:1.2;">ダッシュ<br>ボード</div>
     </div>
     <div class="nav-item" onclick="switchTab('v2challenge')" id="nav-v2challenge">
@@ -445,8 +449,56 @@ if(localStorage.getItem('co_heart_admin_token') && localStorage.getItem('co_hear
 
   <div class="content-area">
 
+    <!-- ====== 冒険RPG ダッシュボード（無関心層トラッキング） ====== -->
+    <div id="tab-rpgdash" class="tab-view active">
+      <div class="section-header">
+        <div class="section-icon" style="background:linear-gradient(135deg,#0ea5e9,#0891b2);"><i class="fas fa-water"></i></div>
+        <div><div class="section-title">冒険RPG ダッシュボード</div><div class="section-subtitle">無関心層 vs 意識高め層・歩数推移・セグメント分析</div></div>
+      </div>
+      <!-- セグメント集計 -->
+      <div class="card mb-3">
+        <div class="card-body">
+          <h6 class="fw-bold mb-2"><i class="fas fa-users me-1"></i>ユーザーセグメント (過去30日)</h6>
+          <div id="rpg-seg-summary">読み込み中...</div>
+        </div>
+      </div>
+      <!-- 全体歩数推移 -->
+      <div class="card mb-3">
+        <div class="card-body">
+          <h6 class="fw-bold mb-2"><i class="fas fa-shoe-prints me-1"></i>全体歩数推移 (過去30日)</h6>
+          <canvas id="rpg-step-chart" height="100"></canvas>
+        </div>
+      </div>
+      <!-- 章別人数 -->
+      <div class="card mb-3">
+        <div class="card-body">
+          <h6 class="fw-bold mb-2"><i class="fas fa-map-marked-alt me-1"></i>章別到達人数</h6>
+          <div id="rpg-chapter-dist"></div>
+        </div>
+      </div>
+      <!-- ユーザー一覧 -->
+      <div class="card mb-3">
+        <div class="card-body">
+          <h6 class="fw-bold mb-2 d-flex align-items-center justify-content-between">
+            <span><i class="fas fa-list me-1"></i>個人別 冒険進捗</span>
+            <a href="#" onclick="downloadRpgCsv();return false;" class="btn btn-sm btn-outline-success"><i class="fas fa-file-csv me-1"></i>CSV出力</a>
+          </h6>
+          <div class="mb-2">
+            <select id="rpg-seg-filter" class="form-select form-select-sm" style="width:auto;display:inline-block;" onchange="renderRpgUserTable()">
+              <option value="all">すべて</option>
+              <option value="walker_only">無関心層(冒険のみ)</option>
+              <option value="engaged">意識高め層</option>
+              <option value="lurker">選択回答のみ</option>
+              <option value="inactive">完全離脱</option>
+            </select>
+          </div>
+          <div id="rpg-user-table" style="overflow-x:auto;"></div>
+        </div>
+      </div>
+    </div>
+
     <!-- ====== v2: ダッシュボード ====== -->
-    <div id="tab-v2dash" class="tab-view active">
+    <div id="tab-v2dash" class="tab-view">
       <!-- ★推進メンバー掲示板 -->
       <div id="member-board" style="background:linear-gradient(135deg,#1a1a2e 0%,#2d1b4e 100%); border-radius:16px; padding:16px 18px; margin-bottom:18px; color:#fff;">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
@@ -1181,7 +1233,7 @@ if(localStorage.getItem('co_heart_admin_token') && localStorage.getItem('co_hear
 
 <script src="/js/api.js?v=20260410c"></script>
 <script src="/js/avatar-render.js?v=20260410a"></script>
-<script src="/js/admin-core.js?v=20260416_2"></script>
+<script src="/js/admin-core.js?v=20260417_rpg"></script>
 <script src="/js/admin-inbox.js?v=20260410d"></script>
 <script src="/js/admin-matrix.js?v=20260410a"></script>
 <script src="/js/admin-proposal.js?v=20260410a"></script>
@@ -1208,6 +1260,133 @@ function toggleAdminFontSize() {
   applyAdminFontSize();
 }
 applyAdminFontSize();
+
+// ====== 冒険RPG ダッシュボード ======
+var _rpgDashData = null;
+var _rpgChart = null;
+var ADMIN_TOKEN = 'cowell-admin'; // .envと一致
+
+function loadRpgDashboard() {
+  fetch('/api/aquarium/admin/dashboard?admin_token=' + ADMIN_TOKEN, { headers: { 'x-admin-token': ADMIN_TOKEN } })
+    .then(function(r){return r.json();}).then(function(d){
+      if (!d.success) { document.getElementById('rpg-seg-summary').innerHTML = 'エラー: ' + (d.error || ''); return; }
+      _rpgDashData = d;
+      renderRpgSegSummary();
+      renderRpgStepChart();
+      renderRpgChapterDist();
+      renderRpgUserTable();
+    }).catch(function(e){ document.getElementById('rpg-seg-summary').innerHTML = '通信エラー: ' + e.message; });
+}
+
+function renderRpgSegSummary() {
+  if (!_rpgDashData) return;
+  var s = _rpgDashData.segments;
+  var total = _rpgDashData.total_users;
+  var labels = {
+    walker_only: { name:'🌊 無関心層(冒険のみ)', color:'#0ea5e9', desc:'歩数あり/v2投稿なし — 研究の核' },
+    engaged:     { name:'💬 意識高め層',        color:'#10b981', desc:'v2投稿あり' },
+    lurker:      { name:'👀 選択回答のみ',      color:'#fbbf24', desc:'歩数なし/選択タップのみ' },
+    inactive:    { name:'😴 完全離脱',          color:'#94a3b8', desc:'過去30日アクション無し' },
+  };
+  var html = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;">';
+  Object.keys(labels).forEach(function(key) {
+    var c = s[key] || 0;
+    var pct = total > 0 ? Math.round(c / total * 100) : 0;
+    var l = labels[key];
+    html += '<div style="background:linear-gradient(135deg,' + l.color + '22,' + l.color + '11);border:1px solid ' + l.color + '55;border-radius:10px;padding:10px;">';
+    html += '<div style="font-size:0.75rem;font-weight:800;color:#333;">' + l.name + '</div>';
+    html += '<div style="font-size:1.6rem;font-weight:900;color:' + l.color + ';">' + c + '<span style="font-size:0.75rem;color:#666;font-weight:700;"> / ' + total + ' (' + pct + '%)</span></div>';
+    html += '<div style="font-size:0.65rem;color:#888;">' + l.desc + '</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+  document.getElementById('rpg-seg-summary').innerHTML = html;
+}
+
+function renderRpgStepChart() {
+  if (!_rpgDashData || typeof Chart === 'undefined') {
+    var el = document.getElementById('rpg-step-chart');
+    if (el) el.outerHTML = '<div id="rpg-step-chart" style="text-align:center;padding:20px;color:#999;font-size:0.85rem;">グラフ描画にはChart.jsが必要です</div>';
+    return;
+  }
+  var canvas = document.getElementById('rpg-step-chart');
+  if (!canvas) return;
+  var labels = _rpgDashData.daily_steps.map(function(d){return d.step_date.slice(5);});
+  var totals = _rpgDashData.daily_steps.map(function(d){return d.total_steps || 0;});
+  var users  = _rpgDashData.daily_steps.map(function(d){return d.users || 0;});
+  if (_rpgChart) { try { _rpgChart.destroy(); } catch(e) {} }
+  _rpgChart = new Chart(canvas.getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [
+        { label: '総歩数', data: totals, borderColor: '#0ea5e9', backgroundColor: 'rgba(14,165,233,0.15)', yAxisID: 'y1', tension:0.3 },
+        { label: '記録ユーザー数', data: users, borderColor: '#fbbf24', backgroundColor: 'rgba(251,191,36,0.15)', yAxisID: 'y2', tension:0.3 },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: {
+        y1: { type:'linear', position:'left', title:{display:true,text:'総歩数'} },
+        y2: { type:'linear', position:'right', title:{display:true,text:'人数'}, grid:{drawOnChartArea:false} },
+      }
+    }
+  });
+}
+
+function renderRpgChapterDist() {
+  if (!_rpgDashData) return;
+  var chapters = { 1:'はじまりの浅瀬', 2:'珊瑚礁の迷宮', 3:'外洋の試練', 4:'深海への招待', 5:'海溝の神殿' };
+  var dist = {};
+  _rpgDashData.chapter_distribution.forEach(function(c){ dist[c.current_chapter] = c.c; });
+  var html = '<div style="display:flex;gap:8px;flex-wrap:wrap;">';
+  for (var i = 1; i <= 5; i++) {
+    var c = dist[i] || 0;
+    var color = i === 5 ? '#f59e0b' : i === 4 ? '#a855f7' : i === 3 ? '#3b82f6' : i === 2 ? '#22c55e' : '#0ea5e9';
+    html += '<div style="flex:1;min-width:120px;background:white;border:2px solid ' + color + ';border-radius:10px;padding:8px 10px;">';
+    html += '<div style="font-size:0.65rem;color:#666;font-weight:700;">第' + i + '章</div>';
+    html += '<div style="font-size:0.78rem;font-weight:700;color:#333;">' + chapters[i] + '</div>';
+    html += '<div style="font-size:1.4rem;font-weight:900;color:' + color + ';">' + c + '<span style="font-size:0.7rem;color:#888;">人</span></div>';
+    html += '</div>';
+  }
+  html += '</div>';
+  document.getElementById('rpg-chapter-dist').innerHTML = html;
+}
+
+function renderRpgUserTable() {
+  if (!_rpgDashData) return;
+  var filter = document.getElementById('rpg-seg-filter').value;
+  var users = _rpgDashData.users.filter(function(u){return filter === 'all' || u.segment === filter;});
+  var segLabels = { walker_only:'🌊 無関心', engaged:'💬 意識高', lurker:'👀 選択のみ', inactive:'😴 離脱' };
+  var html = '<table class="table table-sm table-hover" style="font-size:0.78rem;"><thead><tr>';
+  html += '<th>ニックネーム</th><th>部署</th><th>セグメント</th><th>総歩数</th><th>章</th><th>連続</th><th>30日歩数日</th><th>30日投稿</th><th>30日チャット</th><th>30日選択</th><th>魚</th><th>最終活動</th>';
+  html += '</tr></thead><tbody>';
+  users.forEach(function(u) {
+    var lastActive = u.last_active ? u.last_active.slice(5,16).replace('T',' ') : '-';
+    var risk = u.last_step_date && (Date.now() - new Date(u.last_step_date).getTime()) > 7*86400000 ? '⚠ ' : '';
+    html += '<tr>';
+    html += '<td>' + risk + (u.nickname || '') + (u.fish_name ? ' <small class="text-muted">(' + u.fish_name + ')</small>' : '') + '</td>';
+    html += '<td>' + u.department + '</td>';
+    html += '<td>' + (segLabels[u.segment] || '') + '</td>';
+    html += '<td class="fw-bold">' + (u.total_steps || 0).toLocaleString() + '</td>';
+    html += '<td>' + u.current_chapter + '</td>';
+    html += '<td>' + u.consecutive_days + '</td>';
+    html += '<td>' + u.step_days_30d + '</td>';
+    html += '<td>' + u.posts_30d + '</td>';
+    html += '<td>' + u.chat_30d + '</td>';
+    html += '<td>' + u.choices_30d + '</td>';
+    html += '<td>' + u.fish_discovered + '</td>';
+    html += '<td><small>' + lastActive + '</small></td>';
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  if (users.length === 0) html = '<p class="text-muted text-center">対象なし</p>';
+  document.getElementById('rpg-user-table').innerHTML = html;
+}
+
+function downloadRpgCsv() {
+  window.location.href = '/api/aquarium/admin/export.csv?admin_token=' + ADMIN_TOKEN;
+}
 
 </script>
 

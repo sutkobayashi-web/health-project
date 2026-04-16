@@ -10320,6 +10320,7 @@ function initCompanions(list) {
 function loadAquariumData() { loadAdventureData(); }
 
 function initAreaFish(areaFish) {
+  var waterTop = (typeof AREA_WATER_LEVEL !== 'undefined' && _rpg && _rpg.area) ? (AREA_WATER_LEVEL[_rpg.area.id] || 0) * _aqH : 0;
   _rpgAreaFish = areaFish.map(function(f) {
     return {
       id: f.id,
@@ -10328,7 +10329,7 @@ function initAreaFish(areaFish) {
       rarity: f.rarity,
       discovered: f.discovered,
       x: 20 + Math.random() * (_aqW - 40),
-      y: 30 + Math.random() * (_aqH - 60),
+      y: (waterTop + 30) + Math.random() * Math.max(30, _aqH - 60 - waterTop),
       vx: (Math.random() - 0.5) * 0.8,
       vy: (Math.random() - 0.5) * 0.3,
       targetX: Math.random() * _aqW,
@@ -10535,11 +10536,13 @@ function drawOcean() {
   }
 
   // エリアの魚を描画（PNG画像ベース）
+  var _waterTopFish = (AREA_WATER_LEVEL && _rpg && _rpg.area) ? (AREA_WATER_LEVEL[_rpg.area.id] || 0) * _aqH : 0;
   _rpgAreaFish.forEach(function(f) {
     f.tailPhase += 0.06;
     if (_aqFrame % 80 === 0) {
       f.targetX = 20 + Math.random() * (_aqW - 40);
-      f.targetY = 20 + Math.random() * (_aqH - 50);
+      var _ymin = _waterTopFish + 10;
+      f.targetY = _ymin + Math.random() * Math.max(20, _aqH - 50 - _waterTopFish);
     }
     var dx = f.targetX - f.x, dy = f.targetY - f.y;
     var dist = Math.sqrt(dx*dx + dy*dy);
@@ -10547,7 +10550,8 @@ function drawOcean() {
     f.vx *= 0.97; f.vy *= 0.97;
     f.x += f.vx; f.y += f.vy;
     if (f.x < 10) f.x = 10; if (f.x > _aqW - 10) f.x = _aqW - 10;
-    if (f.y < 10) f.y = 10; if (f.y > _aqH - 20) f.y = _aqH - 20;
+    if (f.y < _waterTopFish + 10) f.y = _waterTopFish + 10;
+    if (f.y > _aqH - 20) f.y = _aqH - 20;
 
     var img = _rpgFishImages[f.id];
     var baseSize = f.size * 50; // PNG用サイズ
@@ -10620,11 +10624,12 @@ function drawOcean() {
 
 function drawCompanions(ctx) {
   if (!_rpgHeroImage || _rpgCompanions.length === 0) return;
+  var waterTop = (AREA_WATER_LEVEL && _rpg && _rpg.area) ? (AREA_WATER_LEVEL[_rpg.area.id] || 0) * _aqH : 0;
   _rpgCompanions.forEach(function(c) {
     c.tailPhase += 0.05;
     if (_aqFrame % 150 === 0) {
       c.targetX = 20 + Math.random() * (_aqW - 40);
-      c.targetY = 40 + Math.random() * (_aqH - 80);
+      c.targetY = (waterTop + 40) + Math.random() * Math.max(30, _aqH - 80 - waterTop);
     }
     var dx = c.targetX - c.x, dy = c.targetY - c.y;
     var dist = Math.sqrt(dx*dx + dy*dy);
@@ -10632,7 +10637,8 @@ function drawCompanions(ctx) {
     c.vx *= 0.96; c.vy *= 0.96;
     c.x += c.vx; c.y += c.vy;
     if (c.x < 15) c.x = 15; if (c.x > _aqW - 15) c.x = _aqW - 15;
-    if (c.y < 20) c.y = 20; if (c.y > _aqH - 25) c.y = _aqH - 25;
+    if (c.y < waterTop + 20) c.y = waterTop + 20;
+    if (c.y > _aqH - 25) c.y = _aqH - 25;
 
     var s = 36 * c.size;
     ctx.save();
@@ -10659,15 +10665,29 @@ function drawCompanions(ctx) {
   });
 }
 
+// エリア別の水面位置(Canvasの上端からの比率): 0 = 水中全域、0.4 = 上から40%は空
+var AREA_WATER_LEVEL = {
+  '1-1': 0.42, // 波打ち際: 空と椰子が見える
+  // 他のエリアは水中のみ、指定なし = 0
+};
+function getWaterTop() {
+  if (!_rpg || !_rpg.area) return 0;
+  return (AREA_WATER_LEVEL[_rpg.area.id] || 0) * _aqH;
+}
+
 function drawHeroFish(ctx) {
   var f = _rpgFish;
   f.tailPhase += 0.08;
   f.breathPhase += 0.03;
 
+  var waterTop = getWaterTop();
+
   // 移動ロジックを先に実行（画像パスでもCanvasパスでも共通）
   if (_aqFrame % 120 === 0) {
     f.targetX = 30 + Math.random() * (_aqW - 60);
-    f.targetY = 20 + Math.random() * (_aqH * 0.6);
+    var yMin = waterTop + 10;
+    var yRange = Math.max(20, _aqH * 0.6 - waterTop);
+    f.targetY = yMin + Math.random() * yRange;
   }
   var _dx = f.targetX - f.x, _dy = f.targetY - f.y;
   var _dist = Math.sqrt(_dx*_dx + _dy*_dy);
@@ -10677,7 +10697,7 @@ function drawHeroFish(ctx) {
   f.x += f.vx; f.y += f.vy;
   if (f.x < 20) { f.x = 20; f.vx *= -0.5; }
   if (f.x > _aqW - 20) { f.x = _aqW - 20; f.vx *= -0.5; }
-  if (f.y < 20) { f.y = 20; f.vy *= -0.5; }
+  if (f.y < waterTop + 15) { f.y = waterTop + 15; f.vy *= -0.5; }
   if (f.y > _aqH - 25) { f.y = _aqH - 25; f.vy *= -0.5; }
 
   // 主人公PNG画像があれば使う

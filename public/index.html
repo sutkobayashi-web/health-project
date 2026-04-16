@@ -10454,6 +10454,50 @@ function showAqVoice(text) {
   addNarration(text);
 }
 
+// 魚名の吹き出しラベル描画(どの背景でも読める)
+function drawNameBubble(ctx, text, cx, cy, opts) {
+  opts = opts || {};
+  var fontSize = opts.fontSize || 11;
+  var padX = opts.padX || 7;
+  var padY = opts.padY || 3;
+  var bg = opts.bg || 'rgba(10,25,45,0.78)';
+  var fg = opts.fg || '#fff';
+  var border = opts.border || 'rgba(255,255,255,0.45)';
+  ctx.save();
+  ctx.font = 'bold ' + fontSize + 'px "Noto Sans JP",sans-serif';
+  var tw = ctx.measureText(text).width;
+  var w = Math.ceil(tw + padX * 2);
+  var h = fontSize + padY * 2;
+  var rx = Math.round(cx - w / 2);
+  var ry = Math.round(cy - h);
+  var r = Math.min(8, h / 2);
+  // 角丸矩形
+  ctx.beginPath();
+  ctx.moveTo(rx + r, ry);
+  ctx.lineTo(rx + w - r, ry);
+  ctx.quadraticCurveTo(rx + w, ry, rx + w, ry + r);
+  ctx.lineTo(rx + w, ry + h - r);
+  ctx.quadraticCurveTo(rx + w, ry + h, rx + w - r, ry + h);
+  ctx.lineTo(rx + r, ry + h);
+  ctx.quadraticCurveTo(rx, ry + h, rx, ry + h - r);
+  ctx.lineTo(rx, ry + r);
+  ctx.quadraticCurveTo(rx, ry, rx + r, ry);
+  ctx.closePath();
+  ctx.fillStyle = bg;
+  ctx.fill();
+  if (border) {
+    ctx.strokeStyle = border;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+  // テキスト
+  ctx.fillStyle = fg;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, cx, ry + h / 2 + 0.5);
+  ctx.restore();
+}
+
 // ===== 海の描画 =====
 function drawOcean() {
   if (!_aqCtx || _aqW <= 0) { requestAnimationFrame(drawOcean); return; }
@@ -10693,15 +10737,8 @@ function drawCompanions(ctx) {
     ctx.drawImage(cImg, -s/2, -s/2 + bob, s, s);
     ctx.restore();
 
-    // ニックネーム（小さく上に）
-    ctx.save();
-    ctx.font = 'bold 9px "Noto Sans JP", sans-serif';
-    ctx.fillStyle = 'rgba(255,255,255,0.75)';
-    ctx.textAlign = 'center';
-    ctx.shadowColor = 'rgba(0,0,0,0.9)';
-    ctx.shadowBlur = 3;
-    ctx.fillText(c.nickname, c.x, c.y - s/2 - 3);
-    ctx.restore();
+    // ニックネーム吹き出し
+    drawNameBubble(ctx, c.nickname, c.x, c.y - s/2 - 2, { fontSize: 10 });
   });
 }
 
@@ -10751,16 +10788,9 @@ function drawHeroFish(ctx) {
     ctx.drawImage(_rpgHeroImage, -hs/2, -hs/2 + _bob, hs, hs);
     ctx.restore();
 
-    // 名前表示
+    // 名前表示(吹き出し)
     if (_rpg && _rpg.progress.fish_name) {
-      ctx.save();
-      ctx.font = 'bold 11px "Noto Sans JP", sans-serif';
-      ctx.fillStyle = 'rgba(255,255,255,0.9)';
-      ctx.textAlign = 'center';
-      ctx.shadowColor = 'rgba(0,0,0,0.8)';
-      ctx.shadowBlur = 4;
-      ctx.fillText(_rpg.progress.fish_name, f.x, f.y - hs/2 - 4);
-      ctx.restore();
+      drawNameBubble(ctx, _rpg.progress.fish_name, f.x, f.y - hs/2 - 2, { fontSize: 12, bg: 'rgba(245,158,11,0.9)', border: 'rgba(255,255,255,0.7)' });
     }
     // ⭐マーク
     ctx.save();
@@ -10842,16 +10872,9 @@ function drawHeroFishFallback(ctx) {
 
   ctx.restore();
 
-  // 名前表示
+  // 名前表示(吹き出し) — Canvas fallback hero
   if (_rpg && _rpg.progress.fish_name) {
-    ctx.save();
-    ctx.font = 'bold 10px "Noto Sans JP", sans-serif';
-    ctx.fillStyle = 'rgba(255,255,255,0.8)';
-    ctx.textAlign = 'center';
-    ctx.shadowColor = 'rgba(0,0,0,0.5)';
-    ctx.shadowBlur = 3;
-    ctx.fillText(_rpg.progress.fish_name, f.x, f.y - s - 10);
-    ctx.restore();
+    drawNameBubble(ctx, _rpg.progress.fish_name, f.x, f.y - s - 6, { fontSize: 11, bg: 'rgba(245,158,11,0.9)', border: 'rgba(255,255,255,0.7)' });
   }
 }
 

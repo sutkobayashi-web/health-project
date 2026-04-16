@@ -10280,11 +10280,12 @@ function loadAdventureData() {
       loadCompanions();
       // 受信スタンプチェック
       checkReceivedStamps();
-      // RPG選択式チャット: 未回答の質問があれば表示
+      // RPG選択式チャット: 未回答の質問があれば表示、なければ常時入口
       setTimeout(function() {
         if (!_rpgCurrentQuestionId) {
           var qid = pickQuestion();
           if (qid) showRpgQuestion(qid);
+          else showRpgIdleEntry();
         }
       }, 1500);
     }).catch(function(e){ console.error('loadAdventureData error:', e); });
@@ -11334,11 +11335,10 @@ function answerRpgQuestion(choiceId) {
     '</div>';
   _rpgCurrentQuestionId = null;
 
-  // 5秒後にフェード → もっと話したい人向けの小さな続きUIを表示
+  // 5秒後にフェード → もっと話したい人向けの続きUIに差し替え
   setTimeout(function() {
-    var box = document.getElementById('rpg-reply-box');
-    if (box) { box.style.transition = 'opacity 1s'; box.style.opacity = '0.25'; }
-    showRpgFollowup();
+    // 返信文がまだあれば、アイドル入口に置き換え
+    showRpgIdleEntry();
   }, 5000);
 }
 
@@ -11361,6 +11361,32 @@ function showRpgFollowup() {
 function dismissRpgFollowup() {
   var el = document.getElementById('rpg-followup');
   if (el) el.remove();
+}
+
+// 質問なしの静かなときの常時入口（書く・話す）
+function showRpgIdleEntry() {
+  // 既にチャット/音声モードなら何もしない
+  var bar = document.getElementById('text-input-bar');
+  if (bar && bar.style.display !== 'none') return;
+  var vp = document.getElementById('voice-mode-panel');
+  if (vp && vp.style.display !== 'none') return;
+  if (document.getElementById('rpg-back-btn')) return;
+  var area = document.getElementById('buddy-messages');
+  if (!area) return;
+  area.innerHTML = '';
+  area.style.justifyContent = 'center';
+  area.style.alignItems = 'center';
+  area.style.padding = '20px 16px';
+  area.style.textAlign = 'center';
+  var box = document.createElement('div');
+  box.style.cssText = 'max-width:420px;width:100%;';
+  box.innerHTML =
+    '<div style="color:rgba(255,255,255,0.45);font-size:11px;margin-bottom:12px;">天の声と話すとき</div>' +
+    '<div style="display:flex;gap:8px;justify-content:center;">' +
+      '<button onclick="escapeToFreeText()" style="padding:10px 20px;background:rgba(14,165,233,0.2);border:1px solid rgba(14,165,233,0.5);color:#bae6fd;font-size:12px;font-weight:800;border-radius:18px;cursor:pointer;font-family:inherit;"><i class="fas fa-pen" style="margin-right:5px;"></i>書く</button>' +
+      '<button onclick="startRpgVoiceChat()" style="padding:10px 20px;background:linear-gradient(135deg,rgba(124,58,237,0.3),rgba(167,139,250,0.25));border:1px solid rgba(167,139,250,0.6);color:#e9d5ff;font-size:12px;font-weight:800;border-radius:18px;cursor:pointer;font-family:inherit;box-shadow:0 0 10px rgba(167,139,250,0.3);animation:voiceBtnGlow 2.5s ease-in-out infinite;"><i class="fas fa-microphone" style="margin-right:5px;"></i>話す</button>' +
+    '</div>';
+  area.appendChild(box);
 }
 
 // 音声ボタン(テキスト入力バー左)から1タップ連続会話を起動
@@ -11442,17 +11468,17 @@ function returnToRpgMode() {
   if (bar) bar.style.display = 'none';
   var voicePanel = document.getElementById('voice-mode-panel');
   if (voicePanel && voicePanel.style.display !== 'none') {
-    // 音声パネルが開いていれば閉じる
     if (typeof toggleVoiceMode === 'function') toggleVoiceMode();
   }
   var backBtn = document.getElementById('rpg-back-btn');
   if (backBtn) backBtn.remove();
   var area = document.getElementById('buddy-messages');
   if (area) area.innerHTML = '';
-  // 次の問いかけを出すか、静かに戻る
+  // 次の問いかけ or アイドル入口
   setTimeout(function() {
     var qid = pickQuestion();
     if (qid) showRpgQuestion(qid);
+    else showRpgIdleEntry();
   }, 300);
 }
 

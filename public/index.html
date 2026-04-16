@@ -11591,6 +11591,8 @@ var _clockModeAnimId = null;
 var _clockModeFish = { x:0, y:0, vx:1, vy:0.3, targetX:0, targetY:0, tailPhase:0 };
 var _clockModeBubbles = [];
 var _clockModeFrame = 0;
+var _clockModeAreaFish = []; // エリアの魚(クロックモード用)
+var _clockModeCompanions = []; // 仲間の魚(クロックモード用)
 var _clockModeTimeEl = null;
 var _clockModeDateEl = null;
 var _clockW = 0, _clockH = 0;
@@ -11641,6 +11643,36 @@ function openClockMode() {
   _clockModeFish.y = _clockH * 0.75;
   _clockModeFish.targetX = _clockW / 2;
   _clockModeFish.targetY = _clockH * 0.7;
+
+  // エリアの魚を初期化(_rpgAreaFishをクロック用にコピー、位置は独立)
+  _clockModeAreaFish = (_rpgAreaFish || []).map(function(f) {
+    return {
+      id: f.id, hue: f.hue, rarity: f.rarity, discovered: f.discovered,
+      x: 40 + Math.random() * (_clockW - 80),
+      y: 80 + Math.random() * (_clockH - 200),
+      vx: (Math.random() - 0.5) * 0.4,
+      vy: (Math.random() - 0.5) * 0.2,
+      targetX: Math.random() * _clockW,
+      targetY: Math.random() * _clockH,
+      tailPhase: Math.random() * Math.PI * 2,
+      size: f.size,
+      alpha: f.discovered ? 0.95 : 0.3,
+    };
+  });
+  // 仲間の魚
+  _clockModeCompanions = (_rpgCompanions || []).map(function(c) {
+    return {
+      nickname: c.nickname, hueRotate: c.hueRotate,
+      x: 40 + Math.random() * (_clockW - 80),
+      y: 80 + Math.random() * (_clockH - 200),
+      vx: (Math.random() - 0.5) * 0.3,
+      vy: (Math.random() - 0.5) * 0.2,
+      targetX: Math.random() * _clockW,
+      targetY: Math.random() * _clockH,
+      tailPhase: Math.random() * Math.PI * 2,
+      size: c.size,
+    };
+  });
 
   // 時計更新
   updateClockTime();
@@ -11715,6 +11747,84 @@ function drawClockMode() {
   _clockModeBubbles = _clockModeBubbles.filter(function(b) { return b.y > -10; });
   ctx.restore();
 
+  // 避けるべきエリア(時計中央) - 魚が時計の真ん中に来ないように
+  var cxC = _clockW / 2, cyC = _clockH / 2;
+  var avoidR = Math.min(_clockW, _clockH) * 0.22;
+
+  // エリアの魚(背景的に泳ぐ)
+  _clockModeAreaFish.forEach(function(af) {
+    af.tailPhase += 0.05;
+    if (_clockModeFrame % 120 === 0) {
+      af.targetX = 30 + Math.random() * (_clockW - 60);
+      af.targetY = 60 + Math.random() * (_clockH - 160);
+    }
+    var adx = af.targetX - af.x, ady = af.targetY - af.y;
+    var ad = Math.sqrt(adx*adx + ady*ady);
+    if (ad > 1) { af.vx += (adx/ad) * 0.015; af.vy += (ady/ad) * 0.012; }
+    // 時計エリアから離れる
+    var cdx = af.x - cxC, cdy = af.y - cyC;
+    var cd = Math.sqrt(cdx*cdx + cdy*cdy);
+    if (cd < avoidR && cd > 0) { af.vx += (cdx/cd) * 0.08; af.vy += (cdy/cd) * 0.08; }
+    af.vx *= 0.97; af.vy *= 0.97;
+    af.x += af.vx; af.y += af.vy;
+    if (af.x < 20) af.x = 20; if (af.x > _clockW - 20) af.x = _clockW - 20;
+    if (af.y < 40) af.y = 40; if (af.y > _clockH - 40) af.y = _clockH - 40;
+
+    var afSize = Math.min(_clockW, _clockH) * 0.06 * af.size;
+    var afImg = _rpgFishImages[af.id];
+    ctx.save();
+    ctx.globalAlpha = af.alpha;
+    ctx.translate(af.x, af.y);
+    var afFlip = af.vx > 0 ? -1 : 1;
+    ctx.scale(afFlip, 1);
+    var afBob = Math.sin(af.tailPhase) * 1.5;
+    if (afImg) {
+      if (!af.discovered) ctx.filter = 'brightness(0.3) blur(1px)'; // 未発見はシルエット
+      ctx.drawImage(afImg, -afSize/2, -afSize/2 + afBob, afSize, afSize);
+      ctx.filter = 'none';
+    } else {
+      ctx.beginPath();
+      ctx.ellipse(0, 0, afSize * 0.35, afSize * 0.18, 0, 0, Math.PI * 2);
+      ctx.fillStyle = 'hsla(' + af.hue + ',60%,50%,' + af.alpha + ')';
+      ctx.fill();
+    }
+    ctx.restore();
+  });
+
+  // 仲間の魚
+  var baseForCompanion = _rpgHeroBase || _rpgHeroImage;
+  if (baseForCompanion) {
+    _clockModeCompanions.forEach(function(c) {
+      c.tailPhase += 0.045;
+      if (_clockModeFrame % 150 === 0) {
+        c.targetX = 30 + Math.random() * (_clockW - 60);
+        c.targetY = 60 + Math.random() * (_clockH - 160);
+      }
+      var cdx2 = c.targetX - c.x, cdy2 = c.targetY - c.y;
+      var cd2 = Math.sqrt(cdx2*cdx2 + cdy2*cdy2);
+      if (cd2 > 1) { c.vx += (cdx2/cd2) * 0.018; c.vy += (cdy2/cd2) * 0.012; }
+      var adxc = c.x - cxC, adyc = c.y - cyC;
+      var adc = Math.sqrt(adxc*adxc + adyc*adyc);
+      if (adc < avoidR && adc > 0) { c.vx += (adxc/adc) * 0.08; c.vy += (adyc/adc) * 0.08; }
+      c.vx *= 0.97; c.vy *= 0.97;
+      c.x += c.vx; c.y += c.vy;
+      if (c.x < 25) c.x = 25; if (c.x > _clockW - 25) c.x = _clockW - 25;
+      if (c.y < 40) c.y = 40; if (c.y > _clockH - 40) c.y = _clockH - 40;
+
+      var cSize = Math.min(_clockW, _clockH) * 0.075 * (c.size || 0.8);
+      ctx.save();
+      ctx.globalAlpha = 0.75;
+      ctx.translate(c.x, c.y);
+      var cFlip = c.vx > 0 ? -1 : 1;
+      ctx.scale(cFlip, 1);
+      ctx.filter = 'hue-rotate(' + c.hueRotate + 'deg)';
+      var cBob = Math.sin(c.tailPhase) * 1.5;
+      ctx.drawImage(baseForCompanion, -cSize/2, -cSize/2 + cBob, cSize, cSize);
+      ctx.filter = 'none';
+      ctx.restore();
+    });
+  }
+
   // 主人公の魚ゆっくり泳ぐ
   var f = _clockModeFish;
   f.tailPhase += 0.04;
@@ -11725,13 +11835,17 @@ function drawClockMode() {
   var dx = f.targetX - f.x, dy = f.targetY - f.y;
   var dist = Math.sqrt(dx*dx + dy*dy);
   if (dist > 1) { f.vx += (dx/dist) * 0.02; f.vy += (dy/dist) * 0.015; }
+  // 時計エリアから離れる
+  var fdx = f.x - cxC, fdy = f.y - cyC;
+  var fd = Math.sqrt(fdx*fdx + fdy*fdy);
+  if (fd < avoidR && fd > 0) { f.vx += (fdx/fd) * 0.1; f.vy += (fdy/fd) * 0.1; }
   f.vx *= 0.97; f.vy *= 0.97;
   f.x += f.vx; f.y += f.vy;
 
   if (_rpgHeroImage) {
-    var hs = Math.min(_clockW, _clockH) * 0.1;
+    var hs = Math.min(_clockW, _clockH) * 0.11;
     ctx.save();
-    ctx.globalAlpha = 0.9;
+    ctx.globalAlpha = 0.95;
     ctx.translate(f.x, f.y);
     var flip = f.vx > 0.02 ? -1 : 1;
     ctx.scale(flip, 1);

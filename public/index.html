@@ -824,7 +824,7 @@
     <!-- RPGアクションバー -->
     <div id="buddy-action-bar" style="flex-shrink:0;background:rgba(10,30,50,0.95);border-top:1px solid rgba(255,255,255,0.1);padding:8px 12px;">
       <div style="display:flex;gap:6px;justify-content:center;">
-        <button onclick="openStepInput()" class="buddy-action-btn" style="display:flex;align-items:center;gap:5px;padding:10px 18px;background:linear-gradient(135deg,rgba(251,191,36,0.35),rgba(249,115,22,0.25));border:1px solid rgba(251,191,36,0.5);color:#fff;border-radius:20px;font-size:0.82rem;font-weight:800;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;box-shadow:0 2px 8px rgba(251,191,36,0.3);"><i class="fas fa-camera"></i> 今日の👣を記録</button>
+        <button onclick="openStepInput()" class="buddy-action-btn" style="display:flex;align-items:center;gap:5px;padding:10px 18px;background:linear-gradient(135deg,rgba(251,191,36,0.35),rgba(249,115,22,0.25));border:1px solid rgba(251,191,36,0.5);color:#fff;border-radius:20px;font-size:0.82rem;font-weight:800;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;box-shadow:0 2px 8px rgba(251,191,36,0.3);"><i class="fas fa-camera"></i> 今日の<i class="fas fa-shoe-prints"></i>を記録</button>
         <button onclick="openRpgMap()" class="buddy-action-btn" style="display:flex;align-items:center;gap:5px;padding:10px 16px;background:rgba(59,130,246,0.2);border:1px solid rgba(59,130,246,0.4);color:rgba(255,255,255,0.9);border-radius:20px;font-size:0.78rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;"><i class="fas fa-map-marked-alt"></i> 海図</button>
         <button onclick="openFishBook()" class="buddy-action-btn" style="display:flex;align-items:center;gap:5px;padding:10px 16px;background:rgba(168,85,247,0.2);border:1px solid rgba(168,85,247,0.35);color:rgba(255,255,255,0.9);border-radius:20px;font-size:0.78rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;"><i class="fas fa-book"></i> 図鑑</button>
       </div>
@@ -10190,7 +10190,7 @@ function updateRpgUI() {
   var areaLabel = document.getElementById('rpg-area-label');
   if (areaLabel) {
     areaLabel.innerHTML = '<span style="font-weight:800;color:#fff;">第' + area.chapter + '章</span> <span style="color:rgba(255,255,255,0.95);">' + area.name + '</span>' +
-      ' <span style="font-size:11px;color:#fde68a;font-weight:700;margin-left:6px;">👣 ' + prog.total_steps.toLocaleString() + '</span>';
+      ' <span style="font-size:11px;color:#fde68a;font-weight:700;margin-left:6px;"><i class="fas fa-shoe-prints"></i> ' + prog.total_steps.toLocaleString() + '</span>';
   }
 
   var depthEl = document.getElementById('rpg-depth');
@@ -10198,7 +10198,7 @@ function updateRpgUI() {
 
   var nextEl = document.getElementById('rpg-next-area');
   if (nextEl && _rpg.next_area) {
-    nextEl.innerHTML = _rpg.next_area.name + 'まで <span style="color:#fde68a;font-weight:700;">👣 ' + _rpg.next_area.remaining.toLocaleString() + '</span>';
+    nextEl.innerHTML = _rpg.next_area.name + 'まで <span style="color:#fde68a;font-weight:700;"><i class="fas fa-shoe-prints"></i> ' + _rpg.next_area.remaining.toLocaleString() + '</span>';
   } else if (nextEl) {
     nextEl.textContent = '最深部に到達！';
   }
@@ -10765,14 +10765,14 @@ function openStepInput() {
 
       var html = '<div style="position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;" onclick="if(event.target===this)this.remove()" id="step-modal">';
       html += '<div style="background:#0d2440;border:1px solid rgba(255,255,255,0.15);border-radius:16px;padding:24px;max-width:320px;width:100%;color:#fff;">';
-      html += '<h3 style="font-size:15px;margin-bottom:4px;text-align:center;"><i class="fas fa-camera" style="margin-right:6px;color:#fbbf24;"></i>今日の👣を記録</h3>';
+      html += '<h3 style="font-size:15px;margin-bottom:4px;text-align:center;"><i class="fas fa-camera" style="margin-right:6px;color:#fbbf24;"></i>今日の<i class="fas fa-shoe-prints"></i>を記録</h3>';
       html += '<div style="font-size:11px;color:rgba(255,255,255,0.5);text-align:center;margin-bottom:12px;">万歩計を撮影するだけ</div>';
 
       // 冒険の進捗
       if (totalSteps > 0) {
         html += '<div style="text-align:center;margin-bottom:12px;padding:8px;background:rgba(251,191,36,0.12);border-radius:10px;border:1px solid rgba(251,191,36,0.25);">';
         html += '<div style="font-size:10px;color:rgba(255,255,255,0.5);">冒険の歩み</div>';
-        html += '<div style="font-size:22px;font-weight:800;color:#fde68a;">👣 ' + totalSteps.toLocaleString() + '</div>';
+        html += '<div style="font-size:22px;font-weight:800;color:#fde68a;"><i class="fas fa-shoe-prints"></i> ' + totalSteps.toLocaleString() + '</div>';
         html += '</div>';
       }
 
@@ -10830,7 +10830,7 @@ function onStepPhoto(input) {
         if (res && res.success && res.data && res.data.steps !== null) {
           document.getElementById('step-input').value = res.data.steps;
           var conf = res.data.confidence === 'high' ? '高精度' : res.data.confidence === 'medium' ? '中精度' : '低精度';
-          document.getElementById('step-ocr-status').innerHTML = '<i class="fas fa-check-circle" style="color:#4caf50;"></i> 👣 ' + res.data.steps.toLocaleString() + '（' + conf + '）';
+          document.getElementById('step-ocr-status').innerHTML = '<i class="fas fa-check-circle" style="color:#4caf50;"></i> <i class="fas fa-shoe-prints"></i> ' + res.data.steps.toLocaleString() + '（' + conf + '）';
         } else {
           document.getElementById('step-ocr-status').innerHTML = '<i class="fas fa-exclamation-triangle" style="color:#ff9800;"></i> 読取れませんでした';
         }
@@ -11006,7 +11006,7 @@ function openRpgMap() {
   var html = '<div style="padding:14px 16px;background:rgba(10,30,50,0.95);display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,0.1);position:sticky;top:0;z-index:1;">';
   html += '<button onclick="document.getElementById(\'rpg-map-overlay\').remove()" style="background:rgba(255,255,255,0.15);border:none;color:#fff;padding:6px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;"><i class="fas fa-arrow-left"></i> 戻る</button>';
   html += '<div style="flex:1;text-align:center;font-weight:800;font-size:14px;color:#fff;"><i class="fas fa-map-marked-alt" style="margin-right:6px;color:#22d3ee;"></i>海図</div>';
-  html += '<div style="font-size:12px;color:#fde68a;font-weight:700;">👣 ' + _rpg.progress.total_steps.toLocaleString() + '</div>';
+  html += '<div style="font-size:12px;color:#fde68a;font-weight:700;"><i class="fas fa-shoe-prints"></i> ' + _rpg.progress.total_steps.toLocaleString() + '</div>';
   html += '</div>';
 
   html += '<div style="padding:16px;">';
@@ -11100,7 +11100,7 @@ function openSharedOcean() {
         html += '</div>';
 
         html += '<div style="text-align:right;flex-shrink:0;">';
-        html += '<div style="font-size:13px;font-weight:800;color:#fde68a;">👣 ' + e.total_steps.toLocaleString() + '</div>';
+        html += '<div style="font-size:13px;font-weight:800;color:#fde68a;"><i class="fas fa-shoe-prints"></i> ' + e.total_steps.toLocaleString() + '</div>';
         html += '</div>';
 
         html += '</div>';

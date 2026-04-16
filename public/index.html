@@ -11188,21 +11188,19 @@ var RPG_QUESTIONS = {
       unclear: 'そういう時は...海の音を聞いてるといい。',
     },
   },
-  body_signal: {
-    ask: '体のどこか、気になる？',
+  weather_today: {
+    ask: '今日の海、どんな天気？',
     options: [
-      { id: 'none',      label: '👍 大丈夫',       tag: 'body=ok' },
-      { id: 'back',      label: '🦴 腰・背中',     tag: 'body=back' },
-      { id: 'sleep',     label: '😴 眠り浅い',     tag: 'body=sleep' },
-      { id: 'stomach',   label: '🍽️ お腹の調子',   tag: 'body=digest' },
-      { id: 'stress',    label: '🌀 気持ちが重い', tag: 'body=mental' },
+      { id: 'sunny',     label: '☀ 晴れ',     tag: 'weather=sunny' },
+      { id: 'cloudy',    label: '☁ くもり',   tag: 'weather=cloudy' },
+      { id: 'rain',      label: '🌧 雨',     tag: 'weather=rain' },
+      { id: 'wind',      label: '💨 風つよい', tag: 'weather=windy' },
     ],
     reply: {
-      none:    'よかった。今日も穏やかに。',
-      back:    '腰、長く座ってない？ときどき立つだけでも違う。',
-      sleep:   '深い海に潜ると、よく眠れるって言うよ。',
-      stomach: '温かいものを、ゆっくりと。',
-      stress:  'ここでは、誰にも話さなくていい。ただ泳いでて。',
+      sunny:  '光が差し込んで、深いところまで見える。',
+      cloudy: '...こんな日は深く潜るのが好きだな。',
+      rain:   '雨は海の歌だ。',
+      wind:   '潮の流れに乗っていこう。',
     },
   },
   discovery_today: {

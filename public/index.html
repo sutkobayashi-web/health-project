@@ -625,8 +625,9 @@
 <div id="my-posts-modal" style="position:fixed;top:56px;left:0;right:0;bottom:56px;background:white;z-index:2400;display:none;flex-direction:column;overflow:hidden;">
   <div style="width:100%;height:100%;display:flex;flex-direction:column;overflow:hidden;overscroll-behavior:contain;">
     <!-- ヘッダー -->
-    <div style="padding:10px 18px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;display:flex;align-items:center;gap:10px;flex-shrink:0;">
-      <div style="flex:1;font-weight:800;font-size:0.95rem;">マイページ</div>
+    <div style="padding:12px 18px;background:linear-gradient(135deg,#0ea5e9,#0891b2);color:white;display:flex;align-items:center;gap:10px;flex-shrink:0;box-shadow:0 2px 8px rgba(14,165,233,0.3);">
+      <i class="fas fa-user-circle" style="font-size:18px;"></i>
+      <div style="flex:1;font-weight:800;font-size:0.95rem;">設定</div>
     </div>
     <!-- プロフィールカード -->
     <div style="padding:12px 18px;background:linear-gradient(180deg,#f5f0ff,#fff);border-bottom:1px solid #eee;">
@@ -646,8 +647,9 @@
           </div>
           <div style="display:flex;align-items:center;gap:4px;margin-top:5px;flex-wrap:wrap;">
             <span id="mypage-streak" style="font-size:0.62rem;font-weight:700;color:#ef4444;background:linear-gradient(135deg,#fef2f2,#fecaca);padding:3px 8px;border-radius:8px;border:1px solid #fca5a5;white-space:nowrap;">🔥 0日</span>
-            <span id="mypage-coin" style="font-size:0.62rem;font-weight:700;color:#f57f17;background:linear-gradient(135deg,#fffde7,#fff9c4);padding:3px 8px;border-radius:8px;border:1px solid #ffe082;cursor:pointer;white-space:nowrap;" onclick="showRanking()"><i class="fas fa-coins" style="font-size:0.5rem;"></i> 0pt</span>
-            <span id="mypage-coin-badge" style="font-size:0.6rem;font-weight:700;color:#667eea;background:#f0f4ff;padding:3px 6px;border-radius:8px;white-space:nowrap;">🌱</span>
+            <!-- コインは非表示(参照用のみ残す) -->
+            <span id="mypage-coin" style="display:none;">0pt</span>
+            <span id="mypage-coin-badge" style="display:none;">🌱</span>
           </div>
         </div>
       </div>
@@ -677,17 +679,11 @@
         </div>
       </div>
     </div>
-    <!-- ボタン -->
-    <div style="padding:6px 18px;display:flex;gap:6px;flex-wrap:wrap;">
-      <button onclick="closeMyPosts();openHeroChangeModal();" style="flex:1;min-width:72px;padding:8px 4px;background:linear-gradient(135deg,#0ea5e9,#0891b2);color:white;border:none;border-radius:10px;font-size:0.7rem;font-weight:700;cursor:pointer;"><i class="fas fa-palette"></i> すがた</button>
-      <button onclick="openCoinShop()" style="flex:1;min-width:72px;padding:8px 4px;background:linear-gradient(135deg,#f59e0b,#d97706);color:white;border:none;border-radius:10px;font-size:0.7rem;font-weight:700;cursor:pointer;"><i class="fas fa-store"></i> ショップ</button>
-      <button onclick="openAdminFromUser()" style="flex:1;min-width:72px;padding:8px 4px;background:white;color:#d63384;border:1.5px solid #d63384;border-radius:10px;font-size:0.7rem;font-weight:700;cursor:pointer;"><i class="fas fa-shield-alt"></i> 推進</button>
-      <button onclick="closeMyPosts();openProfileEditModal();" style="flex:1;min-width:72px;padding:8px 4px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;border-radius:10px;font-size:0.7rem;font-weight:700;cursor:pointer;"><i class="fas fa-edit"></i> 編集</button>
-    </div>
-    <!-- 個人パスポート (マイCoWell) 入口 -->
-    <div style="padding:4px 18px 6px;">
-      <button onclick="window.location.href='/passport'" style="width:100%;padding:12px;background:linear-gradient(135deg,#6a5acd,#8a6fd4);color:white;border:none;border-radius:12px;font-size:0.82rem;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(106,90,205,0.3);display:flex;align-items:center;justify-content:center;gap:8px;"><i class="fas fa-id-card"></i> マイCoWell パスポートを見る <i class="fas fa-arrow-right" style="font-size:0.7rem;opacity:0.8;"></i></button>
-      <div style="font-size:0.6rem;color:#9ca3af;text-align:center;margin-top:4px;">続けてきた行動の記録・運転免許証・共有リンク</div>
+    <!-- ボタン(3枠でスッキリ) -->
+    <div style="padding:10px 18px 4px;display:flex;gap:8px;">
+      <button onclick="closeMyPosts();openHeroChangeModal();" style="flex:1;padding:12px 6px;background:linear-gradient(135deg,#0ea5e9,#0891b2);color:white;border:none;border-radius:12px;font-size:0.78rem;font-weight:800;cursor:pointer;box-shadow:0 3px 10px rgba(14,165,233,0.25);"><i class="fas fa-palette" style="margin-right:4px;"></i>すがた</button>
+      <button onclick="closeMyPosts();openProfileEditModal();" style="flex:1;padding:12px 6px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;border-radius:12px;font-size:0.78rem;font-weight:800;cursor:pointer;box-shadow:0 3px 10px rgba(102,126,234,0.25);"><i class="fas fa-edit" style="margin-right:4px;"></i>プロフィール</button>
+      <button onclick="openAdminFromUser()" style="flex:1;padding:12px 6px;background:white;color:#d63384;border:1.5px solid #d63384;border-radius:12px;font-size:0.78rem;font-weight:800;cursor:pointer;"><i class="fas fa-shield-alt" style="margin-right:4px;"></i>推進</button>
     </div>
     <!-- メモ一覧 -->
     <div style="padding:8px 12px 4px;font-size:0.78rem;font-weight:700;color:#667eea;flex-shrink:0;display:flex;align-items:center;justify-content:between;gap:6px;cursor:pointer;" onclick="toggleMemoSection()">

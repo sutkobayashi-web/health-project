@@ -337,9 +337,10 @@ body {
 <!-- ====== Header ====== -->
 <header class="kb-header">
   <div class="kb-header-left">
+    <a href="/" class="btn-back"><i class="fas fa-arrow-left"></i> 戻る</a>
     <div class="kb-title-group">
-      <div class="kb-title-main">CoWell システムガイド</div>
-      <div class="kb-title-sub">Health Project v2 System Guide</div>
+      <div class="kb-title-main">CoWell システムガイド v4</div>
+      <div class="kb-title-sub">海の探索RPG + ボトムアップ健康経営 詳細ガイド</div>
     </div>
   </div>
 </header>
@@ -347,11 +348,86 @@ body {
 <div class="main-content">
 
 <!-- ====== Intro Banner ====== -->
-<div class="intro-banner">
-  <h2><i class="fas fa-book-open"></i> このガイドについて</h2>
-  <p>CoWell の全体像をまとめたガイドページです。<br>
-  プロジェクトの目的、フロー、役割分担、各機能の仕組みを分かりやすく解説します。</p>
+<div class="intro-banner" style="background:linear-gradient(135deg,#0ea5e9 0%,#0891b2 100%)!important;">
+  <h2><i class="fas fa-water"></i> CoWell v4（2026-04大改修）</h2>
+  <p>CoWell は2026年4月、「海の探索RPG」に大転換しました。<br>
+  旧v2機能（投稿/テーマ投票/AI計画/チャレンジ）は「広場」タブに統合され、<br>
+  <strong>冒険RPG（無関心層向け）</strong>と<strong>広場（意識高め層向け）</strong>の二層構造で稼働しています。</p>
 </div>
+
+<!-- ====== v4 RPG サマリー ====== -->
+<div class="guide-card" style="background:linear-gradient(135deg,#dbeafe,#e0f2fe);border:2px solid #0ea5e9;" data-keywords="RPG 冒険 海 歩数 v4 無関心層">
+  <div class="guide-card-header">
+    <div class="guide-card-icon" style="background:linear-gradient(135deg,#0ea5e9,#0891b2);"><i class="fas fa-water" style="color:white;"></i></div>
+    <div class="guide-card-title">🌊 海の探索RPG（v4の顔）</div>
+  </div>
+  <div class="guide-card-body">
+    <p><strong>コンセプト：</strong>歩数計を撮影するだけ（3秒の儀式）で、あなたの魚が海を冒険するゲーム。</p>
+    <h4>主要機能</h4>
+    <ul>
+      <li>🐟 <strong>あなたの魚</strong>：8色のバリエーションから選ぶ主人公。いつでも「設定→すがた」から変更可能</li>
+      <li>📷 <strong>歩数記録</strong>：万歩計・スマートウォッチ・スマホのヘルスケア画面（iOS/Android/Fitbit等）・スクショ何でもOK</li>
+      <li>🗺 <strong>5章15エリア</strong>：波打ち際→珊瑚礁→外洋→深海→海溝の神殿。累計歩数で解放</li>
+      <li>📖 <strong>30種の魚図鑑</strong>：歩数記録時にランダム遭遇。レジェンド級はチラ見せで動機付け</li>
+      <li>👥 <strong>仲間の魚</strong>：同じ章の人がリアルタイムで同じ海を泳ぐ</li>
+      <li>🎉 <strong>スタンプ</strong>：仲間の魚をタップで定型メッセージ送信</li>
+      <li>🍾 <strong>ボトルメッセージ</strong>：章全体に匿名50字ブロードキャスト（1日3本）</li>
+      <li>💬 <strong>天の声</strong>：選択式問いかけ（気分/天気/仲間）＋「書く」「話す（1タップ連続会話）」</li>
+    </ul>
+    <h4>守るべき6原則</h4>
+    <ul>
+      <li>① 入力させたら負ける（歩数計の撮影3秒だけ）</li>
+      <li>② 眺めるだけで成立する</li>
+      <li>③ 「健康」と言わない（画面のどこにも出さない）</li>
+      <li>④ 食事・睡眠・敵・回復は入れない（歩数一本）</li>
+      <li>⑤ 会社の企画感を出さない（個人の暇つぶしに見える設計）</li>
+      <li>⑥ 因果を逆にする（冒険したい→結果的に歩く）</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ====== 広場（v2機能）サマリー ====== -->
+<div class="guide-card" style="background:linear-gradient(135deg,#ecfdf5,#d1fae5);border:2px solid #10b981;" data-keywords="広場 v2 意識高め 投稿 テーマ 保健師">
+  <div class="guide-card-header">
+    <div class="guide-card-icon" style="background:linear-gradient(135deg,#10b981,#059669);"><i class="fas fa-comments" style="color:white;"></i></div>
+    <div class="guide-card-title">🏘 広場（意識高め層向けv2機能）</div>
+  </div>
+  <div class="guide-card-body">
+    <p>ボトムメニューの「広場」から、既存のv2機能群にアクセスできます：</p>
+    <ul>
+      <li>📊 みんなの空気ダッシュボード（参加率、人気ごはん、ごはん番長）</li>
+      <li>🗳 テーマ投票（みんなの声から生まれたアクションプラン）</li>
+      <li>🍽 食事投稿＋AI栄養分析（9項目）</li>
+      <li>🔥 チャレンジ（短期目標へのチーム挑戦）</li>
+      <li>💬 みんなの声（投稿タイムライン）</li>
+      <li>🩺 血圧記録（希望者のみ）</li>
+      <li>🏥 健診結果＋食事×健診因果分析</li>
+    </ul>
+    <p><strong>自動セグメンテーション：</strong>使用頻度から「無関心層（冒険のみ）」「意識高め層（広場も使う）」が自然に分かれ、研究データとして集計されます。</p>
+  </div>
+</div>
+
+<!-- ====== 研究計画 ====== -->
+<div class="guide-card" style="background:linear-gradient(135deg,#fef3c7,#fde68a);border:2px solid #f59e0b;" data-keywords="研究 福田 帝京大学 西村 5月11日 論文 ナッジ">
+  <div class="guide-card-header">
+    <div class="guide-card-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706);"><i class="fas fa-microscope" style="color:white;"></i></div>
+    <div class="guide-card-title">🔬 帝京大学との共同研究</div>
+  </div>
+  <div class="guide-card-body">
+    <p><strong>テーマ案：</strong>「健康」を明示しないRPG型ナッジ介入は、中小企業の健康無関心層の身体活動量を変容させるか</p>
+    <ul>
+      <li><strong>指導教授：</strong>福田吉治教授（帝京大学大学院公衆衛生学研究科長）</li>
+      <li><strong>担当院生：</strong>西村氏</li>
+      <li><strong>対象：</strong>スタンダード運輸＋スズエ電機のグループ会社 約180名（データ収集目標100名）</li>
+      <li><strong>期間：</strong>2026年5月11日〜2027年3月31日（5ヶ月介入＋評価）</li>
+      <li><strong>評価時点：</strong>9月1日／12月1日／2月28日／3月20日</li>
+      <li><strong>データ基盤：</strong>Admin冒険ダッシュボードで匿名化CSVエクスポート</li>
+    </ul>
+  </div>
+</div>
+
+<hr style="margin:40px 0;border:none;border-top:2px dashed #ccc;">
+<p style="color:#888;font-size:0.9rem;font-style:italic;text-align:center;">以下はv2時点までの詳細ガイド（広場機能の理解に役立ちます）</p>
 
 <!-- ============================================================ -->
 <!-- 概要セクション（1〜3）                                       -->

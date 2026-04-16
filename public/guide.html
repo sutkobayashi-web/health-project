@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>3分でわかる Aqua-CoWell</title>
+<title>3分でわかる CoWell</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
@@ -11,349 +11,262 @@
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 body {
   font-family: 'Noto Sans JP', sans-serif;
-  background: linear-gradient(160deg, #f5f0ff 0%, #eef6ff 40%, #f0faf5 100%);
+  background: linear-gradient(160deg, #e0f2fe 0%, #dbeafe 40%, #f0fdf4 100%);
   margin: 0; padding: 0; min-height: 100vh; color: #333;
 }
 .header {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #0ea5e9, #0891b2);
   padding: 0 16px; display: flex; align-items: center; gap: 12px;
   position: sticky; top: 0; z-index: 100; height: 56px;
-  box-shadow: 0 4px 20px rgba(102,126,234,0.3);
+  box-shadow: 0 4px 20px rgba(14,165,233,0.3);
 }
 .header a { background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 20px; padding: 5px 14px; font-size: 0.75rem; font-weight: 700; text-decoration: none; }
-.header .title { font-weight: 900; color: #fff; font-size: 0.9rem; }
+.header .title { font-weight: 900; color: #fff; font-size: 0.95rem; }
 .header .sub { color: rgba(255,255,255,0.75); font-size: 0.6rem; }
-.wrap { max-width: 500px; margin: 0 auto; padding: 16px 14px 80px; }
+.wrap { max-width: 520px; margin: 0 auto; padding: 16px 14px 80px; }
 
-/* カード */
-.card-s {
-  background: white; border-radius: 18px; margin-bottom: 16px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.06); overflow: hidden;
-}
-.card-head {
-  padding: 16px 18px 12px; display: flex; align-items: center; gap: 12px;
-  border-bottom: 1px solid #f0f0f0;
-}
-.card-icon {
-  width: 44px; height: 44px; border-radius: 12px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1.3rem; color: #fff; flex-shrink: 0;
-}
+.card-s { background: white; border-radius: 18px; margin-bottom: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.06); overflow: hidden; }
+.card-head { padding: 16px 18px 12px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #f0f0f0; }
+.card-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; color: #fff; flex-shrink: 0; }
 .card-title { font-weight: 900; font-size: 0.95rem; color: #2c3e50; }
 .card-body { padding: 16px 18px 20px; font-size: 0.88rem; line-height: 1.9; color: #555; }
 
-/* ステップ */
 .step { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 14px; }
-.step-num {
-  width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center;
-  font-weight: 900; font-size: 0.85rem; color: white;
-}
+.step-num { width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 0.85rem; color: white; }
 .step-text { flex: 1; }
 .step-text strong { color: #2c3e50; }
 
-/* フロー */
-.flow { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; padding: 8px 0; }
-.flow-box {
-  background: white; border-radius: 12px; padding: 10px 8px; text-align: center;
-  min-width: 70px; max-width: 90px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-  border-top: 3px solid #764ba2;
-}
-.flow-box .icon { font-size: 1.3rem; }
-.flow-box .label { font-size: 0.65rem; font-weight: 700; color: #2c3e50; margin-top: 4px; }
-.flow-arrow { font-size: 1rem; color: #764ba2; font-weight: 900; align-self: center; }
+.hl { background: #f0f9ff; border-left: 4px solid #0ea5e9; border-radius: 0 12px 12px 0; padding: 12px 14px; margin: 10px 0; font-size: 0.85rem; line-height: 1.7; }
+.hl strong { color: #0ea5e9; }
+.tip { background: #fffbeb; border-left: 4px solid #fbbf24; border-radius: 0 12px 12px 0; padding: 12px 14px; margin: 10px 0; font-size: 0.85rem; line-height: 1.7; }
+.tip strong { color: #b45309; }
 
-/* ハイライト */
-.hl { background: #f8f5ff; border-left: 4px solid #764ba2; border-radius: 0 12px 12px 0; padding: 12px 14px; margin: 10px 0; font-size: 0.85rem; line-height: 1.7; }
-.hl strong { color: #764ba2; }
-.tip { background: #e8f5e9; border-left: 4px solid #4caf50; border-radius: 0 12px 12px 0; padding: 12px 14px; margin: 10px 0; font-size: 0.85rem; line-height: 1.7; }
-
-/* 目次 */
 .toc { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
-.toc a {
-  display: flex; align-items: center; gap: 6px;
-  background: white; border-radius: 12px; padding: 10px 14px;
-  font-size: 0.82rem; font-weight: 700; color: #667eea;
-  text-decoration: none; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-  flex: 1; min-width: 140px;
-}
+.toc a { display: flex; align-items: center; gap: 6px; background: white; border-radius: 12px; padding: 10px 14px; font-size: 0.82rem; font-weight: 700; color: #0ea5e9; text-decoration: none; box-shadow: 0 2px 8px rgba(0,0,0,0.06); flex: 1; min-width: 140px; }
 .toc a:active { transform: scale(0.97); }
+
+.chapter-row { display:flex; gap:8px; flex-wrap:wrap; margin:10px 0; }
+.chapter-chip { flex:1; min-width:85px; background:white; border-radius:10px; padding:10px 8px; text-align:center; border:2px solid; }
+.chapter-chip .num { font-size:0.65rem; color:#888; font-weight:700; }
+.chapter-chip .nm { font-size:0.78rem; font-weight:800; margin-top:2px; }
+.chapter-chip .dp { font-size:0.65rem; color:#666; margin-top:2px; }
 </style>
 </head>
 <body>
 
-<!-- ヘッダー -->
 <div class="header">
-  <a href="/" onclick="if(window.parent!==window){window.parent.switchAppTab('buddy');return false;}if(new URLSearchParams(window.location.search).get('from')==='admin'){window.location.href='/admin';return false;}"><i class="fas fa-arrow-left"></i> 戻る</a>
+  <a href="/"><i class="fas fa-arrow-left"></i> 戻る</a>
   <div>
-    <div class="title">3分でわかる Aqua-CoWell</div>
-    <div class="sub">使い方ガイド</div>
+    <div class="title">🌊 CoWell 使い方ガイド</div>
+    <div class="sub">海の探索RPG</div>
   </div>
 </div>
 
 <div class="wrap">
 
   <!-- イントロ -->
-  <div style="background:linear-gradient(135deg,#1a7ab5,#0e5a8a);border-radius:18px;padding:24px 20px;color:white;margin-bottom:16px;">
-    <div style="font-size:1.1rem;font-weight:900;margin-bottom:8px;">🐟 Aqua-CoWell</div>
-    <div style="font-size:0.85rem;opacity:0.9;line-height:1.7;">あなただけの魚を育てよう。<br>ごはんの写真を撮ると、魚が元気になるよ。</div>
+  <div style="background:linear-gradient(135deg,#0ea5e9,#0891b2);border-radius:18px;padding:22px 20px;color:white;margin-bottom:16px;box-shadow:0 6px 20px rgba(14,165,233,0.25);">
+    <div style="font-size:1.15rem;font-weight:900;margin-bottom:8px;">🌊 CoWell</div>
+    <div style="font-size:0.85rem;opacity:0.95;line-height:1.7;">
+      歩数計を撮るだけで、あなたの魚が海を冒険する。<br>
+      出会った魚を図鑑に、伝説の海域へ。
+    </div>
   </div>
 
   <!-- 目次 -->
   <div class="toc">
-    <a href="#sec1"><span style="font-size:1.1rem;">🐟</span> 水槽と魚</a>
-    <a href="#sec1b"><span style="font-size:1.1rem;">🍱</span> ごはんと水質</a>
-    <a href="#sec1c"><span style="font-size:1.1rem;">🏃</span> 歩数と魚</a>
-    <a href="#sec2"><span style="font-size:1.1rem;">🍽️</span> みんなのごはん</a>
-    <a href="#sec3"><span style="font-size:1.1rem;">💬</span> 魚とおしゃべり</a>
-    <a href="#sec4"><span style="font-size:1.1rem;">💪</span> チャレンジ</a>
-    <a href="#sec5"><span style="font-size:1.1rem;">🪙</span> コイン＆ショップ</a>
-    <a href="#sec6"><span style="font-size:1.1rem;">🌊</span> みんなの水槽</a>
+    <a href="#sec1"><span style="font-size:1.1rem;">🐟</span> あなたの魚</a>
+    <a href="#sec2"><span style="font-size:1.1rem;">📷</span> 歩数を記録</a>
+    <a href="#sec3"><span style="font-size:1.1rem;">🗺️</span> 5章の海</a>
+    <a href="#sec4"><span style="font-size:1.1rem;">📖</span> 図鑑</a>
+    <a href="#sec5"><span style="font-size:1.1rem;">👥</span> 仲間・ボトル</a>
+    <a href="#sec6"><span style="font-size:1.1rem;">💬</span> 天の声</a>
+    <a href="#sec7"><span style="font-size:1.1rem;">🏘️</span> 広場</a>
+    <a href="#sec8"><span style="font-size:1.1rem;">❓</span> Q&A</a>
   </div>
 
-  <!-- ========== セクション1: 水槽と魚 ========== -->
+  <!-- ========== セクション1: あなたの魚 ========== -->
   <div class="card-s" id="sec1">
     <div class="card-head">
-      <div class="card-icon" style="background:linear-gradient(135deg,#1a7ab5,#0e5a8a);"><i class="fas fa-fish"></i></div>
-      <div class="card-title">水槽と魚</div>
+      <div class="card-icon" style="background:linear-gradient(135deg,#0ea5e9,#0891b2);"><i class="fas fa-fish"></i></div>
+      <div class="card-title">あなたの魚を選ぶ</div>
     </div>
     <div class="card-body">
-      <p>アプリを開くと<strong>水槽</strong>が広がります。あなただけの魚を育てましょう。</p>
-
+      <p>アプリ初回起動時、8色の魚から<strong>あなたの分身</strong>を選びます。</p>
+      <p>🎨 シアン／ブルー／パープル／ピンク／レッド／オレンジ／グリーン／ティール</p>
       <div class="step">
-        <div class="step-num" style="background:#1a7ab5;">1</div>
-        <div class="step-text"><strong>卵が届く</strong><br>最初に卵が届きます。名前をつけてあげてね。</div>
+        <div class="step-num" style="background:#0ea5e9;">1</div>
+        <div class="step-text"><strong>魚を選ぶ</strong><br>好きな色をタップ。</div>
       </div>
       <div class="step">
-        <div class="step-num" style="background:#1a7ab5;">2</div>
-        <div class="step-text"><strong>ごはんを3回記録</strong><br>食事の写真を3回撮ると、卵から透明な<strong>稚魚</strong>が生まれます。</div>
+        <div class="step-num" style="background:#0ea5e9;">2</div>
+        <div class="step-text"><strong>名前をつける</strong><br>例: ブルー、ポチ、ネモ...なんでもOK。</div>
       </div>
       <div class="step">
-        <div class="step-num" style="background:#1a7ab5;">3</div>
-        <div class="step-text"><strong>種類が決まる</strong><br>食事を続けると体に色がついて種類が判明！食事パターンで<strong>全30種類</strong>に進化します。</div>
+        <div class="step-num" style="background:#0ea5e9;">3</div>
+        <div class="step-text"><strong>冒険開始！</strong><br>最初は「波打ち際」からスタート。</div>
       </div>
-      <div class="step">
-        <div class="step-num" style="background:#1a7ab5;">4</div>
-        <div class="step-text"><strong>成長していく</strong><br>稚魚 → 幼魚 → 若魚 → 成魚 → 大人 → <strong>伝説</strong>の7段階。180日育てると大往生で褒賞！</div>
-      </div>
-
-      <div class="hl"><strong>⚠️ 放置するとどうなる？</strong><br>3日 → 元気がなくなる<br>7日 → 病気になる<br>10日 → <strong>死んでしまう</strong>（新しい卵はもらえます）</div>
-
-      <div class="tip"><strong>🔬 水質検査：</strong>月1回の検査で、水の中に隠れた問題がわかります。ステータスバーの「📊状態」から。</div>
-      <div class="tip"><strong>📖 おさかな図鑑：</strong>発見した魚はシークレットから解放！全30種コンプリートを目指そう。</div>
-      <div class="tip"><strong>🌊 仲間を見る：</strong>全社員の魚が一つの水槽に。元気ランキングTOP5も確認できます。</div>
+      <div class="tip"><strong>🎨 変えたい時は：</strong>ボトムメニューの「設定」→「すがた」からいつでも変更できます。</div>
     </div>
   </div>
 
-  <!-- ========== セクション1b: ごはんと水質 ========== -->
-  <div class="card-s" id="sec1b">
-    <div class="card-head">
-      <div class="card-icon" style="background:linear-gradient(135deg,#20c997,#0e8a6e);"><i class="fas fa-utensils"></i></div>
-      <div class="card-title">ごはんと水質</div>
-    </div>
-    <div class="card-body">
-      <p>あなたが食べたものが、そのまま魚のごはんになります。</p>
-      <p>🥗 <strong>野菜が多い</strong> → 水がきれいに、色が鮮やかに</p>
-      <p>🍟 <strong>脂っこい</strong> → 水が濁る</p>
-      <p>🧂 <strong>味が濃い</strong> → 水がピリピリする</p>
-      <p>🍺 <strong>お酒の後</strong> → 水が黄色っぽくなる</p>
-      <p>⚖️ <strong>いろんなもの食べる</strong> → 水がキラキラに✨</p>
-      <div class="tip"><strong>投稿しない日は？</strong> フレークが自動で与えられるけど、魚はちょっと物足りなそう。あなたのごはんが一番嬉しいんだって🐟</div>
-    </div>
-  </div>
-
-  <!-- ========== セクション1c: 歩数・血圧 ========== -->
-  <div class="card-s" id="sec1c">
-    <div class="card-head">
-      <div class="card-icon" style="background:linear-gradient(135deg,#4ade80,#22c55e);"><i class="fas fa-shoe-prints"></i></div>
-      <div class="card-title">歩数と魚</div>
-    </div>
-    <div class="card-body">
-      <p><strong>🏃 歩数を入力すると魚が元気に泳ぐ！</strong></p>
-      <p>🚶 3,000歩 → 少し元気に</p>
-      <p>🏃 5,000歩 → 泳ぎが速くなる</p>
-      <p>🏃‍♂️ 7,000歩 → ウロコがキラキラ</p>
-      <p>🔥 10,000歩 → 全速力＋色が最高に鮮やか！</p>
-      <div class="tip"><strong>魚に話しかけると：</strong>魚はあなたと同じような気持ちを語ります。「だるい...」「お腹重い...」— ちょっと可愛いやつです🐟</div>
-    </div>
-  </div>
-
-  <!-- ========== セクション2: ごはん投稿 ========== -->
+  <!-- ========== セクション2: 歩数を記録 ========== -->
   <div class="card-s" id="sec2">
     <div class="card-head">
-      <div class="card-icon" style="background:linear-gradient(135deg,#20c997,#38d9a9);"><i class="fas fa-utensils"></i></div>
-      <div class="card-title">みんなのごはん</div>
+      <div class="card-icon" style="background:linear-gradient(135deg,#fbbf24,#f97316);"><i class="fas fa-camera"></i></div>
+      <div class="card-title">歩数を記録する（3秒の儀式）</div>
     </div>
     <div class="card-body">
-      <p>今日なに食べた？ 写真を撮るだけ。みんなの晩ごはんが見られるよ。</p>
-
+      <p><strong>このアプリの唯一の操作です。</strong></p>
+      <p>海の右下にあるオレンジ色の<strong>📷 ボタン</strong>をタップ。</p>
       <div class="step">
-        <div class="step-num" style="background:#20c997;">1</div>
-        <div class="step-text"><strong>写真を撮る</strong><br>メニューから「ごはん」をタップ。カメラで撮るだけ。</div>
+        <div class="step-num" style="background:#f97316;">1</div>
+        <div class="step-text"><strong>撮影する</strong><br>万歩計、スマートウォッチ、スマホのヘルスケア画面（iOSヘルスケア／Google Fit／Samsung Health／Fitbit など）—<strong>どれでもOK</strong>。スクショ画像でも読み取れます。</div>
       </div>
       <div class="step">
-        <div class="step-num" style="background:#20c997;">2</div>
-        <div class="step-text"><strong>AIが勝手に分析</strong><br>カロリーや栄養のバランスが自動で出てくる。見ても見なくてもOK。</div>
+        <div class="step-num" style="background:#f97316;">2</div>
+        <div class="step-text"><strong>AIが自動で数字を読取り</strong><br>「今日」の歩数が表示されます。違っていたら手入力で修正可。</div>
       </div>
       <div class="step">
-        <div class="step-num" style="background:#20c997;">3</div>
-        <div class="step-text"><strong>みんなの反応</strong><br>「食べたい！」「おいしそう！」「真似する！」のリアクションが届くよ。</div>
+        <div class="step-num" style="background:#f97316;">3</div>
+        <div class="step-text"><strong>「記録して海を進む」</strong><br>歩数分だけ冒険が進み、海が動きます。</div>
       </div>
-
-      <div class="hl"><strong>献立の参考にも：</strong>「今日なに作ろう...」と思ったら、みんなの投稿を見てみよう。意外なメニューに出会えるかも。</div>
-
-      <div class="tip"><strong>ごはん番長：</strong> 今週一番「食べたい！」をもらった人が「ごはん番長」としてメニュー画面に表示されるよ！</div>
+      <div class="hl"><strong>⏱ 所要時間：約3秒</strong><br>夕方の帰着点呼のついでに撮るのが一番ラクです。</div>
+      <div class="tip"><strong>1日3本：</strong>何度か記録してもOK。最新の数値で更新されます。</div>
     </div>
   </div>
 
-  <!-- ========== セクション3: 声が届く仕組み ========== -->
+  <!-- ========== セクション3: 5章の海 ========== -->
   <div class="card-s" id="sec3">
     <div class="card-head">
-      <div class="card-icon" style="background:linear-gradient(135deg,#d63384,#e91e8c);"><i class="far fa-comment-dots"></i></div>
-      <div class="card-title">魚とおしゃべり</div>
+      <div class="card-icon" style="background:linear-gradient(135deg,#22c55e,#16a34a);"><i class="fas fa-map-marked-alt"></i></div>
+      <div class="card-title">5章15エリアの海</div>
     </div>
     <div class="card-body">
-      <p>魚に話しかけてみよう。愚痴でも雑談でも何でもOK。</p>
-
-      <div class="step">
-        <div class="step-num" style="background:#d63384;">1</div>
-        <div class="step-text"><strong>なんでも話しかける</strong><br>「疲れた」「腰痛い」「今日暑くない？」——気軽にどうぞ。</div>
+      <p>累計歩数で海の奥へ進みます。</p>
+      <div class="chapter-row">
+        <div class="chapter-chip" style="border-color:#0ea5e9;"><div class="num">第1章</div><div class="nm">はじまりの浅瀬</div><div class="dp">0m</div></div>
+        <div class="chapter-chip" style="border-color:#22c55e;"><div class="num">第2章</div><div class="nm">珊瑚礁の迷宮</div><div class="dp">15〜35m</div></div>
+        <div class="chapter-chip" style="border-color:#3b82f6;"><div class="num">第3章</div><div class="nm">外洋の試練</div><div class="dp">50〜120m</div></div>
       </div>
-      <div class="step">
-        <div class="step-num" style="background:#d63384;">2</div>
-        <div class="step-text"><strong>魚が返事する</strong><br>あなたの魚は意外としゃべります。たまに役立つことも言います。</div>
+      <div class="chapter-row">
+        <div class="chapter-chip" style="border-color:#a855f7;"><div class="num">第4章</div><div class="nm">深海への招待</div><div class="dp">200〜800m</div></div>
+        <div class="chapter-chip" style="border-color:#f59e0b;"><div class="num">第5章</div><div class="nm">海溝の神殿</div><div class="dp">2000〜10000m</div></div>
       </div>
-      <div class="step">
-        <div class="step-num" style="background:#d63384;">3</div>
-        <div class="step-text"><strong>「みんなにも聞いてみる？」</strong><br>同じこと思ってる人いるかも？ OKなら匿名で共有。名前は出ません。</div>
-      </div>
-
-      <div style="font-weight:800;font-size:0.85rem;color:#2c3e50;margin:16px 0 8px;">あなたの声が届く流れ</div>
-      <div class="flow">
-        <div class="flow-box"><div class="icon">💬</div><div class="label">魚と<br>会話</div></div>
-        <div class="flow-arrow">→</div>
-        <div class="flow-box"><div class="icon">📢</div><div class="label">匿名で<br>みんなに</div></div>
-        <div class="flow-arrow">→</div>
-        <div class="flow-box"><div class="icon">❤️</div><div class="label">共感が<br>集まる</div></div>
-        <div class="flow-arrow">→</div>
-        <div class="flow-box"><div class="icon">🗳️</div><div class="label">テーマ投票</div></div>
-        <div class="flow-arrow">→</div>
-        <div class="flow-box"><div class="icon">💪</div><div class="label">チャレンジ</div></div>
-      </div>
-
-      <div class="tip"><strong>断ってもOK：</strong>「やめとく」を選べば、魚との会話は2人だけの秘密。強制は一切ありません。</div>
+      <p style="margin-top:12px;">各章は3つのサブエリアに分かれ、累計歩数で解放されます。</p>
+      <p>• 次エリアまでの残り歩数は画面上部のバーで確認</p>
+      <p>• 左上の <strong>🗺️ 海図</strong> で全15エリアの到達状況が見える</p>
+      <div class="tip"><strong>🎨 それぞれ違う景色：</strong>エリアごとに固有の海中シーンを描画。浅瀬の椰子の木、珊瑚の回廊、発光生物の闇、古代遺跡の海溝...</div>
     </div>
   </div>
 
-  <!-- ========== セクション4: チャレンジ ========== -->
+  <!-- ========== セクション4: 図鑑 ========== -->
   <div class="card-s" id="sec4">
     <div class="card-head">
-      <div class="card-icon" style="background:linear-gradient(135deg,#ff6b35,#ff9a5c);"><i class="fas fa-fire"></i></div>
-      <div class="card-title">チャレンジに参加しよう</div>
+      <div class="card-icon" style="background:linear-gradient(135deg,#a855f7,#7c3aed);"><i class="fas fa-book"></i></div>
+      <div class="card-title">海の図鑑（30種類）</div>
     </div>
     <div class="card-body">
-      <p>みんなの投票で決まったテーマが「チャレンジ」になる。参加は自由！</p>
-
-      <div class="step">
-        <div class="step-num" style="background:#ff6b35;">1</div>
-        <div class="step-text"><strong>チャレンジタブから参加</strong><br>画面下の🔥アイコンをタップ。「参加する」を押すだけ。</div>
-      </div>
-      <div class="step">
-        <div class="step-num" style="background:#ff6b35;">2</div>
-        <div class="step-text"><strong>毎日30秒でKPI記録</strong><br>「今日の歩数は？」「野菜食べた？」など、1タップで記録。</div>
-      </div>
-      <div class="step">
-        <div class="step-num" style="background:#ff6b35;">3</div>
-        <div class="step-text"><strong>バッジをゲット</strong><br>達成するとバッジがもらえる。途中参加・途中離脱もOK。</div>
-      </div>
-
-      <div class="tip"><strong>やめてもOK：</strong> 無理はしなくていい。「やってみようかな」と思ったときに参加してね。</div>
+      <p>各エリアに住む魚を発見して図鑑を埋めよう。</p>
+      <p>🐟 <strong>コモン</strong>: メダカ、グッピー、ハゼ など（第1章）</p>
+      <p>🐠 <strong>アンコモン</strong>: カクレクマノミ、チョウチョウウオ など</p>
+      <p>🦈 <strong>レア</strong>: ウミガメ、エンゼルフィッシュ など</p>
+      <p>🌟 <strong>ウルトラ</strong>: マンタ、リュウグウノツカイ、ダイオウイカ など</p>
+      <p>🔥 <strong>レジェンド</strong>: フェニックスフィッシュ、金龍、海神の使い、虹のクジラ（第5章）</p>
+      <div class="hl"><strong>遭遇のタイミング：</strong>歩数を記録した時にランダム発生。多く歩くほど出会いやすい。歩数計撮影時の楽しみ。</div>
+      <div class="tip"><strong>✨ チラ見せ：</strong>未発見でもレジェンド／ウルトラの魚は図鑑で画像が見えます。「いつか会いたい」の目印に。</div>
     </div>
   </div>
 
-  <!-- ========== セクション5: コイン＆ショップ ========== -->
+  <!-- ========== セクション5: 仲間・ボトル ========== -->
   <div class="card-s" id="sec5">
     <div class="card-head">
-      <div class="card-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706);"><i class="fas fa-coins"></i></div>
-      <div class="card-title">コイン＆ショップ</div>
+      <div class="card-icon" style="background:linear-gradient(135deg,#0284c7,#0369a1);"><i class="fas fa-users"></i></div>
+      <div class="card-title">仲間とのつながり</div>
     </div>
     <div class="card-body">
-      <p>アプリを使うだけでAqua-CoWellコインが貯まる。ショップで使おう！</p>
-
-      <div style="font-weight:800;font-size:0.85rem;color:#2c3e50;margin:8px 0;">コインの貯め方</div>
-      <table style="width:100%;font-size:0.82rem;border-collapse:collapse;margin-bottom:12px;">
-        <tr style="background:#fffbeb;"><td style="padding:8px;border-bottom:1px solid #f0f0f0;">🍽️ ごはん投稿</td><td style="padding:8px;border-bottom:1px solid #f0f0f0;text-align:right;font-weight:700;color:#d97706;">+8pt</td></tr>
-        <tr><td style="padding:8px;border-bottom:1px solid #f0f0f0;">📢 声の投稿</td><td style="padding:8px;border-bottom:1px solid #f0f0f0;text-align:right;font-weight:700;color:#d97706;">+10pt</td></tr>
-        <tr style="background:#fffbeb;"><td style="padding:8px;border-bottom:1px solid #f0f0f0;">❤️ 共感リアクション</td><td style="padding:8px;border-bottom:1px solid #f0f0f0;text-align:right;font-weight:700;color:#d97706;">+5pt</td></tr>
-        <tr><td style="padding:8px;border-bottom:1px solid #f0f0f0;">💪 チャレンジKPI記録</td><td style="padding:8px;border-bottom:1px solid #f0f0f0;text-align:right;font-weight:700;color:#d97706;">+2pt</td></tr>
-      </table>
-
-      <div style="font-weight:800;font-size:0.85rem;color:#2c3e50;margin:8px 0;">ショップで交換</div>
-      <table style="width:100%;font-size:0.82rem;border-collapse:collapse;">
-        <tr style="background:#fffbeb;"><td style="padding:8px;border-bottom:1px solid #f0f0f0;">🎰 月イチ抽選券</td><td style="padding:8px;border-bottom:1px solid #f0f0f0;text-align:right;font-weight:700;">500pt</td></tr>
-        <tr><td style="padding:8px;border-bottom:1px solid #f0f0f0;">☕ おごりコーヒー</td><td style="padding:8px;border-bottom:1px solid #f0f0f0;text-align:right;font-weight:700;">1,000pt</td></tr>
-        <tr style="background:#fffbeb;"><td style="padding:8px;border-bottom:1px solid #f0f0f0;">🧢 アバターパーツ</td><td style="padding:8px;border-bottom:1px solid #f0f0f0;text-align:right;font-weight:700;">200〜400pt</td></tr>
-        <tr><td style="padding:8px;">💝 寄付（交通遺児支援）</td><td style="padding:8px;text-align:right;font-weight:700;">2,000pt</td></tr>
-      </table>
-
-      <div class="tip" style="margin-top:12px;"><strong>おごりコーヒー：</strong> 同僚にコーヒーを1杯おごれる！相手に天の声から通知が届くよ。</div>
+      <p>海は一人じゃない。同じ章にいる人が同じ海で泳いでる。</p>
+      <p><strong>👥 仲間の魚</strong>（ボトムメニュー「仲間」）</p>
+      <p>同じエリアの人がリアルタイムで泳いでいます。名前が魚の頭上に。</p>
+      <p style="margin-top:10px;"><strong>🎉 スタンプ</strong></p>
+      <p>仲間の魚をタップすると、定型メッセージを送れます。</p>
+      <p>🎉 がんばって / 👍 いいね / 🙏 ありがとう / 🌊 また海で</p>
+      <p style="margin-top:10px;"><strong>🍾 ボトルメッセージ</strong>（左上のアイコン）</p>
+      <p>50字以内の匿名メッセージを、同じ章の全員に流せます（1日3本）。</p>
+      <p>タグ: #気づき #悩み #応援 #つぶやき #ありがとう</p>
+      <p>リアクション: ❤️共感 / 🙏ありがとう / 🌊見守る / ☕お茶</p>
+      <div class="tip"><strong>匿名だけど届く：</strong>誰が書いたか分からなくても、同じ第○章の仲間たちに声が届く。</div>
     </div>
   </div>
 
-  <!-- ========== セクション6: みんなの水槽 ========== -->
+  <!-- ========== セクション6: 天の声 ========== -->
   <div class="card-s" id="sec6">
     <div class="card-head">
-      <div class="card-icon" style="background:linear-gradient(135deg,#1a7ab5,#0e5a8a);"><i class="fas fa-water"></i></div>
-      <div class="card-title">みんなの水槽</div>
+      <div class="card-icon" style="background:linear-gradient(135deg,#c026d3,#a21caf);"><i class="fas fa-comment-dots"></i></div>
+      <div class="card-title">天の声との会話</div>
     </div>
     <div class="card-body">
-      <p>メニューの「仲間を見る」をタップすると、全員の魚が1つの水槽に集合！</p>
-      <p>🐟 元気な魚、🐟 ちょっとだるそうな魚、🥚 まだ卵の子…いろいろ。</p>
-      <p>誰の魚が一番元気か、ランキングも見られるよ。</p>
-      <div class="tip"><strong>仲間の魚が遊びに来る：</strong>あなたの水槽に他の人の魚が遊びに来ることがあります。水がきれいだと長く遊んでくれるよ。</div>
+      <p>海を見守る「天の声」が、時折あなたに語りかけます。</p>
+      <p><strong>📋 問いかけ（選択式）</strong></p>
+      <p>1日1問、海の雑談が届きます：</p>
+      <p>・今日の海はどんな気分？</p>
+      <p>・今日の海、どんな天気？</p>
+      <p>・仲間のこと、どう感じる？</p>
+      <p>タップ1回で答えるだけ。書く必要なし。</p>
+      <p style="margin-top:10px;"><strong>🖊️ 自分で書く</strong></p>
+      <p>なんでも話せます。健康の話も、雑談も、モヤモヤも。</p>
+      <p style="margin-top:10px;"><strong>🎤 自分で話す（1タップ連続会話）</strong></p>
+      <p>タップ1回で音声会話モードON。天の声の返答後、自動で次の聞き取りに切替え。</p>
+      <div class="tip"><strong>誰にも見られない：</strong>天の声との会話はあなたと天の声だけの秘密。推進メンバーに匿名で届く場合も、あなたの同意があった時だけ。</div>
     </div>
   </div>
 
-  <!-- ========== セクション7: みんなで決める ========== -->
+  <!-- ========== セクション7: 広場 ========== -->
   <div class="card-s" id="sec7">
     <div class="card-head">
-      <div class="card-icon" style="background:linear-gradient(135deg,#667eea,#764ba2);"><i class="fas fa-users"></i></div>
-      <div class="card-title">みんなで決める</div>
+      <div class="card-icon" style="background:linear-gradient(135deg,#10b981,#059669);"><i class="fas fa-comments"></i></div>
+      <div class="card-title">広場（意識高め向け）</div>
     </div>
     <div class="card-body">
-      <p>このアプリの面白いところ。みんなの声から、会社のアクションが生まれます。</p>
-
-      <div style="font-weight:800;font-size:0.85rem;color:#2c3e50;margin:12px 0 8px;">あなたの声がアクションになるまで</div>
-      <div class="flow">
-        <div class="flow-box"><div class="icon">💬</div><div class="label">魚と<br>おしゃべり</div></div>
-        <div class="flow-arrow">→</div>
-        <div class="flow-box"><div class="icon">📢</div><div class="label">匿名で<br>共有</div></div>
-        <div class="flow-arrow">→</div>
-        <div class="flow-box"><div class="icon">❤️</div><div class="label">共感が<br>集まる</div></div>
-        <div class="flow-arrow">→</div>
-        <div class="flow-box"><div class="icon">🗳️</div><div class="label">みんなで<br>投票</div></div>
-        <div class="flow-arrow">→</div>
-        <div class="flow-box"><div class="icon">💪</div><div class="label">チャレンジ<br>スタート</div></div>
-      </div>
-
-      <p style="margin-top:12px;font-size:0.85rem;">上から押し付けられるルールじゃない。<strong>自分たちで考えて、自分たちで決める。</strong></p>
-
-      <div class="hl"><strong>チャレンジに参加すると：</strong>500円分のQUOカードまたは給与手当として還元。継続した方には1,000円の褒賞もあります。</div>
-
-      <div class="tip"><strong>途中参加OK、リタイアOK：</strong>気が向いた時に参加して、無理なら抜けていい。やってみようかな、がスタートライン。</div>
+      <p>ボトムメニューの「広場」では、もっと深い機能が使えます。</p>
+      <p>📊 <strong>みんなの空気</strong> — 今日の参加率、人気ごはん</p>
+      <p>🗳️ <strong>テーマ投票</strong> — みんなの声から生まれたアクションプラン</p>
+      <p>🍽️ <strong>食事投稿</strong> — 写真を撮るだけで栄養AI分析</p>
+      <p>🔥 <strong>チャレンジ</strong> — 短期目標へのチーム挑戦</p>
+      <p>💬 <strong>みんなの声</strong> — 同僚の投稿を見る</p>
+      <div class="hl"><strong>使っても使わなくてもOK：</strong>冒険だけでもアプリは完結。広場は「もっと関わりたい人」向けの深掘りゾーン。</div>
     </div>
   </div>
 
-  <!-- フッター -->
-  <div style="text-align:center;padding:20px;font-size:0.75rem;color:#aaa;">
-    CoWell<br>
-    <a href="/guide-full" style="color:#667eea;text-decoration:none;">詳しいシステムガイドはこちら</a>
-    &nbsp;|&nbsp;
-    <a href="/knowledge" style="color:#667eea;text-decoration:none;">健康ナレッジベース</a>
-    &nbsp;|&nbsp;
-    <a href="/whitepaper" style="color:#667eea;text-decoration:none;">設計思想書</a>
+  <!-- ========== セクション8: Q&A ========== -->
+  <div class="card-s" id="sec8">
+    <div class="card-head">
+      <div class="card-icon" style="background:linear-gradient(135deg,#6366f1,#4f46e5);"><i class="fas fa-question"></i></div>
+      <div class="card-title">よくある質問</div>
+    </div>
+    <div class="card-body">
+      <p><strong>Q. 毎日使わないといけない？</strong></p>
+      <p>いいえ。歩数を記録しないだけで、罰もないし魚が死ぬこともありません。思い出した時だけでOK。</p>
+      <p style="margin-top:10px;"><strong>Q. 「健康アプリ」なの？</strong></p>
+      <p>海の冒険アプリです。結果として健康行動につながる設計になっていますが、画面のどこにも「健康」とは書いていません。歩きたくなったら歩いてください。</p>
+      <p style="margin-top:10px;"><strong>Q. データは誰が見られる？</strong></p>
+      <p>あなたの歩数・冒険進捗は、<strong>匿名化された統計</strong>としてのみ研究データに含まれます。個別のチャット内容は推進メンバーに共有されません（あなたが同意した場合のみ）。</p>
+      <p style="margin-top:10px;"><strong>Q. スマホの歩数計が反映されない？</strong></p>
+      <p>自動連携ではなく撮影OCR方式です。iOSヘルスケア／Google Fit／Samsung Health／Fitbit どのアプリの画面でも読み取れます。</p>
+      <p style="margin-top:10px;"><strong>Q. 魚が逃げる／死ぬことはある？</strong></p>
+      <p>ありません。過去の「ペット育成アプリ」から大転換しました。あなたの魚はずっといます。</p>
+      <p style="margin-top:10px;"><strong>Q. 5月11日って何？</strong></p>
+      <p>運輸・スズエ電機の社員180名向けの研究スタート日。5ヶ月間、「RPG型のナッジは無関心層を歩かせるか？」という帝京大学福田教授の研究と連動します。</p>
+    </div>
+  </div>
+
+  <div style="text-align:center;padding:20px;color:#94a3b8;font-size:0.75rem;">
+    🌊 CoWell v4 — 海の探索RPG<br>
+    2026-04 大改修 / 株式会社スタンダード運輸<br>
+    <a href="/whitepaper" style="color:#0ea5e9;text-decoration:none;">▸ 設計思想（ホワイトペーパー）</a>
   </div>
 
 </div>
+
 </body>
 </html>

@@ -98,13 +98,14 @@ body { font-family: 'Noto Sans JP', sans-serif; background: #f8f9fc; margin: 0; 
 
 <div class="wp-header" style="position:relative;">
   <a onclick="var from=new URLSearchParams(window.location.search).get('from');window.location.href=from==='admin'?'/admin':'/';return false;" href="/" style="position:absolute;top:12px;left:12px;background:rgba(255,255,255,0.2);color:white;border:1px solid rgba(255,255,255,0.3);border-radius:20px;padding:5px 14px;font-size:0.75rem;font-weight:700;text-decoration:none;cursor:pointer;"><i class="fas fa-arrow-left"></i> 戻る</a>
-  <div style="font-size:2.5rem; margin-bottom:12px;">🏥</div>
+  <div style="font-size:2.5rem; margin-bottom:12px;">🌊</div>
   <h1>CoWell</h1>
-  <div class="subtitle">共感駆動型ボトムアップ健康経営システム ― 設計思想書</div>
-  <div class="meta">Design Philosophy Whitepaper &nbsp;|&nbsp; Version 1.0 &nbsp;|&nbsp; 2026年3月</div>
+  <div class="subtitle">海の探索RPGと共感駆動型ボトムアップ健康経営の二層構造</div>
+  <div class="meta">Design Philosophy Whitepaper &nbsp;|&nbsp; Version 4.0 &nbsp;|&nbsp; 2026年4月</div>
 </div>
 
 <nav class="wp-nav">
+  <a href="#sec-rpg">🌊 v4 RPG転換</a>
   <a href="#sec0">原点</a>
   <a href="#sec1">背景と課題</a>
   <a href="#sec2">設計思想</a>
@@ -118,6 +119,79 @@ body { font-family: 'Noto Sans JP', sans-serif; background: #f8f9fc; margin: 0; 
 </nav>
 
 <div class="container">
+
+<!-- ====== v4. RPG転換 ====== -->
+<div class="section" id="sec-rpg">
+  <div class="section-num">Section v4 — 2026年4月追加</div>
+  <h2>🌊 RPG大転換と二層構造の採用</h2>
+
+  <h3>3世代の実践で判明した根本課題</h3>
+  <p>v1（モーダル投稿型）／v2（バディー会話型）／v3（アクアリウム型ペット育成）を実装・運用してきた結果、<strong>共通の根本課題</strong>が浮かび上がった：</p>
+  <div class="highlight-box">
+    <strong>「ユーザーに能動的な行動を求めた瞬間、無関心層は離脱する」</strong><br>
+    書け、話せ、記録しろ、食事を撮れ — 全てこちらからの要求。健康無関心層は要求された瞬間に離脱する。
+  </div>
+
+  <h3>ポケモンGOから得た構造的ヒント</h3>
+  <div class="quote-box">
+    ポケモンGOのユーザーは「健康のため」と一度も思っていない。でも歩いている。GPSが自動取得するから入力もゼロ。<br>
+    <strong>因果の方向が逆だった。</strong>健康行動→報酬ではなく、<strong>冒険したい→結果的に歩く</strong>。
+  </div>
+
+  <h3>新コンセプト：海の探索RPG</h3>
+  <p>2026年4月16日、ユーザー体験を「海の中を泳ぐ一匹の魚が、歩数によって冒険を進める」RPG型に全面転換した。</p>
+  <ul>
+    <li><strong>5章15エリア構成</strong>（波打ち際→珊瑚礁→外洋→深海→海溝の神殿）</li>
+    <li><strong>30種の魚との遭遇</strong>（図鑑システム）</li>
+    <li><strong>歩数計・スマホヘルスケア画面撮影（3秒）</strong>のみが唯一の入力</li>
+    <li><strong>「健康」の語を画面から完全排除</strong></li>
+    <li><strong>食事・睡眠・敵・回復は入れない</strong>（歩数一本勝負）</li>
+    <li>同じ章の仲間が同じ海を泳ぐ（<strong>ボトルメッセージ</strong>、<strong>スタンプ</strong>）</li>
+    <li>Geminiで生成した固有背景画像15枚と魚30種が世界観を支える</li>
+  </ul>
+
+  <h3>守るべき6原則（実践失敗から導出）</h3>
+  <div class="principle-card"><div class="p-title">① 入力させたら負ける</div><div class="p-body">歩数計の撮影3秒だけ</div></div>
+  <div class="principle-card"><div class="p-title">② 眺めるだけで成立する</div><div class="p-body">操作不要で物語が進む</div></div>
+  <div class="principle-card"><div class="p-title">③ 「健康」と言わない</div><div class="p-body">画面のどこにも健康の文字を出さない</div></div>
+  <div class="principle-card"><div class="p-title">④ 食事・睡眠・敵・回復は入れない</div><div class="p-body">歩数一本で勝負する</div></div>
+  <div class="principle-card"><div class="p-title">⑤ 会社の企画感を出さない</div><div class="p-body">個人の暇つぶしに見える設計</div></div>
+  <div class="principle-card"><div class="p-title">⑥ 因果を逆にする</div><div class="p-body">冒険したい→結果的に歩く</div></div>
+
+  <h3>二層構造の採用：無関心層×意識高め層</h3>
+  <p>v2の投稿・テーマ投票・AI計画生成・チャレンジ・保健師連携は<strong>価値が証明されている</strong>機能群であり、健康意識高い層には有効である。一方、RPGは<strong>無関心層を歩かせる仕掛け</strong>として新規追加した。</p>
+  <table class="comparison-table">
+    <thead><tr><th>層</th><th>主に使う機能</th><th>期待される行動</th></tr></thead>
+    <tbody>
+      <tr><td><strong>無関心層</strong><br>（大多数）</td><td>冒険RPG（歩数撮影・図鑑・仲間の海）</td><td>歩数計を撮影する3秒が唯一の儀式。結果として歩数が増える。</td></tr>
+      <tr><td><strong>意識高め層</strong><br>（一部）</td><td>冒険＋広場（投稿・テーマ投票・チャレンジ・天の声との自由会話）</td><td>積極的に声を発信し、職場改善プランに参画する。</td></tr>
+    </tbody>
+  </table>
+  <p>ボトムメニューの<strong>「広場」</strong>がv2機能群への入口。冒険画面で「自分で書く／話す」を選ぶと自由チャットに切替わる。自動でユーザーを分類するのではなく、<strong>使用頻度から自然にセグメンテーションされる</strong>設計とした。</p>
+
+  <h3>帝京大学公衆衛生学との共同研究</h3>
+  <p>帝京大学大学院公衆衛生学研究科長・福田吉治教授の指導のもと、大学院生・西村氏と共同で以下の研究を進めている：</p>
+  <ul>
+    <li><strong>研究テーマ案：</strong>「健康」を明示しないRPG型ナッジ介入は、中小企業の健康無関心層の身体活動量を変容させるか</li>
+    <li><strong>対象：</strong>スタンダード運輸＋スズエ電機のグループ会社 約180名（データ収集目標100名）</li>
+    <li><strong>期間：</strong>2026年5月11日〜2027年3月31日（5ヶ月間の介入＋評価）</li>
+    <li><strong>評価時点：</strong>9月1日／12月1日／2月28日／3月20日の4回</li>
+    <li><strong>データ：</strong>Admin冒険ダッシュボードから匿名化CSVエクスポート</li>
+  </ul>
+
+  <h3>技術的実装ハイライト（v4）</h3>
+  <ul>
+    <li>Gemini 2.5 Flash Image による魚30種＋背景15枚の世界観ビジュアル</li>
+    <li>万歩計／iOSヘルスケア／Google Fit／Samsung Health 等のOCR対応</li>
+    <li>1タップ連続音声会話モード（TTS完了→0.8秒→自動再聞取）</li>
+    <li>セグメント自動分類（walker_only/engaged/lurker/inactive）</li>
+    <li>章全体ブロードキャストのボトルメッセージ（匿名・50字）</li>
+    <li>Admin冒険ダッシュボードでの定量的無関心層トラッキング</li>
+  </ul>
+</div>
+
+<hr style="margin:40px 0;border:none;border-top:2px dashed #ccc;">
+<p style="color:#888;font-size:0.85rem;font-style:italic;text-align:center;">以下はv1〜v3時点の設計思想。意識高め層向け機能の基盤として現在も有効。</p>
 
 <!-- ====== 0. 原点 ====== -->
 <div class="section" id="sec0">

@@ -9903,30 +9903,40 @@ var _aqFrame = 0;
 var _aqW = 0, _aqH = 0;
 var _rpgBgColor = '#0ea5e9';
 
-// 画像プリロード
+// 画像プリロード（オンデマンド方式）
 var _rpgFishImages = {};  // id -> Image
 var _rpgBgImages = {};     // chapter -> Image
 var _rpgHeroImage = null;
+var _rpgFishLoading = {};
+var _rpgBgLoading = {};
+
+function preloadFishImage(id) {
+  if (_rpgFishImages[id] || _rpgFishLoading[id]) return;
+  _rpgFishLoading[id] = true;
+  var img = new Image();
+  img.onload = function() { _rpgFishImages[id] = img; };
+  img.onerror = function() { _rpgFishLoading[id] = false; };
+  img.src = '/fish/rpg_' + id + '.png';
+}
+
+function preloadBgImage(chapter) {
+  if (_rpgBgImages[chapter] || _rpgBgLoading[chapter]) return;
+  _rpgBgLoading[chapter] = true;
+  var bgNames = { 1: 'ch1_shore', 2: 'ch2_reef', 3: 'ch3_ocean', 4: 'ch4_deepsea', 5: 'ch5_trench' };
+  var name = bgNames[chapter];
+  if (!name) return;
+  var img = new Image();
+  img.onload = function() { _rpgBgImages[chapter] = img; };
+  img.onerror = function() { _rpgBgLoading[chapter] = false; };
+  img.src = '/bg/' + name + '.png';
+}
+
 function preloadRpgImages() {
-  // 主人公
+  // 主人公だけは即ロード
   var hero = new Image();
   hero.onload = function() { _rpgHeroImage = hero; };
   hero.src = '/fish/hero.png';
-  // 30魚
-  for (var i = 1; i <= 30; i++) {
-    (function(id) {
-      var img = new Image();
-      img.onload = function() { _rpgFishImages[id] = img; };
-      img.src = '/fish/rpg_' + id + '.png';
-    })(i);
-  }
-  // 章背景
-  var bgNames = { 1: 'ch1_shore', 2: 'ch2_reef', 3: 'ch3_ocean', 4: 'ch4_deepsea', 5: 'ch5_trench' };
-  Object.keys(bgNames).forEach(function(ch) {
-    var img = new Image();
-    img.onload = function() { _rpgBgImages[ch] = img; };
-    img.src = '/bg/' + bgNames[ch] + '.png';
-  });
+  // その他は現在エリアがわかってから遅延ロード
 }
 
 // ============================================================
@@ -9967,6 +9977,11 @@ function loadAdventureData() {
     .then(function(data) {
       if (!data.success) return;
       _rpg = data;
+
+      // 現在の章の背景を即ロード
+      if (data.area && data.area.chapter) preloadBgImage(data.area.chapter);
+      // 現在エリアの魚を即ロード
+      (data.area_fish || []).forEach(function(f) { preloadFishImage(f.id); });
 
       // UI更新を先に（ラベルの「読み込み中...」を早く解消）
       updateRpgUI();
@@ -10700,6 +10715,8 @@ function showFishEncounter(fish) {
 // ===== 図鑑 =====
 function openFishBook() {
   if (typeof track === 'function') track('fish_book_open');
+  // 図鑑を開く時は全魚の画像を遅延ロード（既にキャッシュされていればスキップ）
+  for (var fi = 1; fi <= 30; fi++) preloadFishImage(fi);
   fetch('/api/aquarium/discovery?uid=' + currentUser.uid, { headers:{'x-user-id':currentUser.uid} })
     .then(function(r){return r.json();}).then(function(d){
       if (!d.success) return;

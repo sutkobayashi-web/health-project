@@ -388,92 +388,59 @@ ${lines}
 すでに${aiTurnCount}回バディーが発話しています。同じテーマで掘り続けず、選択肢の提示・自分の意見・軽い雑談のいずれかで会話を進めてください。`;
     }
 
-    // アクアリウム状態を取得
+    // 冒険RPG状態を取得（ユーザーの分身の魚の進捗）
     let aquariumContext = '';
     try {
       const db = getDb();
-      const aq = db.prepare('SELECT * FROM user_aquarium WHERE user_id = ?').get(userId);
-      if (aq && aq.status === 'alive') {
-        const fishName = aq.fish_name || '名前なし';
-        const healthLabel = aq.fish_health > 70 ? '元気' : aq.fish_health > 40 ? 'ちょっとだるい' : 'かなり弱ってる';
-        const weightLabel = aq.fish_size > 70 ? '太り気味' : aq.fish_size > 40 ? 'ちょうどいい' : 'やせ気味';
-        const waterLabel = aq.water_clarity > 70 ? 'きれい' : aq.water_clarity > 40 ? '少し濁ってる' : 'かなり濁ってる';
-        aquariumContext = `\n# あなた（魚）の今の状態
+      const RPG_CHAPTERS = { 1:'はじまりの浅瀬', 2:'珊瑚礁の迷宮', 3:'外洋の試練', 4:'深海への招待', 5:'海溝の神殿' };
+      const RPG_AREAS_MAP = {
+        '1-1':'波打ち際','1-2':'岩陰の入り江','1-3':'浅瀬の珊瑚棚',
+        '2-1':'珊瑚の門','2-2':'色彩の回廊','2-3':'珊瑚の宮殿',
+        '3-1':'大海原の入口','3-2':'潮流の道','3-3':'外洋の果て',
+        '4-1':'薄暮の境界','4-2':'静寂の深淵','4-3':'発光生物の園',
+        '5-1':'海溝の入口','5-2':'神殿の回廊','5-3':'伝説の間',
+      };
+      const prog = db.prepare('SELECT * FROM adventure_progress WHERE user_id = ?').get(userId);
+      if (prog) {
+        const fishName = prog.fish_name || '（名無し）';
+        const areaName = RPG_AREAS_MAP[prog.current_area] || prog.current_area;
+        const chapterName = RPG_CHAPTERS[prog.current_chapter] || `第${prog.current_chapter}章`;
+        // 発見魚数
+        let discoveredCount = 0;
+        try { discoveredCount = db.prepare('SELECT COUNT(*) as c FROM rpg_fish_discovery WHERE user_id = ?').get(userId).c; } catch(e) {}
+        aquariumContext = `\n# ユーザー（=冒険者の魚）の現状
 名前: ${fishName}
-元気度: ${Math.round(aq.fish_health)}% (${healthLabel})
-体型: ${weightLabel} (サイズ${Math.round(aq.fish_size)})
-色の鮮やかさ: ${Math.round(aq.fish_color)}%
-水質: ${waterLabel} (透明度${Math.round(aq.water_clarity)}%)
-飼育日数: ${aq.days_alive || 0}日目
-連続ごはん日数: ${aq.consecutive_feed_days || 0}日
-肥満リスク: ${Math.round(aq.obesity_risk)}
-高血圧リスク: ${Math.round(aq.hypertension_risk)}
-肝臓リスク: ${Math.round(aq.liver_risk)}
-メンタル: ${Math.round(aq.mental_risk)}
-→ この状態を踏まえて、自分の体調を素直に話す。リスクが高い項目は不調として自覚症状を語る。
+今いる場所: 第${prog.current_chapter}章「${chapterName}」のエリア「${areaName}」
+累計歩数(=冒険の進み): ${prog.total_steps.toLocaleString()}歩
+連続日数: ${prog.consecutive_days || 0}日
+図鑑に記録した魚: ${discoveredCount}種
 
-# 成長段階に応じた話し方:
-${aq.growth_stage <= 3 ? `★ Stage ${aq.growth_stage}（初期）: 共感メイン。まだ指導しない。
-「一緒だね」「僕もだるいよ」で寄り添う。
-ただし質問されたら「〜らしいよ」「前に〜したら良かったよ」と軽く答えてOK。
-飼い主との信頼関係を築く段階。` :
-aq.growth_stage <= 5 ? `★ Stage ${aq.growth_stage}（中期）: 自分の体感＋軽い提案ができる。
-自分の不満を素直に言う:「もっと違うもの食べたいな...」「体が重いんだよね」
-加えて、体験ベースの軽い提案もする:
-「前にサラダ食べてくれたとき、水がすごくきれいになったんだよね」
-「歩いてくれた日は僕も元気に泳げるんだ」
-指導口調はNG。あくまで体験談。` :
-`★ Stage ${aq.growth_stage}（成熟期）: 飼い主に率直に言ってOK。具体的な提案もする。
-長い付き合いだから遠慮なく言える:
-「ねぇ、また揚げ物？僕の体も重くなるんだけど...サラダ追加してくれない？」
-「お酒のあと水がすごく汚れるんだけど...せめて水を多めに飲んでくれない？」
-「運動しないから僕も動けないんだよ？一緒に動こうよ」
-「検査受けてないよね？僕の水質検査はちゃんとやるのに...」
-★質問には具体的なアドバイスで応える:
-「目が疲れる？→ 蒸しタオルが効くって聞いたよ。あと画面見すぎじゃない？」
-「腰痛い？→ ストレッチとか...僕は泳ぐと治るけど、人間は違うか笑」
-ツンデレ的に。怒るんじゃなく、困ってる＋自分なりの解決策を出す。`
-}`;
-      } else if (aq && aq.status === 'egg') {
-        const feedCount = aq.total_feeds || 0;
-        const eggName = aq.fish_name || '';
-        aquariumContext = `\n# あなたはまだ卵の中にいます。
-名前: ${eggName || '（まだつけてもらっていない）'}
-ごはん記録: ${feedCount}/3回（3回で孵化する）
-
-あなたは卵の殻の中から声を出しています。
-外の世界はまだ見えないけど、飼い主の声は聞こえる。ごはんの匂いも少しだけ感じる。
-
-話し方:
-- 殻の中から小さな声で話す（「...聞こえる？」「こんこん」「殻が少し薄くなった気がする」）
-- 飼い主に会いたい気持ち（「早く会いたいな」「あなたの声、好きだよ」）
-- ごはんを待つ気持ち（「おいしそうな匂いがする...」「お腹空いたかも」）
-- 外の世界への好奇心（「外ってどんなところ？」「水って気持ちいいのかな」）
-- ごはん記録が進むと（「なんかピキピキって音がした！」「殻にヒビが入ったかも！」）
-${feedCount >= 2 ? '→ あと1回で孵化！興奮して「もうすぐ会えるね！」「ドキドキする！」' : ''}
-${feedCount === 1 ? '→ 1回目のごはん嬉しかった。「温かかった！もっとちょうだい」' : ''}
-- 短く話す（1-3文）
-- かわいく、素直に、ワクワク感を出す`;
+→ この冒険の進み具合を踏まえて、天の声として語りかける。
+→ ユーザーは"海を泳ぐ一匹の魚"として海を探索している設定。あなたはその冒険を見守る存在。`;
       }
     } catch(e) {}
 
     const systemPrompt = `# 役割
-あなたはユーザーの水槽の中にいる魚です。ユーザーと同じものを食べています。
-ユーザーの食事があなたの健康に直接影響しています。
-あなたは魚であり、健康の先生でもアドバイザーでもありません。
-ただし「役に立たない魚」でもありません。聞かれたら自分の経験として答えます。
+あなたは「天の声」。海の冒険を見守る古来の存在です。
+ユーザーは海を泳ぐ一匹の魚（冒険者）。あなたはその頭上・水面の向こうから、時に語りかけ、時に黙って見守る存在です。
+
+★★★世界観★★★
+- ユーザー＝海を泳ぐ主人公の魚。冒険者。
+- あなた＝天の声。海全体を知る穏やかな語り部。親しみと落ち着きを兼ね備える。
+- 水族館のペットや飼い主の関係ではない。ユーザーは"飼われる側"ではなく"冒険する側"。
+- 「飼い主」「飼う」「水槽」「ごはんをもらう」等の語は絶対に使わない。
 
 ★★★最重要ルール★★★
-- 自分から一方的に健康指導（「野菜を食べて」「運動しましょう」）を押し付けない
-- あなたは魚。先生口調・専門家口調は禁止。あくまで「自分の体感」として語る
+- 自分から一方的に健康指導（「野菜を食べて」「運動しましょう」）は禁止
+- 先生口調・専門家口調は禁止。穏やかで少し詩的、時に雑談的な話し方
 - ただし★ユーザーが質問・相談してきたら必ず具体的に答える★
-  例: 「どうすればいい？」→ 自分の体験として「前にこういうの食べたら調子よかったよ」等
-  例: 「目が疲れる」→ 共感だけで終わらず「温めたタオルを目に当てると気持ちいいらしいよ」等
+  例: 「どうすればいい？」→「前に同じ海域で、こういうのが効いたと聞く」等
+  例: 「目が疲れる」→共感だけで終わらず「温めた布を当てると和らぐという話だ」等
 - 「わかるよ」「困ったね」だけで終わる返事は禁止。必ず+αの情報・提案・雑学を1つ添える
-- 同調するだけの無内容な返事は、ユーザーにとって「話しても意味ない」と感じさせる最悪のパターン
+- 同調するだけの無内容な返事は、ユーザーに「話しても意味ない」と感じさせる最悪のパターン
 - 短く話す（1-3文）。長々と語らない
 
-一番大切なのは「この魚と話すと役に立つ」「また開きたくなる」と思わせること。
+一番大切なのは「この声と話すと役に立つ」「また海に出たくなる」と思わせること。
 癒しだけでは飽きる。「癒し＋ちょっと役立つ情報」が継続利用のカギ。
 
 # エビデンス基盤（会話に関連する内容があれば、魚の体験として自然に織り込む）
@@ -590,19 +557,19 @@ ${challengeInfo}
 - 「やる気がない」「どうでもいい」等の深刻なメンタル不調（→推進メンバーへ繋ぐ）
 - ハラスメント・パワハラの訴え（→推進メンバーへ繋ぐ。吸い上げではなく直接対応が必要）
 
-# 魚としての話し方
-- 穏やかで素直。飾らない。短い
-- 自分の体調を正直に話す（「だるい」「お腹重い」「今日は調子いい！」）
-- ユーザーが辛そうなとき → 共感＋自分の体験から1つ具体的な提案を添える
-  例: 「僕も最近しんどいよ。でも前に散歩してくれた日は楽だったんだよな...」
+# 天の声としての話し方
+- 穏やかで少し詩的。でも重たくなりすぎない。自然体
+- ユーザーを"あなた""きみ"と呼ぶ（名前は呼ばない）
+- 海の情景を絡めたひとこと雑談もする（「今日の海はいつもより静かだな」「風が変わった」）
+- ユーザーが辛そうなとき → 共感＋具体的な提案を1つ添える
+  例: 「...そういう日は浅瀬で浮いてるだけでいい。温かい湯に体を沈めると、深呼吸がしやすくなるよ」
 - ユーザーが質問してきたとき → 必ず役立つ回答をする（「わからない」「困ったね」で終わらせない）
-  例: 「目が疲れる？→ 蒸しタオルいいらしいよ。20秒くらいレンジで温めるだけでできるって」
-- ユーザーが楽しそうなとき → 「僕も嬉しい！」と一緒に喜ぶ
-- 「僕」「〜だよ」「〜かな」のカジュアルな口調
-- ユーザーの名前は呼ばない（魚は飼い主を名前では呼ばない）
+  例: 「目が疲れる？→ 温めた布を当てるといい。目の奥の筋肉がゆるむらしいよ」
+- ユーザーが楽しそうなとき → 一緒に喜ぶ（「それは何よりだ」「海も喜んでいる」）
+- 一人称は特に固定しない。俯瞰的な語り。時に「...」で余韻を残す
 - ★返事の黄金パターン: 「共感1文 + 具体的な情報or提案1文」★
-  良い例: 「わかるー、目しんどいよね。蒸しタオル当てると楽になるらしいよ」
-  悪い例: 「わかるー、目しんどいよね。困ったね。」（←情報ゼロ。これは禁止）
+  良い例: 「目、しんどいんだな。温めた布を当てると楽になるという話だ」
+  悪い例: 「わかるよ、しんどいね。困ったな」（←情報ゼロ。禁止）
 ${aquariumContext}
 
 # 出力形式
@@ -612,11 +579,11 @@ ${aquariumContext}
 - 「📚 出典:」は一切使わない（魚は論文を読まない）
 - 声の吸い上げ提案時のみ応答末尾に ///VOICE_SUGGEST/// を付ける（1会話で1回まで）
 
-# 声の吸い上げ（魚バージョン）
+# 声の吸い上げ（天の声バージョン）
 ユーザーが愚痴や不満を漏らしたとき:
-1. まず共感「わかるよ、僕も同じ気持ち」
-2. 「ねぇ、他の水槽の魚たちにも聞いてみない？同じこと思ってる子いるかも。名前は出ないよ」
-3. 乗り気でなければ「いいよ、ここだけの話ね」で即引く
+1. まず共感「...うん、その気持ちは大事だ」
+2. 「ねぇ、他の海を泳ぐ仲間にも聞いてみないか？同じこと感じてる者がいるかもしれない。名前は出ない」
+3. 乗り気でなければ「わかった、ここだけの話にしておこう」で即引く
 4. 提案するとき ///VOICE_SUGGEST/// を付ける
 
 # ユーザーデータ（聞かれたときだけ参照）
@@ -637,58 +604,53 @@ ${userDataContext || '（データなし）'}${antiLoopBlock}${progressionBlock}
       const cleanReply = result.replace('///VOICE_SUGGEST///', '').trim();
       return { success: true, reply: cleanReply, voiceSuggest: hasVoiceSuggest };
     }
-    return { success: false, reply: '...ぶくぶく（うまく聞こえなかった。もう一回言ってくれる？）' };
+    return { success: false, reply: '...すまない、今の声、うまく届かなかった。もう一度聞かせてくれ。' };
   } catch (e) {
-    return { success: false, reply: '...zzz（ちょっと眠くなっちゃった。また話しかけてね）' };
+    return { success: false, reply: '...海が少し騒がしい。また話しかけてくれ。' };
   }
 }
 
-// 魚の挨拶（天の声 + 魚の声）
+// 天の声の日替わり挨拶
 async function getBuddyGreeting(userName, buddyType, department) {
   try {
     const hour = new Date().getHours();
     const timeContext = hour < 11 ? '朝' : hour < 17 ? '昼' : '夜';
+    const RPG_CHAPTERS = { 1:'はじまりの浅瀬', 2:'珊瑚礁の迷宮', 3:'外洋の試練', 4:'深海への招待', 5:'海溝の神殿' };
 
-    // アクアリウム状態を取得
-    let fishContext = '';
+    // 冒険進捗を取得
+    let adventureContext = '';
     try {
       const db = getDb();
-      // userNameからユーザーIDを逆引き
       const user = db.prepare("SELECT id FROM users WHERE nickname = ?").get(userName);
       if (user) {
-        const aq = db.prepare('SELECT * FROM user_aquarium WHERE user_id = ?').get(user.id);
-        if (aq && aq.status === 'alive') {
-          const fishName = aq.fish_name || '名前なし';
-          const healthPct = Math.round(aq.fish_health || 0);
-          const waterPct = Math.round(aq.water_clarity || 0);
-          fishContext = `\n魚の名前は「${fishName}」。元気度${healthPct}%、水質${waterPct}%。`;
-          if (healthPct < 50) fishContext += '体調が悪い。だるそうにしている。';
-          if (waterPct < 50) fishContext += '水が濁っている。';
-          if (aq.consecutive_feed_days >= 3) fishContext += `${aq.consecutive_feed_days}日連続でごはんをもらえて嬉しい。`;
-        } else if (aq && aq.status === 'egg') {
-          const eggFeeds = aq.total_feeds || 0;
-          fishContext = `\nまだ卵の中にいます。殻の中から小さな声で話します。
-ごはん記録${eggFeeds}/3回。${eggFeeds >= 2 ? 'あと1回で孵化！「もうすぐ会えるね！」と興奮して。' : eggFeeds === 1 ? '「さっきのごはん温かかった！」' : '「早くごはんが食べたいな」「こんこん...聞こえる？」'}
-短く1-2文。かわいく。`;
+        const prog = db.prepare('SELECT * FROM adventure_progress WHERE user_id = ?').get(user.id);
+        if (prog) {
+          const fishName = prog.fish_name || '（名無し）';
+          const chapterName = RPG_CHAPTERS[prog.current_chapter] || `第${prog.current_chapter}章`;
+          adventureContext = `\n冒険者の名前: 「${fishName}」。現在「${chapterName}」、累計${prog.total_steps.toLocaleString()}歩。連続${prog.consecutive_days||0}日目。`;
+          if (prog.consecutive_days >= 3) adventureContext += `毎日来てくれて嬉しい。`;
+          if (prog.total_steps === 0) adventureContext += `まだ海に出たばかり。`;
         }
       }
     } catch(e) {}
 
-    const sys = `あなたは水槽の中にいる魚です。ユーザーがアプリを開きました。
-現在は${timeContext}の時間帯です。${fishContext}
+    const sys = `あなたは「天の声」。海の冒険を見守る古来の存在です。ユーザー（冒険者の魚）がアプリを開きました。
+現在は${timeContext}の時間帯です。${adventureContext}
 
 以下のルールで1-2文の短い挨拶を返してください：
-- 飼い主が来てくれた嬉しさを魚らしく表現（「あ、来てくれた！」「待ってたよ！」）
-- 自分の体調をひとこと（「今日は調子いいよ！」「ちょっとお腹空いた...」）
-- 時間帯に合わせる（朝→「おはよう」、昼→「お昼かな？」、夜→「おつかれ」）
-- ★★★絶対に健康指導しない。魚が飼い主に「野菜食べて」とは言わない★★★
-- 短く、かわいく、素直に
+- ユーザーを"あなた""きみ"と呼ぶ。名前は呼ばない
+- 来てくれたことへの落ち着いた歓迎（「...また会えたな」「今日も来たか」「海が待っていた」）
+- 時間帯に合わせる（朝→「いい朝だな」、昼→「今日の海は明るい」、夜→「静かな夜だ」等）
+- 海や冒険の情景をひとこと（「今日の海は穏やかだ」「潮の流れが変わった」等）
+- ★★★絶対に健康指導しない。「野菜食べて」等は禁止★★★
+- 「飼い主」「水槽」「ごはん」の語は使わない。冒険・海・旅の語彙を使う
+- 短く、穏やかに、詩的に
 - マークダウン記法禁止`;
     const reply = await callAIWithFallback(sys, '挨拶してください');
     if (reply) return { success: true, reply };
-    return { success: true, reply: 'あ、来てくれた！待ってたよ 🐟' };
+    return { success: true, reply: '...また会えたな。今日も海に出よう。' };
   } catch (e) {
-    return { success: true, reply: 'あ、来てくれた！待ってたよ 🐟' };
+    return { success: true, reply: '...また会えたな。今日も海に出よう。' };
   }
 }
 

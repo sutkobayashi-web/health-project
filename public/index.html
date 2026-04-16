@@ -10284,6 +10284,7 @@ function addNarration(text) {
   var overlay = document.getElementById('narrator-text');
   if (overlay) {
     overlay.textContent = text;
+    overlay.style.transition = 'opacity 0.4s';
     overlay.style.opacity = '1';
     // 8秒後にフェードアウト
     clearTimeout(window._narratorTimeout);
@@ -10292,10 +10293,8 @@ function addNarration(text) {
       overlay.style.opacity = '0.3';
     }, 8000);
   }
-  // バディーメッセージエリアにも追加（ログとして）
-  if (typeof addBuddyMessage === 'function') {
-    addBuddyMessage('ai', text);
-  }
+  // 注: 語り部は水槽内だけに表示（チャット領域には流さない）
+  // チャット領域は天の声との対話専用
 }
 
 function showAqVoice(text) {

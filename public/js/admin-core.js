@@ -886,23 +886,38 @@ function loadAccessStats() {
 
 function renderAccessStats(d) {
     var esc = function(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); };
+    var pad2 = function(n){ return (n < 10 ? '0' : '') + n; };
+    var toYmd = function(dt){ return dt.getFullYear() + '-' + pad2(dt.getMonth()+1) + '-' + pad2(dt.getDate()); };
     var users = d.users || [];
     var trend = d.daily_trend || [];
-    var today = new Date().toISOString().split('T')[0];
+    var today = toYmd(new Date());
+
+    // 欠落日を埋める: 過去30日分の枠を作って、dataがある日だけ埋める
+    var trendMap = {};
+    trend.forEach(function(t){ trendMap[t.access_date] = t; });
+    var fullTrend = [];
+    for (var i = 29; i >= 0; i--) {
+      var dt = new Date(Date.now() - i * 86400000);
+      var key = toYmd(dt);
+      var rec = trendMap[key];
+      fullTrend.push({ access_date: key, unique_users: rec ? rec.unique_users : 0, total_hits: rec ? rec.total_hits : 0 });
+    }
 
     // 集計
-    var last7Start = new Date(Date.now() - 6 * 86400000).toISOString().split('T')[0];
-    var unique7 = {};
-    trend.forEach(function(t){ if (t.access_date >= last7Start) { unique7[t.access_date] = t.unique_users; } });
+    var last7Start = toYmd(new Date(Date.now() - 6 * 86400000));
+    var usersLast7 = users.filter(function(u){
+      if (!u.last_access_at) return false;
+      return u.last_access_at.slice(0, 10) >= last7Start;
+    }).length;
     var totalAccess = users.reduce(function(a, u){ return a + (u.total_access_count || 0); }, 0);
     var bestStreak = users.reduce(function(a, u){ return Math.max(a, u.best_consecutive_days || 0); }, 0);
-    var bestStreakUser = users.find(function(u){ return u.best_consecutive_days === bestStreak; });
+    var bestStreakUser = users.find(function(u){ return (u.best_consecutive_days || 0) === bestStreak && bestStreak > 0; });
 
-    // 離脱候補: 7日以上アクセスなし
-    var sevenDaysAgo = new Date(Date.now() - 7 * 86400000).toISOString();
+    // 離脱候補: 7日以上アクセスなし (or アクセス自体なし)
+    var sevenDaysAgoYmd = toYmd(new Date(Date.now() - 7 * 86400000));
     var atRisk = users.filter(function(u){
-      if (!u.last_access_at) return true; // 未アクセス
-      return u.last_access_at < sevenDaysAgo;
+      if (!u.last_access_at) return true;
+      return u.last_access_at.slice(0, 10) < sevenDaysAgoYmd;
     });
 
     var html = '';
@@ -910,7 +925,7 @@ function renderAccessStats(d) {
     // サマリーカード 4枚
     html += '<div class="row g-2 mb-3">';
     html += '<div class="col-6 col-md-3"><div class="card"><div class="card-body p-3 text-center"><div class="text-muted small">本日のアクティブ</div><div class="fw-bold" style="font-size:1.6rem;color:#f59e0b;">' + (d.today_active || 0) + '<span style="font-size:0.8rem;color:#888;"> 人</span></div></div></div></div>';
-    html += '<div class="col-6 col-md-3"><div class="card"><div class="card-body p-3 text-center"><div class="text-muted small">直近7日 ユニーク</div><div class="fw-bold" style="font-size:1.6rem;color:#0ea5e9;">' + Object.keys(unique7).length + '<span style="font-size:0.8rem;color:#888;"> 日</span></div></div></div></div>';
+    html += '<div class="col-6 col-md-3"><div class="card"><div class="card-body p-3 text-center"><div class="text-muted small">直近7日 触れた人</div><div class="fw-bold" style="font-size:1.6rem;color:#0ea5e9;">' + usersLast7 + '<span style="font-size:0.8rem;color:#888;"> 人</span></div></div></div></div>';
     html += '<div class="col-6 col-md-3"><div class="card"><div class="card-body p-3 text-center"><div class="text-muted small">総アクセス</div><div class="fw-bold" style="font-size:1.6rem;color:#10b981;">' + totalAccess.toLocaleString() + '</div></div></div></div>';
     html += '<div class="col-6 col-md-3"><div class="card"><div class="card-body p-3 text-center"><div class="text-muted small">最長連続</div><div class="fw-bold" style="font-size:1.6rem;color:#ef4444;">' + bestStreak + '<span style="font-size:0.8rem;color:#888;"> 日</span></div>' + (bestStreakUser ? '<div class="small text-muted">' + esc(bestStreakUser.nickname) + '</div>' : '') + '</div></div></div>';
     html += '</div>';
@@ -928,32 +943,35 @@ function renderAccessStats(d) {
       html += '</div></div></div>';
     }
 
-    // 日別トレンド(過去30日、横棒バー風)
+    // 日別トレンド(過去30日、横棒バー風、欠落日はゼロ埋め)
     html += '<div class="card mb-3"><div class="card-body p-3">';
-    html += '<h6 class="fw-bold mb-3"><i class="fas fa-chart-bar me-1"></i>日別アクセス推移 (過去30日)</h6>';
-    if (trend.length === 0) {
-      html += '<div class="text-muted small">データなし</div>';
-    } else {
-      var maxHits = Math.max.apply(null, trend.map(function(t){ return t.total_hits || 0; }));
-      var maxU = Math.max.apply(null, trend.map(function(t){ return t.unique_users || 0; }));
-      html += '<div style="display:flex;flex-direction:column;gap:3px;font-size:0.78rem;font-family:monospace;">';
-      trend.slice().reverse().forEach(function(t){
-        var u = t.unique_users || 0;
-        var h = t.total_hits || 0;
-        var uBar = maxU > 0 ? (u / maxU) * 100 : 0;
-        var hBar = maxHits > 0 ? (h / maxHits) * 100 : 0;
-        var isToday = t.access_date === today;
-        html += '<div style="display:flex;align-items:center;gap:8px;' + (isToday ? 'background:#fef3c7;border-radius:4px;padding:2px 4px;' : '') + '">';
-        html += '<span style="width:85px;color:#666;">' + t.access_date + '</span>';
-        html += '<span style="width:50px;text-align:right;color:#0ea5e9;font-weight:700;">' + u + '人</span>';
-        html += '<div style="flex:1;height:14px;background:#f3f4f6;border-radius:3px;position:relative;overflow:hidden;">';
-        html += '<div style="position:absolute;left:0;top:0;height:100%;width:' + hBar.toFixed(1) + '%;background:linear-gradient(90deg,#fcd34d,#f59e0b);"></div>';
-        html += '</div>';
-        html += '<span style="width:80px;text-align:right;color:#888;">' + h.toLocaleString() + ' hit</span>';
-        html += '</div>';
-      });
+    html += '<h6 class="fw-bold mb-2"><i class="fas fa-chart-bar me-1"></i>日別アクセス推移 (過去30日)</h6>';
+    html += '<div class="small text-muted mb-3">橙バー: 総アクセス / 青数字: ユニークユーザー数</div>';
+    var maxHits = Math.max.apply(null, fullTrend.map(function(t){ return t.total_hits || 0; }));
+    if (maxHits === 0) maxHits = 1;
+    html += '<div style="display:flex;flex-direction:column;gap:2px;font-size:0.74rem;">';
+    // 新しい日が上(today -> 30日前)
+    fullTrend.slice().reverse().forEach(function(t){
+      var u = t.unique_users || 0;
+      var h = t.total_hits || 0;
+      var hBar = (h / maxHits) * 100;
+      var isToday = t.access_date === today;
+      var dt = new Date(t.access_date + 'T00:00:00');
+      var weekday = ['日','月','火','水','木','金','土'][dt.getDay()];
+      var label = (dt.getMonth()+1) + '/' + dt.getDate() + '(' + weekday + ')';
+      var rowBg = isToday ? '#fef3c7' : 'transparent';
+      html += '<div style="display:flex;align-items:center;gap:8px;background:' + rowBg + ';border-radius:4px;padding:3px 6px;min-height:22px;">';
+      html += '<span style="width:72px;color:#666;font-weight:' + (isToday ? '800' : '500') + ';">' + label + (isToday ? ' 今日' : '') + '</span>';
+      html += '<span style="width:48px;text-align:right;color:' + (u > 0 ? '#0ea5e9' : '#cbd5e1') + ';font-weight:700;">' + (u > 0 ? u + '人' : '—') + '</span>';
+      html += '<div style="flex:1;height:14px;background:#f3f4f6;border-radius:3px;position:relative;overflow:hidden;min-width:60px;">';
+      if (h > 0) {
+        html += '<div style="position:absolute;left:0;top:0;height:100%;width:' + Math.max(3, hBar).toFixed(1) + '%;background:linear-gradient(90deg,#fcd34d,#f59e0b);border-radius:3px;"></div>';
+      }
       html += '</div>';
-    }
+      html += '<span style="width:80px;text-align:right;color:' + (h > 0 ? '#888' : '#cbd5e1') + ';">' + (h > 0 ? h.toLocaleString() + ' hit' : '—') + '</span>';
+      html += '</div>';
+    });
+    html += '</div>';
     html += '</div></div>';
 
     // ユーザー別ランキング

@@ -845,7 +845,7 @@ function switchTab(t) {
     var target = document.getElementById('tab-'+t); if(target) target.classList.add('active');
     document.querySelectorAll('.nav-item').forEach(function(e) { e.classList.remove('active'); });
 
-    var navMap = { evaluation:'nav-eval', current:'nav-curr', candidates:'nav-cand', resolved:'nav-res', personal:'nav-personal', bmi22:'nav-bmi22', aimeeting:'nav-aimeeting', exec:'nav-exec', food:'nav-food', buddytopic:'nav-buddytopic', members:'nav-members', backup:'nav-backup', v2dash:'nav-v2dash', v2challenge:'nav-v2challenge', v2kpi:'nav-v2kpi', v2ambassador:'nav-v2ambassador', rpgdash:'nav-rpgdash' };
+    var navMap = { evaluation:'nav-eval', current:'nav-curr', candidates:'nav-cand', resolved:'nav-res', personal:'nav-personal', bmi22:'nav-bmi22', aimeeting:'nav-aimeeting', exec:'nav-exec', food:'nav-food', buddytopic:'nav-buddytopic', members:'nav-members', backup:'nav-backup', v2dash:'nav-v2dash', v2challenge:'nav-v2challenge', v2kpi:'nav-v2kpi', v2ambassador:'nav-v2ambassador', rpgdash:'nav-rpgdash', access:'nav-access' };
     var navEl = document.getElementById(navMap[t] || 'nav-eval');
     if(navEl) navEl.classList.add('active');
 
@@ -867,6 +867,119 @@ function switchTab(t) {
     if(t==='v2ambassador' && typeof renderV2Ambassador === 'function') renderV2Ambassador();
     if(t==='buddytopic' && typeof renderBuddyTopicAdmin === 'function') renderBuddyTopicAdmin();
     if(t==='rpgdash' && typeof loadRpgDashboard === 'function') loadRpgDashboard();
+    if(t==='access' && typeof loadAccessStats === 'function') loadAccessStats();
+}
+
+// ==================== アクセス統計 ====================
+function loadAccessStats() {
+    var body = document.getElementById('access-stats-body');
+    if (!body) return;
+    var token = (typeof getAdminToken === 'function') ? getAdminToken() : (localStorage.getItem('adminToken') || '');
+    fetch('/api/auth/access-stats', { headers: { 'Authorization': 'Bearer ' + token } })
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if (!d.success) { body.innerHTML = '<div class="text-danger p-4">読み込み失敗: ' + (d.error || '不明') + '</div>'; return; }
+        body.innerHTML = renderAccessStats(d);
+      })
+      .catch(function(e){ body.innerHTML = '<div class="text-danger p-4">通信エラー: ' + e.message + '</div>'; });
+}
+
+function renderAccessStats(d) {
+    var esc = function(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); };
+    var users = d.users || [];
+    var trend = d.daily_trend || [];
+    var today = new Date().toISOString().split('T')[0];
+
+    // 集計
+    var last7Start = new Date(Date.now() - 6 * 86400000).toISOString().split('T')[0];
+    var unique7 = {};
+    trend.forEach(function(t){ if (t.access_date >= last7Start) { unique7[t.access_date] = t.unique_users; } });
+    var totalAccess = users.reduce(function(a, u){ return a + (u.total_access_count || 0); }, 0);
+    var bestStreak = users.reduce(function(a, u){ return Math.max(a, u.best_consecutive_days || 0); }, 0);
+    var bestStreakUser = users.find(function(u){ return u.best_consecutive_days === bestStreak; });
+
+    // 離脱候補: 7日以上アクセスなし
+    var sevenDaysAgo = new Date(Date.now() - 7 * 86400000).toISOString();
+    var atRisk = users.filter(function(u){
+      if (!u.last_access_at) return true; // 未アクセス
+      return u.last_access_at < sevenDaysAgo;
+    });
+
+    var html = '';
+
+    // サマリーカード 4枚
+    html += '<div class="row g-2 mb-3">';
+    html += '<div class="col-6 col-md-3"><div class="card"><div class="card-body p-3 text-center"><div class="text-muted small">本日のアクティブ</div><div class="fw-bold" style="font-size:1.6rem;color:#f59e0b;">' + (d.today_active || 0) + '<span style="font-size:0.8rem;color:#888;"> 人</span></div></div></div></div>';
+    html += '<div class="col-6 col-md-3"><div class="card"><div class="card-body p-3 text-center"><div class="text-muted small">直近7日 ユニーク</div><div class="fw-bold" style="font-size:1.6rem;color:#0ea5e9;">' + Object.keys(unique7).length + '<span style="font-size:0.8rem;color:#888;"> 日</span></div></div></div></div>';
+    html += '<div class="col-6 col-md-3"><div class="card"><div class="card-body p-3 text-center"><div class="text-muted small">総アクセス</div><div class="fw-bold" style="font-size:1.6rem;color:#10b981;">' + totalAccess.toLocaleString() + '</div></div></div></div>';
+    html += '<div class="col-6 col-md-3"><div class="card"><div class="card-body p-3 text-center"><div class="text-muted small">最長連続</div><div class="fw-bold" style="font-size:1.6rem;color:#ef4444;">' + bestStreak + '<span style="font-size:0.8rem;color:#888;"> 日</span></div>' + (bestStreakUser ? '<div class="small text-muted">' + esc(bestStreakUser.nickname) + '</div>' : '') + '</div></div></div>';
+    html += '</div>';
+
+    // 離脱候補アラート
+    if (atRisk.length > 0) {
+      html += '<div class="card mb-3" style="border-left:4px solid #ef4444;"><div class="card-body p-3">';
+      html += '<div class="d-flex align-items-center mb-2"><i class="fas fa-exclamation-triangle me-2" style="color:#ef4444;"></i><strong style="color:#ef4444;">離脱候補 ' + atRisk.length + '名</strong><span class="ms-2 small text-muted">(7日以上アクセスなし・未登録アクセス含む)</span></div>';
+      html += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
+      atRisk.slice(0, 30).forEach(function(u){
+        var days = u.last_access_at ? Math.floor((Date.now() - new Date(u.last_access_at).getTime()) / 86400000) : null;
+        var label = esc(u.nickname) + (u.department ? ' (' + esc(u.department) + ')' : '') + (days !== null ? ' · ' + days + '日前' : ' · 未アクセス');
+        html += '<span style="background:#fef2f2;border:1px solid #fecaca;color:#991b1b;padding:3px 10px;border-radius:10px;font-size:0.78rem;">' + label + '</span>';
+      });
+      html += '</div></div></div>';
+    }
+
+    // 日別トレンド(過去30日、横棒バー風)
+    html += '<div class="card mb-3"><div class="card-body p-3">';
+    html += '<h6 class="fw-bold mb-3"><i class="fas fa-chart-bar me-1"></i>日別アクセス推移 (過去30日)</h6>';
+    if (trend.length === 0) {
+      html += '<div class="text-muted small">データなし</div>';
+    } else {
+      var maxHits = Math.max.apply(null, trend.map(function(t){ return t.total_hits || 0; }));
+      var maxU = Math.max.apply(null, trend.map(function(t){ return t.unique_users || 0; }));
+      html += '<div style="display:flex;flex-direction:column;gap:3px;font-size:0.78rem;font-family:monospace;">';
+      trend.slice().reverse().forEach(function(t){
+        var u = t.unique_users || 0;
+        var h = t.total_hits || 0;
+        var uBar = maxU > 0 ? (u / maxU) * 100 : 0;
+        var hBar = maxHits > 0 ? (h / maxHits) * 100 : 0;
+        var isToday = t.access_date === today;
+        html += '<div style="display:flex;align-items:center;gap:8px;' + (isToday ? 'background:#fef3c7;border-radius:4px;padding:2px 4px;' : '') + '">';
+        html += '<span style="width:85px;color:#666;">' + t.access_date + '</span>';
+        html += '<span style="width:50px;text-align:right;color:#0ea5e9;font-weight:700;">' + u + '人</span>';
+        html += '<div style="flex:1;height:14px;background:#f3f4f6;border-radius:3px;position:relative;overflow:hidden;">';
+        html += '<div style="position:absolute;left:0;top:0;height:100%;width:' + hBar.toFixed(1) + '%;background:linear-gradient(90deg,#fcd34d,#f59e0b);"></div>';
+        html += '</div>';
+        html += '<span style="width:80px;text-align:right;color:#888;">' + h.toLocaleString() + ' hit</span>';
+        html += '</div>';
+      });
+      html += '</div>';
+    }
+    html += '</div></div>';
+
+    // ユーザー別ランキング
+    html += '<div class="card"><div class="card-body p-3">';
+    html += '<h6 class="fw-bold mb-3"><i class="fas fa-medal me-1"></i>ユーザー別アクセスランキング</h6>';
+    html += '<div style="overflow-x:auto;"><table class="table table-sm table-hover mb-0" style="font-size:0.82rem;">';
+    html += '<thead><tr style="background:#f8fafc;"><th>#</th><th>ニックネーム</th><th>部署</th><th class="text-end">総アクセス</th><th class="text-end">連続日数</th><th class="text-end">最長</th><th class="text-end">訪問日数</th><th class="text-end">直近30日</th><th>最終</th></tr></thead><tbody>';
+    users.forEach(function(u, i){
+      var last = u.last_access_at ? u.last_access_at.split('T')[0] : '—';
+      var streakColor = (u.consecutive_access_days >= 5) ? '#ef4444' : (u.consecutive_access_days >= 3 ? '#f59e0b' : '#6b7280');
+      html += '<tr>';
+      html += '<td class="text-muted">' + (i + 1) + '</td>';
+      html += '<td class="fw-bold">' + esc(u.nickname) + '</td>';
+      html += '<td class="small text-muted">' + esc(u.department || '—') + '</td>';
+      html += '<td class="text-end fw-bold" style="color:#10b981;">' + (u.total_access_count || 0).toLocaleString() + '</td>';
+      html += '<td class="text-end" style="color:' + streakColor + ';font-weight:700;">' + (u.consecutive_access_days || 0) + '</td>';
+      html += '<td class="text-end text-muted">' + (u.best_consecutive_days || 0) + '</td>';
+      html += '<td class="text-end">' + (u.total_days || 0) + '</td>';
+      html += '<td class="text-end">' + (u.last_30_days || 0) + '</td>';
+      html += '<td class="small text-muted">' + last + '</td>';
+      html += '</tr>';
+    });
+    html += '</tbody></table></div>';
+    html += '</div></div>';
+
+    return html;
 }
 
 function loadResolved() {

@@ -400,6 +400,10 @@ if(localStorage.getItem('co_heart_admin_token') && localStorage.getItem('co_hear
     <div class="nav-item active" onclick="switchTab('rpgdash')" id="nav-rpgdash">
       <i class="fas fa-water nav-icon" style="color:#0ea5e9;"></i><div class="nav-label" style="font-size:0.55rem; line-height:1.2;">冒険<br>(無関心)</div>
     </div>
+    <!-- アクセス統計 -->
+    <div class="nav-item" onclick="switchTab('access')" id="nav-access">
+      <i class="fas fa-user-clock nav-icon" style="color:#f59e0b;"></i><div class="nav-label" style="font-size:0.55rem; line-height:1.2;">アクセス<br>統計</div>
+    </div>
     <!-- v2: 凝集型スキーム -->
     <div class="nav-item" onclick="switchTab('v2dash')" id="nav-v2dash">
       <i class="fas fa-chart-pie nav-icon" style="color:#667eea;"></i><div class="nav-label" style="font-size:0.55rem; line-height:1.2;">ダッシュ<br>ボード</div>
@@ -494,6 +498,17 @@ if(localStorage.getItem('co_heart_admin_token') && localStorage.getItem('co_hear
           </div>
           <div id="rpg-user-table" style="overflow-x:auto;"></div>
         </div>
+      </div>
+    </div>
+
+    <!-- ====== アクセス統計 ====== -->
+    <div id="tab-access" class="tab-view">
+      <div class="section-header">
+        <div class="section-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706);"><i class="fas fa-user-clock"></i></div>
+        <div><div class="section-title">アクセス統計</div><div class="section-subtitle">誰がどれだけアプリに触れているか・離脱候補の早期発見</div></div>
+      </div>
+      <div id="access-stats-body">
+        <div class="text-center py-5"><div class="spinner-border"></div><div class="mt-2 text-muted small">読み込み中...</div></div>
       </div>
     </div>
 
@@ -1233,7 +1248,7 @@ if(localStorage.getItem('co_heart_admin_token') && localStorage.getItem('co_hear
 
 <script src="/js/api.js?v=20260410c"></script>
 <script src="/js/avatar-render.js?v=20260410a"></script>
-<script src="/js/admin-core.js?v=20260417_rpg"></script>
+<script src="/js/admin-core.js?v=20260418_access"></script>
 <script src="/js/admin-inbox.js?v=20260410d"></script>
 <script src="/js/admin-matrix.js?v=20260410a"></script>
 <script src="/js/admin-proposal.js?v=20260410a"></script>

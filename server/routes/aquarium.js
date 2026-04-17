@@ -676,10 +676,21 @@ router.post('/stamp', authUser, (req, res) => {
   const allowed = ['cheer', 'like', 'thanks', 'see-you'];
   if (allowed.indexOf(stamp_type) === -1) return res.status(400).json({ error: '不正なスタンプ' });
   const db = getDb();
-  // 同日同スタンプ同相手は1回まで
   const today = db.prepare("SELECT COUNT(*) as c FROM stamps WHERE from_uid = ? AND to_uid = ? AND stamp_type = ? AND created_at > datetime('now','-1 day')").get(req.uid, to_uid, stamp_type);
   if (today.c >= 1) return res.json({ success: false, msg: '今日は同じスタンプをこの人に送ったよ' });
   db.prepare('INSERT INTO stamps (from_uid, to_uid, stamp_type) VALUES (?, ?, ?)').run(req.uid, to_uid, stamp_type);
+  // Push通知
+  try {
+    const push = require('../services/push');
+    const labels = { cheer: '🎉 がんばって', like: '👍 いいね', thanks: '🙏 ありがとう', 'see-you': '🌊 また海で' };
+    const sender = db.prepare('SELECT nickname FROM users WHERE id = ?').get(req.uid);
+    push.sendToUser(to_uid, {
+      title: '🌊 スタンプが届いた',
+      body: (sender ? sender.nickname : '誰か') + 'から「' + (labels[stamp_type] || 'スタンプ') + '」',
+      tag: 'stamp',
+      url: '/',
+    }, 'stamp').catch(() => {});
+  } catch(e) {}
   res.json({ success: true });
 });
 
@@ -873,6 +884,7 @@ router.get('/shared-ocean', authUser, (req, res) => {
     const explorers = allProgress.map((p, idx) => {
       const area = RPG_AREAS.find(a => a.id === p.current_area) || RPG_AREAS[0];
       const discoveredCount = db.prepare('SELECT COUNT(*) as cnt FROM rpg_fish_discovery WHERE user_id = ?').get(p.user_id);
+      const isEgg = !p.total_steps || p.total_steps === 0;
       return {
         user_id: p.user_id,
         nickname: p.nickname || '???',
@@ -888,6 +900,7 @@ router.get('/shared-ocean', authUser, (req, res) => {
         discovered_count: discoveredCount.cnt,
         rank: idx + 1,
         is_mine: p.user_id === req.uid,
+        is_egg: isEgg,
       };
     });
 

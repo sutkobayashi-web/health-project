@@ -6502,7 +6502,7 @@ function showBuddyEntryCards() {
   var footer =
     '<div style="text-align:center;margin-top:14px;display:flex;flex-direction:column;gap:8px;align-items:center;">' +
       '<div style="display:flex;gap:10px;">' +
-        '<button onclick="hideBuddyEntryCards();document.getElementById(\'buddy-input\').focus();" style="background:#fff;border:1.5px solid #cbd5e1;color:#475569;padding:6px 14px;border-radius:14px;font-size:0.72rem;font-weight:700;cursor:pointer;font-family:inherit;">✏️ 自分で書く</button>' +
+        '<button onclick="hideBuddyEntryCards();" style="background:#fff;border:1.5px solid #cbd5e1;color:#475569;padding:6px 14px;border-radius:14px;font-size:0.72rem;font-weight:700;cursor:pointer;font-family:inherit;">✏️ 自分で書く</button>' +
         '<button onclick="hideBuddyEntryCards();" style="background:none;border:1.5px solid #cbd5e1;color:#94a3b8;padding:6px 14px;border-radius:14px;font-size:0.72rem;font-weight:700;cursor:pointer;font-family:inherit;">⏭ 今は閉じる</button>' +
       '</div>' +
       '<div style="display:flex;gap:6px;align-items:center;margin-top:4px;">' +
@@ -9923,6 +9923,7 @@ var _rpgAreaFish = []; // 現在エリアの魚たち
 var _rpgCompanions = []; // 同じエリアの仲間
 var _aqBubbles = [];
 var _rpgParticles = [];
+var _marineSnow = []; // 海のマリンスノー(漂う粒子)
 var _aqFrame = 0;
 var _aqW = 0, _aqH = 0;
 var _rpgBgColor = '#0ea5e9';
@@ -10510,17 +10511,42 @@ function drawOcean() {
   // エリア固有の背景優先 → なければ章背景 → なければグラデーション
   var bgImg = (areaId && _rpgAreaBgImages[areaId]) || _rpgBgImages[chapter];
   if (bgImg) {
-    // 画像を画面いっぱいに描画（縦横比維持でcover）
+    // 画像を画面いっぱいに描画（縦横比維持でcover）+ 微かな呼吸(ブリージング)
     var iw = bgImg.naturalWidth, ih = bgImg.naturalHeight;
-    var scale = Math.max(_aqW / iw, _aqH / ih);
+    var baseScale = Math.max(_aqW / iw, _aqH / ih);
+    // 緩やかに1.00 ～ 1.025 の間で拡大率が揺れる
+    var breath = 1.0 + (Math.sin(_aqFrame * 0.004) * 0.5 + 0.5) * 0.025;
+    // 横方向にゆっくり漂う
+    var drift = Math.sin(_aqFrame * 0.0028) * 12;
+    var driftY = Math.sin(_aqFrame * 0.0021 + 1.2) * 6;
+    var scale = baseScale * breath;
     var dw = iw * scale, dh = ih * scale;
-    var dx = (_aqW - dw) / 2, dy = (_aqH - dh) / 2;
+    var dx = (_aqW - dw) / 2 + drift, dy = (_aqH - dh) / 2 + driftY;
     ctx.drawImage(bgImg, dx, dy, dw, dh);
     // 深海は上から暗めのオーバーレイ
     if (chapter >= 4) {
       ctx.fillStyle = 'rgba(0,0,0,0.3)';
       ctx.fillRect(0, 0, _aqW, _aqH);
     }
+    // 水面の揺らぎ(コースティクス) - 浅い海域で目立つ、深海でも控えめに
+    var causticAlpha = chapter === 1 ? 0.12 : chapter === 2 ? 0.09 : chapter === 3 ? 0.06 : 0.035;
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    for (var ci = 0; ci < 6; ci++) {
+      var cphase = _aqFrame * 0.015 + ci * 1.2;
+      var ccx = (ci / 6) * _aqW + Math.sin(cphase) * 60 + (_aqFrame * 0.3) % _aqW;
+      ccx = ((ccx % _aqW) + _aqW) % _aqW;
+      var ccy = (ci % 3) * (_aqH / 3) + Math.cos(cphase * 0.7) * 30;
+      var cRadius = 80 + Math.sin(cphase * 0.5) * 30;
+      var rg = ctx.createRadialGradient(ccx, ccy, 0, ccx, ccy, cRadius);
+      rg.addColorStop(0, 'rgba(200,240,255,' + (causticAlpha * (0.6 + Math.sin(cphase) * 0.4)) + ')');
+      rg.addColorStop(1, 'rgba(200,240,255,0)');
+      ctx.fillStyle = rg;
+      ctx.beginPath();
+      ctx.arc(ccx, ccy, cRadius, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
   } else {
     // フォールバック
     var grad = ctx.createLinearGradient(0, 0, 0, _aqH);
@@ -10582,6 +10608,32 @@ function drawOcean() {
   _aqBubbles = _aqBubbles.filter(function(b) { return b.y > -10; });
   ctx.restore();
 
+  // マリンスノー(ゆっくり降ってくる微細な粒子)
+  if (_marineSnow.length < 40) {
+    if (_aqFrame % 8 === 0) {
+      _marineSnow.push({
+        x: Math.random() * _aqW,
+        y: -5 - Math.random() * 30,
+        r: 0.4 + Math.random() * 1.2,
+        speed: 0.12 + Math.random() * 0.25,
+        sway: Math.random() * Math.PI * 2,
+        alpha: 0.25 + Math.random() * 0.45
+      });
+    }
+  }
+  ctx.save();
+  _marineSnow.forEach(function(s) {
+    s.y += s.speed;
+    s.sway += 0.01;
+    var sx = s.x + Math.sin(s.sway) * 1.5;
+    ctx.beginPath();
+    ctx.arc(sx, s.y, s.r, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(230,245,255,' + s.alpha + ')';
+    ctx.fill();
+  });
+  _marineSnow = _marineSnow.filter(function(s) { return s.y < _aqH + 10; });
+  ctx.restore();
+
   // 海底地形
   ctx.save();
   ctx.beginPath();
@@ -10625,9 +10677,16 @@ function drawOcean() {
   _rpgAreaFish.forEach(function(f) {
     f.tailPhase += 0.06;
     if (_aqFrame % 80 === 0) {
-      f.targetX = 20 + Math.random() * (_aqW - 40);
-      var _ymin = _waterTopFish + 10;
-      f.targetY = _ymin + Math.random() * Math.max(20, _aqH - 50 - _waterTopFish);
+      if (f.discovered && _rpgFish) {
+        // 発見済みは主人公の周囲を回遊(プレミアム挙動)
+        f.targetX = Math.max(20, Math.min(_aqW - 20, _rpgFish.x + (Math.random() - 0.5) * 180));
+        var _ymin1 = _waterTopFish + 10;
+        f.targetY = Math.max(_ymin1, Math.min(_aqH - 30, _rpgFish.y + (Math.random() - 0.5) * 140));
+      } else {
+        f.targetX = 20 + Math.random() * (_aqW - 40);
+        var _ymin = _waterTopFish + 10;
+        f.targetY = _ymin + Math.random() * Math.max(20, _aqH - 50 - _waterTopFish);
+      }
     }
     var dx = f.targetX - f.x, dy = f.targetY - f.y;
     var dist = Math.sqrt(dx*dx + dy*dy);
@@ -10695,6 +10754,13 @@ function drawOcean() {
         ctx.stroke();
         ctx.restore();
       }
+      // 発見済み魚の専用プレミアムタグ(エメラルド×金、一般ユーザーと区別)
+      drawNameBubble(ctx, '✦ ' + f.name, f.x, f.y - baseSize * 0.38, {
+        fontSize: 10,
+        bg: 'rgba(5,150,105,0.92)',
+        border: 'rgba(253,224,71,0.9)',
+        fg: '#fff'
+      });
     }
   });
 
@@ -11635,8 +11701,8 @@ function escapeToFreeText() {
   if (_buddyHistory && _buddyHistory.length === 0 && typeof addBuddyMessage === 'function') {
     addBuddyMessage('ai', '何でも話していいよ。ここでの声は大切に受け取るからね。');
   }
-  var input = document.getElementById('buddy-input');
-  if (input) setTimeout(function(){ input.focus(); }, 300);
+  // 入力欄は表示するがフォーカスはしない(テンキー自動展開を避ける)
+  // ユーザーが入力欄をタップしたときに初めてキーボードが出る
 }
 
 function showBackToRpgButton() {
@@ -11783,6 +11849,7 @@ var _clockModeBubbles = [];
 var _clockModeFrame = 0;
 var _clockModeAreaFish = []; // エリアの魚(クロックモード用)
 var _clockModeCompanions = []; // 仲間の魚(クロックモード用)
+var _clockModeSnow = []; // マリンスノー(クロックモード用)
 var _clockModeTimeEl = null;
 var _clockModeDateEl = null;
 var _clockW = 0, _clockH = 0;
@@ -11837,7 +11904,7 @@ function openClockMode() {
   // エリアの魚を初期化(_rpgAreaFishをクロック用にコピー、位置は独立)
   _clockModeAreaFish = (_rpgAreaFish || []).map(function(f) {
     return {
-      id: f.id, hue: f.hue, rarity: f.rarity, discovered: f.discovered,
+      id: f.id, name: f.name, hue: f.hue, rarity: f.rarity, discovered: f.discovered,
       x: 40 + Math.random() * (_clockW - 80),
       y: 80 + Math.random() * (_clockH - 200),
       vx: (Math.random() - 0.5) * 0.4,
@@ -11852,7 +11919,7 @@ function openClockMode() {
   // 仲間の魚
   _clockModeCompanions = (_rpgCompanions || []).map(function(c) {
     return {
-      nickname: c.nickname, variantId: c.variantId,
+      nickname: c.nickname, fish_name: c.fish_name, variantId: c.variantId,
       x: 40 + Math.random() * (_clockW - 80),
       y: 80 + Math.random() * (_clockH - 200),
       vx: (Math.random() - 0.5) * 0.3,
@@ -11899,19 +11966,42 @@ function drawClockMode() {
   var ctx = _clockModeCtx;
   _clockModeFrame++;
 
-  // 背景画像描画
+  // 背景画像描画 + 微かな呼吸 + 水面の光
   var chapter = _rpg ? (_rpg.area.chapter || 1) : 1;
   var areaId = _rpg && _rpg.area ? _rpg.area.id : '1-1';
   var bgImg = (areaId && _rpgAreaBgImages[areaId]) || _rpgBgImages[chapter];
   if (bgImg) {
     var iw = bgImg.naturalWidth, ih = bgImg.naturalHeight;
-    var scale = Math.max(_clockW / iw, _clockH / ih);
+    var baseScale = Math.max(_clockW / iw, _clockH / ih);
+    var breathC = 1.0 + (Math.sin(_clockModeFrame * 0.003) * 0.5 + 0.5) * 0.03;
+    var driftXC = Math.sin(_clockModeFrame * 0.0022) * 14;
+    var driftYC = Math.sin(_clockModeFrame * 0.0018 + 1.5) * 8;
+    var scale = baseScale * breathC;
     var dw = iw * scale, dh = ih * scale;
-    var dx = (_clockW - dw) / 2, dy = (_clockH - dh) / 2;
+    var dx = (_clockW - dw) / 2 + driftXC, dy = (_clockH - dh) / 2 + driftYC;
     ctx.drawImage(bgImg, dx, dy, dw, dh);
     // 時計を読みやすくする暗めオーバーレイ
     ctx.fillStyle = 'rgba(0,0,0,0.35)';
     ctx.fillRect(0, 0, _clockW, _clockH);
+    // コースティクス(水面の揺らぎ光)
+    var causticAlphaC = chapter === 1 ? 0.1 : chapter === 2 ? 0.08 : chapter === 3 ? 0.05 : 0.03;
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    for (var cci = 0; cci < 5; cci++) {
+      var cphC = _clockModeFrame * 0.013 + cci * 1.3;
+      var ccxC = (cci / 5) * _clockW + Math.sin(cphC) * 50 + (_clockModeFrame * 0.25) % _clockW;
+      ccxC = ((ccxC % _clockW) + _clockW) % _clockW;
+      var ccyC = (cci % 3) * (_clockH / 3) + Math.cos(cphC * 0.7) * 25;
+      var cRadiusC = 90 + Math.sin(cphC * 0.5) * 25;
+      var rgC = ctx.createRadialGradient(ccxC, ccyC, 0, ccxC, ccyC, cRadiusC);
+      rgC.addColorStop(0, 'rgba(200,240,255,' + (causticAlphaC * (0.6 + Math.sin(cphC) * 0.4)) + ')');
+      rgC.addColorStop(1, 'rgba(200,240,255,0)');
+      ctx.fillStyle = rgC;
+      ctx.beginPath();
+      ctx.arc(ccxC, ccyC, cRadiusC, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
   } else {
     var grad = ctx.createLinearGradient(0, 0, 0, _clockH);
     grad.addColorStop(0, '#0ea5e9');
@@ -11937,16 +12027,45 @@ function drawClockMode() {
   _clockModeBubbles = _clockModeBubbles.filter(function(b) { return b.y > -10; });
   ctx.restore();
 
+  // マリンスノー(ゆっくり降ってくる微細な粒子)
+  if (_clockModeSnow.length < 35 && _clockModeFrame % 10 === 0) {
+    _clockModeSnow.push({
+      x: Math.random() * _clockW,
+      y: -5 - Math.random() * 30,
+      r: 0.4 + Math.random() * 1.3,
+      speed: 0.1 + Math.random() * 0.25,
+      sway: Math.random() * Math.PI * 2,
+      alpha: 0.25 + Math.random() * 0.45
+    });
+  }
+  ctx.save();
+  _clockModeSnow.forEach(function(s) {
+    s.y += s.speed;
+    s.sway += 0.01;
+    var sx = s.x + Math.sin(s.sway) * 1.5;
+    ctx.beginPath();
+    ctx.arc(sx, s.y, s.r, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(230,245,255,' + s.alpha + ')';
+    ctx.fill();
+  });
+  _clockModeSnow = _clockModeSnow.filter(function(s) { return s.y < _clockH + 10; });
+  ctx.restore();
+
   // 避けるべきエリア(時計中央) - 魚が時計の真ん中に来ないように
   var cxC = _clockW / 2, cyC = _clockH / 2;
   var avoidR = Math.min(_clockW, _clockH) * 0.3;
 
-  // エリアの魚(背景的に泳ぐ)
+  // エリアの魚(背景的に泳ぐ) - 発見済みは主人公を追従
   _clockModeAreaFish.forEach(function(af) {
     af.tailPhase += 0.05;
     if (_clockModeFrame % 120 === 0) {
-      af.targetX = 30 + Math.random() * (_clockW - 60);
-      af.targetY = 60 + Math.random() * (_clockH - 160);
+      if (af.discovered && _clockModeFish) {
+        af.targetX = Math.max(30, Math.min(_clockW - 30, _clockModeFish.x + (Math.random() - 0.5) * 200));
+        af.targetY = Math.max(60, Math.min(_clockH - 60, _clockModeFish.y + (Math.random() - 0.5) * 150));
+      } else {
+        af.targetX = 30 + Math.random() * (_clockW - 60);
+        af.targetY = 60 + Math.random() * (_clockH - 160);
+      }
     }
     var adx = af.targetX - af.x, ady = af.targetY - af.y;
     var ad = Math.sqrt(adx*adx + ady*ady);
@@ -11979,6 +12098,15 @@ function drawClockMode() {
       ctx.fill();
     }
     ctx.restore();
+    // 発見済みの魚は専用プレミアムタグ(一般ユーザーと区別)
+    if (af.discovered && af.name) {
+      drawNameBubble(ctx, '✦ ' + af.name, af.x, af.y - afSize/2 - 2, {
+        fontSize: 10,
+        bg: 'rgba(5,150,105,0.92)',
+        border: 'rgba(253,224,71,0.9)',
+        fg: '#fff'
+      });
+    }
   });
 
   // 仲間の魚(各自のvariant画像使用)
@@ -12011,6 +12139,10 @@ function drawClockMode() {
       var cBob = Math.sin(c.tailPhase) * 1.5;
       ctx.drawImage(cImg2, -cSize/2, -cSize/2 + cBob, cSize, cSize);
       ctx.restore();
+      // 仲間の名前ラベル
+      if (c.nickname) {
+        drawNameBubble(ctx, c.nickname, c.x, c.y - cSize/2 - 2, { fontSize: 11 });
+      }
     });
   }
 
@@ -12041,6 +12173,15 @@ function drawClockMode() {
     var bob = Math.sin(f.tailPhase) * 2;
     ctx.drawImage(_rpgHeroImage, -hs/2, -hs/2 + bob, hs, hs);
     ctx.restore();
+    // 主人公の名前ラベル(金色背景で目立たせる)
+    var heroName = _rpg && _rpg.progress && _rpg.progress.fish_name;
+    if (heroName) {
+      drawNameBubble(ctx, heroName, f.x, f.y - hs/2 - 2, {
+        fontSize: 13,
+        bg: 'rgba(245,158,11,0.92)',
+        border: 'rgba(255,255,255,0.7)'
+      });
+    }
   }
 
   _clockModeAnimId = requestAnimationFrame(drawClockMode);
@@ -12370,30 +12511,43 @@ function openSharedOcean() {
       html += '<div style="padding:16px;">';
       d.explorers.forEach(function(e) {
         var isMine = e.is_mine;
-        html += '<div style="background:rgba(255,255,255,' + (isMine ? '0.1' : '0.04') + ');border:1px solid ' + (isMine ? 'rgba(34,211,238,0.4)' : 'rgba(255,255,255,0.08)') + ';border-radius:12px;padding:12px;margin-bottom:8px;display:flex;align-items:center;gap:12px;">';
+        var isEgg = e.is_egg;
+        html += '<div style="background:rgba(255,255,255,' + (isMine ? '0.1' : (isEgg ? '0.02' : '0.04')) + ');border:1px solid ' + (isMine ? 'rgba(34,211,238,0.4)' : (isEgg ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.08)')) + ';border-radius:12px;padding:12px;margin-bottom:8px;display:flex;align-items:center;gap:12px;' + (isEgg ? 'opacity:0.75;' : '') + '">';
 
-        // ランク
+        // ランク (卵は非表示)
         html += '<div style="width:28px;text-align:center;flex-shrink:0;">';
-        if (e.rank <= 3) {
+        if (isEgg) {
+          html += '<span style="font-size:11px;color:rgba(255,255,255,0.3);">—</span>';
+        } else if (e.rank <= 3) {
           html += '<span style="font-size:18px;">' + ['','🥇','🥈','🥉'][e.rank] + '</span>';
         } else {
           html += '<span style="font-size:13px;color:rgba(255,255,255,0.4);font-weight:700;">' + e.rank + '</span>';
         }
         html += '</div>';
 
-        // アバター
-        var userVariant = HERO_VARIANTS.find(function(v){return v.id === (e.hero_variant || 1);}) || HERO_VARIANTS[0];
-        html += '<div style="width:40px;height:40px;border-radius:50%;background:hsla(' + userVariant.bgHue + ',70%,50%,0.25);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;">';
-        html += '<img src="/fish/hero.png" style="width:36px;height:36px;object-fit:contain;filter:hue-rotate(' + userVariant.hueRotate + 'deg);" onload="makeFishImgTransparent(this)" onerror="this.outerHTML=\'<span style=&quot;font-size:18px;&quot;>🐟</span>\'">';
-        html += '</div>';
+        // アバター (卵 or 稚魚アバター)
+        if (isEgg) {
+          html += '<div style="width:40px;height:40px;border-radius:50%;background:rgba(253,224,71,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;">';
+          html += '<span style="font-size:22px;filter:drop-shadow(0 0 4px rgba(253,224,71,0.4));">🥚</span>';
+          html += '</div>';
+        } else {
+          var userVariant = HERO_VARIANTS.find(function(v){return v.id === (e.hero_variant || 1);}) || HERO_VARIANTS[0];
+          html += '<div style="width:40px;height:40px;border-radius:50%;background:hsla(' + userVariant.bgHue + ',70%,50%,0.25);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;">';
+          html += '<img src="/fish/hero.png" style="width:36px;height:36px;object-fit:contain;filter:hue-rotate(' + userVariant.hueRotate + 'deg);" onload="makeFishImgTransparent(this)" onerror="this.outerHTML=\'<span style=&quot;font-size:18px;&quot;>🐟</span>\'">';
+          html += '</div>';
+        }
 
         html += '<div style="flex:1;min-width:0;">';
-        html += '<div style="font-size:13px;font-weight:700;color:#fff;">' + e.nickname + (e.fish_name ? ' <span style="font-size:10px;color:rgba(255,255,255,0.4);">(' + e.fish_name + ')</span>' : '') + '</div>';
-        html += '<div style="font-size:10px;color:rgba(255,255,255,0.5);">' + e.area_name + ' ' + e.depth + '</div>';
+        html += '<div style="font-size:13px;font-weight:700;color:' + (isEgg ? 'rgba(255,255,255,0.7)' : '#fff') + ';">' + e.nickname + (e.fish_name && !isEgg ? ' <span style="font-size:10px;color:rgba(255,255,255,0.4);">(' + e.fish_name + ')</span>' : '') + '</div>';
+        html += '<div style="font-size:10px;color:rgba(255,255,255,0.5);">' + (isEgg ? '🥚 まだ卵（一歩踏み出せば孵化）' : (e.area_name + ' ' + e.depth)) + '</div>';
         html += '</div>';
 
         html += '<div style="text-align:right;flex-shrink:0;">';
-        html += '<div style="font-size:13px;font-weight:800;color:#fde68a;"><i class="fas fa-shoe-prints"></i> ' + e.total_steps.toLocaleString() + '</div>';
+        if (isEgg) {
+          html += '<div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.4);">孵化待ち</div>';
+        } else {
+          html += '<div style="font-size:13px;font-weight:800;color:#fde68a;"><i class="fas fa-shoe-prints"></i> ' + e.total_steps.toLocaleString() + '</div>';
+        }
         html += '</div>';
 
         html += '</div>';

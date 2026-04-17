@@ -873,53 +873,6 @@ router.get('/companions', authUser, (req, res) => {
   }
 });
 
-// ---------- 場の温度（集計バブル用） ----------
-router.get('/pulse', authUser, (req, res) => {
-  const db = getDb();
-  try {
-    const safeCount = (sql, ...args) => {
-      try { return db.prepare(sql).get(...args).cnt || 0; } catch(e) { return 0; }
-    };
-    // 今日何人が食事投稿したか(開封済の食事カテゴリ、ユニークユーザー)
-    const foodToday = safeCount(
-      `SELECT COUNT(DISTINCT user_id) as cnt FROM posts
-       WHERE category LIKE '%食事%' AND date(created_at) = date('now','localtime')`
-    );
-    // 今日歩数を入れた人数
-    const steppersToday = safeCount(
-      `SELECT COUNT(DISTINCT user_id) as cnt FROM step_log WHERE step_date = date('now','localtime') AND steps > 0`
-    );
-    // 今日チャレンジに反応した人数
-    const challengeToday = safeCount(
-      `SELECT COUNT(DISTINCT user_id) as cnt FROM challenge_reactions WHERE date(created_at) = date('now','localtime')`
-    );
-    // 今日発見された魚の累計
-    const discoveriesToday = safeCount(
-      `SELECT COUNT(*) as cnt FROM rpg_fish_discovery WHERE date(discovered_at) = date('now','localtime')`
-    );
-    // 今日バディーと会話した人数(userロールのみ=人が話した分)
-    const buddyToday = safeCount(
-      `SELECT COUNT(DISTINCT user_id) as cnt FROM buddy_messages WHERE date(created_at) = date('now','localtime') AND role = 'user'`
-    );
-    // 冒険中(総アクティブ)
-    const explorers = safeCount(`SELECT COUNT(*) as cnt FROM adventure_progress WHERE total_steps > 0`);
-
-    res.json({
-      success: true,
-      today: {
-        food: foodToday,
-        steppers: steppersToday,
-        challenge: challengeToday,
-        discoveries: discoveriesToday,
-        buddy: buddyToday,
-      },
-      explorers,
-    });
-  } catch (e) {
-    res.json({ success: false, error: e.message });
-  }
-});
-
 // ---------- みんなの海（共有マップ） ----------
 router.get('/shared-ocean', authUser, (req, res) => {
   const db = getDb();

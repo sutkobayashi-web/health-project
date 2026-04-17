@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260417_pulse">
+<html data-app-version="20260417_nopulse">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -10858,10 +10858,6 @@ function drawOcean() {
   // 主人公の魚を描画
   drawHeroFish(ctx);
 
-  // 場の温度(集計バブル) - 個人名なしで今日の動きを伝える
-  fetchActivityPulse();
-  drawActivityPulse(ctx);
-
   requestAnimationFrame(drawOcean);
 }
 
@@ -10909,73 +10905,6 @@ function drawCompanions(ctx) {
   });
 }
 
-// 場の温度(集計バブル) — 今日の活動を個人名なしで伝える
-var _activityPulse = null;
-var _activityPulseFetchedAt = 0;
-
-function fetchActivityPulse() {
-  if (!currentUser) return;
-  if (Date.now() - _activityPulseFetchedAt < 60000) return; // 1分キャッシュ
-  _activityPulseFetchedAt = Date.now();
-  fetch('/api/aquarium/pulse', { headers: { 'x-user-id': currentUser.uid } })
-    .then(function(r){return r.json();}).then(function(d){
-      if (d && d.success) _activityPulse = d;
-    }).catch(function(){});
-}
-
-function buildPulseMessages() {
-  if (!_activityPulse) return [];
-  var t = _activityPulse.today || {};
-  var msgs = [];
-  if (t.food > 0)        msgs.push('🍱 今日 ' + t.food + '人が食事を記録中');
-  if (t.steppers > 0)    msgs.push('👣 今日 ' + t.steppers + '人が歩いた');
-  if (t.buddy > 0)       msgs.push('💬 今日 ' + t.buddy + '人がバディーと話した');
-  if (t.challenge > 0)   msgs.push('🔥 今日 ' + t.challenge + '人がチャレンジに反応');
-  if (t.discoveries > 0) msgs.push('✨ 今日 ' + t.discoveries + '匹の魚が発見された');
-  if (msgs.length === 0) msgs.push('🌊 場はまだ静か。最初の一歩を');
-  return msgs;
-}
-
-function drawActivityPulse(ctx) {
-  var msgs = buildPulseMessages();
-  if (msgs.length === 0) return;
-  // 6秒ごとにメッセージ切替
-  var idx = Math.floor(Date.now() / 6000) % msgs.length;
-  var text = msgs[idx];
-  ctx.save();
-  ctx.font = 'bold 11.5px "Noto Sans JP",sans-serif';
-  var padX = 12, padY = 6;
-  var tw = ctx.measureText(text).width;
-  var w = Math.ceil(tw + padX * 2);
-  var h = 11.5 + padY * 2;
-  var rx = Math.round((_aqW - w) / 2);
-  var ry = 10;
-  var r = 14;
-  // 背景(半透明)
-  ctx.shadowColor = 'rgba(0,0,0,0.3)'; ctx.shadowBlur = 8; ctx.shadowOffsetY = 2;
-  ctx.fillStyle = 'rgba(10,30,50,0.68)';
-  ctx.beginPath();
-  ctx.moveTo(rx + r, ry);
-  ctx.lineTo(rx + w - r, ry);
-  ctx.quadraticCurveTo(rx + w, ry, rx + w, ry + r);
-  ctx.lineTo(rx + w, ry + h - r);
-  ctx.quadraticCurveTo(rx + w, ry + h, rx + w - r, ry + h);
-  ctx.lineTo(rx + r, ry + h);
-  ctx.quadraticCurveTo(rx, ry + h, rx, ry + h - r);
-  ctx.lineTo(rx, ry + r);
-  ctx.quadraticCurveTo(rx, ry, rx + r, ry);
-  ctx.closePath();
-  ctx.fill();
-  ctx.shadowColor = 'transparent';
-  // 枠線
-  ctx.strokeStyle = 'rgba(94,234,212,0.35)'; ctx.lineWidth = 1;
-  ctx.stroke();
-  // テキスト
-  ctx.fillStyle = 'rgba(255,255,255,0.94)';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(text, rx + padX, ry + h / 2 + 1);
-  ctx.restore();
-}
 
 // 卵の描画(ぼんやり光る金色の卵、わずかに漂う)
 function drawEggShape(ctx, cx, cy, size, phase) {

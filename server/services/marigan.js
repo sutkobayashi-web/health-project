@@ -4,13 +4,14 @@
  */
 const { getDb } = require('./db');
 
-// ポイント配分
+// ポイント配分（=マイル付与数）
 const POINTS = {
-  post: 10,          // 投稿（相談・提案）
-  food_photo: 8,     // 食事写真投稿
-  empathy: 5,        // 共感+3問回答
-  comment: 3,        // 書き込み（フリーコメント等）
-  kpi_record: 2      // チャレンジKPI記録
+  post: 10,              // 投稿（相談・提案）
+  food_photo: 8,         // 食事写真投稿
+  empathy: 5,            // 共感+3問回答
+  comment: 3,            // 書き込み（フリーコメント等）
+  kpi_record: 2,         // チャレンジKPI記録
+  daily_walk_miles: 1    // 累計歩数 1万歩につき1マイル
 };
 
 // 褒賞バッジ定義

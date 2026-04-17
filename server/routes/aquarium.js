@@ -3,6 +3,7 @@ const router = express.Router();
 const { getDb } = require('../services/db');
 const { callGeminiVision } = require('../services/ai');
 const { authUser: jwtAuthUser } = require('../middleware/auth');
+const { awardMarigan } = require('../services/marigan');
 
 // ============================================================
 // CoWell 海の探索RPG API
@@ -484,6 +485,17 @@ router.post('/steps', authUser, (req, res) => {
     WHERE user_id = ?`)
     .run(newTotalSteps, newAreaObj.id, newAreaObj.chapter, stepDate, consecutive, req.uid);
 
+  // 1万歩=1マイル 加算（lifetime累計のミリストーン到達数で重複防止）
+  let milesAwarded = 0;
+  try {
+    const oldMilestones = Math.floor((progress.total_steps || 0) / 10000);
+    const newMilestones = Math.floor(newTotalSteps / 10000);
+    for (let m = oldMilestones + 1; m <= newMilestones; m++) {
+      const r = awardMarigan(req.uid, 'daily_walk_miles', 'mile_' + m);
+      if (r && r.success) milesAwarded += (r.points || 1);
+    }
+  } catch (e) { /* マイル付与失敗は冒険進行を止めない */ }
+
   // 語り部メッセージ生成
   const narrations = [];
 
@@ -568,6 +580,7 @@ router.post('/steps', authUser, (req, res) => {
     encounters: encounters.map(f => ({ id: f.id, name: f.name, rarity: f.rarity, hue: f.hue, desc: f.desc })),
     narrations: narrations,
     consecutive_days: consecutive,
+    miles_awarded: milesAwarded,
   });
 });
 

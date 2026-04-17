@@ -1782,7 +1782,7 @@ function doUserLogout() {
   var nurseArea = document.getElementById('nurse-messages'); if (nurseArea) nurseArea.innerHTML = '';
   // 天の声チャットをリセット・各画面を非表示
   var buddyMsgs = document.getElementById('buddy-messages'); if (buddyMsgs) buddyMsgs.innerHTML = '';
-  _buddyHistory = []; _buddyMoodChecked = false; _buddyTurnCount = 0;
+  _buddyHistory = []; _buddyTurnCount = 0;
   window._buddyScrollSetup = false;
   var buddyScreen = document.getElementById('buddy-chat-screen'); if (buddyScreen) buddyScreen.style.display = 'none';
   var buddySetup = document.getElementById('buddy-setup-screen'); if (buddySetup) buddySetup.style.display = 'none';
@@ -5064,7 +5064,6 @@ function nurseScrollBottom() {
 <script>
 // ===== ヘルス天の声 =====
 var _buddyHistory = [];
-var _buddyMoodChecked = false;
 var _buddyTurnCount = 0;
 
 var BUDDY_PERSONALITIES = {
@@ -5185,7 +5184,6 @@ function initBuddy() {
 
 function startBuddyChat(buddyData) {
   _buddyHistory = [];
-  _buddyMoodChecked = false;
   _buddyTurnCount = 0;
   loadBuddyChallengeBar();
 
@@ -5208,13 +5206,10 @@ function startBuddyChat(buddyData) {
         window._buddyRestoring = true;
         window._buddyEntryCardsDismissed = true;
         if (typeof hideBuddyEntryCards === 'function') hideBuddyEntryCards();
-        var hasMoodLog = false;
         data.messages.forEach(function(m) {
           addBuddyMessage(m.role, m.content);
-          if (m.content && m.content.indexOf('[MOOD_LOG]') !== -1) hasMoodLog = true;
         });
         window._buddyRestoring = false;
-        _buddyMoodChecked = true;
         // 天の声経由メッセージも読み込む
         loadBuddyNotices();
         // お知らせ未読チェック（天の声が教える）
@@ -5416,19 +5411,17 @@ function checkBuddyTopicPoll() {
     .catch(function() {});
 }
 
-// 初回用（話題なければ体調チェックへ）
+// 初回用（話題があれば表示。なければ何もしない＝入口カード/メニューに任せる）
 function checkBuddyTopic() {
-  if (!currentUser) { showMoodCheck(); return; }
+  if (!currentUser) return;
   fetch('/api/buddy-topics/check/' + currentUser.uid)
     .then(function(r) { return r.json(); })
     .then(function(data) {
       if (data && data.hasTopic) {
         showBuddyTopicQuestion(data.topic);
-      } else {
-        showMoodCheck();
       }
     })
-    .catch(function() { showMoodCheck(); });
+    .catch(function() {});
 }
 
 function saveBuddyMemo(btn) {
@@ -5536,10 +5529,8 @@ function submitTopicResponse(topicId, choiceIndex, choiceText) {
     } else {
       addBuddyMessage('ai', '送信できませんでした。また聞くね！');
     }
-    setTimeout(function() { showMoodCheck(); }, 1000);
   }).catch(function() {
     addBuddyMessage('ai', '通信エラーが起きちゃった。また聞くね！');
-    setTimeout(function() { showMoodCheck(); }, 1000);
   });
 }
 
@@ -5676,43 +5667,6 @@ function addBuddyMessage(role, text) {
       body: JSON.stringify({ uid: currentUser.uid, role: role, content: text })
     }).catch(function(){});
   }
-}
-
-function showMoodCheck() {
-  addBuddyInlineQuick('<div style="display:flex;justify-content:center;gap:10px;padding:4px 0;">' +
-    '<div class="buddy-mood-btn" onclick="selectMood(\'great\')"><span class="mood-emoji">😊</span><span class="mood-label">元気！</span></div>' +
-    '<div class="buddy-mood-btn" onclick="selectMood(\'normal\')"><span class="mood-emoji">😐</span><span class="mood-label">普通</span></div>' +
-    '<div class="buddy-mood-btn" onclick="selectMood(\'tired\')"><span class="mood-emoji">😔</span><span class="mood-label">少し疲れ</span></div>' +
-    '<div class="buddy-mood-btn" onclick="selectMood(\'bad\')"><span class="mood-emoji">😩</span><span class="mood-label">しんどい</span></div>' +
-  '</div>');
-}
-
-function selectMood(mood) {
-  _buddyMoodChecked = true;
-  markBuddyQuickUsed();
-
-  var moodTexts = { great:'😊 元気！', normal:'😐 普通', tired:'😔 少し疲れ', bad:'😩 しんどい' };
-  addBuddyMessage('user', moodTexts[mood]);
-
-  // 体調をDBに記録
-  saveBuddyMood(mood);
-
-  // 体調に応じた返答
-  setTimeout(function() {
-    if (mood === 'great') {
-      addBuddyMessage('ai', 'いい感じですね！✨\nその調子！何か気になることある？');
-      setTimeout(function() { showFollowUpTopics(); }, 1000);
-    } else if (mood === 'normal') {
-      addBuddyMessage('ai', 'まずまずですね👍\n何か気になることはある？');
-      setTimeout(function() { showFollowUpTopics(); }, 1000);
-    } else if (mood === 'tired') {
-      addBuddyMessage('ai', '少し疲れてるんですね。\n無理しないでね。何か気になることはある？');
-      setTimeout(function() { showConcernOptions(); }, 1000);
-    } else {
-      addBuddyMessage('ai', 'それは心配ですね😢\n無理しないでくださいね。\n何かつらいことがありますか？');
-      setTimeout(function() { showConcernOptions(); }, 1000);
-    }
-  }, 600);
 }
 
 function showConcernOptions() {
@@ -6310,7 +6264,6 @@ function clearBuddyChat() {
     if (data.success) {
       document.getElementById('buddy-messages').innerHTML = '';
       _buddyHistory = [];
-      _buddyMoodChecked = false;
       _buddyTurnCount = 0;
       // 入口カードは廃止 → インラインメニューから選択
       // 新しい挨拶から再スタート
@@ -8128,13 +8081,6 @@ function sendBuddyMessage() {
   buddyAskAI('free', msg);
 }
 
-function saveBuddyMood(mood) {
-  fetch('/api/chat/message', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
-    body: JSON.stringify({ userMessage: '[MOOD_LOG] ' + mood, history: [], userName: currentUser.nickname || '' })
-  }).catch(function(){});
-}
 </script>
 <!-- ====== /ヘルス天の声 ====== -->
 
@@ -11616,21 +11562,6 @@ var CHAPTER_NAMES_CLIENT = { 1: 'はじまりの浅瀬', 2: '珊瑚礁の迷宮'
 // RPG問いかけライブラリ（選択式チャット）
 // ===================================
 var RPG_QUESTIONS = {
-  mood_daily: {
-    ask: '今日の海は、どんな気分？',
-    options: [
-      { id: 'calm',     label: '🌊 穏やか',       tag: 'mood=calm' },
-      { id: 'energy',   label: '⚡ 元気',         tag: 'mood=energetic' },
-      { id: 'tired',    label: '😮‍💨 疲れた',    tag: 'mood=tired' },
-      { id: 'unclear',  label: '🤔 なんとなく',   tag: 'mood=unclear' },
-    ],
-    reply: {
-      calm:    '...いい日だな。ゆっくり泳ごう。',
-      energy:  'その調子！今日はいつもより遠くまで行けそうだ。',
-      tired:   'そういう日もある。無理せず、浅瀬で浮いてるだけでいい。',
-      unclear: 'そういう時は...海の音を聞いてるといい。',
-    },
-  },
   weather_today: {
     ask: '今日の海、どんな天気？',
     options: [

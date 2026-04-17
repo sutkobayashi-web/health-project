@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260417_egg">
+<html data-app-version="20260417_egg2">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -10778,34 +10778,78 @@ function drawCompanions(ctx) {
   if (!fallbackImg || _rpgCompanions.length === 0) return;
   var waterTop = (AREA_WATER_LEVEL && _rpg && _rpg.area) ? (AREA_WATER_LEVEL[_rpg.area.id] || 0) * _aqH : 0;
   _rpgCompanions.forEach(function(c) {
-    c.tailPhase += 0.05;
-    if (_aqFrame % 150 === 0) {
+    var isEgg = !c.total_steps || c.total_steps === 0;
+    c.tailPhase += isEgg ? 0.018 : 0.05;
+    if (_aqFrame % 150 === 0 && !isEgg) {
       c.targetX = 20 + Math.random() * (_aqW - 40);
       c.targetY = (waterTop + 40) + Math.random() * Math.max(30, _aqH - 80 - waterTop);
     }
-    var dx = c.targetX - c.x, dy = c.targetY - c.y;
-    var dist = Math.sqrt(dx*dx + dy*dy);
-    if (dist > 1) { c.vx += (dx/dist) * 0.03; c.vy += (dy/dist) * 0.02; }
-    c.vx *= 0.96; c.vy *= 0.96;
-    c.x += c.vx; c.y += c.vy;
+    if (!isEgg) {
+      var dx = c.targetX - c.x, dy = c.targetY - c.y;
+      var dist = Math.sqrt(dx*dx + dy*dy);
+      if (dist > 1) { c.vx += (dx/dist) * 0.03; c.vy += (dy/dist) * 0.02; }
+      c.vx *= 0.96; c.vy *= 0.96;
+      c.x += c.vx; c.y += c.vy;
+    } else {
+      c.vx *= 0.9; c.vy *= 0.9;
+    }
     if (c.x < 15) c.x = 15; if (c.x > _aqW - 15) c.x = _aqW - 15;
     if (c.y < waterTop + 20) c.y = waterTop + 20;
     if (c.y > _aqH - 25) c.y = _aqH - 25;
 
     var s = 54 * c.size;
-    var cImg = _companionImageCache[c.variantId] || fallbackImg;
-    ctx.save();
-    ctx.globalAlpha = 0.85;
-    ctx.translate(c.x, c.y);
-    var flip = c.vx > 0.05 ? -1 : 1;
-    ctx.scale(flip, 1);
-    var bob = Math.sin(c.tailPhase) * 1.5;
-    ctx.drawImage(cImg, -s/2, -s/2 + bob, s, s);
-    ctx.restore();
+    if (isEgg) {
+      drawEggShape(ctx, c.x, c.y, s * 0.75, c.tailPhase);
+    } else {
+      var cImg = _companionImageCache[c.variantId] || fallbackImg;
+      ctx.save();
+      ctx.globalAlpha = 0.85;
+      ctx.translate(c.x, c.y);
+      var flip = c.vx > 0.05 ? -1 : 1;
+      ctx.scale(flip, 1);
+      var bob = Math.sin(c.tailPhase) * 1.5;
+      ctx.drawImage(cImg, -s/2, -s/2 + bob, s, s);
+      ctx.restore();
+    }
 
     // ニックネーム吹き出し
     drawNameBubble(ctx, c.nickname, c.x, c.y - s/2 - 2, { fontSize: 10 });
   });
+}
+
+// 卵の描画(ぼんやり光る金色の卵、わずかに漂う)
+function drawEggShape(ctx, cx, cy, size, phase) {
+  ctx.save();
+  var bob = Math.sin(phase) * 2.5;
+  var glow = 0.55 + Math.sin(phase * 0.8) * 0.15;
+  ctx.translate(cx, cy + bob);
+  // 光輪
+  var glowR = size * 0.9;
+  var glowGrad = ctx.createRadialGradient(0, 0, size * 0.2, 0, 0, glowR);
+  glowGrad.addColorStop(0, 'rgba(253,224,71,' + (glow * 0.5) + ')');
+  glowGrad.addColorStop(1, 'rgba(253,224,71,0)');
+  ctx.fillStyle = glowGrad;
+  ctx.beginPath(); ctx.arc(0, 0, glowR, 0, Math.PI * 2); ctx.fill();
+  // 卵本体(縦長楕円)
+  var rx = size * 0.32, ry = size * 0.42;
+  var grad = ctx.createRadialGradient(-rx * 0.3, -ry * 0.4, 2, 0, 0, ry * 1.2);
+  grad.addColorStop(0, '#fffbe6');
+  grad.addColorStop(0.5, '#fde68a');
+  grad.addColorStop(1, '#b45309');
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // 縁
+  ctx.strokeStyle = 'rgba(146,64,14,0.55)';
+  ctx.lineWidth = 1.2;
+  ctx.stroke();
+  // ハイライト
+  ctx.fillStyle = 'rgba(255,255,255,0.55)';
+  ctx.beginPath();
+  ctx.ellipse(-rx * 0.35, -ry * 0.45, rx * 0.22, ry * 0.12, -0.5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
 }
 
 // エリア別の水面位置(Canvasの上端からの比率): 0 = 水中全域、0.4 = 上から40%は空
@@ -11916,10 +11960,12 @@ function openClockMode() {
       alpha: f.discovered ? 0.95 : 0.3,
     };
   });
-  // 仲間の魚
+  // 仲間の魚(0歩は卵として漂う)
   _clockModeCompanions = (_rpgCompanions || []).map(function(c) {
     return {
       nickname: c.nickname, fish_name: c.fish_name, variantId: c.variantId,
+      total_steps: c.total_steps,
+      is_egg: !c.total_steps || c.total_steps === 0,
       x: 40 + Math.random() * (_clockW - 80),
       y: 80 + Math.random() * (_clockH - 200),
       vx: (Math.random() - 0.5) * 0.3,
@@ -12109,36 +12155,44 @@ function drawClockMode() {
     }
   });
 
-  // 仲間の魚(各自のvariant画像使用)
+  // 仲間の魚(各自のvariant画像使用)/ 0歩は卵として漂う
   var fallbackForCompanion = _rpgHeroBase || _rpgHeroImage;
   if (fallbackForCompanion) {
     _clockModeCompanions.forEach(function(c) {
-      c.tailPhase += 0.045;
-      if (_clockModeFrame % 150 === 0) {
+      c.tailPhase += c.is_egg ? 0.015 : 0.045;
+      if (_clockModeFrame % 150 === 0 && !c.is_egg) {
         c.targetX = 30 + Math.random() * (_clockW - 60);
         c.targetY = 60 + Math.random() * (_clockH - 160);
       }
-      var cdx2 = c.targetX - c.x, cdy2 = c.targetY - c.y;
-      var cd2 = Math.sqrt(cdx2*cdx2 + cdy2*cdy2);
-      if (cd2 > 1) { c.vx += (cdx2/cd2) * 0.018; c.vy += (cdy2/cd2) * 0.012; }
-      var adxc = c.x - cxC, adyc = c.y - cyC;
-      var adc = Math.sqrt(adxc*adxc + adyc*adyc);
-      if (adc < avoidR && adc > 0) { c.vx += (adxc/adc) * 0.08; c.vy += (adyc/adc) * 0.08; }
-      c.vx *= 0.97; c.vy *= 0.97;
-      c.x += c.vx; c.y += c.vy;
+      if (!c.is_egg) {
+        var cdx2 = c.targetX - c.x, cdy2 = c.targetY - c.y;
+        var cd2 = Math.sqrt(cdx2*cdx2 + cdy2*cdy2);
+        if (cd2 > 1) { c.vx += (cdx2/cd2) * 0.018; c.vy += (cdy2/cd2) * 0.012; }
+        var adxc = c.x - cxC, adyc = c.y - cyC;
+        var adc = Math.sqrt(adxc*adxc + adyc*adyc);
+        if (adc < avoidR && adc > 0) { c.vx += (adxc/adc) * 0.08; c.vy += (adyc/adc) * 0.08; }
+        c.vx *= 0.97; c.vy *= 0.97;
+        c.x += c.vx; c.y += c.vy;
+      } else {
+        c.vx *= 0.9; c.vy *= 0.9;
+      }
       if (c.x < 25) c.x = 25; if (c.x > _clockW - 25) c.x = _clockW - 25;
       if (c.y < 40) c.y = 40; if (c.y > _clockH - 40) c.y = _clockH - 40;
 
       var cSize = Math.min(_clockW, _clockH) * 0.16 * (c.size || 0.8);
-      var cImg2 = _companionImageCache[c.variantId] || fallbackForCompanion;
-      ctx.save();
-      ctx.globalAlpha = 0.75;
-      ctx.translate(c.x, c.y);
-      var cFlip = c.vx > 0 ? -1 : 1;
-      ctx.scale(cFlip, 1);
-      var cBob = Math.sin(c.tailPhase) * 1.5;
-      ctx.drawImage(cImg2, -cSize/2, -cSize/2 + cBob, cSize, cSize);
-      ctx.restore();
+      if (c.is_egg) {
+        drawEggShape(ctx, c.x, c.y, cSize * 0.75, c.tailPhase);
+      } else {
+        var cImg2 = _companionImageCache[c.variantId] || fallbackForCompanion;
+        ctx.save();
+        ctx.globalAlpha = 0.75;
+        ctx.translate(c.x, c.y);
+        var cFlip = c.vx > 0 ? -1 : 1;
+        ctx.scale(cFlip, 1);
+        var cBob = Math.sin(c.tailPhase) * 1.5;
+        ctx.drawImage(cImg2, -cSize/2, -cSize/2 + cBob, cSize, cSize);
+        ctx.restore();
+      }
       // 仲間の名前ラベル
       if (c.nickname) {
         drawNameBubble(ctx, c.nickname, c.x, c.y - cSize/2 - 2, { fontSize: 11 });

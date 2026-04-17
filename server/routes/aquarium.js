@@ -857,7 +857,7 @@ router.get('/companions', authUser, (req, res) => {
       ORDER BY ap.total_steps DESC LIMIT 10`).all(me.current_area, req.uid);
 
     // 各ユーザーの直近投稿（食事・テーマ・相談等、publicなopenステータスのみ、7日以内）
-    const postStmt = db.prepare(`SELECT content, category, created_at FROM posts
+    const postStmt = db.prepare(`SELECT content, category, created_at, image_url FROM posts
       WHERE user_id = ? AND status = 'open'
         AND created_at > datetime('now','-7 days')
       ORDER BY created_at DESC LIMIT 1`);
@@ -893,6 +893,7 @@ router.get('/companions', authUser, (req, res) => {
             excerpt,
             category: post.category || '',
             created_at: post.created_at,
+            image_url: post.image_url || null,
           } : null,
         };
       }),

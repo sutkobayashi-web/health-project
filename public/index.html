@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260417_post">
+<html data-app-version="20260418_write">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -11814,25 +11814,14 @@ function dismissRpgFollowup() {
   if (el) el.remove();
 }
 
-// 質問なしの静かなときの常時入口（書く・話す）: オーバーレイに表示
+// 質問なしの静かなときの常時入口: デフォルトで書く状態に移行
 function showRpgIdleEntry() {
   var bar = document.getElementById('text-input-bar');
   if (bar && bar.style.display !== 'none') return;
   var vp = document.getElementById('voice-mode-panel');
   if (vp && vp.style.display !== 'none') return;
-  var area = document.getElementById('rpg-overlay');
-  if (!area) return;
-  showRpgOverlay();
-  area.innerHTML = '';
-  var box = document.createElement('div');
-  box.style.cssText = 'max-width:420px;width:100%;';
-  box.innerHTML =
-    '<div style="color:rgba(255,255,255,0.45);font-size:11px;margin-bottom:12px;">天の声と話すとき</div>' +
-    '<div style="display:flex;gap:8px;justify-content:center;">' +
-      '<button onclick="escapeToFreeText()" style="padding:10px 20px;background:rgba(14,165,233,0.2);border:1px solid rgba(14,165,233,0.5);color:#bae6fd;font-size:12px;font-weight:800;border-radius:18px;cursor:pointer;font-family:inherit;"><i class="fas fa-pen" style="margin-right:5px;"></i>書く</button>' +
-      '<button onclick="startRpgVoiceChat()" style="padding:10px 20px;background:linear-gradient(135deg,rgba(124,58,237,0.3),rgba(167,139,250,0.25));border:1px solid rgba(167,139,250,0.6);color:#e9d5ff;font-size:12px;font-weight:800;border-radius:18px;cursor:pointer;font-family:inherit;box-shadow:0 0 10px rgba(167,139,250,0.3);animation:voiceBtnGlow 2.5s ease-in-out infinite;"><i class="fas fa-microphone" style="margin-right:5px;"></i>話す</button>' +
-    '</div>';
-  area.appendChild(box);
+  // 書く/話す選択を挟まず、直接テキスト入力状態へ
+  if (typeof escapeToFreeText === 'function') escapeToFreeText();
 }
 
 // 音声ボタン(テキスト入力バー左)から1タップ連続会話を起動

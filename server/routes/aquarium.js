@@ -856,47 +856,64 @@ router.get('/companions', authUser, (req, res) => {
       WHERE ap.current_area = ? AND ap.user_id != ?
       ORDER BY ap.total_steps DESC LIMIT 10`).all(me.current_area, req.uid);
 
-    // 各ユーザーの直近投稿（食事・テーマ・相談等、publicなopenステータスのみ、7日以内）
-    const postStmt = db.prepare(`SELECT content, category, created_at, image_url FROM posts
-      WHERE user_id = ? AND status = 'open'
-        AND created_at > datetime('now','-7 days')
-      ORDER BY created_at DESC LIMIT 1`);
-
-    const summarize = (raw) => {
-      if (!raw) return '';
-      let s = String(raw).replace(/\s+/g, ' ').trim();
-      // 「【写真】」等のプレフィックス除去
-      s = s.replace(/^【[^】]+】\s*/g, '');
-      // URL・メール除去
-      s = s.replace(/https?:\/\/\S+/g, '').replace(/\S+@\S+/g, '').trim();
-      // 中身が「なし」等の場合は空扱い
-      if (!s || /^(なし|無し|特になし|なし。|なし!)\s*$/i.test(s)) return '';
-      // 28文字で切る
-      if (s.length > 28) s = s.slice(0, 28) + '…';
-      return s;
-    };
-
     res.json({
       success: true,
       area: me.current_area,
-      companions: companions.map(c => {
-        const post = postStmt.get(c.user_id);
-        const excerpt = post ? summarize(post.content) : '';
-        return {
-          user_id: c.user_id,
-          nickname: c.nickname || '???',
-          fish_name: c.fish_name || '',
-          avatar_hue: c.avatar_hue || 200,
-          hero_variant: c.hero_variant || 1,
-          total_steps: c.total_steps,
-          recent_post: (post && excerpt) ? {
-            excerpt,
-            category: post.category || '',
-            created_at: post.created_at,
-            image_url: post.image_url || null,
-          } : null,
-        };
-      }),
+      companions: companions.map(c => ({
+        user_id: c.user_id,
+        nickname: c.nickname || '???',
+        fish_name: c.fish_name || '',
+        avatar_hue: c.avatar_hue || 200,
+        hero_variant: c.hero_variant || 1,
+        total_steps: c.total_steps,
+      })),
+    });
+  } catch (e) {
+    res.json({ success: false, error: e.message });
+  }
+});
+
+// ---------- 場の温度（集計バブル用） ----------
+router.get('/pulse', authUser, (req, res) => {
+  const db = getDb();
+  try {
+    const safeCount = (sql, ...args) => {
+      try { return db.prepare(sql).get(...args).cnt || 0; } catch(e) { return 0; }
+    };
+    // 今日何人が食事投稿したか(開封済の食事カテゴリ、ユニークユーザー)
+    const foodToday = safeCount(
+      `SELECT COUNT(DISTINCT user_id) as cnt FROM posts
+       WHERE category LIKE '%食事%' AND date(created_at) = date('now','localtime')`
+    );
+    // 今日歩数を入れた人数
+    const steppersToday = safeCount(
+      `SELECT COUNT(DISTINCT user_id) as cnt FROM step_log WHERE step_date = date('now','localtime') AND steps > 0`
+    );
+    // 今日チャレンジに反応した人数
+    const challengeToday = safeCount(
+      `SELECT COUNT(DISTINCT user_id) as cnt FROM challenge_reactions WHERE date(created_at) = date('now','localtime')`
+    );
+    // 今日発見された魚の累計
+    const discoveriesToday = safeCount(
+      `SELECT COUNT(*) as cnt FROM rpg_fish_discovery WHERE date(discovered_at) = date('now','localtime')`
+    );
+    // 今日バディーと会話した人数(userロールのみ=人が話した分)
+    const buddyToday = safeCount(
+      `SELECT COUNT(DISTINCT user_id) as cnt FROM buddy_messages WHERE date(created_at) = date('now','localtime') AND role = 'user'`
+    );
+    // 冒険中(総アクティブ)
+    const explorers = safeCount(`SELECT COUNT(*) as cnt FROM adventure_progress WHERE total_steps > 0`);
+
+    res.json({
+      success: true,
+      today: {
+        food: foodToday,
+        steppers: steppersToday,
+        challenge: challengeToday,
+        discoveries: discoveriesToday,
+        buddy: buddyToday,
+      },
+      explorers,
     });
   } catch (e) {
     res.json({ success: false, error: e.message });

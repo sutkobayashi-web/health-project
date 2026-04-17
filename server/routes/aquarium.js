@@ -856,17 +856,46 @@ router.get('/companions', authUser, (req, res) => {
       WHERE ap.current_area = ? AND ap.user_id != ?
       ORDER BY ap.total_steps DESC LIMIT 10`).all(me.current_area, req.uid);
 
+    // 各ユーザーの直近投稿（食事・テーマ・相談等、publicなopenステータスのみ、7日以内）
+    const postStmt = db.prepare(`SELECT content, category, created_at FROM posts
+      WHERE user_id = ? AND status = 'open'
+        AND created_at > datetime('now','-7 days')
+      ORDER BY created_at DESC LIMIT 1`);
+
+    const summarize = (raw) => {
+      if (!raw) return '';
+      let s = String(raw).replace(/\s+/g, ' ').trim();
+      // 「【写真】」等のプレフィックス除去
+      s = s.replace(/^【[^】]+】\s*/g, '');
+      // URL・メール除去
+      s = s.replace(/https?:\/\/\S+/g, '').replace(/\S+@\S+/g, '').trim();
+      // 中身が「なし」等の場合は空扱い
+      if (!s || /^(なし|無し|特になし|なし。|なし!)\s*$/i.test(s)) return '';
+      // 28文字で切る
+      if (s.length > 28) s = s.slice(0, 28) + '…';
+      return s;
+    };
+
     res.json({
       success: true,
       area: me.current_area,
-      companions: companions.map(c => ({
-        user_id: c.user_id,
-        nickname: c.nickname || '???',
-        fish_name: c.fish_name || '',
-        avatar_hue: c.avatar_hue || 200,
-        hero_variant: c.hero_variant || 1,
-        total_steps: c.total_steps,
-      })),
+      companions: companions.map(c => {
+        const post = postStmt.get(c.user_id);
+        const excerpt = post ? summarize(post.content) : '';
+        return {
+          user_id: c.user_id,
+          nickname: c.nickname || '???',
+          fish_name: c.fish_name || '',
+          avatar_hue: c.avatar_hue || 200,
+          hero_variant: c.hero_variant || 1,
+          total_steps: c.total_steps,
+          recent_post: (post && excerpt) ? {
+            excerpt,
+            category: post.category || '',
+            created_at: post.created_at,
+          } : null,
+        };
+      }),
     });
   } catch (e) {
     res.json({ success: false, error: e.message });

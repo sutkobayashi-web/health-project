@@ -685,30 +685,29 @@
         </div>
       </div>
     </div>
-    <!-- 木の育成カード -->
-    <div id="mypage-tree-card" style="margin:8px 18px;padding:14px;background:linear-gradient(135deg,#f0fdf4,#dcfce7);border-radius:14px;border:1.5px solid #86efac;display:none;">
-      <div style="display:flex;align-items:center;gap:12px;">
-        <div id="mypage-tree-visual" style="width:60px;height:70px;display:flex;align-items:flex-end;justify-content:center;position:relative;">
-          <!-- SVG木のビジュアル（JSで生成） -->
-        </div>
-        <div style="flex:1;">
-          <div style="display:flex;align-items:center;gap:6px;">
-            <span id="mypage-tree-icon" style="font-size:1.3rem;">🌰</span>
-            <span id="mypage-tree-name" style="font-weight:800;font-size:0.88rem;color:#166534;">たね</span>
-            <span id="mypage-tree-type-badge" style="font-size:0.6rem;font-weight:700;padding:2px 8px;border-radius:10px;background:#dbeafe;color:#1e40af;"></span>
-          </div>
-          <div id="mypage-tree-progress" style="margin-top:6px;">
-            <div style="display:flex;justify-content:space-between;align-items:center;">
-              <span style="font-size:0.68rem;color:#555;" id="mypage-tree-streak-text">連続 0日目</span>
-              <span style="font-size:0.65rem;color:#999;" id="mypage-tree-next">次: 🌱 めばえ (1日)</span>
-            </div>
-            <div style="margin-top:4px;height:6px;background:#e5e7eb;border-radius:3px;overflow:hidden;">
-              <div id="mypage-tree-bar" style="height:100%;background:linear-gradient(90deg,#22c55e,#16a34a);border-radius:3px;width:0%;transition:width 0.8s ease;"></div>
-            </div>
-          </div>
-          <div style="margin-top:4px;font-size:0.6rem;color:#888;" id="mypage-tree-best">自己ベスト: 0日</div>
+    <!-- マイル情報カード（旧:木の育成 を置換） -->
+    <div id="mypage-miles-card" style="margin:8px 18px;padding:14px;background:linear-gradient(135deg,#fffde7,#fff9c4);border-radius:14px;border:1.5px solid #ffe082;display:none;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+        <i class="fas fa-anchor" style="color:#f59e0b;font-size:0.95rem;"></i>
+        <span style="font-weight:800;font-size:0.9rem;color:#2c3e50;">マイル</span>
+        <span id="mypage-miles-balance" style="margin-left:auto;font-weight:900;font-size:1.15rem;color:#f57f17;">0 <span style="font-size:0.65rem;font-weight:600;">マイル</span></span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.66rem;color:#888;margin-top:6px;">
+        <span id="mypage-miles-rank" style="font-weight:700;">🌱 ビギナー</span>
+        <span id="mypage-miles-next">次まであと —</span>
+      </div>
+      <div style="margin-top:4px;height:6px;background:#fff;border-radius:3px;overflow:hidden;">
+        <div id="mypage-miles-bar" style="height:100%;background:linear-gradient(90deg,#f59e0b,#ef4444);border-radius:3px;width:0%;transition:width 0.8s ease;"></div>
+      </div>
+      <div style="margin-top:10px;">
+        <div style="font-size:0.66rem;color:#888;font-weight:700;margin-bottom:4px;">最近の獲得</div>
+        <div id="mypage-miles-recent" style="display:flex;flex-wrap:wrap;gap:4px;">
+          <span style="font-size:0.65rem;color:#bbb;">まだ獲得履歴なし</span>
         </div>
       </div>
+      <button onclick="openCoinShop()" style="margin-top:10px;width:100%;padding:10px;background:linear-gradient(135deg,#f59e0b,#d97706);color:white;border:none;border-radius:10px;font-weight:800;font-size:0.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 3px 10px rgba(245,158,11,0.25);">
+        <i class="fas fa-store"></i> マイル交換所へ <i class="fas fa-arrow-right" style="font-size:0.65rem;"></i>
+      </button>
     </div>
     <!-- ボタン(3枠でスッキリ) -->
     <div style="padding:10px 18px 4px;display:flex;gap:8px;">
@@ -3330,6 +3329,35 @@ function openMyPosts() {
         var bName = badgeNames[mg.badge] || 'ビギナー';
         if (badgeEl) badgeEl.innerHTML = bIcon + ' ' + bName;
         if (rankEl) rankEl.innerHTML = '<span style="font-size:0.6rem;">' + bIcon + ' ' + bName + '</span>';
+
+        // マイル情報カードを反映
+        var milesCard = document.getElementById('mypage-miles-card');
+        if (milesCard && mg.total !== undefined) {
+          milesCard.style.display = 'block';
+          var total = mg.total || 0;
+          document.getElementById('mypage-miles-balance').innerHTML = total + ' <span style="font-size:0.65rem;font-weight:600;">マイル</span>';
+          document.getElementById('mypage-miles-rank').textContent = bIcon + ' ' + bName;
+          var nextEl = document.getElementById('mypage-miles-next');
+          var barEl = document.getElementById('mypage-miles-bar');
+          if (mg.nextTier) {
+            var pct = mg.nextTier.threshold > 0 ? Math.min(100, Math.round(total / mg.nextTier.threshold * 100)) : 0;
+            nextEl.textContent = '次: ' + (badgeIcons[mg.nextTier.badge] || '🌱') + (badgeNames[mg.nextTier.badge] || mg.nextTier.badge) + ' まであと ' + Math.max(0, mg.nextTier.threshold - total) + (mg.nextTier.reward ? ' 🎁' + mg.nextTier.reward : '');
+            barEl.style.width = pct + '%';
+          } else {
+            nextEl.textContent = '🎉 最高ランク達成！';
+            barEl.style.width = '100%';
+          }
+          // 最近の獲得履歴
+          var recentEl = document.getElementById('mypage-miles-recent');
+          var actionLabels = { post:'✍️投稿', food_photo:'📸食事', empathy:'💗共感', comment:'💬書込', kpi_record:'📊KPI', daily_walk_miles:'🚶1万歩' };
+          if (mg.recentLog && mg.recentLog.length > 0) {
+            recentEl.innerHTML = mg.recentLog.slice(0, 6).map(function(log) {
+              return '<span style="font-size:0.65rem;background:#fff;border:1px solid #fde68a;border-radius:6px;padding:2px 7px;color:#92400e;font-weight:700;">' + (actionLabels[log.action] || log.action) + ' +' + log.points + '</span>';
+            }).join('');
+          } else {
+            recentEl.innerHTML = '<span style="font-size:0.65rem;color:#bbb;">まだ獲得履歴なし — 1万歩であと' + Math.max(0, 10000 - 0) + '歩</span>';
+          }
+        }
       }).catch(function(){});
 
       // ストリーク＋木の育成情報を反映
@@ -3344,47 +3372,7 @@ function openMyPosts() {
           streakEl.style.background = sk.streak >= 7 ? 'linear-gradient(135deg,#fef2f2,#fecaca)' : sk.streak >= 1 ? 'linear-gradient(135deg,#fff7ed,#fed7aa)' : '#f5f5f5';
           streakEl.style.borderColor = sk.streak >= 7 ? '#fca5a5' : sk.streak >= 1 ? '#fdba74' : '#ddd';
         }
-        // 木の育成カード
-        var treeCard = document.getElementById('mypage-tree-card');
-        if (treeCard) {
-          treeCard.style.display = 'block';
-          document.getElementById('mypage-tree-icon').textContent = sk.treeStageIcon || '🌰';
-          document.getElementById('mypage-tree-name').textContent = sk.treeStageName || 'たね';
-          var typeBadge = document.getElementById('mypage-tree-type-badge');
-          if (sk.treeStage >= 4 && sk.treeTypeName) {
-            typeBadge.textContent = (sk.treeTypeIcon || '') + ' ' + sk.treeTypeName;
-            typeBadge.style.display = 'inline';
-          } else {
-            typeBadge.style.display = 'none';
-          }
-          document.getElementById('mypage-tree-streak-text').textContent = '連続 ' + sk.streak + '日目';
-          document.getElementById('mypage-tree-best').textContent = '自己ベスト: ' + sk.best + '日';
-          // 次のステージ情報
-          var nextEl = document.getElementById('mypage-tree-next');
-          if (sk.nextStage) {
-            nextEl.textContent = '次: ' + sk.nextStage.icon + ' ' + sk.nextStage.name + ' (' + sk.nextStage.daysNeeded + '日)';
-            nextEl.style.display = 'inline';
-          } else {
-            nextEl.textContent = '最大レベル！';
-          }
-          // プログレスバー
-          var barEl = document.getElementById('mypage-tree-bar');
-          if (barEl && sk.nextStage) {
-            var currentMin = 0;
-            var stages = sk.TREE_STAGES || [];
-            for (var si = 0; si < stages.length; si++) {
-              if (stages[si].stage === sk.treeStage) { currentMin = stages[si].minDays; break; }
-            }
-            var range = sk.nextStage.daysNeeded - currentMin;
-            var progress = range > 0 ? Math.min(100, ((sk.best - currentMin) / range) * 100) : 100;
-            barEl.style.width = progress + '%';
-            barEl.style.background = 'linear-gradient(90deg,' + (sk.treeColor || '#22c55e') + ',' + (sk.treeColor || '#16a34a') + ')';
-          } else if (barEl) {
-            barEl.style.width = '100%';
-          }
-          // 木のビジュアルSVG
-          renderTreeVisual(sk.treeStage, sk.treeColor || '#22c55e');
-        }
+        // 木の育成カードは廃止 → マイル情報カードに置換済み
       }).catch(function(){});
     }
   }

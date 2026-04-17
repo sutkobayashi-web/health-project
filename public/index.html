@@ -2848,7 +2848,10 @@ function showRanking() {
     mariganHtml += '<div style="margin-top:8px; display:flex; flex-wrap:wrap; gap:4px;">';
     var actions = [{name:'1万歩',pt:1,icon:'🚶'},{name:'投稿',pt:10,icon:'✍️'},{name:'食事写真',pt:8,icon:'📸'},{name:'共感',pt:5,icon:'💗'},{name:'書き込み',pt:3,icon:'💬'},{name:'KPI記録',pt:2,icon:'📊'}];
     actions.forEach(function(a) { mariganHtml += '<span style="font-size:0.6rem; background:#fff; border:1px solid #eee; border-radius:6px; padding:2px 6px;">' + a.icon + a.name + ' +' + a.pt + '</span>'; });
-    mariganHtml += '</div></div>';
+    mariganHtml += '</div>';
+    // マイル交換所への導線
+    mariganHtml += '<button onclick="document.getElementById(\'badge-info-popup\').style.display=\'none\'; openCoinShop();" style="margin-top:10px; width:100%; padding:10px; background:linear-gradient(135deg,#f59e0b,#d97706); color:white; border:none; border-radius:12px; font-weight:800; font-size:0.85rem; cursor:pointer; box-shadow:0 3px 10px rgba(245,158,11,0.3); display:flex; align-items:center; justify-content:center; gap:6px;"><i class="fas fa-anchor"></i> マイル交換所へ <i class="fas fa-arrow-right" style="font-size:0.7rem;"></i></button>';
+    mariganHtml += '</div>';
 
     var mariganRankList = (mgRank && mgRank.ranking) ? mgRank.ranking : [];
     content.innerHTML = mariganHtml

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260417_obfish">
+<html data-app-version="20260417_post">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -1218,10 +1218,19 @@
       </div>
     </div>
 
-    <!-- ガイドはログイン後のボトムメニュー「ヘルプ」へ移動 -->
-    <div style="text-align:center;margin-bottom:16px;">
-      <a href="/security" target="_blank" style="color:#667eea;font-size:0.78rem;text-decoration:none;"><i class="fas fa-shield-alt" style="margin-right:4px;"></i>セキュリティについて</a>
+    <!-- ヘルプ(使い方・システムガイド・セキュリティ・この海のこと) -->
+    <div class="card-section" style="background:linear-gradient(135deg,#f3e8ff,#ede9fe); border:2px solid #b388ff; box-shadow:0 4px 16px rgba(179,136,255,0.15); cursor:pointer;" onclick="switchAppTab('help')">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <div style="display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#9575cd,#b388ff);flex-shrink:0;"><i class="fas fa-question-circle" style="font-size:22px;color:#fff;"></i></div>
+        <div style="flex:1;">
+          <div class="section-title" style="margin-bottom:2px; padding-bottom:3px; border-bottom:2px solid rgba(179,136,255,0.25);"><i class="fas fa-question-circle"></i> ヘルプ</div>
+          <div style="font-size:0.75rem; color:#999;">使い方・システムガイド・セキュリティ・この海のこと</div>
+        </div>
+        <i class="fas fa-chevron-right" style="color:#bbb;flex-shrink:0;"></i>
+      </div>
     </div>
+
+    <div style="text-align:center;margin-bottom:16px;"></div>
 
     <div class="app-footer" style="color:#bbb;">スタンダード運輸グループ CoWell &copy; 2026</div>
   </div>
@@ -4136,13 +4145,13 @@ function hideLoading() { document.getElementById('loading-overlay').style.displa
 #bnav-inbox .bnav-icon, #bnav-inbox .bnav-label { color: #ffea00; }
 #bnav-challenge .bnav-icon, #bnav-challenge .bnav-label { color: #ff9100; }
 #bnav-mypage .bnav-icon, #bnav-mypage .bnav-label { color: #e040fb; }
-#bnav-help .bnav-icon, #bnav-help .bnav-label { color: #b388ff; }
+#bnav-post .bnav-icon, #bnav-post .bnav-label { color: #f472b6; }
 #bnav-buddy.active .bnav-icon, #bnav-buddy.active .bnav-label { color: #fff; }
 #bnav-menu.active .bnav-icon, #bnav-menu.active .bnav-label { color: #fff; }
 #bnav-inbox.active .bnav-icon, #bnav-inbox.active .bnav-label { color: #fff; }
 #bnav-challenge.active .bnav-icon, #bnav-challenge.active .bnav-label { color: #fff; }
 #bnav-mypage.active .bnav-icon, #bnav-mypage.active .bnav-label { color: #fff; }
-#bnav-help.active .bnav-icon, #bnav-help.active .bnav-label { color: #fff; }
+#bnav-post.active .bnav-icon, #bnav-post.active .bnav-label { color: #fff; }
 .bnav-item { min-width: 48px; padding: 6px 4px; }
 .bnav-badge {
   position: absolute; top: 0; right: 4px;
@@ -4469,9 +4478,9 @@ function hideLoading() { document.getElementById('loading-overlay').style.displa
     <i class="fas fa-user bnav-icon"></i>
     <span class="bnav-label">設定</span>
   </div>
-  <div class="bnav-item" id="bnav-help" onclick="switchAppTab('help');">
-    <i class="fas fa-question-circle bnav-icon"></i>
-    <span class="bnav-label">ヘルプ</span>
+  <div class="bnav-item" id="bnav-post" onclick="openQuickPost();">
+    <i class="fas fa-camera bnav-icon"></i>
+    <span class="bnav-label">投稿</span>
   </div>
 </nav>
 <div id="app-tab-guide" style="display:none;position:fixed;top:56px;left:0;right:0;bottom:56px;z-index:2400;background:white;overflow:hidden;">
@@ -4619,6 +4628,9 @@ function switchAppTab(tab) {
     document.getElementById('help-hub').style.display = 'block';
     document.getElementById('help-content-view').style.display = 'none';
     document.getElementById('app-tab-help').style.display = 'block';
+  } else if (tab === 'post') {
+    openQuickPost();
+    return;
   } else if (tab === 'challenge') {
     document.getElementById('challenge-tab-screen').style.display = 'flex';
     loadChallengeTabContent();
@@ -4632,6 +4644,22 @@ function switchAppTab(tab) {
   if (activeNav) activeNav.classList.add('active');
 }
 
+
+// 投稿ボトムタブから: 広場を開いて食事セクションを展開・スクロール
+function openQuickPost() {
+  switchAppTab('menu');
+  setTimeout(function() {
+    var foodBody = document.getElementById('food-body');
+    if (foodBody && foodBody.style.display === 'none') {
+      if (typeof toggleAccordion === 'function') toggleAccordion('food-body', 'food-chevron');
+      else foodBody.style.display = 'block';
+    }
+    var foodSection = foodBody ? foodBody.closest('.card-section') : null;
+    if (foodSection && foodSection.scrollIntoView) {
+      foodSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, 120);
+}
 
 function toggleFabMenu() {
   var items = document.getElementById('fab-speed-items');

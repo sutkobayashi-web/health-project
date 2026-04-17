@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>CoWell セキュリティについて</title>
+<style>
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body { font-family: -apple-system, "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif; color: #1f2937; margin: 0; padding: 14px; background: #f7f8fb; font-size: 14px; line-height: 1.65; }
+
+.header { display:flex; align-items:center; gap: 12px; border-bottom: 2.5px solid #14b8a6; padding-bottom: 12px; margin-bottom: 14px; background: linear-gradient(135deg, #ecfeff, #f0fdfa); padding: 14px; border-radius: 10px; }
+.header img.logo { width: 56px; height: 56px; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(15,118,110,0.2)); flex-shrink: 0; }
+.title { font-size: 16px; font-weight: 900; color: #0f766e; margin: 0; line-height: 1.3; }
+.subtitle { font-size: 12px; color: #475569; margin-top: 4px; font-weight: 500; }
+
+.trust-banner { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 14px; }
+.trust-card { background: linear-gradient(135deg, #fef3c7, #fff); border: 1.5px solid #fcd34d; border-radius: 10px; padding: 10px 6px; text-align: center; }
+.trust-card .tc-icon { font-size: 20px; margin-bottom: 2px; }
+.trust-card .tc-title { font-size: 11px; font-weight: 900; color: #92400e; margin-bottom: 2px; line-height: 1.2; }
+.trust-card .tc-desc { font-size: 10px; color: #78350f; line-height: 1.35; }
+
+.section { margin-bottom: 10px; background: linear-gradient(90deg, #f0fdfa, #fff); border-left: 4px solid #14b8a6; border-radius: 8px; padding: 12px 14px; }
+.section-header { display:flex; gap: 12px; align-items: center; margin-bottom: 8px; }
+.icon-wrap { width: 54px; height: 54px; flex-shrink: 0; position: relative; }
+.icon-wrap img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 2px 3px rgba(15,118,110,0.15)); }
+.section-num { display:inline-block; font-size: 10px; font-weight: 800; color: #fff; background: #14b8a6; padding: 2px 7px; border-radius: 4px; letter-spacing: 0.1em; }
+.section-title { font-size: 15px; font-weight: 900; color: #0f172a; margin-top: 4px; line-height: 1.3; }
+.section-text { font-size: 13px; color: #334155; }
+.section-text strong { color: #0f766e; }
+
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px; }
+.grid-item { background: #fff; border: 1px solid #99f6e4; border-radius: 6px; padding: 7px 9px; font-size: 12px; }
+.grid-item strong { color: #0f766e; font-weight: 800; }
+.grid-item s { color: #94a3b8; }
+
+.footer { margin-top: 16px; padding: 14px; background: #0f172a; color: #e2e8f0; border-radius: 10px; font-size: 12px; line-height: 1.65; }
+.footer strong { color: #5eead4; }
+.footer-meta { text-align: right; color: #64748b; font-size: 10px; margin-top: 10px; padding: 0 4px 16px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <img src="/img/icon-512.png" class="logo" alt="CoWell">
+  <div>
+    <div class="title">CoWell 健康アプリ<br>セキュリティについて</div>
+    <div class="subtitle">個人スマホに入れても安全です</div>
+  </div>
+</div>
+
+<div class="trust-banner">
+  <div class="trust-card">
+    <div class="tc-icon">🎭</div>
+    <div class="tc-title">ニックネーム運用</div>
+    <div class="tc-desc">本名ではなくあだ名でログイン</div>
+  </div>
+  <div class="trust-card">
+    <div class="tc-icon">🎓</div>
+    <div class="tc-title">大学院の研究対象</div>
+    <div class="tc-desc">帝京大学 公衆衛生学研究科</div>
+  </div>
+  <div class="trust-card">
+    <div class="tc-icon">🛡</div>
+    <div class="tc-title">研究倫理水準</div>
+    <div class="tc-desc">匿名化・個人特定不可</div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <div class="icon-wrap"><img src="/fish/hero_type_1.png" alt=""></div>
+    <div>
+      <span class="section-num">POINT 01</span>
+      <div class="section-title">アプリではなく「Webサイト」です</div>
+    </div>
+  </div>
+  <div class="section-text">App Store / Google Play からインストールするネイティブアプリではありません。ブラウザで開くWebアプリ(PWA)なので、<strong>あなたの連絡先・写真・SMS・GPSに技術的にアクセスできません</strong>。ホーム画面に置いてもこの仕組みは変わりません。</div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <div class="icon-wrap"><img src="/fish/hero_type_3.png" alt=""></div>
+    <div>
+      <span class="section-num">POINT 02</span>
+      <div class="section-title">端末を使うのは押した瞬間だけ</div>
+    </div>
+  </div>
+  <div class="grid">
+    <div class="grid-item">📷 <strong>カメラ</strong><br>食事写真を押した時のみ</div>
+    <div class="grid-item">🎤 <strong>マイク</strong><br>音声ボタン中のみ</div>
+    <div class="grid-item">👣 <strong>歩数</strong><br>手入力 or OCR</div>
+    <div class="grid-item">📍 <strong>GPS</strong><br><s>使いません</s></div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <div class="icon-wrap"><img src="/fish/hero_type_5.png" alt=""></div>
+    <div>
+      <span class="section-num">POINT 03</span>
+      <div class="section-title">通信・保存の安全対策</div>
+    </div>
+  </div>
+  <div class="grid">
+    <div class="grid-item">🔒 <strong>SSL暗号化通信</strong><br>(Let's Encrypt)</div>
+    <div class="grid-item">🛡 <strong>bcrypt保存</strong><br>原文復元不可</div>
+    <div class="grid-item">📱 <strong>他端末で入ると</strong><br>前端末は自動ログアウト</div>
+    <div class="grid-item">🚧 <strong>API自動ブロック</strong><br>ログイン50回/15分</div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <div class="icon-wrap"><img src="/fish/hero_type_7.png" alt=""></div>
+    <div>
+      <span class="section-num">POINT 04</span>
+      <div class="section-title">データは日本国内＋企業契約Box</div>
+    </div>
+  </div>
+  <div class="section-text">サーバーは日本国内(ConoHa VPS)、健診など機微データは<strong>ISO27001認証取得のBox企業アカウント</strong>で保管します。AI解析時のみ外部送信しますが、個人特定情報は匿名化してから送ります。</div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <div class="icon-wrap"><img src="/fish/hero_type_9.png" alt=""></div>
+    <div>
+      <span class="section-num">POINT 05</span>
+      <div class="section-title">端末を紛失しても安心</div>
+    </div>
+  </div>
+  <div class="section-text">ブラウザ/PWAのログアウトボタン、または管理者によるアカウント停止で<strong>即座に利用停止</strong>できます。端末本体にパスワードは保存されません(セッショントークンのみ、24時間で自動失効)。</div>
+</div>
+
+<div class="footer">
+  <strong>不安があれば、いつでも IT推進担当 立石 までご相談ください。</strong><br>
+  このアプリは「端末を守る」ためではなく「健康を楽しむ」ためのものです。セキュリティは最低限の仕事として実装した上で、気軽に使える体験を優先しています。
+</div>
+<div class="footer-meta">発行: 株式会社スタンダード運輸 / 2026年4月</div>
+
+</body>
+</html>

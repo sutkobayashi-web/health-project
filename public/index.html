@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260417_egg3">
+<html data-app-version="20260417_help">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -1217,9 +1217,9 @@
     </div>
 
 
-    <!-- ガイドリンク -->
+    <!-- ガイドはログイン後のボトムメニュー「ヘルプ」へ移動 -->
     <div style="text-align:center;margin-bottom:16px;">
-      <button onclick="var iframe=document.getElementById('guide-iframe');if(!iframe.src||iframe.src==='about:blank')iframe.src='/guide';document.getElementById('app-tab-guide').style.display='block';" style="background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;border-radius:20px;padding:10px 24px;font-size:0.82rem;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(102,126,234,0.3);"><i class="fas fa-book" style="margin-right:6px;"></i>システムガイド</button>
+      <a href="/security" target="_blank" style="color:#667eea;font-size:0.78rem;text-decoration:none;"><i class="fas fa-shield-alt" style="margin-right:4px;"></i>セキュリティについて</a>
     </div>
 
     <div class="app-footer" style="color:#bbb;">スタンダード運輸グループ CoWell &copy; 2026</div>
@@ -4130,11 +4130,14 @@ function hideLoading() { document.getElementById('loading-overlay').style.displa
 #bnav-inbox .bnav-icon, #bnav-inbox .bnav-label { color: #ffea00; }
 #bnav-challenge .bnav-icon, #bnav-challenge .bnav-label { color: #ff9100; }
 #bnav-mypage .bnav-icon, #bnav-mypage .bnav-label { color: #e040fb; }
+#bnav-help .bnav-icon, #bnav-help .bnav-label { color: #b388ff; }
 #bnav-buddy.active .bnav-icon, #bnav-buddy.active .bnav-label { color: #fff; }
 #bnav-menu.active .bnav-icon, #bnav-menu.active .bnav-label { color: #fff; }
 #bnav-inbox.active .bnav-icon, #bnav-inbox.active .bnav-label { color: #fff; }
 #bnav-challenge.active .bnav-icon, #bnav-challenge.active .bnav-label { color: #fff; }
 #bnav-mypage.active .bnav-icon, #bnav-mypage.active .bnav-label { color: #fff; }
+#bnav-help.active .bnav-icon, #bnav-help.active .bnav-label { color: #fff; }
+.bnav-item { min-width: 48px; padding: 6px 4px; }
 .bnav-badge {
   position: absolute; top: 0; right: 4px;
   background: #ff1744; color: white;
@@ -4460,10 +4463,81 @@ function hideLoading() { document.getElementById('loading-overlay').style.displa
     <i class="fas fa-user bnav-icon"></i>
     <span class="bnav-label">設定</span>
   </div>
+  <div class="bnav-item" id="bnav-help" onclick="switchAppTab('help');">
+    <i class="fas fa-question-circle bnav-icon"></i>
+    <span class="bnav-label">ヘルプ</span>
+  </div>
 </nav>
 <div id="app-tab-guide" style="display:none;position:fixed;top:56px;left:0;right:0;bottom:56px;z-index:2400;background:white;overflow:hidden;">
   <iframe id="guide-iframe" style="width:100%;height:100%;border:none;"></iframe>
 </div>
+
+<!-- ヘルプハブ -->
+<div id="app-tab-help" style="display:none;position:fixed;top:56px;left:0;right:0;bottom:56px;z-index:2400;background:#f7f8fb;overflow-y:auto;">
+  <!-- ハブ画面 -->
+  <div id="help-hub" style="padding:18px 16px;">
+    <div style="text-align:center;margin-bottom:18px;">
+      <div style="font-size:1.2rem;font-weight:900;color:#333;margin-bottom:4px;"><i class="fas fa-question-circle" style="color:#b388ff;margin-right:6px;"></i>ヘルプ</div>
+      <div style="font-size:0.78rem;color:#888;">わからないことや安全性が気になった時はここから</div>
+    </div>
+
+    <div onclick="openHelpContent('/guide')" style="background:white;border-radius:14px;padding:16px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,0.06);cursor:pointer;display:flex;align-items:center;gap:14px;border:1px solid rgba(102,126,234,0.15);">
+      <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fas fa-book-open" style="color:white;font-size:1.3rem;"></i></div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:0.95rem;font-weight:800;color:#333;">使い方ガイド</div>
+        <div style="font-size:0.72rem;color:#888;margin-top:2px;">基本操作・画面の見方・用語を解説</div>
+      </div>
+      <i class="fas fa-chevron-right" style="color:#bbb;"></i>
+    </div>
+
+    <div onclick="openHelpContent('/guide-full')" style="background:white;border-radius:14px;padding:16px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,0.06);cursor:pointer;display:flex;align-items:center;gap:14px;border:1px solid rgba(16,185,129,0.15);">
+      <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#10b981,#059669);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fas fa-layer-group" style="color:white;font-size:1.3rem;"></i></div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:0.95rem;font-weight:800;color:#333;">システムガイド（詳細）</div>
+        <div style="font-size:0.72rem;color:#888;margin-top:2px;">仕組み・データ・運用フローの詳細解説</div>
+      </div>
+      <i class="fas fa-chevron-right" style="color:#bbb;"></i>
+    </div>
+
+    <div onclick="openHelpContent('/security')" style="background:white;border-radius:14px;padding:16px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,0.06);cursor:pointer;display:flex;align-items:center;gap:14px;border:1px solid rgba(20,184,166,0.15);">
+      <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#14b8a6,#0f766e);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fas fa-shield-alt" style="color:white;font-size:1.3rem;"></i></div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:0.95rem;font-weight:800;color:#333;">セキュリティについて</div>
+        <div style="font-size:0.72rem;color:#888;margin-top:2px;">個人スマホに入れても安全な理由を5つのポイントで</div>
+      </div>
+      <i class="fas fa-chevron-right" style="color:#bbb;"></i>
+    </div>
+
+    <div style="text-align:center;margin-top:24px;font-size:0.7rem;color:#aaa;line-height:1.6;">
+      不安な点や困ったことがあれば<br>
+      <span style="color:#0f766e;font-weight:700;">IT推進担当 立石</span> までご相談ください
+    </div>
+  </div>
+
+  <!-- コンテンツ表示画面 -->
+  <div id="help-content-view" style="display:none;position:absolute;inset:0;background:white;flex-direction:column;">
+    <div style="padding:10px 14px;background:white;border-bottom:1px solid #eee;display:flex;align-items:center;gap:10px;flex-shrink:0;">
+      <button onclick="closeHelpContent()" style="background:none;border:none;color:#667eea;font-size:0.88rem;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:4px;"><i class="fas fa-arrow-left"></i> ヘルプに戻る</button>
+    </div>
+    <iframe id="help-content-iframe" style="flex:1;width:100%;border:none;"></iframe>
+  </div>
+</div>
+
+<script>
+function openHelpContent(url) {
+  var iframe = document.getElementById('help-content-iframe');
+  iframe.src = url;
+  document.getElementById('help-hub').style.display = 'none';
+  var view = document.getElementById('help-content-view');
+  view.style.display = 'flex';
+}
+function closeHelpContent() {
+  document.getElementById('help-content-view').style.display = 'none';
+  document.getElementById('help-hub').style.display = 'block';
+  var iframe = document.getElementById('help-content-iframe');
+  iframe.src = 'about:blank';
+}
+</script>
 
 <!-- チャレンジ専用タブ画面 -->
 <div id="challenge-tab-screen" style="display:none;position:fixed;top:56px;left:0;right:0;bottom:56px;z-index:2400;flex-direction:column;background:#f0f2f5;">
@@ -4488,6 +4562,7 @@ function switchAppTab(tab) {
   var _nurseSheet = document.getElementById('nurse-chat-sheet'); if (_nurseSheet) _nurseSheet.classList.remove('active');
   var _myPosts = document.getElementById('my-posts-modal'); if (_myPosts) _myPosts.style.display = 'none';
   var _guideTab = document.getElementById('app-tab-guide'); if (_guideTab) _guideTab.style.display = 'none';
+  var _helpTab = document.getElementById('app-tab-help'); if (_helpTab) _helpTab.style.display = 'none';
   var _challengeTab = document.getElementById('challenge-tab-screen'); if (_challengeTab) _challengeTab.style.display = 'none';
   unlockScroll();
 
@@ -4495,7 +4570,7 @@ function switchAppTab(tab) {
   var mainContent = document.querySelector('.main-content');
   var buddyScreen = document.getElementById('buddy-chat-screen');
 
-  if (tab === 'menu' || tab === 'challenge') {
+  if (tab === 'menu' || tab === 'challenge' || tab === 'help') {
     buddyScreen.style.display = 'none';
     mainContent.style.display = tab === 'menu' ? 'block' : 'none';
     stopWakeWordListener(); // 天の声画面以外ではウェイクワード停止
@@ -4525,6 +4600,10 @@ function switchAppTab(tab) {
     var iframe = document.getElementById('guide-iframe');
     if (!iframe.src || iframe.src === 'about:blank') iframe.src = '/guide';
     document.getElementById('app-tab-guide').style.display = 'block';
+  } else if (tab === 'help') {
+    document.getElementById('help-hub').style.display = 'block';
+    document.getElementById('help-content-view').style.display = 'none';
+    document.getElementById('app-tab-help').style.display = 'block';
   } else if (tab === 'challenge') {
     document.getElementById('challenge-tab-screen').style.display = 'flex';
     loadChallengeTabContent();

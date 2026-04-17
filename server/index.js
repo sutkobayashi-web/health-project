@@ -386,6 +386,11 @@ app.get('/guide-full', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'public', 'guide-full.html'));
 });
 
+// セキュリティ説明
+app.get('/security', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'public', 'security.html'));
+});
+
 // ナレッジベース
 app.get('/knowledge', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'public', 'knowledge.html'));

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260417_onboarding">
+<html data-app-version="20260417_obfish">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -725,8 +725,31 @@
 </div>
 
 <!-- ====== オンボーディング(海の世界観) ====== -->
-<div id="onboarding-overlay" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:linear-gradient(180deg,#0a3d6b,#0a1628);z-index:9999;">
-  <div style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;">
+<div id="onboarding-overlay" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;background:#0a1628 url('/bg/area_1-1.png') center/cover no-repeat;overflow:hidden;">
+  <!-- 水槽背景の上に暗幕と泳ぐ魚 -->
+  <div id="ob-ocean-tint" style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(6,40,70,0.55),rgba(10,22,40,0.72));pointer-events:none;"></div>
+  <div id="ob-fish-layer" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;">
+    <img src="/fish/hero_type_2.png" class="ob-fish ob-fish-1" alt="">
+    <img src="/fish/hero_type_5.png" class="ob-fish ob-fish-2" alt="">
+    <img src="/fish/hero_type_7.png" class="ob-fish ob-fish-3" alt="">
+    <img src="/fish/hero_type_9.png" class="ob-fish ob-fish-4" alt="">
+    <img src="/fish/hero_type_3.png" class="ob-fish ob-fish-5" alt="">
+  </div>
+  <style>
+  .ob-fish { position:absolute; width:64px; height:64px; object-fit:contain; opacity:0.85; filter:drop-shadow(0 2px 6px rgba(0,0,0,0.4)); animation-iteration-count:infinite; animation-timing-function:linear; }
+  .ob-fish-1 { top:12%; animation:obSwimR 34s linear infinite; animation-delay:-4s; width:72px;height:72px; }
+  .ob-fish-2 { top:28%; animation:obSwimL 40s linear infinite; animation-delay:-16s; width:54px;height:54px; opacity:0.7; }
+  .ob-fish-3 { top:48%; animation:obSwimR 48s linear infinite; animation-delay:-26s; width:80px;height:80px; }
+  .ob-fish-4 { top:68%; animation:obSwimL 36s linear infinite; animation-delay:-10s; width:60px;height:60px; opacity:0.75; }
+  .ob-fish-5 { top:82%; animation:obSwimR 42s linear infinite; animation-delay:-30s; width:50px;height:50px; opacity:0.7; }
+  @keyframes obSwimR { 0% { left:-80px; transform:scaleX(-1); } 100% { left:calc(100% + 80px); transform:scaleX(-1); } }
+  @keyframes obSwimL { 0% { left:calc(100% + 80px); transform:scaleX(1); } 100% { left:-80px; transform:scaleX(1); } }
+  /* バブル装飾 */
+  .ob-bubble { position:absolute; border-radius:50%; background:radial-gradient(circle at 30% 30%, rgba(255,255,255,0.35), rgba(255,255,255,0.05)); pointer-events:none; animation: obRise linear infinite; }
+  @keyframes obRise { 0% { transform:translateY(20px); opacity:0; } 10% { opacity:0.7; } 100% { transform:translateY(-110vh); opacity:0; } }
+  </style>
+  <div id="ob-bubbles" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;"></div>
+  <div style="position:relative;z-index:2;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;">
     <div id="onboarding-slides" style="max-width:360px;width:100%;position:relative;">
       <!-- Slide 1: ようこそ海へ -->
       <div class="ob-slide" data-slide="0">
@@ -2168,6 +2191,20 @@ function showOnboarding() {
   _obSlide = 0;
   renderObDots();
   showObSlide(0);
+  // 泡の生成(10個、位置/サイズ/速度ランダム)
+  var bub = document.getElementById('ob-bubbles');
+  if (bub && !bub.dataset.built) {
+    var html = '';
+    for (var i = 0; i < 14; i++) {
+      var size = 6 + Math.random() * 16;
+      var left = Math.random() * 100;
+      var dur = 8 + Math.random() * 12;
+      var delay = -Math.random() * 18;
+      html += '<div class="ob-bubble" style="width:' + size + 'px;height:' + size + 'px;left:' + left + '%;bottom:-20px;animation-duration:' + dur + 's;animation-delay:' + delay + 's;"></div>';
+    }
+    bub.innerHTML = html;
+    bub.dataset.built = '1';
+  }
 }
 function renderObDots() {
   var html = '';

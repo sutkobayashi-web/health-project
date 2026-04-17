@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260417_egg2">
+<html data-app-version="20260417_egg3">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -10192,6 +10192,15 @@ function openStampModal(companion) {
   html += '<div style="text-align:center;margin-bottom:14px;">';
   html += '<div style="font-size:11px;color:rgba(255,255,255,0.5);">スタンプを送る</div>';
   html += '<div style="font-size:15px;font-weight:800;margin-top:2px;">' + escapeHtml(companion.nickname) + (companion.fish_name ? ' <span style="font-size:11px;color:rgba(255,255,255,0.4);">(' + escapeHtml(companion.fish_name) + ')</span>' : '') + '</div>';
+  var cSteps = (typeof companion.total_steps === 'number') ? companion.total_steps : 0;
+  var cIsEgg = !cSteps;
+  html += '<div style="margin-top:8px;display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:' + (cIsEgg ? 'rgba(253,224,71,0.15)' : 'rgba(253,224,71,0.1)') + ';border:1px solid ' + (cIsEgg ? 'rgba(253,224,71,0.35)' : 'rgba(253,224,71,0.25)') + ';border-radius:999px;font-size:12px;font-weight:800;color:#fde68a;">';
+  if (cIsEgg) {
+    html += '<span>🥚</span><span>まだ卵（0歩）</span>';
+  } else {
+    html += '<i class="fas fa-shoe-prints"></i><span>' + cSteps.toLocaleString() + '歩</span>';
+  }
+  html += '</div>';
   html += '</div>';
   html += '<div style="display:flex;flex-direction:column;gap:8px;">';
   stamps.forEach(function(s) {

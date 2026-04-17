@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260417_noqr">
+<html data-app-version="20260417_onboarding">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -724,45 +724,52 @@
   </div>
 </div>
 
-<!-- ====== オンボーディング ====== -->
-<div id="onboarding-overlay" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:9999;display:none;">
+<!-- ====== オンボーディング(海の世界観) ====== -->
+<div id="onboarding-overlay" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:linear-gradient(180deg,#0a3d6b,#0a1628);z-index:9999;">
   <div style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;">
     <div id="onboarding-slides" style="max-width:360px;width:100%;position:relative;">
-      <!-- Slide 1 -->
+      <!-- Slide 1: ようこそ海へ -->
       <div class="ob-slide" data-slide="0">
-        <div style="text-align:center;padding:30px 20px;background:white;border-radius:20px;">
-          <div style="font-size:3rem;margin-bottom:16px;">🤝</div>
-          <div style="font-size:1.2rem;font-weight:900;color:#667eea;margin-bottom:12px;">ようこそ！CoWell へ</div>
-          <div style="font-size:0.88rem;color:#555;line-height:1.8;">ここには<br><strong style="color:#667eea;">あなたの毎日を一緒に過ごす仲間</strong><br>がいます</div>
+        <div style="text-align:center;padding:32px 22px;background:linear-gradient(180deg,#fff,#f0f9ff);border-radius:20px;box-shadow:0 8px 40px rgba(14,165,233,0.3);">
+          <div style="font-size:3.4rem;margin-bottom:12px;">🌊</div>
+          <div style="font-size:1.22rem;font-weight:900;color:#0369a1;margin-bottom:14px;">ようこそ、海へ</div>
+          <div style="font-size:0.88rem;color:#475569;line-height:1.85;">ここは <strong style="color:#0ea5e9;">あなたの分身の魚</strong> が泳ぐ海。<br>歩いた分だけ、魚が新しい景色を見つけにいきます。</div>
         </div>
       </div>
-      <!-- Slide 2 -->
+      <!-- Slide 2: 5章の冒険 -->
       <div class="ob-slide" data-slide="1" style="display:none;">
-        <div style="text-align:center;padding:30px 20px;background:white;border-radius:20px;">
-          <div style="font-size:3rem;margin-bottom:16px;">🤖💬</div>
-          <div style="font-size:1.1rem;font-weight:900;color:#0ea5e9;margin-bottom:12px;">天の声に話しかけよう</div>
-          <div style="font-size:0.85rem;color:#555;line-height:1.8;">あなたのことを気にかけてくれる<br>天の声がここにいます<br><br><strong>雑談でも愚痴でもOK</strong></div>
-        </div>
-      </div>
-      <!-- Slide 3 -->
-      <div class="ob-slide" data-slide="2" style="display:none;">
-        <div style="text-align:center;padding:30px 20px;background:white;border-radius:20px;">
-          <div style="font-size:3rem;margin-bottom:16px;">🛡️🏢</div>
-          <div style="font-size:1.1rem;font-weight:900;color:#d63384;margin-bottom:12px;">推進メンバーに届けよう</div>
-          <div style="font-size:0.85rem;color:#555;line-height:1.8;">AIだけでは解決できない職場の課題は<br>推進メンバーに届けられます<br><br><strong style="color:#d63384;">会社の仕組みを変える</strong>のは推進メンバー</div>
-        </div>
-      </div>
-      <!-- Slide 4 -->
-      <div class="ob-slide" data-slide="3" style="display:none;">
-        <div style="text-align:center;padding:30px 20px;background:white;border-radius:20px;">
-          <div style="font-size:2rem;margin-bottom:12px;">📢 → 🗳️ → 💪</div>
-          <div style="font-size:1.1rem;font-weight:900;color:#ff6b35;margin-bottom:12px;">声がチャレンジになる！</div>
-          <div style="font-size:0.85rem;color:#555;line-height:1.8;">
-            <strong>①</strong> あなたの声を投稿<br>
-            <strong>②</strong> みんなでテーマを投票<br>
-            <strong>③</strong> チャレンジで楽しく実践<br><br>
-            <strong style="color:#ff6b35;">あなたの一言が職場を変える</strong>
+        <div style="text-align:center;padding:32px 22px;background:linear-gradient(180deg,#fff,#ecfeff);border-radius:20px;box-shadow:0 8px 40px rgba(14,165,233,0.3);">
+          <div style="font-size:2rem;margin-bottom:10px;">🏝 → 🐠 → 🌊 → 🦑 → 🕳</div>
+          <div style="font-size:1.15rem;font-weight:900;color:#0891b2;margin-bottom:14px;">5章の海を旅する</div>
+          <div style="font-size:0.85rem;color:#475569;line-height:1.8;">
+            浅瀬 → サンゴ礁 → 外洋 → 深海 → 海淵<br><br>
+            歩数を記録するたび、魚は深く潜り<br>
+            <strong style="color:#0891b2;">新しいエリアと魚に出会える</strong>。
           </div>
+        </div>
+      </div>
+      <!-- Slide 3: 天の声 -->
+      <div class="ob-slide" data-slide="2" style="display:none;">
+        <div style="text-align:center;padding:32px 22px;background:linear-gradient(180deg,#fff,#f5f3ff);border-radius:20px;box-shadow:0 8px 40px rgba(124,58,237,0.25);">
+          <div style="font-size:3rem;margin-bottom:12px;">🔮</div>
+          <div style="font-size:1.15rem;font-weight:900;color:#7c3aed;margin-bottom:14px;">天の声と話す</div>
+          <div style="font-size:0.85rem;color:#475569;line-height:1.85;">ふと気になったこと、ちょっとした愚痴、嬉しかったこと。<br><br><strong style="color:#7c3aed;">身構えず、そのまま</strong> 話せば、<br>海の奥から声が返ってきます。</div>
+        </div>
+      </div>
+      <!-- Slide 4: 仲間 -->
+      <div class="ob-slide" data-slide="3" style="display:none;">
+        <div style="text-align:center;padding:32px 22px;background:linear-gradient(180deg,#fff,#f0fdfa);border-radius:20px;box-shadow:0 8px 40px rgba(20,184,166,0.25);">
+          <div style="font-size:3rem;margin-bottom:12px;">🐟 🐠 🐡</div>
+          <div style="font-size:1.15rem;font-weight:900;color:#0f766e;margin-bottom:14px;">仲間の魚と同じ海で</div>
+          <div style="font-size:0.85rem;color:#475569;line-height:1.85;">他の人の魚も、同じ海を泳いでいます。<br><strong style="color:#0f766e;">本名ではなく あだ名</strong> で参加。<br>そっと見守り、スタンプで応援しあえます。</div>
+        </div>
+      </div>
+      <!-- Slide 5: さあ出発 -->
+      <div class="ob-slide" data-slide="4" style="display:none;">
+        <div style="text-align:center;padding:32px 22px;background:linear-gradient(180deg,#fff,#fffbeb);border-radius:20px;box-shadow:0 8px 40px rgba(251,191,36,0.35);">
+          <div style="font-size:3.4rem;margin-bottom:12px;">✨</div>
+          <div style="font-size:1.22rem;font-weight:900;color:#b45309;margin-bottom:14px;">さあ、出発しよう</div>
+          <div style="font-size:0.85rem;color:#475569;line-height:1.85;">右下の <strong style="color:#f59e0b;">👣アイコン</strong> から、<br>今日の歩数を記録するところから。<br><br>最初の1歩で、魚が動きだします。</div>
         </div>
       </div>
     </div>
@@ -771,8 +778,8 @@
       <div id="ob-dots" style="display:flex;gap:8px;"></div>
     </div>
     <div style="margin-top:16px;display:flex;gap:12px;">
-      <button onclick="skipOnboarding()" style="padding:10px 20px;background:rgba(255,255,255,0.2);color:white;border:1px solid rgba(255,255,255,0.4);border-radius:20px;font-size:0.82rem;cursor:pointer;">スキップ</button>
-      <button id="ob-next-btn" onclick="nextOnboardingSlide()" style="padding:10px 28px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;border-radius:20px;font-size:0.88rem;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(102,126,234,0.4);">次へ</button>
+      <button onclick="skipOnboarding()" style="padding:10px 20px;background:rgba(255,255,255,0.14);color:white;border:1px solid rgba(255,255,255,0.3);border-radius:20px;font-size:0.82rem;cursor:pointer;font-family:inherit;">スキップ</button>
+      <button id="ob-next-btn" onclick="nextOnboardingSlide()" style="padding:10px 28px;background:linear-gradient(135deg,#0ea5e9,#0891b2);color:white;border:none;border-radius:20px;font-size:0.88rem;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(14,165,233,0.5);font-family:inherit;">次へ</button>
     </div>
   </div>
 </div>
@@ -895,17 +902,6 @@
       <span id="profile-posts"></span>
       <span id="profile-invites"></span>
       <span id="profile-dept"></span>
-    </div>
-
-    <!-- このアプリの仕組み -->
-    <div class="card-section" style="background:linear-gradient(135deg,#f3e5f5,#ede7f6); border:2px solid #9c27b0; box-shadow:0 4px 16px rgba(156,39,176,0.12); cursor:pointer;" onclick="showOnboarding()">
-      <div style="display:flex; align-items:center; gap:10px;">
-        <div style="display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#9c27b0,#ba68c8);flex-shrink:0;"><i class="fas fa-lightbulb" style="font-size:22px;color:#fff;"></i></div>
-        <div style="flex:1;">
-          <div class="section-title" style="margin-bottom:2px; padding-bottom:3px; border-bottom:2px solid rgba(156,39,176,0.2);"><i class="fas fa-lightbulb"></i> このアプリの仕組み</div>
-          <div style="font-size:0.75rem; color:#999;">あなたの声が職場を変える（タップで確認）</div>
-        </div>
-      </div>
     </div>
 
     <!-- 今日の空気ダッシュボード（非表示） -->
@@ -2165,7 +2161,7 @@ initFontSize();
 
 // ===== オンボーディング =====
 var _obSlide = 0;
-var _obTotal = 4;
+var _obTotal = 5;
 function showOnboarding() {
   var overlay = document.getElementById('onboarding-overlay');
   overlay.style.display = 'block';
@@ -2186,7 +2182,7 @@ function showObSlide(n) {
   if (slide) slide.style.display = 'block';
   var btn = document.getElementById('ob-next-btn');
   if (n >= _obTotal - 1) {
-    btn.textContent = 'はじめる！';
+    btn.textContent = '🌊 海へ出る';
   } else {
     btn.textContent = '次へ';
   }
@@ -4477,6 +4473,15 @@ function hideLoading() { document.getElementById('loading-overlay').style.displa
       <div style="flex:1;min-width:0;">
         <div style="font-size:0.95rem;font-weight:800;color:#333;">セキュリティについて</div>
         <div style="font-size:0.72rem;color:#888;margin-top:2px;">個人スマホに入れても安全な理由を5つのポイントで</div>
+      </div>
+      <i class="fas fa-chevron-right" style="color:#bbb;"></i>
+    </div>
+
+    <div onclick="showOnboarding()" style="background:white;border-radius:14px;padding:16px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,0.06);cursor:pointer;display:flex;align-items:center;gap:14px;border:1px solid rgba(14,165,233,0.15);">
+      <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#0ea5e9,#0891b2);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fas fa-water" style="color:white;font-size:1.3rem;"></i></div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:0.95rem;font-weight:800;color:#333;">この海のこと</div>
+        <div style="font-size:0.72rem;color:#888;margin-top:2px;">CoWellの世界観と楽しみ方を5枚のスライドで</div>
       </div>
       <i class="fas fa-chevron-right" style="color:#bbb;"></i>
     </div>

@@ -470,7 +470,7 @@ if(localStorage.getItem('co_heart_admin_token') && localStorage.getItem('co_hear
       <div class="card mb-3">
         <div class="card-body">
           <h6 class="fw-bold mb-2"><i class="fas fa-shoe-prints me-1"></i>全体歩数推移 (過去30日)</h6>
-          <canvas id="rpg-step-chart" height="100"></canvas>
+          <div style="position:relative;height:260px;"><canvas id="rpg-step-chart"></canvas></div>
         </div>
       </div>
       <!-- 章別人数 -->
@@ -1326,24 +1326,43 @@ function renderRpgStepChart() {
   }
   var canvas = document.getElementById('rpg-step-chart');
   if (!canvas) return;
-  var labels = _rpgDashData.daily_steps.map(function(d){return d.step_date.slice(5);});
-  var totals = _rpgDashData.daily_steps.map(function(d){return d.total_steps || 0;});
-  var users  = _rpgDashData.daily_steps.map(function(d){return d.users || 0;});
+
+  // 過去30日を枠固定、欠落日はゼロ埋め
+  var pad2 = function(n){ return (n<10?'0':'') + n; };
+  var toYmd = function(dt){ return dt.getFullYear() + '-' + pad2(dt.getMonth()+1) + '-' + pad2(dt.getDate()); };
+  var raw = {};
+  (_rpgDashData.daily_steps || []).forEach(function(d){ raw[d.step_date] = d; });
+  var labels = [], totals = [], users = [];
+  for (var i = 29; i >= 0; i--) {
+    var dt = new Date(Date.now() - i * 86400000);
+    var key = toYmd(dt);
+    var rec = raw[key];
+    labels.push(pad2(dt.getMonth()+1) + '/' + pad2(dt.getDate()));
+    totals.push(rec ? (rec.total_steps || 0) : 0);
+    users.push(rec ? (rec.users || 0) : 0);
+  }
+
   if (_rpgChart) { try { _rpgChart.destroy(); } catch(e) {} }
   _rpgChart = new Chart(canvas.getContext('2d'), {
-    type: 'line',
+    type: 'bar',
     data: {
       labels: labels,
       datasets: [
-        { label: '総歩数', data: totals, borderColor: '#0ea5e9', backgroundColor: 'rgba(14,165,233,0.15)', yAxisID: 'y1', tension:0.3 },
-        { label: '記録ユーザー数', data: users, borderColor: '#fbbf24', backgroundColor: 'rgba(251,191,36,0.15)', yAxisID: 'y2', tension:0.3 },
+        { type:'bar', label: '総歩数', data: totals, backgroundColor: 'rgba(14,165,233,0.55)', borderColor:'#0ea5e9', borderWidth:1, yAxisID: 'y1', order:2 },
+        { type:'line', label: '記録ユーザー数', data: users, borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.15)', yAxisID: 'y2', tension:0.25, pointRadius:3, pointBackgroundColor:'#f59e0b', order:1, fill:false },
       ]
     },
     options: {
       responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { position: 'top' },
+        tooltip: { callbacks: { title: function(ctx){ return '過去' + (30 - ctx[0].dataIndex) + '日前 · ' + ctx[0].label; } } }
+      },
       scales: {
-        y1: { type:'linear', position:'left', title:{display:true,text:'総歩数'} },
-        y2: { type:'linear', position:'right', title:{display:true,text:'人数'}, grid:{drawOnChartArea:false} },
+        x: { ticks: { autoSkip: true, maxTicksLimit: 10, font:{size:10} } },
+        y1: { type:'linear', position:'left', title:{display:true,text:'総歩数'}, beginAtZero:true, ticks:{ callback: function(v){ return v.toLocaleString(); } } },
+        y2: { type:'linear', position:'right', title:{display:true,text:'人数'}, grid:{drawOnChartArea:false}, beginAtZero:true, ticks:{ stepSize:1, precision:0 } },
       }
     }
   });

@@ -138,6 +138,33 @@
 
   /* ====== カードセクション ====== */
   .card-section { background: white; border-radius: 20px; padding: 22px 18px; margin-bottom: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); border: none; position: relative; overflow: hidden; }
+  /* 広場タイルグリッド（アコーディオン廃止後の入口） */
+  #plaza-tile-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 4px 0 16px; }
+  .plaza-tile { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 6px; padding: 18px 10px; border-radius: 18px; background: white; box-shadow: 0 4px 14px rgba(0,0,0,0.08); cursor: pointer; transition: transform 0.12s, box-shadow 0.12s; -webkit-tap-highlight-color: transparent; border: 2px solid transparent; min-height: 116px; box-sizing: border-box; text-align: center; }
+  .plaza-tile:active { transform: scale(0.96); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+  .plaza-tile .pt-icon { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; color: white; flex-shrink: 0; }
+  .plaza-tile .pt-title { font-weight: 800; font-size: 0.9rem; color: #2c3e50; line-height: 1.2; }
+  .plaza-tile .pt-sub { font-size: 0.66rem; color: #888; line-height: 1.3; margin-top: 1px; }
+  .plaza-tile.tile-posts  { border-color: #6c5ce7; }
+  .plaza-tile.tile-food   { border-color: #20c997; }
+  .plaza-tile.tile-bp     { border-color: #e91e63; }
+  .plaza-tile.tile-checkup{ border-color: #c2185b; }
+  .plaza-tile.tile-memo   { border-color: #ff9800; }
+  .plaza-tile.tile-elearn { border-color: #66bb6a; }
+  .plaza-tile.tile-help   { border-color: #b388ff; }
+  .plaza-tile.tile-posts  .pt-icon { background: linear-gradient(135deg,#6c5ce7,#a29bfe); }
+  .plaza-tile.tile-food   .pt-icon { background: linear-gradient(135deg,#20c997,#4caf50); }
+  .plaza-tile.tile-bp     .pt-icon { background: linear-gradient(135deg,#e91e63,#c2185b); }
+  .plaza-tile.tile-checkup .pt-icon { background: linear-gradient(135deg,#fce4ec,#f8bbd0); color: #c2185b; }
+  .plaza-tile.tile-memo   .pt-icon { background: linear-gradient(135deg,#fff3e0,#ffe0b2); color: #e65100; }
+  .plaza-tile.tile-elearn .pt-icon { background: linear-gradient(135deg,#43a047,#66bb6a); }
+  .plaza-tile.tile-help   .pt-icon { background: linear-gradient(135deg,#9575cd,#b388ff); }
+  /* 戻るボタン */
+  #plaza-back-btn { display: none; align-items: center; gap: 8px; padding: 10px 14px; margin-bottom: 12px; background: white; border-radius: 14px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); cursor: pointer; font-weight: 700; font-size: 0.85rem; color: #555; border: 1px solid #eee; }
+  #plaza-back-btn:active { background: #f5f5f5; }
+  #plaza-back-btn i { color: #888; }
+  /* タイル選択中: 残りのカードを隠すクラス */
+  .card-section.plaza-hidden { display: none !important; }
   .card-section > div:first-child { min-height: 52px; }
   .section-title { font-weight: 800; font-size: 0.95rem; color: #2c3e50; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; letter-spacing: -0.2px; white-space: nowrap; }
   @media (max-width: 380px) { .section-title { font-size: 0.82rem; gap: 5px; } }
@@ -931,6 +958,48 @@
       <span id="profile-dept"></span>
     </div>
 
+    <!-- 広場 戻るボタン（タイル選択中のみ表示） -->
+    <div id="plaza-back-btn" onclick="closePlazaCard()"><i class="fas fa-arrow-left"></i> 広場に戻る</div>
+
+    <!-- 広場 入口タイルグリッド -->
+    <div id="plaza-tile-grid">
+      <div class="plaza-tile tile-posts" onclick="openPlazaCard('posts-view-section')">
+        <div class="pt-icon"><i class="fas fa-stream"></i></div>
+        <div class="pt-title">みんなの声</div>
+        <div class="pt-sub">声＆ごはんを見る</div>
+      </div>
+      <div class="plaza-tile tile-food" onclick="openPlazaCard('food-card-section')">
+        <div class="pt-icon"><i class="fas fa-utensils"></i></div>
+        <div class="pt-title">ごはん投稿</div>
+        <div class="pt-sub">写真撮るだけ</div>
+      </div>
+      <div class="plaza-tile tile-bp" id="plaza-tile-bp" onclick="openPlazaCard('bp-card')" style="display:none;">
+        <div class="pt-icon"><i class="fas fa-heartbeat"></i></div>
+        <div class="pt-title">血圧を記録</div>
+        <div class="pt-sub">撮影して見える化</div>
+      </div>
+      <div class="plaza-tile tile-checkup" onclick="openPlazaCard('checkup-section')">
+        <div class="pt-icon"><i class="fas fa-file-medical"></i></div>
+        <div class="pt-title">健診結果</div>
+        <div class="pt-sub">食事との関係</div>
+      </div>
+      <div class="plaza-tile tile-memo" onclick="openPlazaCard('health-memo-section')">
+        <div class="pt-icon"><i class="fas fa-bookmark"></i></div>
+        <div class="pt-title">健康メモ</div>
+        <div class="pt-sub">AIの回答を保存</div>
+      </div>
+      <div class="plaza-tile tile-elearn" onclick="openPlazaCard('elearn-section')">
+        <div class="pt-icon"><i class="fas fa-graduation-cap"></i></div>
+        <div class="pt-title">eラーニング</div>
+        <div class="pt-sub">公的機関の無料教材</div>
+      </div>
+      <div class="plaza-tile tile-help" onclick="switchAppTab('help')">
+        <div class="pt-icon"><i class="fas fa-question-circle"></i></div>
+        <div class="pt-title">ヘルプ</div>
+        <div class="pt-sub">使い方・この海のこと</div>
+      </div>
+    </div>
+
     <!-- 今日の空気ダッシュボード（非表示） -->
     <div class="card-section" id="atmosphere-card" style="display:none; background:linear-gradient(135deg,#ecfdf5,#d1fae5); border:2px solid #34d399; box-shadow:0 4px 16px rgba(52,211,153,0.15);"">
       <div style="text-align:center;padding:4px 0 8px;">
@@ -1024,7 +1093,7 @@
     <!-- 相談は天の声チャットから自然に吸い上げるため、投稿フォームは廃止 -->
 
     <!-- 食事セクション -->
-    <div class="card-section food-section" style="background:linear-gradient(135deg,#e0f7ef,#c8e6c9); border:2px solid #20c997; box-shadow:0 4px 16px rgba(32,201,151,0.12);">
+    <div class="card-section food-section" id="food-card-section" style="background:linear-gradient(135deg,#e0f7ef,#c8e6c9); border:2px solid #20c997; box-shadow:0 4px 16px rgba(32,201,151,0.12);">
       <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="toggleAccordion('food-body','food-chevron')">
         <div style="display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#f1f8e9,#dcedc8);flex-shrink:0;"><i class="fas fa-apple-whole" style="font-size:22px;color:#4caf50;"></i></div>
         <div style="flex:1; min-width:0;">
@@ -1106,7 +1175,7 @@
     </div>
 
     <!-- みんなの投稿を見る -->
-    <div class="card-section" style="background:linear-gradient(135deg,#ede7f6,#e8eaf6); border:2px solid #6c5ce7; box-shadow:0 4px 16px rgba(108,92,231,0.12);">
+    <div class="card-section" id="posts-view-section" style="background:linear-gradient(135deg,#ede7f6,#e8eaf6); border:2px solid #6c5ce7; box-shadow:0 4px 16px rgba(108,92,231,0.12);">
       <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="toggleAccordion('posts-view-body','posts-view-chevron')">
         <div style="display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#6c5ce7,#a29bfe);flex-shrink:0;"><i class="fas fa-stream" style="font-size:22px;color:#fff;"></i></div>
         <div style="flex:1;">
@@ -1180,7 +1249,7 @@
     </div>
 
     <!-- 健康eラーニング教材 -->
-    <div class="card-section" style="background:linear-gradient(135deg,#e8f5e9,#f1f8e9); border:2px solid #66bb6a; box-shadow:0 4px 16px rgba(76,175,80,0.12);">
+    <div class="card-section" id="elearn-section" style="background:linear-gradient(135deg,#e8f5e9,#f1f8e9); border:2px solid #66bb6a; box-shadow:0 4px 16px rgba(76,175,80,0.12);">
       <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="toggleAccordion('elearn-body','elearn-chevron')">
         <div style="display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#43a047,#66bb6a);flex-shrink:0;"><i class="fas fa-graduation-cap" style="font-size:22px;color:#fff;"></i></div>
         <div style="flex:1;">
@@ -1223,7 +1292,7 @@
     </div>
 
     <!-- ヘルプ(使い方・システムガイド・セキュリティ・この海のこと) -->
-    <div class="card-section" style="background:linear-gradient(135deg,#f3e8ff,#ede9fe); border:2px solid #b388ff; box-shadow:0 4px 16px rgba(179,136,255,0.15); cursor:pointer;" onclick="switchAppTab('help')">
+    <div class="card-section" id="help-card-section" style="background:linear-gradient(135deg,#f3e8ff,#ede9fe); border:2px solid #b388ff; box-shadow:0 4px 16px rgba(179,136,255,0.15); cursor:pointer;" onclick="switchAppTab('help')">
       <div style="display:flex; align-items:center; gap:10px;">
         <div style="display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#9575cd,#b388ff);flex-shrink:0;"><i class="fas fa-question-circle" style="font-size:22px;color:#fff;"></i></div>
         <div style="flex:1;">
@@ -2584,6 +2653,7 @@ function initBpCard() {
   });
   var toggle = document.getElementById('bp-toggle');
   if (toggle) toggle.checked = bpEnabled;
+  if (typeof syncPlazaBpTile === 'function') syncPlazaBpTile();
 }
 function toggleBpEnabled(on) {
   localStorage.setItem('co_heart_bp_enabled', on ? '1' : '0');
@@ -4484,8 +4554,8 @@ function hideLoading() { document.getElementById('loading-overlay').style.displa
     <span class="bnav-label">設定</span>
   </div>
   <div class="bnav-item" id="bnav-post" onclick="openQuickPost();">
-    <i class="fas fa-camera bnav-icon"></i>
-    <span class="bnav-label">投稿</span>
+    <i class="fas fa-stream bnav-icon"></i>
+    <span class="bnav-label">見る</span>
   </div>
 </nav>
 <div id="app-tab-guide" style="display:none;position:fixed;top:56px;left:0;right:0;bottom:var(--bnav-h);z-index:2400;background:white;overflow:hidden;">
@@ -4616,6 +4686,7 @@ function switchAppTab(tab) {
   } else if (tab === 'menu') {
     // メニュー（旧ホーム）表示 — 空気ダッシュボードを読み込み
     loadAtmosphere();
+    if (typeof resetPlazaToGrid === 'function') resetPlazaToGrid();
   } else if (tab === 'inbox') {
     lockScroll();
     loadInboxContent();
@@ -4653,17 +4724,86 @@ function switchAppTab(tab) {
 // 投稿ボトムタブから: 広場を開いて食事セクションを展開・スクロール
 function openQuickPost() {
   switchAppTab('menu');
-  setTimeout(function() {
-    var foodBody = document.getElementById('food-body');
-    if (foodBody && foodBody.style.display === 'none') {
-      if (typeof toggleAccordion === 'function') toggleAccordion('food-body', 'food-chevron');
-      else foodBody.style.display = 'block';
+  setTimeout(function() { openPlazaCard('posts-view-section'); }, 120);
+}
+
+// 広場タイル: 単一カード表示モードへ
+var PLAZA_FOLDABLE_IDS = ['posts-view-section','food-card-section','bp-card','checkup-section','health-memo-section','elearn-section','help-card-section'];
+var PLAZA_BODY_MAP = {
+  'posts-view-section': 'posts-view-body',
+  'food-card-section':  'food-body',
+  'bp-card':            'bp-body',
+  'checkup-section':    'checkup-body',
+  'health-memo-section':'memo-body',
+  'elearn-section':     'elearn-body'
+};
+
+function openPlazaCard(cardId) {
+  var grid = document.getElementById('plaza-tile-grid');
+  if (grid) grid.style.display = 'none';
+  var back = document.getElementById('plaza-back-btn');
+  if (back) back.style.display = 'flex';
+
+  PLAZA_FOLDABLE_IDS.forEach(function(id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    if (id === cardId) {
+      el.classList.remove('plaza-hidden');
+      el.style.display = 'block';
+      var bodyId = PLAZA_BODY_MAP[id];
+      if (bodyId) {
+        var body = document.getElementById(bodyId);
+        if (body) body.style.display = 'block';
+      }
+    } else {
+      el.classList.add('plaza-hidden');
     }
-    var foodSection = foodBody ? foodBody.closest('.card-section') : null;
-    if (foodSection && foodSection.scrollIntoView) {
-      foodSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  // 各カード固有の初期ロード
+  if (cardId === 'posts-view-section' && typeof loadPostsView === 'function') loadPostsView('all');
+  if (cardId === 'health-memo-section' && typeof loadHealthMemos === 'function') loadHealthMemos();
+
+  setTimeout(function() { window.scrollTo({ top: 0, behavior: 'smooth' }); }, 50);
+}
+
+function closePlazaCard() {
+  var grid = document.getElementById('plaza-tile-grid');
+  if (grid) grid.style.display = 'grid';
+  var back = document.getElementById('plaza-back-btn');
+  if (back) back.style.display = 'none';
+  PLAZA_FOLDABLE_IDS.forEach(function(id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.classList.add('plaza-hidden');
+    var bodyId = PLAZA_BODY_MAP[id];
+    if (bodyId) {
+      var body = document.getElementById(bodyId);
+      if (body) body.style.display = 'none';
     }
-  }, 120);
+  });
+  // BPタイルは設定で表示制御
+  syncPlazaBpTile();
+  setTimeout(function() { window.scrollTo({ top: 0, behavior: 'smooth' }); }, 50);
+}
+
+function resetPlazaToGrid() {
+  // 広場を開いた時にタイルグリッド表示にリセット
+  var grid = document.getElementById('plaza-tile-grid');
+  if (grid) grid.style.display = 'grid';
+  var back = document.getElementById('plaza-back-btn');
+  if (back) back.style.display = 'none';
+  PLAZA_FOLDABLE_IDS.forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.classList.add('plaza-hidden');
+  });
+  syncPlazaBpTile();
+}
+
+function syncPlazaBpTile() {
+  var enabled = localStorage.getItem('co_heart_bp_enabled') === '1';
+  var tile = document.getElementById('plaza-tile-bp');
+  if (tile) tile.style.display = enabled ? 'flex' : 'none';
 }
 
 function toggleFabMenu() {

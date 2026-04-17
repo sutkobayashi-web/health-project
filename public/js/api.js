@@ -9,6 +9,55 @@ function setToken(t) { localStorage.setItem('co_heart_token', t); }
 function getAdminToken() { return localStorage.getItem('co_heart_admin_token') || ''; }
 function setAdminToken(t) { localStorage.setItem('co_heart_admin_token', t); }
 
+// ===== グローバルfetchインターセプター =====
+// 生fetchで /api/* を呼ぶ箇所にも、ユーザートークン自動付与＋SESSION_EXPIRED処理を効かせる
+(function() {
+  if (window.__cowellFetchPatched) return;
+  window.__cowellFetchPatched = true;
+  var _origFetch = window.fetch.bind(window);
+  function _isUserApi(url) {
+    if (typeof url !== 'string') return false;
+    if (url.indexOf('/api/') === -1) return false;
+    if (url.indexOf('/api/admin/') !== -1) return false;
+    // 認証前エンドポイントは除外
+    if (url.indexOf('/api/auth/login') !== -1) return false;
+    if (url.indexOf('/api/auth/register') !== -1) return false;
+    if (url.indexOf('/api/auth/admin-login') !== -1) return false;
+    if (url.indexOf('/api/auth/admin-register') !== -1) return false;
+    if (url.indexOf('/api/auth/reset-password') !== -1) return false;
+    if (url.indexOf('/api/auth/admin-reset-password') !== -1) return false;
+    if (url.indexOf('/api/track') !== -1) return false; // 行動ログは無認証許容
+    return true;
+  }
+  window.fetch = function(input, init) {
+    try {
+      var url = (typeof input === 'string') ? input : (input && input.url) || '';
+      if (_isUserApi(url)) {
+        init = init || {};
+        var headers = new Headers(init.headers || (typeof input !== 'string' && input.headers) || {});
+        if (!headers.has('Authorization')) {
+          var t = getToken();
+          if (t) headers.set('Authorization', 'Bearer ' + t);
+        }
+        init.headers = headers;
+      }
+    } catch (e) { /* noop */ }
+    return _origFetch(input, init).then(function(res) {
+      if (res.status === 401 && _isUserApi(typeof input === 'string' ? input : (input && input.url) || '')) {
+        var clone = res.clone();
+        clone.json().then(function(body) {
+          if (body && body.code === 'SESSION_EXPIRED') {
+            try { localStorage.removeItem('co_heart_token'); } catch(e){}
+            alert('別の端末でログインされたため、セッションが無効になりました。再ログインしてください。');
+            location.reload();
+          }
+        }).catch(function() {});
+      }
+      return res;
+    });
+  };
+})();
+
 async function api(path, data, token) {
   const opts = { headers: { 'Content-Type': 'application/json' } };
   if (token) opts.headers['Authorization'] = 'Bearer ' + token;

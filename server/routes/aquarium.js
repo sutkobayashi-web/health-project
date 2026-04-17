@@ -2,16 +2,19 @@ const express = require('express');
 const router = express.Router();
 const { getDb } = require('../services/db');
 const { callGeminiVision } = require('../services/ai');
+const { authUser: jwtAuthUser } = require('../middleware/auth');
 
 // ============================================================
 // CoWell 海の探索RPG API
 // ============================================================
 
+// JWT検証 + session_token照合（同時ログイン防止）。req.uid を後方互換で残す。
 function authUser(req, res, next) {
-  const uid = req.headers['x-user-id'] || req.query.uid || req.body?.uid;
-  if (!uid) return res.status(401).json({ error: '認証が必要です' });
-  req.uid = uid;
-  next();
+  jwtAuthUser(req, res, function() {
+    req.uid = req.user && req.user.uid;
+    if (!req.uid) return res.status(401).json({ success: false, msg: '認証が必要です' });
+    next();
+  });
 }
 
 // ---------- RPGステージマスタ ----------

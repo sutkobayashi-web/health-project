@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260417_hud">
+<html data-app-version="20260417_noqr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -1199,22 +1199,6 @@
       </div>
     </div>
 
-    <!-- QRコード -->
-    <div class="card-section" style="background:linear-gradient(135deg,#ede7f6,#e8eaf6); border:2px solid #6c5ce7; box-shadow:0 4px 16px rgba(108,92,231,0.12);">
-      <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="toggleAccordion('qr-body','qr-chevron')">
-        <div style="display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#6c5ce7,#a29bfe);flex-shrink:0;"><i class="fas fa-qrcode" style="font-size:22px;color:#fff;"></i></div>
-        <div style="flex:1;">
-          <div class="section-title" style="margin-bottom:2px; padding-bottom:3px; border-bottom:2px solid rgba(108,92,231,0.2);"><i class="fas fa-qrcode"></i> アプリのQRコード</div>
-          <div style="font-size:0.75rem; color:#999;">このQRコードでアプリにアクセスできます</div>
-        </div>
-      </div>
-      <div id="qr-body" style="display:none; margin-top:12px; padding-top:12px; border-top:1px solid rgba(108,92,231,0.2); text-align:center;">
-        <div id="qr-area"></div>
-        <div style="margin-top:10px; font-size:0.75rem; color:#bbb;"><i class="fas fa-mobile-alt" style="margin-right:4px;"></i> カメラで読み取ってアクセス</div>
-      </div>
-    </div>
-
-
     <!-- ガイドはログイン後のボトムメニュー「ヘルプ」へ移動 -->
     <div style="text-align:center;margin-bottom:16px;">
       <a href="/security" target="_blank" style="color:#667eea;font-size:0.78rem;text-decoration:none;"><i class="fas fa-shield-alt" style="margin-right:4px;"></i>セキュリティについて</a>
@@ -2237,7 +2221,6 @@ function onLoginSuccess() {
   document.getElementById('stat-nickname').innerText = currentUser.nickname || '--';
   updateProfileCard();
   updateHeaderStats();
-  generateQR();
   loadHealthMemos();
   loadAvatarChallenge();
   loadThemeVoting();
@@ -2775,14 +2758,6 @@ function updateHeaderStats() {
     var prPosts = document.getElementById('profile-posts');
     if (prPosts) prPosts.innerHTML = '<i class="fas fa-pen"></i> 投稿 ' + res.postCount + (res.postRankPos ? '<span style="color:#667eea;">（' + res.postRankPos + '位）</span>' : '');
   });
-}
-
-// ====== QR ======
-function generateQR() {
-  var link = window.location.origin + '/';
-  var qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" + encodeURIComponent(link);
-  var el = document.getElementById('qr-area');
-  if (el) el.innerHTML = '<img src="' + qrUrl + '" style="width:150px; height:150px; border-radius:8px; border:1px solid #eee;">';
 }
 
 // ====== タイムライン ======
@@ -9051,7 +9026,7 @@ function toggleAccordion(bodyId, labelId) {
     body.style.cssText = body.style.cssText.replace(/display:\s*block/i, 'display:none');
   } else {
     // メインメニューの場合のみ排他制御（サブアコーディオンはスキップ）
-    var mainBodies = ['vote-body','challenge-combined-body','honne-body','food-body','checkup-body','memo-body','elearn-body','qr-body'];
+    var mainBodies = ['vote-body','challenge-combined-body','honne-body','food-body','checkup-body','memo-body','elearn-body'];
     if (mainBodies.indexOf(bodyId) !== -1) {
       mainBodies.forEach(function(id) {
         if (id !== bodyId) {
@@ -9064,7 +9039,7 @@ function toggleAccordion(bodyId, labelId) {
     }
     body.style.cssText = body.style.cssText.replace(/display:\s*none/i, 'display:block');
     // メインメニューのみ最下部に閉じるボタンを追加（サブは除外）
-    var mainBodiesForClose = ['vote-body','challenge-combined-body','honne-body','food-body','checkup-body','memo-body','elearn-body','qr-body'];
+    var mainBodiesForClose = ['vote-body','challenge-combined-body','honne-body','food-body','checkup-body','memo-body','elearn-body'];
     if (mainBodiesForClose.indexOf(bodyId) !== -1 && !body.querySelector('.accordion-close-btn')) {
       var btn = document.createElement('div');
       btn.className = 'accordion-close-btn';

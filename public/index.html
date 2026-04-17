@@ -90,6 +90,10 @@
   @keyframes voicePulseIdle { 0%,100%{box-shadow:0 4px 20px rgba(124,58,237,0.35);} 50%{box-shadow:0 4px 28px rgba(124,58,237,0.55), 0 0 0 6px rgba(167,139,250,0.15);} }
   /* 音声再生中ハイライト */
   .buddy-bubble.speaking { box-shadow:0 0 0 2px #0ea5e9, 0 0 12px rgba(14,165,233,0.3); }
+  /* ボトムナビ高さ（文字サイズで伸縮） */
+  :root { --bnav-h: 56px; --bnav-pad: calc(var(--bnav-h) + env(safe-area-inset-bottom, 8px)); }
+  html.font-large  { --bnav-h: 66px; }
+  html.font-xlarge { --bnav-h: 78px; }
   /* フォントサイズ切替 */
   html.font-large { font-size: 120%; }
   html.font-large .buddy-bubble { font-size: 1rem; }
@@ -622,7 +626,7 @@
 </div>
 
 <!-- 自分の投稿モーダル -->
-<div id="my-posts-modal" style="position:fixed;top:56px;left:0;right:0;bottom:56px;background:white;z-index:2400;display:none;flex-direction:column;overflow:hidden;">
+<div id="my-posts-modal" style="position:fixed;top:56px;left:0;right:0;bottom:var(--bnav-h);background:white;z-index:2400;display:none;flex-direction:column;overflow:hidden;">
   <div style="width:100%;height:100%;display:flex;flex-direction:column;overflow:hidden;overscroll-behavior:contain;">
     <!-- ヘッダー -->
     <div style="padding:12px 18px;background:linear-gradient(135deg,#0ea5e9,#0891b2);color:white;display:flex;align-items:center;gap:10px;flex-shrink:0;box-shadow:0 2px 8px rgba(14,165,233,0.3);">
@@ -706,7 +710,7 @@
 </div>
 
 <!-- ====== コインショップ ====== -->
-<div id="coin-shop-modal" style="position:fixed;top:56px;left:0;right:0;bottom:56px;background:white;z-index:2500;display:none;flex-direction:column;overflow:hidden;">
+<div id="coin-shop-modal" style="position:fixed;top:56px;left:0;right:0;bottom:var(--bnav-h);background:white;z-index:2500;display:none;flex-direction:column;overflow:hidden;">
   <div style="width:100%;height:100%;display:flex;flex-direction:column;overflow:hidden;">
     <div style="padding:12px 16px;background:linear-gradient(135deg,#f59e0b,#d97706);color:white;display:flex;align-items:center;gap:10px;flex-shrink:0;">
       <button onclick="closeCoinShop()" style="background:rgba(255,255,255,0.2);border:none;color:white;width:32px;height:32px;border-radius:50%;font-size:14px;cursor:pointer;flex-shrink:0;"><i class="fas fa-arrow-left"></i></button>
@@ -829,7 +833,7 @@
   <div id="buddy-setup-screen" style="display:none;"></div>
 
   <!-- アクアリウムチャット画面 -->
-  <div id="buddy-chat-screen" style="display:flex;flex-direction:column;height:calc(100vh - 56px);height:calc(100dvh - 56px);padding-bottom:calc(52px + env(safe-area-inset-bottom, 8px));background:#0a3d6b;overflow:hidden;overscroll-behavior:contain;box-sizing:border-box;">
+  <div id="buddy-chat-screen" style="display:flex;flex-direction:column;height:calc(100vh - 56px);height:calc(100dvh - 56px);padding-bottom:var(--bnav-pad);background:#0a3d6b;overflow:hidden;overscroll-behavior:contain;box-sizing:border-box;">
     <!-- ストリーク・ベル・削除は非表示要素として残す（JS参照用） -->
     <div id="buddy-header-name" style="display:none;">CoWell</div>
     <div id="buddy-header-streak" style="display:none;"><span id="buddy-streak-icon">🌰</span><span id="buddy-streak-text">0日</span></div>
@@ -4125,6 +4129,7 @@ function hideLoading() { document.getElementById('loading-overlay').style.displa
   display: flex; justify-content: space-around; align-items: center;
   padding: 4px 0 calc(8px + env(safe-area-inset-bottom, 8px));
   box-shadow: 0 -2px 12px rgba(0,0,0,0.08);
+  height: var(--bnav-pad); box-sizing: border-box;
 }
 .bnav-item {
   display: flex; flex-direction: column; align-items: center; gap: 2px;
@@ -4178,7 +4183,7 @@ function hideLoading() { document.getElementById('loading-overlay').style.displa
 /* --- チャットシート --- */
 #nurse-chat-sheet {
   position: fixed;
-  bottom: 56px; left: 0;
+  bottom: var(--bnav-h); left: 0;
   width: 100%; height: calc(100vh - 56px); height: calc(100dvh - 56px);
   background: #f8f5f0;
   border-radius: 0;
@@ -4483,12 +4488,12 @@ function hideLoading() { document.getElementById('loading-overlay').style.displa
     <span class="bnav-label">投稿</span>
   </div>
 </nav>
-<div id="app-tab-guide" style="display:none;position:fixed;top:56px;left:0;right:0;bottom:56px;z-index:2400;background:white;overflow:hidden;">
+<div id="app-tab-guide" style="display:none;position:fixed;top:56px;left:0;right:0;bottom:var(--bnav-h);z-index:2400;background:white;overflow:hidden;">
   <iframe id="guide-iframe" style="width:100%;height:100%;border:none;"></iframe>
 </div>
 
 <!-- ヘルプハブ -->
-<div id="app-tab-help" style="display:none;position:fixed;top:56px;left:0;right:0;bottom:56px;z-index:2400;background:#f7f8fb;overflow-y:auto;">
+<div id="app-tab-help" style="display:none;position:fixed;top:56px;left:0;right:0;bottom:var(--bnav-h);z-index:2400;background:#f7f8fb;overflow-y:auto;">
   <!-- ハブ画面 -->
   <div id="help-hub" style="padding:18px 16px;">
     <div style="text-align:center;margin-bottom:18px;">
@@ -4564,7 +4569,7 @@ function closeHelpContent() {
 </script>
 
 <!-- チャレンジ専用タブ画面 -->
-<div id="challenge-tab-screen" style="display:none;position:fixed;top:56px;left:0;right:0;bottom:56px;z-index:2400;flex-direction:column;background:#f0f2f5;">
+<div id="challenge-tab-screen" style="display:none;position:fixed;top:56px;left:0;right:0;bottom:var(--bnav-h);z-index:2400;flex-direction:column;background:#f0f2f5;">
   <!-- ヘッダー -->
   <div style="padding:12px 16px;background:linear-gradient(135deg,#ff6b35,#ff9a5c);color:white;flex-shrink:0;box-shadow:0 2px 10px rgba(255,107,53,0.3);">
     <div style="font-weight:900;font-size:0.95rem;"><i class="fas fa-fire"></i> チャレンジ</div>
@@ -8124,7 +8129,7 @@ function sendBuddyMessage() {
 
 /* --- Inbox シート --- */
 #inbox-sheet {
-  position: fixed; bottom: 56px; left: 0; top: 56px;
+  position: fixed; bottom: var(--bnav-h); left: 0; top: 56px;
   width: 100%; height: auto;
   background: #f8f9fa;
   border-radius: 0;

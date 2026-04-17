@@ -7653,10 +7653,10 @@ function _startOneShot() {
     if (input) input.value = finalText + interimText;
 
     if (finalText.trim()) {
-      // 終了キーワード検知
-      var endWords = ['おわり', '終わり', '終了', 'おしまい', 'バイバイ', 'ばいばい', 'またね', 'ストップ', 'やめ'];
+      // 終了キーワード検知（完全一致のみ。誤爆防止のため endsWith は使わない）
+      var endWords = ['おわり', '終了', 'ストップ'];
       var trimmed = finalText.trim().replace(/[。．.！!？?\s]+$/, '');
-      var isEnd = endWords.some(function(w) { return trimmed === w || trimmed.endsWith(w); });
+      var isEnd = endWords.indexOf(trimmed) !== -1;
       if (isEnd) {
         _voiceStopping = true;
         _voicePaused = true;
@@ -7665,8 +7665,7 @@ function _startOneShot() {
         _speechRecognition = null;
         _isListening = false;
         toggleVoiceMode();
-        var _bName = 'バディ'; try { _bName = JSON.parse(localStorage.getItem('co_heart_buddy') || '{}').name || 'バディ'; } catch(e) {}
-        addBuddyMessage('ai', 'またね！いつでも水槽を覗きに来てね。' + _bName + 'が応えるよ 😊');
+        addBuddyMessage('ai', '音声をオフにしました 🎤');
         return;
       }
       // 即送信（continuous=falseなのでブラウザが発話完了を判定済み）

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260418_nocache">
+<html data-app-version="20260418_race">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -10585,17 +10585,17 @@ function loadHeroVariant(variant) {
   hero.onload = function() {
     var processed = removeImageBg(hero);
     _heroVariantCache[variant] = processed;
-    _rpgHeroImage = processed;
+    // 既により新しいvariantが選択されていたら _rpgHeroImage は上書きしない
+    if (_rpgCurrentVariant === variant) _rpgHeroImage = processed;
     if (variant === 1) _rpgHeroBase = processed;
   };
   hero.onerror = function() {
-    // フォールバック: 旧hero.png
     var fb = new Image();
     fb.crossOrigin = 'anonymous';
     fb.onload = function() {
       var p = removeImageBg(fb);
       _heroVariantCache[variant] = p;
-      _rpgHeroImage = p;
+      if (_rpgCurrentVariant === variant) _rpgHeroImage = p;
       if (variant === 1) _rpgHeroBase = p;
     };
     fb.src = '/fish/hero.png';

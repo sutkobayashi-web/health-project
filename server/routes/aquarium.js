@@ -87,6 +87,41 @@ const RPG_FISH = [
   { id: 28, name: '金龍',              area: '5-2', rarity: 'legend',  hue: 50,  desc: '黄金に輝く龍の風格', encounterRate: 0.04 },
   { id: 29, name: '海神の使い',         area: '5-3', rarity: 'legend',  hue: 180, desc: '海の全てを知る神秘の存在', encounterRate: 0.03 },
   { id: 30, name: '虹のクジラ',         area: '5-3', rarity: 'legend',  hue: 300, desc: '虹色に輝く世界最大の生命体', encounterRate: 0.03 },
+  // === 拡張 第1章 ===
+  { id: 31, name: 'アユ',              area: '1-1', rarity: 'common',   hue: 100, desc: '清流を駆ける香魚', encounterRate: 0.65 },
+  { id: 32, name: 'ドジョウ',           area: '1-1', rarity: 'common',   hue: 30,  desc: '砂底をぬるりと這う', encounterRate: 0.6 },
+  { id: 33, name: 'モツゴ',             area: '1-2', rarity: 'common',   hue: 50,  desc: 'クチボソとも呼ばれる小魚', encounterRate: 0.55 },
+  { id: 34, name: 'タナゴ',             area: '1-2', rarity: 'common',   hue: 320, desc: '虹色の光沢を持つ淡水の宝石', encounterRate: 0.5 },
+  { id: 35, name: 'メバル',             area: '1-3', rarity: 'common',   hue: 0,   desc: '岩陰でじっと潮を待つ', encounterRate: 0.5 },
+  { id: 36, name: 'カサゴ',             area: '1-3', rarity: 'common',   hue: 15,  desc: 'ゴツゴツした岩のような魚', encounterRate: 0.45 },
+  // === 拡張 第2章 ===
+  { id: 37, name: 'ベラ',               area: '2-1', rarity: 'uncommon', hue: 140, desc: '七色に輝くサンゴ礁の住人', encounterRate: 0.45 },
+  { id: 38, name: 'キンチャクダイ',      area: '2-1', rarity: 'uncommon', hue: 50,  desc: '黄と紺の貴族的な装い', encounterRate: 0.4 },
+  { id: 39, name: 'ハナダイ',           area: '2-2', rarity: 'uncommon', hue: 330, desc: '桃色に煌めく群れ', encounterRate: 0.4 },
+  { id: 40, name: 'ニシキベラ',         area: '2-2', rarity: 'uncommon', hue: 200, desc: '錦の名にふさわしい鮮やかさ', encounterRate: 0.38 },
+  { id: 41, name: 'タツノオトシゴ',      area: '2-3', rarity: 'rare',    hue: 30,  desc: '海の妖精、海藻に巻きつく', encounterRate: 0.22 },
+  { id: 42, name: 'ピグミーシーホース', area: '2-3', rarity: 'rare',    hue: 350, desc: '指先サイズの極小妖精', encounterRate: 0.18 },
+  // === 拡張 第3章 ===
+  { id: 43, name: 'マグロ',             area: '3-1', rarity: 'uncommon', hue: 220, desc: '海原を疾走する流線形', encounterRate: 0.4 },
+  { id: 44, name: 'カツオ',             area: '3-1', rarity: 'uncommon', hue: 200, desc: '黒潮に乗って群れで現れる', encounterRate: 0.4 },
+  { id: 45, name: 'シイラ',             area: '3-2', rarity: 'rare',    hue: 60,  desc: '虹色に輝くマヒマヒ', encounterRate: 0.22 },
+  { id: 46, name: 'バショウカジキ',     area: '3-2', rarity: 'rare',    hue: 230, desc: '帆のような背びれを広げて疾走', encounterRate: 0.15 },
+  { id: 47, name: 'ジンベエザメ',       area: '3-3', rarity: 'ultra',   hue: 200, desc: '水玉模様の海の巨人', encounterRate: 0.08 },
+  { id: 48, name: 'シャチ',             area: '3-3', rarity: 'ultra',   hue: 0,   desc: '海の頂点に立つ知性', encounterRate: 0.07 },
+  // === 拡張 第4章 ===
+  { id: 49, name: 'ミドリフサアンコウ',  area: '4-1', rarity: 'rare',    hue: 130, desc: '緑色の房を揺らす深海の住人', encounterRate: 0.18 },
+  { id: 50, name: 'ヨロイザメ',         area: '4-1', rarity: 'rare',    hue: 240, desc: '硬い鱗の鎧を纏う', encounterRate: 0.18 },
+  { id: 51, name: 'メガマウス',         area: '4-2', rarity: 'ultra',   hue: 250, desc: '巨大な口を持つ謎多きサメ', encounterRate: 0.07 },
+  { id: 52, name: 'デメニギス',         area: '4-2', rarity: 'ultra',   hue: 180, desc: '透明な頭の中に光る目', encounterRate: 0.06 },
+  { id: 53, name: 'ラブカ',             area: '4-3', rarity: 'rare',    hue: 320, desc: '生きた化石、古代鮫の系譜', encounterRate: 0.15 },
+  { id: 54, name: 'ヌタウナギ',         area: '4-3', rarity: 'rare',    hue: 350, desc: '粘液で身を守る原始の魚', encounterRate: 0.18 },
+  // === 拡張 第5章 ===
+  { id: 55, name: '生命の源',           area: '5-1', rarity: 'ultra',   hue: 150, desc: '海底熱水から生まれし古の存在', encounterRate: 0.06 },
+  { id: 56, name: '深淵の蝶',           area: '5-1', rarity: 'ultra',   hue: 280, desc: '蝶のように舞う発光生命体', encounterRate: 0.06 },
+  { id: 57, name: '時を渡る者',         area: '5-2', rarity: 'legend',  hue: 200, desc: '永遠を泳ぐと言われる伝承の魚', encounterRate: 0.03 },
+  { id: 58, name: '月の魚',             area: '5-2', rarity: 'legend',  hue: 240, desc: '月光に同期して輝きを変える', encounterRate: 0.03 },
+  { id: 59, name: '創世の鱗',           area: '5-3', rarity: 'legend',  hue: 50,  desc: '海の始まりを記憶する巨魚', encounterRate: 0.025 },
+  { id: 60, name: '宇宙鯨',             area: '5-3', rarity: 'legend',  hue: 270, desc: '星々を背に泳ぐ宇宙のクジラ', encounterRate: 0.02 },
 ];
 
 // ---------- 語り部（ナレーター）メッセージ ----------

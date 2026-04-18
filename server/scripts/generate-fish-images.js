@@ -17,7 +17,7 @@ const path = require('path');
 const API_KEY = process.env.GEMINI_API_KEY;
 if (!API_KEY) { console.error('GEMINI_API_KEY が未設定'); process.exit(1); }
 
-const MODEL = 'gemini-2.5-flash-image-preview';
+const MODEL = 'gemini-2.5-flash-image';
 const OUT_DIR = path.join(__dirname, '..', '..', 'public', 'fish');
 
 // 共通スタイル: 透過PNG / 横向き / シンプルな2Dカートゥーン / 影なし背景

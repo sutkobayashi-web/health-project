@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260418_noavatar">
+<html data-app-version="20260418_noavatar2">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -2453,9 +2453,7 @@ function openProfileEditModal() {
   initPwBirthdateSelectors();
   var newPw = document.getElementById('profile-edit-new-pw');
   if (newPw) newPw.value = '';
-  // アバタープレビュー表示
-  var avEl = document.getElementById('profile-edit-avatar');
-  if (avEl) avEl.innerHTML = getAvatarHtml(currentUser.avatar, 52);
+  // アバター編集機能は廃止
   // 音声設定UI初期化
   initVoiceSettingsUI();
 }
@@ -2527,21 +2525,8 @@ function saveRealNameChange() {
   });
 }
 
-function saveAvatarChange(newAvatarFromEditor) {
-  var newAvatar = newAvatarFromEditor || abBuildString();
-  api('/auth/update-avatar', { uid: currentUser.uid, avatar: newAvatar }, getToken()).then(function(res) {
-    if (res && res.success) {
-      currentUser.avatar = newAvatar;
-      localStorage.setItem('co_heart_user_data', JSON.stringify(currentUser));
-      updateStatAvatar();
-      updateProfileCard();
-      _avatarCache = {};
-      alert('アバターを更新しました');
-    } else {
-      alert('更新失敗: ' + (res.msg || '不明なエラー'));
-    }
-  });
-}
+// アバター編集機能は廃止（海の魚が identity）。saveAvatarChange は no-op に。
+function saveAvatarChange() { /* deprecated */ }
 
 // ====== 血圧記録 ======
 var _bpImageBase64 = null;

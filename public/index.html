@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260418_lightshallow">
+<html data-app-version="20260418_daynight">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -11005,6 +11005,26 @@ function drawNameBubble(ctx, text, cx, cy, opts) {
 }
 
 // ===== 海の描画 =====
+// 時間帯に応じた背景オーバーレイ色を返す（昼=null、朝夕=オレンジ、夜=暗青）
+function getTimeOfDayOverlay() {
+  var d = new Date();
+  var t = d.getHours() + d.getMinutes() / 60;
+  // 昼: 6:30-17:00 → オーバーレイなし
+  if (t >= 6.5 && t < 17.0) return null;
+  // 夕焼け: 17:00-18:30
+  if (t >= 17.0 && t < 18.5) {
+    var f1 = (t - 17.0) / 1.5;
+    return { r: 220, g: 110, b: 60, a: 0.12 + f1 * 0.13 };
+  }
+  // 夜: 18:30-5:00
+  if (t >= 18.5 || t < 5.0) {
+    return { r: 8, g: 18, b: 55, a: 0.42, isNight: true };
+  }
+  // 朝焼け: 5:00-6:30
+  var f2 = (t - 5.0) / 1.5;
+  return { r: 230, g: 140, b: 90, a: 0.28 - f2 * 0.18 };
+}
+
 function drawOcean() {
   if (!_aqCtx || _aqW <= 0) { requestAnimationFrame(drawOcean); return; }
   var ctx = _aqCtx;
@@ -11032,6 +11052,23 @@ function drawOcean() {
     if (chapter >= 4) {
       ctx.fillStyle = 'rgba(0,0,0,0.3)';
       ctx.fillRect(0, 0, _aqW, _aqH);
+    }
+    // 時間帯オーバーレイ (朝焼け/夜/夕焼け)
+    var tov = getTimeOfDayOverlay();
+    if (tov) {
+      ctx.fillStyle = 'rgba(' + tov.r + ',' + tov.g + ',' + tov.b + ',' + tov.a + ')';
+      ctx.fillRect(0, 0, _aqW, _aqH);
+      // 夜は月光のラジアルグロー
+      if (tov.isNight) {
+        var moonR = Math.max(_aqW, _aqH) * 0.45;
+        var mx = _aqW * 0.82, my = 36;
+        var moonGrad = ctx.createRadialGradient(mx, my, 8, mx, my, moonR);
+        moonGrad.addColorStop(0, 'rgba(230,230,255,0.32)');
+        moonGrad.addColorStop(0.4, 'rgba(180,180,240,0.08)');
+        moonGrad.addColorStop(1, 'rgba(180,180,240,0)');
+        ctx.fillStyle = moonGrad;
+        ctx.fillRect(0, 0, _aqW, _aqH);
+      }
     }
     // 水面の揺らぎ(コースティクス) - 浅い海域で目立つ、深海でも控えめに
     var causticAlpha = chapter === 1 ? 0.12 : chapter === 2 ? 0.09 : chapter === 3 ? 0.06 : 0.035;
@@ -12533,6 +12570,22 @@ function drawClockMode() {
     // 時計を読みやすくする暗めオーバーレイ
     ctx.fillStyle = 'rgba(0,0,0,0.35)';
     ctx.fillRect(0, 0, _clockW, _clockH);
+    // 時間帯オーバーレイ (朝焼け/夜/夕焼け) — 待ち受けでも適用
+    var tovC = (typeof getTimeOfDayOverlay === 'function') ? getTimeOfDayOverlay() : null;
+    if (tovC) {
+      ctx.fillStyle = 'rgba(' + tovC.r + ',' + tovC.g + ',' + tovC.b + ',' + tovC.a + ')';
+      ctx.fillRect(0, 0, _clockW, _clockH);
+      if (tovC.isNight) {
+        var moonR2 = Math.max(_clockW, _clockH) * 0.5;
+        var mxC = _clockW * 0.82, myC = _clockH * 0.08;
+        var mg = ctx.createRadialGradient(mxC, myC, 8, mxC, myC, moonR2);
+        mg.addColorStop(0, 'rgba(230,230,255,0.35)');
+        mg.addColorStop(0.4, 'rgba(180,180,240,0.1)');
+        mg.addColorStop(1, 'rgba(180,180,240,0)');
+        ctx.fillStyle = mg;
+        ctx.fillRect(0, 0, _clockW, _clockH);
+      }
+    }
     // コースティクス(水面の揺らぎ光)
     var causticAlphaC = chapter === 1 ? 0.1 : chapter === 2 ? 0.08 : chapter === 3 ? 0.05 : 0.03;
     ctx.save();

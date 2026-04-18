@@ -122,6 +122,32 @@ const RPG_FISH = [
   { id: 58, name: '月の魚',             area: '5-2', rarity: 'legend',  hue: 240, desc: '月光に同期して輝きを変える', encounterRate: 0.03 },
   { id: 59, name: '創世の鱗',           area: '5-3', rarity: 'legend',  hue: 50,  desc: '海の始まりを記憶する巨魚', encounterRate: 0.025 },
   { id: 60, name: '宇宙鯨',             area: '5-3', rarity: 'legend',  hue: 270, desc: '星々を背に泳ぐ宇宙のクジラ', encounterRate: 0.02 },
+  // === 拡張第3弾 第1章浅瀬 ===
+  { id: 61, name: 'ヒトデ',             area: '1-1', rarity: 'common',   hue: 30,  desc: '砂底でゆっくり広がる星形', encounterRate: 0.55 },
+  { id: 62, name: 'ヤドカリ',           area: '1-2', rarity: 'common',   hue: 25,  desc: '貝殻を背負ってトコトコ歩く', encounterRate: 0.5 },
+  { id: 63, name: 'ウニ',               area: '1-3', rarity: 'common',   hue: 280, desc: '黒紫の棘がびっしり、岩陰の住人', encounterRate: 0.45 },
+  // === 拡張第3弾 第2章珊瑚礁 ===
+  { id: 64, name: 'アオウミウシ',       area: '2-1', rarity: 'uncommon', hue: 220, desc: '青と黄のコントラストが眩しい海の宝石', encounterRate: 0.4 },
+  { id: 65, name: 'オウギチョウチョウウオ', area: '2-2', rarity: 'uncommon', hue: 50, desc: '扇形のヒレが優雅', encounterRate: 0.4 },
+  { id: 66, name: 'モンガラカワハギ',   area: '2-3', rarity: 'rare',    hue: 200, desc: '幾何学模様を纏う気難しい魚', encounterRate: 0.22 },
+  { id: 67, name: 'ブダイ',             area: '2-3', rarity: 'rare',    hue: 180, desc: '珊瑚をかじる青緑のおじさん顔', encounterRate: 0.22 },
+  // === 拡張第3弾 第3章外洋 ===
+  { id: 68, name: 'アオウミガメ',       area: '3-1', rarity: 'rare',    hue: 130, desc: '遥かな海を旅する穏やかな旅人', encounterRate: 0.2 },
+  { id: 69, name: 'タイマイ',           area: '3-2', rarity: 'rare',    hue: 30,  desc: '鼈甲色の甲羅、サンゴ礁の旅人', encounterRate: 0.2 },
+  { id: 70, name: 'バンドウイルカ',     area: '3-2', rarity: 'rare',    hue: 200, desc: '群れで遊ぶように泳ぐ知性派', encounterRate: 0.2 },
+  { id: 71, name: 'ザトウクジラ',       area: '3-3', rarity: 'ultra',   hue: 220, desc: '海面に飛び上がる巨人、歌うように泳ぐ', encounterRate: 0.06 },
+  { id: 72, name: 'マッコウクジラ',     area: '3-3', rarity: 'ultra',   hue: 240, desc: '深海まで潜るクジラの王', encounterRate: 0.06 },
+  // === 拡張第3弾 第4章深海(クラゲ祭り) ===
+  { id: 73, name: 'ミズクラゲ',         area: '4-1', rarity: 'common',   hue: 200, desc: '透き通る水のような月輪', encounterRate: 0.5 },
+  { id: 74, name: 'アカクラゲ',         area: '4-1', rarity: 'uncommon', hue: 0,   desc: '赤い縞模様の優雅な舞', encounterRate: 0.35 },
+  { id: 75, name: 'タコクラゲ',         area: '4-2', rarity: 'rare',    hue: 250, desc: '丸い傘とチョコっとした触手', encounterRate: 0.2 },
+  { id: 76, name: 'アンドンクラゲ',     area: '4-2', rarity: 'rare',    hue: 270, desc: '四角い箱型のクラゲ', encounterRate: 0.2 },
+  { id: 77, name: 'ミミックダコ',       area: '4-3', rarity: 'rare',    hue: 30,  desc: '何にでも化ける深海のトリックスター', encounterRate: 0.18 },
+  // === 拡張第3弾 第5章海淵伝説 ===
+  { id: 78, name: 'リュウグウオウ',     area: '5-1', rarity: 'legend',  hue: 50,  desc: '海の都の主、龍宮の王', encounterRate: 0.025 },
+  { id: 79, name: '神話のクジラ',       area: '5-2', rarity: 'legend',  hue: 280, desc: '神話の海を漂うとされる伝承の鯨', encounterRate: 0.02 },
+  // ★伝説の超レア (ギャグ): 昭和のおやじ
+  { id: 80, name: '昭和のおやじ',       area: '5-3', rarity: 'legend',  hue: 30,  desc: '腹巻き姿で深海を漂う謎の存在。なぜ海に居るかは諸説あるとかないとか', encounterRate: 0.005 },
 ];
 
 // ---------- 語り部（ナレーター）メッセージ ----------

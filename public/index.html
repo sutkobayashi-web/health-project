@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260418_stampmodal2">
+<html data-app-version="20260418_heroconfirm">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -11590,26 +11590,53 @@ function confirmHeroSelection() {
   closeAdventureOpening(null);
 }
 
-// 設定/マイページから主人公を変更
+// 設定/マイページから主人公を変更（2段階: タップで仮選択 → 「決定」で確定）
+var _heroChangePending = null;
 function openHeroChangeModal() {
+  _heroChangePending = _rpgCurrentVariant; // 初期は現状を選択中
   var variantsHtml = '';
   HERO_VARIANTS.forEach(function(v) {
     var isCurrent = v.id === _rpgCurrentVariant;
-    variantsHtml += '<div onclick="changeHeroVariant(' + v.id + ')" style="width:64px;height:80px;border-radius:12px;background:radial-gradient(circle,hsla(' + v.bgHue + ',80%,60%,0.25),transparent 70%);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;border:2px solid ' + (isCurrent ? '#22d3ee' : 'rgba(255,255,255,0.2)') + ';overflow:hidden;padding:4px;gap:2px;">' +
+    variantsHtml += '<div onclick="pickHeroVariantPending(' + v.id + ')" data-variant="' + v.id + '" class="hero-pick" style="width:64px;height:80px;border-radius:12px;background:radial-gradient(circle,hsla(' + v.bgHue + ',80%,60%,0.25),transparent 70%);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;border:2px solid ' + (isCurrent ? '#22d3ee' : 'rgba(255,255,255,0.2)') + ';overflow:hidden;padding:4px;gap:2px;">' +
       '<img src="/fish/' + v.imgFile + '.png" style="width:52px;height:52px;object-fit:contain;" onload="makeFishImgTransparent(this)" onerror="this.src=\'/fish/hero.png\';">' +
       '<div style="font-size:8px;color:rgba(255,255,255,0.75);font-weight:700;text-align:center;line-height:1;">' + v.name + '</div>' +
       '</div>';
   });
   var html = '<div id="hero-change-modal" style="position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;" onclick="if(event.target===this)this.remove()">' +
     '<div style="background:#0d2440;border:1px solid rgba(255,255,255,0.15);border-radius:16px;padding:20px;max-width:380px;width:100%;color:#fff;max-height:90vh;overflow-y:auto;" onclick="event.stopPropagation()">' +
-      '<h3 style="font-size:15px;margin-bottom:14px;text-align:center;">🐟 主人公を変える</h3>' +
+      '<h3 style="font-size:15px;margin-bottom:6px;text-align:center;">🐟 主人公を変える</h3>' +
+      '<div style="font-size:11px;color:rgba(255,255,255,0.55);text-align:center;margin-bottom:14px;">魚をタップして「この魚に決める」で確定</div>' +
       '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;justify-items:center;">' + variantsHtml + '</div>' +
-      '<button onclick="document.getElementById(\'hero-change-modal\').remove()" style="width:100%;margin-top:16px;padding:10px;background:none;border:1px solid rgba(255,255,255,0.2);border-radius:8px;color:rgba(255,255,255,0.6);font-size:12px;cursor:pointer;">閉じる</button>' +
+      '<button onclick="confirmHeroChange()" style="width:100%;margin-top:16px;padding:12px;background:linear-gradient(135deg,#0ea5e9,#0891b2);border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:800;cursor:pointer;">この魚に決める</button>' +
+      '<button onclick="document.getElementById(\'hero-change-modal\').remove()" style="width:100%;margin-top:8px;padding:10px;background:none;border:1px solid rgba(255,255,255,0.2);border-radius:8px;color:rgba(255,255,255,0.6);font-size:12px;cursor:pointer;">キャンセル</button>' +
     '</div></div>';
   document.body.insertAdjacentHTML('beforeend', html);
 }
 
-function changeHeroVariant(variant) {
+// 仮選択(ハイライトのみ、まだPOSTしない)
+function pickHeroVariantPending(variant) {
+  _heroChangePending = variant;
+  document.querySelectorAll('.hero-pick').forEach(function(el) {
+    if (parseInt(el.dataset.variant) === variant) {
+      el.style.borderColor = '#22d3ee';
+      el.style.transform = 'scale(1.1)';
+      el.style.boxShadow = '0 0 20px rgba(34,211,238,0.5)';
+    } else {
+      el.style.borderColor = 'rgba(255,255,255,0.2)';
+      el.style.transform = 'scale(1)';
+      el.style.boxShadow = 'none';
+    }
+  });
+}
+
+// 「この魚に決める」で確定POST
+function confirmHeroChange() {
+  var variant = _heroChangePending;
+  if (!variant || variant === _rpgCurrentVariant) {
+    var m0 = document.getElementById('hero-change-modal');
+    if (m0) m0.remove();
+    return;
+  }
   fetch('/api/aquarium/hero-variant', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-user-id': currentUser.uid },
@@ -11619,6 +11646,11 @@ function changeHeroVariant(variant) {
   var m = document.getElementById('hero-change-modal');
   if (m) m.remove();
   if (typeof addNarration === 'function') addNarration('...色が変わったな。新しい気分で行こう。');
+}
+
+// 互換: 旧API名 (どこかから呼ばれている場合に備え保持、ただし1段で確定はしない)
+function changeHeroVariant(variant) {
+  pickHeroVariantPending(variant);
 }
 
 function submitAdventureName() {

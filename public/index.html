@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260418_herofix">
+<html data-app-version="20260418_fastreload">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -10292,10 +10292,10 @@ function startUserHeartbeat() {
       }
     }).catch(function() {});
   }
-  // 30秒後にチェック（初回読み込み直後は不要）
-  setTimeout(checkVersion, 30000);
-  // 以降60秒ごとにチェック
-  setInterval(checkVersion, 60000);
+  // 起動直後5秒でチェック(リロード反映を最速化)
+  setTimeout(checkVersion, 5000);
+  // 以降30秒ごとにチェック
+  setInterval(checkVersion, 30000);
 })();
 
 // ============================================================

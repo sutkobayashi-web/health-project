@@ -24,6 +24,8 @@ const OUT_DIR = path.join(__dirname, '..', '..', 'public', 'fish');
 const BASE_STYLE = 'A single small cartoon fish, side profile facing right, simple flat 2D illustration in a children-book style, soft outlines, vibrant clean colors, white background (will be made transparent), no shadow, no text, centered.';
 
 const ITEMS = [
+  // ============ 既存キャラ再生成（透過事故の修復） ============
+  { file: 'hero_type_4', prompt: BASE_STYLE + ' Knight fish in deep gunmetal-blue armored scales with dark navy outline, helmet on head, riveted plate fins. Body must be dark steel-blue, NOT pale silver or light grey.' },
   // ============ HERO VARIANTS 11-20 ============
   { file: 'hero_type_11', prompt: BASE_STYLE + ' Silver streaked fish with starry sparkle pattern across its scales, slightly metallic blue body.' },
   { file: 'hero_type_12', prompt: BASE_STYLE + ' Cherry-blossom themed fish with deep magenta-pink saturated body and dark crimson outline, petal-shaped fins. Body must be vivid pink, NOT pale or light pink.' },

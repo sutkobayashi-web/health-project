@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260418_chat2">
+<html data-app-version="20260418_rpgdialog">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -5792,35 +5792,44 @@ function updateChatUnreadBadge() {
   }
 }
 
-// トースト表示（新着メッセージを数秒だけ水槽下に流す）
+// セリフ表示（RPG式: 次の発話が来るまで残る、タップで履歴へ、✕で消す）
 function showChatToast(role, text) {
   var area = document.getElementById('chat-toast-area');
   if (!area) return;
   var isAI = role === 'ai' || role === 'assistant' || role === 'model';
+  // 既存のセリフを全て即座に置き換える（RPGの「会話送り」感）
+  while (area.firstChild) area.removeChild(area.firstChild);
+
   var bubble = document.createElement('div');
-  bubble.style.cssText = 'pointer-events:auto;background:' + (isAI ? 'rgba(8,40,70,0.92)' : 'rgba(14,116,144,0.92)') +
-    ';color:#fff;padding:8px 12px;border-radius:14px;font-size:0.82rem;line-height:1.5;box-shadow:0 4px 14px rgba(0,0,0,0.35);' +
-    'border:1px solid rgba(255,255,255,0.12);max-width:88%;align-self:' + (isAI ? 'flex-start' : 'flex-end') + ';' +
+  bubble.style.cssText = 'pointer-events:auto;position:relative;background:' + (isAI ? 'rgba(8,40,70,0.94)' : 'rgba(14,116,144,0.94)') +
+    ';color:#fff;padding:10px 32px 10px 14px;border-radius:14px;font-size:0.85rem;line-height:1.55;box-shadow:0 4px 14px rgba(0,0,0,0.4);' +
+    'border:1px solid rgba(255,255,255,0.15);max-width:92%;align-self:' + (isAI ? 'flex-start' : 'flex-end') + ';' +
     'opacity:0;transform:translateY(10px);transition:opacity 0.3s ease, transform 0.3s ease;cursor:pointer;';
-  var preview = (text || '').replace(/<[^>]+>/g, '').replace(/\n/g, ' ').slice(0, 200);
-  if (text && text.length > 200) preview += '…';
+  var preview = (text || '').replace(/<[^>]+>/g, '').replace(/\n/g, ' ').slice(0, 240);
+  if (text && text.length > 240) preview += '…';
   bubble.textContent = preview;
-  bubble.onclick = function() { openChatHistory(); };
+  bubble.onclick = function(ev) {
+    if (ev.target && ev.target.dataset && ev.target.dataset.dismiss) return;
+    openChatHistory();
+  };
+  // 閉じる ✕ ボタン
+  var closeBtn = document.createElement('span');
+  closeBtn.dataset.dismiss = '1';
+  closeBtn.innerHTML = '✕';
+  closeBtn.style.cssText = 'position:absolute;top:4px;right:6px;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:11px;color:rgba(255,255,255,0.55);cursor:pointer;border-radius:50%;';
+  closeBtn.onclick = function(ev) {
+    ev.stopPropagation();
+    bubble.style.opacity = '0';
+    bubble.style.transform = 'translateY(10px)';
+    setTimeout(function() { if (bubble.parentNode) bubble.parentNode.removeChild(bubble); }, 300);
+  };
+  bubble.appendChild(closeBtn);
   area.appendChild(bubble);
-  // フェードイン
   requestAnimationFrame(function() {
     bubble.style.opacity = '1';
     bubble.style.transform = 'translateY(0)';
   });
-  // 表示時間: 文字数に応じて 8〜18秒（短文は早めに、長文はじっくり）
-  var displayMs = Math.min(18000, Math.max(8000, preview.length * 120));
-  setTimeout(function() {
-    bubble.style.opacity = '0';
-    bubble.style.transform = 'translateY(10px)';
-    setTimeout(function() { if (bubble.parentNode) bubble.parentNode.removeChild(bubble); }, 350);
-  }, displayMs);
-  // 同時に表示するトーストは最大3件
-  while (area.children.length > 3) area.removeChild(area.firstChild);
+  // 自動消滅は廃止: 次の発話が来るか、ユーザーが ✕ を押すまで残る
 }
 
 function addBuddyMessage(role, text) {
@@ -12100,12 +12109,7 @@ function returnToRpgMode() {
     if (typeof toggleVoiceMode === 'function') toggleVoiceMode();
   }
   hideBackToRpgButton();
-  // チャット履歴は消さない! オーバーレイを再表示するだけ
-  setTimeout(function() {
-    var qid = pickQuestion();
-    if (qid) showRpgQuestion(qid);
-    else showRpgIdleEntry();
-  }, 300);
+  // ユーザーが明示的に閉じた以上、自動再表示はしない（書く/話すは別エントリから）
 }
 
 function openFishBook() {

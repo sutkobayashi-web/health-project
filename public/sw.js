@@ -58,6 +58,18 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // 魚画像はブラウザHTTPキャッシュも完全バイパスして必ず最新を取る
+  if (req.url.includes('/fish/')) {
+    event.respondWith(
+      fetch(req, { cache: 'reload' }).then((res) => {
+        const clone = res.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(req, clone));
+        return res;
+      }).catch(() => caches.match(req))
+    );
+    return;
+  }
+
   // その他の静的ファイルはnetwork-first + キャッシュ更新
   event.respondWith(
     fetch(req).then((res) => {

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260418_baked">
+<html data-app-version="20260418_baked2">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -10168,6 +10168,12 @@ var _rpgBgLoading = {};
 
 // 透明化済みデータURLのキャッシュ（同じ画像を2回処理しないため）
 var _transparentImgCache = {};
+
+// 魚画像URLにキャッシュバスターを付与（appVerが上がる度にHTTPキャッシュ無効化）
+function fishUrl(filename) {
+  var v = (document.documentElement.getAttribute('data-app-version') || '0').replace(/[^a-z0-9_]/gi, '');
+  return '/fish/' + filename + '?v=' + v;
+}
 
 // <img>タグの白背景を透明化してsrcを置き換え（256pxにリサイズして高速化）
 function makeFishImgTransparent(imgEl) {

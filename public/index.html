@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260418_living">
+<html data-app-version="20260418_stampmodal">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -10663,16 +10663,25 @@ function openStampModal(companion) {
   ];
   var html = '<div id="stamp-modal" style="position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;" onclick="if(event.target===this)this.remove()">';
   html += '<div style="background:#0d2440;border:1px solid rgba(255,255,255,0.15);border-radius:16px;padding:22px;max-width:320px;width:100%;color:#fff;">';
+  var cSteps = (typeof companion.total_steps === 'number') ? companion.total_steps : 0;
+  var cMiles = (typeof companion.marigan_total === 'number') ? companion.marigan_total : 0;
+  var cIsEgg = !cSteps;
+  var cVariantDef = HERO_VARIANTS.find(function(v){return v.id === (companion.variantId || 1);}) || HERO_VARIANTS[0];
   html += '<div style="text-align:center;margin-bottom:14px;">';
+  if (cIsEgg) {
+    html += '<div style="font-size:54px;margin-bottom:6px;">🥚</div>';
+  } else {
+    html += '<div style="display:flex;justify-content:center;align-items:center;height:88px;margin-bottom:4px;"><img src="/fish/' + cVariantDef.imgFile + '.png" style="width:88px;height:88px;object-fit:contain;filter:drop-shadow(0 4px 12px rgba(0,0,0,0.5));" onerror="this.src=\'/fish/hero.png\';"></div>';
+    html += '<div style="font-size:9px;color:rgba(255,255,255,0.45);margin-bottom:4px;">' + escapeHtml(cVariantDef.name) + '</div>';
+  }
   html += '<div style="font-size:11px;color:rgba(255,255,255,0.5);">スタンプを送る</div>';
   html += '<div style="font-size:15px;font-weight:800;margin-top:2px;">' + escapeHtml(companion.nickname) + '</div>';
-  var cSteps = (typeof companion.total_steps === 'number') ? companion.total_steps : 0;
-  var cIsEgg = !cSteps;
-  html += '<div style="margin-top:8px;display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:' + (cIsEgg ? 'rgba(253,224,71,0.15)' : 'rgba(253,224,71,0.1)') + ';border:1px solid ' + (cIsEgg ? 'rgba(253,224,71,0.35)' : 'rgba(253,224,71,0.25)') + ';border-radius:999px;font-size:12px;font-weight:800;color:#fde68a;">';
+  html += '<div style="margin-top:10px;display:flex;justify-content:center;gap:6px;flex-wrap:wrap;">';
   if (cIsEgg) {
-    html += '<span>🥚</span><span>まだ卵（0歩）</span>';
+    html += '<div style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:rgba(253,224,71,0.15);border:1px solid rgba(253,224,71,0.35);border-radius:999px;font-size:12px;font-weight:800;color:#fde68a;"><span>🥚</span><span>まだ卵（0歩）</span></div>';
   } else {
-    html += '<i class="fas fa-shoe-prints"></i><span>' + cSteps.toLocaleString() + '歩</span>';
+    html += '<div style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;background:rgba(253,224,71,0.1);border:1px solid rgba(253,224,71,0.25);border-radius:999px;font-size:12px;font-weight:800;color:#fde68a;"><i class="fas fa-shoe-prints"></i><span>' + cSteps.toLocaleString() + '歩</span></div>';
+    html += '<div style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.3);border-radius:999px;font-size:12px;font-weight:800;color:#fbbf24;"><i class="fas fa-anchor"></i><span>' + cMiles.toLocaleString() + 'マイル</span></div>';
   }
   html += '</div>';
   html += '</div>';
@@ -10828,6 +10837,7 @@ function initCompanions(list) {
       fish_name: c.fish_name,
       variantId: variantId,
       total_steps: c.total_steps,
+      marigan_total: c.marigan_total || 0,
       x: 20 + Math.random() * (_aqW - 40),
       y: 40 + Math.random() * (_aqH - 80),
       vx: (Math.random() - 0.5) * 0.6,

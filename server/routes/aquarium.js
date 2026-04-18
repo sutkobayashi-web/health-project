@@ -901,7 +901,7 @@ router.get('/companions', authUser, (req, res) => {
     if (!me) return res.json({ success: true, companions: [] });
 
     // 同じエリアの他ユーザー（最大10人）
-    const companions = db.prepare(`SELECT ap.user_id, ap.fish_name, ap.avatar_hue, ap.hero_variant, ap.total_steps, u.nickname
+    const companions = db.prepare(`SELECT ap.user_id, ap.fish_name, ap.avatar_hue, ap.hero_variant, ap.total_steps, u.nickname, u.marigan_total
       FROM adventure_progress ap
       JOIN users u ON ap.user_id = u.id
       WHERE ap.current_area = ? AND ap.user_id != ?
@@ -917,6 +917,7 @@ router.get('/companions', authUser, (req, res) => {
         avatar_hue: c.avatar_hue || 200,
         hero_variant: c.hero_variant || 1,
         total_steps: c.total_steps,
+        marigan_total: c.marigan_total || 0,
       })),
     });
   } catch (e) {

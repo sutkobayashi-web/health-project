@@ -662,29 +662,23 @@
     </div>
     <!-- スクロール領域: 全コンテンツを内包 -->
     <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;">
-    <!-- プロフィールカード -->
-    <div style="padding:12px 18px;background:linear-gradient(180deg,#f5f0ff,#fff);border-bottom:1px solid #eee;">
-      <div style="display:flex;align-items:center;gap:14px;">
-        <!-- アバター -->
-        <div style="flex-shrink:0;display:flex;align-items:flex-end;">
-          <div id="mypage-avatar" style="width:56px;height:56px;border-radius:50%;overflow:hidden;border:3px solid #fff;box-shadow:0 4px 12px rgba(102,126,234,0.2);display:flex;align-items:center;justify-content:center;font-size:1.7rem;background:#f0f0f0;cursor:pointer;z-index:1;" onclick="showRanking();"></div>
-          <!-- 天の声アバター廃止 -->
-        </div>
-        <!-- ユーザー情報 -->
+    <!-- プロフィールカード（自分のアバター廃止／全体タップでランキングへ） -->
+    <div style="padding:12px 18px;background:linear-gradient(180deg,#f5f0ff,#fff);border-bottom:1px solid #eee;cursor:pointer;" onclick="showRanking();">
+      <div style="display:flex;align-items:center;gap:8px;">
         <div style="flex:1;min-width:0;">
           <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
             <span style="font-weight:800;font-size:1.05rem;color:#2c3e50;" id="mypage-nickname">--</span>
-            <!-- 天の声名称廃止 -->
             <span id="mypage-dept" style="font-size:0.6rem;font-weight:700;color:#667eea;background:#eef0ff;padding:1px 7px;border-radius:10px;"></span>
             <span id="mypage-rank" style="font-size:0.6rem;"></span>
           </div>
           <div style="display:flex;align-items:center;gap:4px;margin-top:5px;flex-wrap:wrap;">
             <span id="mypage-streak" style="font-size:0.62rem;font-weight:700;color:#ef4444;background:linear-gradient(135deg,#fef2f2,#fecaca);padding:3px 8px;border-radius:8px;border:1px solid #fca5a5;white-space:nowrap;">🔥 0日</span>
-            <!-- コインは非表示(参照用のみ残す) -->
             <span id="mypage-coin" style="display:none;">0マイル</span>
             <span id="mypage-coin-badge" style="display:none;">🌱</span>
           </div>
         </div>
+        <i class="fas fa-trophy" style="color:#f59e0b;font-size:1.1rem;flex-shrink:0;opacity:0.85;"></i>
+        <i class="fas fa-chevron-right" style="color:#bbb;font-size:0.75rem;flex-shrink:0;"></i>
       </div>
     </div>
     <!-- マイル情報カード（旧:木の育成 を置換） -->
@@ -3318,10 +3312,8 @@ function deleteMemo(id, btn) {
 function openMyPosts() {
   var modal = document.getElementById('my-posts-modal');
   if (modal.style.display !== 'flex') modal.style.display = 'flex';
-  // マイページプロフィール更新
+  // マイページプロフィール更新（アバター描画廃止）
   if (currentUser) {
-    var avEl = document.getElementById('mypage-avatar');
-    if (avEl) avEl.innerHTML = getAvatarHtml(currentUser.avatar, 56);
     var nickEl = document.getElementById('mypage-nickname');
     if (nickEl) nickEl.innerText = currentUser.nickname || '--';
     // 天の声アバター＆名前セット

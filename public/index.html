@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260418_orbit">
+<html data-app-version="20260418_eggdrift">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -11219,27 +11219,36 @@ function drawCompanions(ctx) {
   var fallbackImg = _rpgHeroBase || _rpgHeroImage;
   if (!fallbackImg || _rpgCompanions.length === 0) return;
   var waterTop = (AREA_WATER_LEVEL && _rpg && _rpg.area) ? (AREA_WATER_LEVEL[_rpg.area.id] || 0) * _aqH : 0;
-  // 主人公中心の取り囲み (orbit) 配置
+  // 主人公中心の取り囲み (orbit) 配置 — 卵はorbitに含めない(独立漂流)
   var heroX = (_rpgFish && typeof _rpgFish.x === 'number') ? _rpgFish.x : _aqW / 2;
   var heroY = (_rpgFish && typeof _rpgFish.y === 'number') ? _rpgFish.y : _aqH / 2;
   _rpgCompanions.forEach(function(c) {
     var isEgg = !c.total_steps || c.total_steps === 0;
     c.tailPhase += isEgg ? 0.018 : 0.05;
-    // orbit角度をゆっくり進める
-    c.orbitAngle += c.orbitSpeed || 0.003;
-    // 主人公中心+orbit半径 → ターゲット座標 (縦は0.55倍に圧縮、横長楕円)
-    var targetX = heroX + Math.cos(c.orbitAngle) * c.orbitRadius;
-    var targetY = heroY + Math.sin(c.orbitAngle) * c.orbitRadius * 0.55;
-    // 遅延追従(0.3秒くらい)
-    var dx = targetX - c.x, dy = targetY - c.y;
-    var dist = Math.sqrt(dx*dx + dy*dy);
-    if (dist > 1) {
-      var follow = isEgg ? 0.025 : 0.045;
-      c.vx += (dx/dist) * follow;
-      c.vy += (dy/dist) * follow;
+
+    if (isEgg) {
+      // 卵: 独立してその場でゆらゆら漂う(orbit追従しない)
+      // 初期位置がまだなら設定
+      if (typeof c.driftX !== 'number') {
+        c.driftX = c.x; c.driftY = c.y;
+      }
+      // ふわふわ揺れ
+      c.driftX += Math.sin(c.tailPhase * 0.7) * 0.08;
+      c.driftY += Math.cos(c.tailPhase * 0.5) * 0.06;
+      c.x = c.driftX; c.y = c.driftY;
+      c.vx = 0;
+    } else {
+      // アクティブな仲間: 主人公周囲を orbit
+      c.orbitAngle += c.orbitSpeed || 0.003;
+      var targetX = heroX + Math.cos(c.orbitAngle) * c.orbitRadius;
+      var targetY = heroY + Math.sin(c.orbitAngle) * c.orbitRadius * 0.55;
+      var dx = targetX - c.x, dy = targetY - c.y;
+      var dist = Math.sqrt(dx*dx + dy*dy);
+      if (dist > 1) { c.vx += (dx/dist) * 0.045; c.vy += (dy/dist) * 0.045; }
+      c.vx *= 0.92; c.vy *= 0.92;
+      c.x += c.vx; c.y += c.vy;
     }
-    c.vx *= 0.92; c.vy *= 0.92;
-    c.x += c.vx; c.y += c.vy;
+
     if (c.x < 15) c.x = 15; if (c.x > _aqW - 15) c.x = _aqW - 15;
     if (c.y < waterTop + 20) c.y = waterTop + 20;
     if (c.y > _aqH - 25) c.y = _aqH - 25;

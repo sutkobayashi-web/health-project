@@ -929,7 +929,7 @@ router.get('/companions', authUser, (req, res) => {
 router.get('/shared-ocean', authUser, (req, res) => {
   const db = getDb();
   try {
-    const allProgress = db.prepare(`SELECT ap.*, u.nickname FROM adventure_progress ap
+    const allProgress = db.prepare(`SELECT ap.*, u.nickname, u.marigan_total FROM adventure_progress ap
       JOIN users u ON ap.user_id = u.id
       ORDER BY ap.total_steps DESC`).all();
 
@@ -944,6 +944,7 @@ router.get('/shared-ocean', authUser, (req, res) => {
         avatar_hue: p.avatar_hue || 200,
         hero_variant: p.hero_variant || 1,
         total_steps: p.total_steps,
+        marigan_total: p.marigan_total || 0,
         current_area: p.current_area,
         area_name: area.name,
         chapter: area.chapter,

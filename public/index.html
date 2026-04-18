@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260418_sharedfix">
+<html data-app-version="20260418_sharedlist">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -13137,15 +13137,15 @@ function openSharedOcean() {
         }
         html += '</div>';
 
-        // アバター (卵 or 稚魚アバター)
+        // アバター (卵 or 本人の hero_variant 画像)
         if (isEgg) {
-          html += '<div style="width:40px;height:40px;border-radius:50%;background:rgba(253,224,71,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;">';
-          html += '<span style="font-size:22px;filter:drop-shadow(0 0 4px rgba(253,224,71,0.4));">🥚</span>';
+          html += '<div style="width:48px;height:48px;border-radius:50%;background:rgba(253,224,71,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;">';
+          html += '<span style="font-size:26px;filter:drop-shadow(0 0 4px rgba(253,224,71,0.4));">🥚</span>';
           html += '</div>';
         } else {
           var userVariant = HERO_VARIANTS.find(function(v){return v.id === (e.hero_variant || 1);}) || HERO_VARIANTS[0];
-          html += '<div style="width:40px;height:40px;border-radius:50%;background:hsla(' + userVariant.bgHue + ',70%,50%,0.25);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;">';
-          html += '<img src="/fish/hero.png" style="width:36px;height:36px;object-fit:contain;filter:hue-rotate(' + userVariant.hueRotate + 'deg);" onload="makeFishImgTransparent(this)" onerror="this.outerHTML=\'<span style=&quot;font-size:18px;&quot;>🐟</span>\'">';
+          html += '<div style="width:48px;height:48px;border-radius:50%;background:hsla(' + userVariant.bgHue + ',70%,50%,0.18);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;">';
+          html += '<img src="/fish/' + userVariant.imgFile + '.png" style="width:46px;height:46px;object-fit:contain;" onload="makeFishImgTransparent(this)" onerror="this.outerHTML=\'<span style=&quot;font-size:22px;&quot;>🐟</span>\'">';
           html += '</div>';
         }
 
@@ -13154,11 +13154,12 @@ function openSharedOcean() {
         html += '<div style="font-size:10px;color:rgba(255,255,255,0.5);">' + (isEgg ? '🥚 まだ卵（一歩踏み出せば孵化）' : (e.area_name + ' ' + e.depth)) + '</div>';
         html += '</div>';
 
-        html += '<div style="text-align:right;flex-shrink:0;">';
+        html += '<div style="text-align:right;flex-shrink:0;display:flex;flex-direction:column;gap:3px;align-items:flex-end;">';
         if (isEgg) {
           html += '<div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.4);">孵化待ち</div>';
         } else {
-          html += '<div style="font-size:13px;font-weight:800;color:#fde68a;"><i class="fas fa-shoe-prints"></i> ' + e.total_steps.toLocaleString() + '</div>';
+          html += '<div style="font-size:12px;font-weight:800;color:#fde68a;"><i class="fas fa-shoe-prints"></i> ' + e.total_steps.toLocaleString() + '</div>';
+          html += '<div style="font-size:11px;font-weight:800;color:#fbbf24;"><i class="fas fa-anchor"></i> ' + (e.marigan_total || 0).toLocaleString() + 'マイル</div>';
         }
         html += '</div>';
 

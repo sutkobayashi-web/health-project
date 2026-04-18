@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260418_fish3">
+<html data-app-version="20260418_baked">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -10190,6 +10190,10 @@ function makeFishImgTransparent(imgEl) {
     var d = cx.getImageData(0, 0, w, h);
     var px = d.data;
     var idxs = [0, (w - 1) * 4, ((h - 1) * w) * 4, ((h - 1) * w + w - 1) * 4];
+    // 既にPNG自身が透過済み（サーバー側焼き込み）ならスキップ
+    var aSum = 0;
+    idxs.forEach(function(i) { aSum += px[i+3]; });
+    if (aSum / 4 < 250) return;
     var bgR = 0, bgG = 0, bgB = 0;
     idxs.forEach(function(i) { bgR += px[i]; bgG += px[i+1]; bgB += px[i+2]; });
     bgR = Math.round(bgR / 4); bgG = Math.round(bgG / 4); bgB = Math.round(bgB / 4);

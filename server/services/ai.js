@@ -629,6 +629,13 @@ ${userDataContext || '（データなし）'}${antiLoopBlock}${progressionBlock}
       // ///VOICE_SUGGEST/// タグを検出してフロントに通知
       const hasVoiceSuggest = result.includes('///VOICE_SUGGEST///');
       const cleanReply = result.replace('///VOICE_SUGGEST///', '').trim();
+      // プロンプトリーク検出: システムプロンプト固有マーカーが含まれていたらフォールバック
+      const leakMarkers = ['★★★', '極意', 'ラポール', 'ペーシング', 'ミラーリング', 'キャリブレーション', 'クローズド質問', 'オープンクエスチョン', 'コーチングの3原則', 'スモールステップ', 'セルフ・エフィカシー', '【会話テンポ', '【相談モード】', '【雑談モード】', 'NG:', 'OK:', '思考プロセス', 'VOICE_SUGGEST'];
+      const leak = leakMarkers.find(m => cleanReply.includes(m));
+      if (leak) {
+        console.warn('[chat] prompt leak detected (' + leak + '), reply:', cleanReply.slice(0, 200));
+        return { success: true, reply: '...うん、もう一度聞かせてくれるか？', voiceSuggest: false };
+      }
       return { success: true, reply: cleanReply, voiceSuggest: hasVoiceSuggest };
     }
     return { success: false, reply: '...すまない、今の声、うまく届かなかった。もう一度聞かせてくれ。' };

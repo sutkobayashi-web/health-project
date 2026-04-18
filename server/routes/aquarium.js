@@ -21,7 +21,7 @@ function authUser(req, res, next) {
 // ---------- RPGステージマスタ ----------
 const RPG_AREAS = [
   // 第1章: はじまりの浅瀬
-  { id: '1-1', chapter: 1, name: '波打ち際', stepsRequired: 0,      bgColor: '#0ea5e9', depth: '0m',  bgFile: 'area_1-1', desc: '光がきらめく浅い海。冒険はここから' },
+  { id: '1-1', chapter: 1, name: '光の浅瀬', stepsRequired: 0,      bgColor: '#0ea5e9', depth: '0m',  bgFile: 'area_1-1', desc: '光が降り注ぐ幻想の水中庭園。冒険はここから' },
   { id: '1-2', chapter: 1, name: '岩陰の入り江', stepsRequired: 20000,  bgColor: '#0891b2', depth: '3m',  bgFile: 'area_1-2', desc: '岩の隙間に何かが隠れている' },
   { id: '1-3', chapter: 1, name: '浅瀬の珊瑚棚', stepsRequired: 50000,  bgColor: '#0284c7', depth: '8m',  bgFile: 'area_1-3', desc: '色とりどりの珊瑚が広がる' },
   // 第2章: 珊瑚礁の迷宮

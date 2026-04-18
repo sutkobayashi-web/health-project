@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260418_indep">
+<html data-app-version="20260418_noopening">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -10710,17 +10710,10 @@ function loadAdventureData() {
       // UI更新を先に（ラベルの「読み込み中...」を早く解消）
       updateRpgUI();
 
-      // 既存ユーザー(fish_name 設定済み or 歩数あり)はオンボーディング済みとみなす
-      var alreadyOnboarded = data.progress && (data.progress.fish_name ||
-        (data.progress.total_steps && data.progress.total_steps > 0));
-      if (alreadyOnboarded) {
-        try { localStorage.setItem('co_heart_rpg_started', '1'); } catch (e) {}
-      }
-      // 真の新規ユーザーのみオープニングを表示
-      if (!localStorage.getItem('co_heart_rpg_started') && !window._rpgOpeningShown) {
-        window._rpgOpeningShown = true;
-        showAdventureOpening();
-      }
+      // オープニングの自動表示は廃止: アバター誤リセット防止のため
+      // 全ユーザーをオンボーディング済みとマークする(将来の自動再表示も封印)
+      try { localStorage.setItem('co_heart_rpg_started', '1'); } catch (e) {}
+      // アバター変更は 設定→すがた (openHeroChangeModal) からのみ可能
 
       // 語り部の挨���
       if (data.narrations && data.narrations.length > 0) {

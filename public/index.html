@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260418_noopening">
+<html data-app-version="20260418_fullswim">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -11284,8 +11284,8 @@ function drawEggShape(ctx, cx, cy, size, phase) {
 
 // エリア別の水面位置(Canvasの上端からの比率): 0 = 水中全域、0.4 = 上から40%は空
 var AREA_WATER_LEVEL = {
-  '1-1': 0.42, // 波打ち際: 空と椰子が見える
-  // 他のエリアは水中のみ、指定なし = 0
+  // 全エリア完全水中化（painterly背景に刷新後、空表示なし）
+  // 旧: '1-1': 0.42 (波打ち際で空が見えた頃の名残)
 };
 function getWaterTop() {
   if (!_rpg || !_rpg.area) return 0;

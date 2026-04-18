@@ -146,8 +146,7 @@ const RPG_FISH = [
   // === 拡張第3弾 第5章海淵伝説 ===
   { id: 78, name: 'リュウグウオウ',     area: '5-1', rarity: 'legend',  hue: 50,  desc: '海の都の主、龍宮の王', encounterRate: 0.025 },
   { id: 79, name: '神話のクジラ',       area: '5-2', rarity: 'legend',  hue: 280, desc: '神話の海を漂うとされる伝承の鯨', encounterRate: 0.02 },
-  // ★伝説の超レア (ギャグ): 昭和のおやじ
-  { id: 80, name: '昭和のおやじ',       area: '5-3', rarity: 'legend',  hue: 30,  desc: '腹巻き姿で深海を漂う謎の存在。なぜ海に居るかは諸説あるとかないとか', encounterRate: 0.005 },
+  // 昭和のおやじは主人公(hero_type_21)として移動済み
 ];
 
 // ---------- 語り部（ナレーター）メッセージ ----------
@@ -432,7 +431,7 @@ router.post('/avatar-color', authUser, (req, res) => {
 router.post('/hero-variant', authUser, (req, res) => {
   const { variant } = req.body;
   const v = parseInt(variant);
-  if (!v || v < 1 || v > 20) return res.status(400).json({ error: 'variantは1〜20' });
+  if (!v || v < 1 || v > 21) return res.status(400).json({ error: 'variantは1〜21' });
   const db = getDb();
   // 行がなければ作る
   const exists = db.prepare('SELECT 1 FROM adventure_progress WHERE user_id = ?').get(req.uid);

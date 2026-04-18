@@ -495,30 +495,27 @@ router.post('/steps-ocr', authUser, async (req, res) => {
   }
 });
 
-// ---------- 歩数記録 + 冒険進行 ----------
-router.post('/steps', authUser, (req, res) => {
+// ---------- 歩数→冒険進行 共通ロジック ----------
+// Fitbit等の自動同期からも呼ぶため外部公開
+function applyStepsForUser(uid, stepCount) {
   const db = getDb();
-  const { steps } = req.body;
-  const stepCount = parseInt(steps) || 0;
-  if (stepCount < 0 || stepCount > 200000) return res.status(400).json({ error: '歩数が不正です' });
-
   const stepDate = today();
 
   // 既存の今日の歩数を取得
-  const existingSteps = db.prepare('SELECT steps FROM step_log WHERE user_id = ? AND step_date = ?').get(req.uid, stepDate);
+  const existingSteps = db.prepare('SELECT steps FROM step_log WHERE user_id = ? AND step_date = ?').get(uid, stepDate);
   const previousTodaySteps = existingSteps ? existingSteps.steps : 0;
   const addedSteps = Math.max(0, stepCount - previousTodaySteps);
 
   // 歩数ログ保存
   db.prepare(`INSERT INTO step_log (user_id, step_date, steps) VALUES (?,?,?)
     ON CONFLICT(user_id, step_date) DO UPDATE SET steps=?, created_at=datetime('now')`)
-    .run(req.uid, stepDate, stepCount, stepCount);
+    .run(uid, stepDate, stepCount, stepCount);
 
   // 冒険進捗を取得/作成
-  let progress = db.prepare('SELECT * FROM adventure_progress WHERE user_id = ?').get(req.uid);
+  let progress = db.prepare('SELECT * FROM adventure_progress WHERE user_id = ?').get(uid);
   if (!progress) {
-    db.prepare("INSERT INTO adventure_progress (user_id) VALUES (?)").run(req.uid);
-    progress = db.prepare('SELECT * FROM adventure_progress WHERE user_id = ?').get(req.uid);
+    db.prepare("INSERT INTO adventure_progress (user_id) VALUES (?)").run(uid);
+    progress = db.prepare('SELECT * FROM adventure_progress WHERE user_id = ?').get(uid);
   }
 
   const oldArea = progress.current_area;
@@ -543,7 +540,7 @@ router.post('/steps', authUser, (req, res) => {
     last_step_date = ?, consecutive_days = ?,
     updated_at = datetime('now')
     WHERE user_id = ?`)
-    .run(newTotalSteps, newAreaObj.id, newAreaObj.chapter, stepDate, consecutive, req.uid);
+    .run(newTotalSteps, newAreaObj.id, newAreaObj.chapter, stepDate, consecutive, uid);
 
   // 1万歩=1マイル 加算（lifetime累計のミリストーン到達数で重複防止）
   let milesAwarded = 0;
@@ -551,7 +548,7 @@ router.post('/steps', authUser, (req, res) => {
     const oldMilestones = Math.floor((progress.total_steps || 0) / 10000);
     const newMilestones = Math.floor(newTotalSteps / 10000);
     for (let m = oldMilestones + 1; m <= newMilestones; m++) {
-      const r = awardMarigan(req.uid, 'daily_walk_miles', 'mile_' + m);
+      const r = awardMarigan(uid, 'daily_walk_miles', 'mile_' + m);
       if (r && r.success) milesAwarded += (r.points || 1);
     }
   } catch (e) { /* マイル付与失敗は冒険進行を止めない */ }
@@ -584,7 +581,7 @@ router.post('/steps', authUser, (req, res) => {
     const currentAreaFish = RPG_FISH.filter(f => f.area === newAreaObj.id);
     for (const fish of currentAreaFish) {
       // 既に発見済みかチェック
-      const already = db.prepare('SELECT 1 FROM rpg_fish_discovery WHERE user_id = ? AND fish_id = ?').get(req.uid, fish.id);
+      const already = db.prepare('SELECT 1 FROM rpg_fish_discovery WHERE user_id = ? AND fish_id = ?').get(uid, fish.id);
       if (already) continue;
 
       // 遭遇確率（歩数が多いほどボーナス）
@@ -595,7 +592,7 @@ router.post('/steps', authUser, (req, res) => {
 
       if (Math.random() < chance) {
         db.prepare('INSERT OR IGNORE INTO rpg_fish_discovery (user_id, fish_id, area_id) VALUES (?, ?, ?)')
-          .run(req.uid, fish.id, newAreaObj.id);
+          .run(uid, fish.id, newAreaObj.id);
         encounters.push(fish);
         narrations.push({ msg: pickMsg('fishEncounter', { fish: fish.name }), type: 'encounter' });
       }
@@ -606,11 +603,11 @@ router.post('/steps', authUser, (req, res) => {
     for (const pa of prevAreas) {
       const prevFish = RPG_FISH.filter(f => f.area === pa.id);
       for (const fish of prevFish) {
-        const already = db.prepare('SELECT 1 FROM rpg_fish_discovery WHERE user_id = ? AND fish_id = ?').get(req.uid, fish.id);
+        const already = db.prepare('SELECT 1 FROM rpg_fish_discovery WHERE user_id = ? AND fish_id = ?').get(uid, fish.id);
         if (already) continue;
         if (Math.random() < fish.encounterRate * 0.3) {
           db.prepare('INSERT OR IGNORE INTO rpg_fish_discovery (user_id, fish_id, area_id) VALUES (?, ?, ?)')
-            .run(req.uid, fish.id, pa.id);
+            .run(uid, fish.id, pa.id);
           encounters.push(fish);
           narrations.push({ msg: pickMsg('fishEncounter', { fish: fish.name }), type: 'encounter' });
         }
@@ -621,13 +618,13 @@ router.post('/steps', authUser, (req, res) => {
   // 語り部ログ保存
   const stmtNarrate = db.prepare('INSERT INTO narrator_log (user_id, message, msg_type) VALUES (?, ?, ?)');
   for (const n of narrations) {
-    stmtNarrate.run(req.uid, n.msg, n.type);
+    stmtNarrate.run(uid, n.msg, n.type);
   }
 
   // 次のエリアまでの残り
   const nextArea = RPG_AREAS.find(a => a.stepsRequired > newTotalSteps);
 
-  res.json({
+  return {
     success: true,
     steps: stepCount,
     added_steps: addedSteps,
@@ -641,7 +638,19 @@ router.post('/steps', authUser, (req, res) => {
     narrations: narrations,
     consecutive_days: consecutive,
     miles_awarded: milesAwarded,
-  });
+  };
+}
+
+// ---------- 歩数記録 + 冒険進行 ----------
+router.post('/steps', authUser, (req, res) => {
+  const stepCount = parseInt(req.body.steps) || 0;
+  if (stepCount < 0 || stepCount > 200000) return res.status(400).json({ error: '歩数が不正です' });
+  try {
+    res.json(applyStepsForUser(req.uid, stepCount));
+  } catch (e) {
+    console.error('[steps] error', e);
+    res.status(500).json({ success: false, msg: e.message });
+  }
 });
 
 // ---------- 歩数取得 ----------
@@ -1101,3 +1110,4 @@ router.get('/ranking', authUser, (req, res) => {
 });
 
 module.exports = router;
+module.exports.applyStepsForUser = applyStepsForUser;

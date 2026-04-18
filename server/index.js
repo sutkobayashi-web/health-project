@@ -109,6 +109,7 @@ app.use('/api/buddy-topics', require('./routes/buddy-topics'));
 app.use('/api/recruit-chat', require('./routes/recruit-chat'));
 app.use('/api/box', require('./routes/box-manager'));
 app.use('/api/aquarium', require('./routes/aquarium'));
+app.use('/api/wearable', require('./routes/wearable'));
 
 // ===== Web Push 通知 =====
 const push = require('./services/push');

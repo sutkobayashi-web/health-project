@@ -26,10 +26,10 @@ const BASE_STYLE = 'A single small cartoon fish, side profile facing right, simp
 const ITEMS = [
   // ============ HERO VARIANTS 11-20 ============
   { file: 'hero_type_11', prompt: BASE_STYLE + ' Silver streaked fish with starry sparkle pattern across its scales, slightly metallic blue body.' },
-  { file: 'hero_type_12', prompt: BASE_STYLE + ' Soft pink cherry-blossom themed fish with petal-shaped fins.' },
+  { file: 'hero_type_12', prompt: BASE_STYLE + ' Cherry-blossom themed fish with deep magenta-pink saturated body and dark crimson outline, petal-shaped fins. Body must be vivid pink, NOT pale or light pink.' },
   { file: 'hero_type_13', prompt: BASE_STYLE + ' Jade-green messenger fish with elegant flowing fins, ribbon-like tail.' },
   { file: 'hero_type_14', prompt: BASE_STYLE + ' Vermillion red phoenix-style fish with flame-like fins, golden eye.' },
-  { file: 'hero_type_15', prompt: BASE_STYLE + ' Pale moonlight white-blue fish with crescent-moon mark on its side.' },
+  { file: 'hero_type_15', prompt: BASE_STYLE + ' Deep midnight-indigo fish with glowing yellow crescent-moon mark on its side, dark navy outline. Body must be dark blue/indigo, NOT pale or silver.' },
   { file: 'hero_type_16', prompt: BASE_STYLE + ' Golden traveler fish with glowing yellow body, brass-trimmed fins.' },
   { file: 'hero_type_17', prompt: BASE_STYLE + ' Snow fish with strong navy-blue outline, body in pale icy lavender (NOT white), bright cyan accents on fins. Body must be clearly colored, never pure white.' },
   { file: 'hero_type_18', prompt: BASE_STYLE + ' Deep purple fish with cloudy lavender pattern, mystical aura.' },

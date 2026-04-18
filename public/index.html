@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260418_race">
+<html data-app-version="20260418_sharedfix">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -13088,10 +13088,28 @@ function openRpgMap() {
 // ===== みんなの海 =====
 function openSharedOcean() {
   if (typeof track === 'function') track('shared_ocean_open');
-  fetch('/api/aquarium/shared-ocean?uid=' + currentUser.uid, { headers:{'x-user-id':currentUser.uid} })
+  // 仮プレースホルダーを即座に出して、開いたことを視認できるように
+  var pre = document.getElementById('shared-tank-overlay');
+  if (pre) pre.remove();
+  var placeholder = document.createElement('div');
+  placeholder.id = 'shared-tank-overlay';
+  placeholder.style.cssText = 'position:fixed;inset:0;z-index:9999;background:#0a1628;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;';
+  placeholder.innerHTML = '<div style="font-size:28px;margin-bottom:14px;"><i class="fas fa-water" style="color:#0ea5e9;"></i></div>' +
+    '<div style="font-size:14px;font-weight:700;margin-bottom:6px;">みんなの海</div>' +
+    '<div style="font-size:12px;color:rgba(255,255,255,0.6);">読み込み中...</div>' +
+    '<button onclick="closeSharedTank()" style="margin-top:20px;padding:8px 18px;background:rgba(255,255,255,0.15);border:none;color:#fff;border-radius:8px;cursor:pointer;">閉じる</button>';
+  document.body.appendChild(placeholder);
+  fetch('/api/aquarium/shared-ocean?uid=' + currentUser.uid + '&_=' + Date.now(), { headers:{'x-user-id':currentUser.uid}, cache:'no-store' })
     .then(function(r){return r.json();}).then(function(d){
-      if (!d.success) return;
+      if (!d.success) {
+        var p = document.getElementById('shared-tank-overlay');
+        if (p) p.querySelector('div:nth-child(3)').textContent = '読み込み失敗: ' + (d.error || d.msg || '不明');
+        return;
+      }
 
+      // プレースホルダーを削除して本体を作る
+      var pre2 = document.getElementById('shared-tank-overlay');
+      if (pre2) pre2.remove();
       var overlay = document.createElement('div');
       overlay.id = 'shared-tank-overlay';
       overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:#0a1628;overflow-y:auto;';
@@ -13150,7 +13168,10 @@ function openSharedOcean() {
 
       overlay.innerHTML = html;
       document.body.appendChild(overlay);
-    }).catch(function(){});
+    }).catch(function(e){
+      var p3 = document.getElementById('shared-tank-overlay');
+      if (p3) { var dd = p3.querySelector('div:nth-child(3)'); if (dd) dd.textContent = '通信エラー: ' + (e && e.message || e); }
+    });
 }
 
 // 互換用（旧関数名）

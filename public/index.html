@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260418_fish2">
+<html data-app-version="20260418_fish3">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -10194,12 +10194,25 @@ function makeFishImgTransparent(imgEl) {
     idxs.forEach(function(i) { bgR += px[i]; bgG += px[i+1]; bgB += px[i+2]; });
     bgR = Math.round(bgR / 4); bgG = Math.round(bgG / 4); bgB = Math.round(bgB / 4);
     if ((bgR + bgG + bgB) / 3 < 200) return; // 白背景じゃなければスキップ
-    for (var i = 0; i < px.length; i += 4) {
-      var dr = px[i] - bgR, dg = px[i+1] - bgG, db = px[i+2] - bgB;
+
+    // フラッドフィル: 四隅から距離≦60の連結成分だけを透明化（body内部の薄色は守られる）
+    var visited = new Uint8Array(w * h);
+    var stack = [0, 0, w - 1, 0, 0, h - 1, w - 1, h - 1];
+    while (stack.length) {
+      var y = stack.pop(), x = stack.pop();
+      if (x < 0 || x >= w || y < 0 || y >= h) continue;
+      var idx = y * w + x;
+      if (visited[idx]) continue;
+      visited[idx] = 1;
+      var pi = idx * 4;
+      var dr = px[pi] - bgR, dg = px[pi+1] - bgG, db = px[pi+2] - bgB;
       var dist = Math.sqrt(dr * dr + dg * dg + db * db);
-      if (dist < 30) px[i+3] = 0;
-      else if (dist < 60) px[i+3] = Math.round((dist - 30) / 30 * 255);
+      if (dist >= 60) continue; // 背景色から遠い→fish body の境界、ここで伝播停止
+      if (dist < 30) px[pi + 3] = 0;
+      else px[pi + 3] = Math.round((dist - 30) / 30 * 255);
+      stack.push(x - 1, y); stack.push(x + 1, y); stack.push(x, y - 1); stack.push(x, y + 1);
     }
+
     cx.putImageData(d, 0, 0);
     var dataUrl = c.toDataURL('image/png');
     _transparentImgCache[cacheKey] = dataUrl;

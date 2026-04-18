@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260418_noidle">
+<html data-app-version="20260418_toggle">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -5774,6 +5774,8 @@ function _setBottomNavVisible(visible) {
 function openChatHistory() {
   var ov = document.getElementById('chat-history-overlay');
   if (!ov) return;
+  // 既に開いているならトグルで閉じる
+  if (_chatHistoryOpen) { closeChatHistory(); return; }
   ov.style.display = 'flex';
   ov.style.flexDirection = 'column';
   _chatHistoryOpen = true;
@@ -5792,10 +5794,18 @@ function closeChatHistory() {
   _setBottomNavVisible(true);
 }
 
-// テキスト入力バーを開く（✏ボタンから）
+// テキスト入力バーをトグル（✏ボタンから: 1回目=開く、2回目=閉じる）
 function openTextInputBar() {
   var bar = document.getElementById('text-input-bar');
   if (!bar) return;
+  if (bar.style.display !== 'none' && bar.style.display !== '') {
+    // 既に開いているので閉じる
+    bar.style.display = 'none';
+    _setBottomNavVisible(true);
+    var input = document.getElementById('buddy-input');
+    if (input) input.blur();
+    return;
+  }
   bar.style.display = 'block';
   _setBottomNavVisible(false);
   // 入力欄を即フォーカス（テンキー出る）— ユーザーが明示的に「書く」を押した時のみ

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260418_daynight2">
+<html data-app-version="20260418_seaevents">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -10634,6 +10634,7 @@ function initAquarium() {
   _aqCanvas.style.pointerEvents = 'auto';
   _aqCanvas.addEventListener('click', onAquariumCanvasClick);
   loadAdventureData();
+  if (typeof startAquariumEventsPoll === 'function') startAquariumEventsPoll();
   requestAnimationFrame(drawOcean);
 }
 
@@ -11005,6 +11006,48 @@ function drawNameBubble(ctx, text, cx, cy, opts) {
 }
 
 // ===== 海の描画 =====
+// ====== 海の出来事(孵化/新投稿)ポーリング ======
+var _aqEventsTimer = null;
+function _getEventsSince() {
+  try { return localStorage.getItem('co_heart_events_since') || new Date(Date.now() - 600000).toISOString(); }
+  catch(e) { return new Date(Date.now() - 600000).toISOString(); }
+}
+function pollAquariumEvents() {
+  if (!currentUser) return;
+  var since = _getEventsSince();
+  fetch('/api/aquarium/events?since=' + encodeURIComponent(since.replace('T',' ').slice(0,19)) + '&_=' + Date.now(),
+        { cache:'no-store' })
+    .then(function(r){ return r.json(); }).then(function(d) {
+      if (!d.success) return;
+      // 孵化したユーザー
+      (d.hatched || []).forEach(function(h, i) {
+        setTimeout(function() {
+          if (typeof addBuddyMessage === 'function') {
+            addBuddyMessage('ai', '🥚→🐟 ' + h.nickname + ' さんが孵化したぞ！海に新しい仲間が加わった。');
+          }
+        }, i * 1500);
+      });
+      // 新規投稿
+      var postOffset = (d.hatched || []).length * 1500;
+      (d.posts || []).forEach(function(p, i) {
+        setTimeout(function() {
+          if (typeof addBuddyMessage === 'function') {
+            var preview = p.content.slice(0, 60);
+            addBuddyMessage('ai', '💬 ' + p.nickname + ' さんから新しい声が届いたよ：「' + preview + (p.content.length > 60 ? '…' : '') + '」');
+          }
+        }, postOffset + i * 1500);
+      });
+      // 次回sinceを更新
+      try { localStorage.setItem('co_heart_events_since', d.ts); } catch(e) {}
+    }).catch(function(){});
+}
+function startAquariumEventsPoll() {
+  if (_aqEventsTimer) return;
+  // 初回は10秒後、その後60秒間隔
+  setTimeout(pollAquariumEvents, 10000);
+  _aqEventsTimer = setInterval(pollAquariumEvents, 60000);
+}
+
 // 時間帯に応じた背景オーバーレイ色を返す（昼=null、朝夕=オレンジ、夜=暗青）
 function getTimeOfDayOverlay() {
   var d = new Date();

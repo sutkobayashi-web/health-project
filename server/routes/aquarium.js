@@ -967,6 +967,46 @@ router.get('/shared-ocean', authUser, (req, res) => {
   }
 });
 
+// ---------- 海の出来事(他ユーザーの孵化/投稿)を取得 ----------
+router.get('/events', authUser, (req, res) => {
+  const db = getDb();
+  try {
+    let since = req.query.since;
+    // デフォルト: 直近1時間
+    if (!since) since = new Date(Date.now() - 3600000).toISOString().slice(0,19).replace('T',' ');
+    else since = String(since).replace('T',' ').slice(0,19);
+
+    // 孵化: 初回step_logがsince以降のユーザー
+    const hatched = db.prepare(`
+      SELECT u.nickname, MIN(sl.created_at) as hatched_at, ap.hero_variant
+      FROM step_log sl
+      JOIN users u ON sl.user_id = u.id
+      LEFT JOIN adventure_progress ap ON ap.user_id = sl.user_id
+      WHERE sl.user_id != ?
+      GROUP BY sl.user_id
+      HAVING hatched_at > ?
+      ORDER BY hatched_at DESC LIMIT 5
+    `).all(req.uid, since);
+
+    // 新規投稿(他ユーザーの公開投稿)
+    const posts = db.prepare(`
+      SELECT u.nickname, p.content, p.category, p.created_at
+      FROM posts p JOIN users u ON p.user_id = u.id
+      WHERE p.created_at > ? AND p.user_id != ?
+      ORDER BY p.created_at DESC LIMIT 5
+    `).all(since, req.uid);
+
+    res.json({
+      success: true,
+      hatched: hatched.map(h => ({ nickname: h.nickname, hatched_at: h.hatched_at, hero_variant: h.hero_variant || 1 })),
+      posts: posts.map(p => ({ nickname: p.nickname, content: (p.content || '').slice(0, 80), category: p.category, created_at: p.created_at })),
+      ts: new Date().toISOString(),
+    });
+  } catch (e) {
+    res.json({ success: false, msg: e.message });
+  }
+});
+
 // ---------- 図鑑 ----------
 router.get('/discovery', authUser, (req, res) => {
   const db = getDb();

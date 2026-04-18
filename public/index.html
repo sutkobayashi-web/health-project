@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260418_scatter">
+<html data-app-version="20260418_living">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -10309,6 +10309,60 @@ var _rpgFish = { x:0, y:0, vx:1, vy:0.3, targetX:0, targetY:0, tailPhase:0, brea
 var _rpgAreaFish = []; // 現在エリアの魚たち
 var _rpgCompanions = []; // 同じエリアの仲間
 var _aqBubbles = [];
+var _fishBubbles = []; // 魚の口から出る泡(呼吸演出)
+
+// 魚を「生きてる感」付きで描画するヘルパー
+// PNG画像を、呼吸の膨縮(scaleY)+ボディスウェイ(skewX)+尾びれ揺れ(bob)で描画
+// vx>0で右進行(画像反転)、定期的に口元から泡を放出
+function drawLivingFish(ctx, img, x, y, size, vx, tailPhase, breathPhase, breathAmp, alpha) {
+  ctx.save();
+  if (alpha != null) ctx.globalAlpha = alpha;
+  ctx.translate(x, y);
+  var flip = vx > 0.05 ? -1 : 1;
+  ctx.scale(flip, 1);
+  // 呼吸: scaleY を周期で膨縮
+  var breath = 1 + Math.sin(breathPhase) * (breathAmp || 0.04);
+  ctx.scale(1, breath);
+  // ボディスウェイ: 尾の左右の波で skew
+  var sway = Math.sin(tailPhase * 0.9) * 0.05;
+  ctx.transform(1, sway, 0, 1, 0, 0);
+  var bob = Math.sin(tailPhase) * 2;
+  ctx.drawImage(img, -size/2, -size/2 + bob, size, size);
+  ctx.restore();
+}
+
+// 口元から泡を出す(右向きなら右側、左向きなら左側)
+function spawnFishBubble(x, y, size, vx) {
+  if (_fishBubbles.length > 60) return; // 上限
+  var mouthOffset = size * 0.32;
+  var mouthX = x + (vx > 0 ? mouthOffset : -mouthOffset);
+  var mouthY = y + size * 0.05;
+  _fishBubbles.push({
+    x: mouthX, y: mouthY,
+    vx: (vx > 0 ? 0.15 : -0.15) + (Math.random() - 0.5) * 0.2,
+    vy: -0.4 - Math.random() * 0.3,
+    r: 1.5 + Math.random() * 2,
+    life: 1.0,
+  });
+}
+
+function drawAndUpdateFishBubbles(ctx) {
+  ctx.save();
+  for (var i = 0; i < _fishBubbles.length; i++) {
+    var b = _fishBubbles[i];
+    b.x += b.vx; b.y += b.vy;
+    b.vy *= 0.99;
+    b.life -= 0.008;
+    if (b.life <= 0) continue;
+    ctx.fillStyle = 'rgba(255,255,255,' + (b.life * 0.55) + ')';
+    ctx.strokeStyle = 'rgba(255,255,255,' + (b.life * 0.7) + ')';
+    ctx.lineWidth = 0.6;
+    ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+    ctx.fill(); ctx.stroke();
+  }
+  _fishBubbles = _fishBubbles.filter(function(b) { return b.life > 0 && b.y > -10; });
+  ctx.restore();
+}
 var _rpgParticles = [];
 var _marineSnow = []; // 海のマリンスノー(漂う粒子)
 var _aqFrame = 0;
@@ -10781,7 +10835,13 @@ function initCompanions(list) {
       targetX: Math.random() * _aqW,
       targetY: 40 + Math.random() * (_aqH - 80),
       tailPhase: Math.random() * Math.PI * 2,
-      size: 0.7 + Math.random() * 0.2,
+      breathPhase: Math.random() * Math.PI * 2,
+      breathAmp: 0.04,
+      size: 0.95 + Math.random() * 0.25, // 旧 0.7-0.9 → 0.95-1.2 (~50-65px)
+      pace: 0.7 + Math.random() * 0.6,
+      pauseChance: Math.random() * 0.25,
+      pausing: 0,
+      bubbleInterval: 100 + Math.floor(Math.random() * 120),
     };
   });
 }
@@ -10805,8 +10865,15 @@ function initAreaFish(areaFish) {
       targetX: Math.random() * _aqW,
       targetY: Math.random() * _aqH,
       tailPhase: Math.random() * Math.PI * 2,
+      breathPhase: Math.random() * Math.PI * 2,
+      breathAmp: 0.03 + Math.random() * 0.04, // 個体差: 呼吸の深さ
       size: f.rarity === 'legend' ? 1.6 : f.rarity === 'ultra' ? 1.3 : f.rarity === 'rare' ? 1.0 : 0.7,
       alpha: f.discovered ? 1.0 : 0.25,
+      // 性格: 0=慎重(遅い・休む) / 1=活発(速い・突発加速)
+      pace: 0.6 + Math.random() * 0.8,
+      pauseChance: Math.random() * 0.3,
+      pausing: 0,
+      bubbleInterval: 80 + Math.floor(Math.random() * 100),
     };
   });
 }
@@ -11103,26 +11170,41 @@ function drawOcean() {
   // エリアの魚を描画（PNG画像ベース）
   var _waterTopFish = (AREA_WATER_LEVEL && _rpg && _rpg.area) ? (AREA_WATER_LEVEL[_rpg.area.id] || 0) * _aqH : 0;
   _rpgAreaFish.forEach(function(f) {
-    f.tailPhase += 0.06;
+    f.tailPhase += 0.06 * (f.pace || 1);
+    f.breathPhase += 0.025;
     // 個体差: 各魚が独立した周期で目標を再設定(60〜140frame)
     if (!f._retargetPeriod) f._retargetPeriod = 60 + Math.floor(Math.random() * 80);
     if ((_aqFrame + (f.id || 0) * 17) % f._retargetPeriod === 0) {
-      // 全魚: 画面全体を自由に泳ぐ(発見済みクラスタリング廃止)
       f.targetX = 20 + Math.random() * (_aqW - 40);
       var _ymin = _waterTopFish + 10;
       f.targetY = _ymin + Math.random() * Math.max(20, _aqH - 50 - _waterTopFish);
+      // 性格に応じて時々休止(0.5〜2秒)
+      if (Math.random() < (f.pauseChance || 0)) f.pausing = 30 + Math.floor(Math.random() * 90);
+      // 性格に応じて時々ダート(突発加速)
+      if (Math.random() < 0.08 * (f.pace || 1)) {
+        f.vx *= 2.2; f.vy *= 1.5;
+      }
     }
-    var dx = f.targetX - f.x, dy = f.targetY - f.y;
-    var dist = Math.sqrt(dx*dx + dy*dy);
-    if (dist > 1) { f.vx += (dx/dist) * 0.03; f.vy += (dy/dist) * 0.02; }
+    if (f.pausing > 0) { f.pausing--; f.vx *= 0.85; f.vy *= 0.85; }
+    else {
+      var dx = f.targetX - f.x, dy = f.targetY - f.y;
+      var dist = Math.sqrt(dx*dx + dy*dy);
+      if (dist > 1) { f.vx += (dx/dist) * 0.03 * (f.pace || 1); f.vy += (dy/dist) * 0.02 * (f.pace || 1); }
+    }
+    // サイン波の縦ゆらぎ(直進中も上下に揺れる)
+    f.vy += Math.sin(_aqFrame * 0.04 + (f.id || 0)) * 0.015;
     f.vx *= 0.97; f.vy *= 0.97;
     f.x += f.vx; f.y += f.vy;
     if (f.x < 10) f.x = 10; if (f.x > _aqW - 10) f.x = _aqW - 10;
     if (f.y < _waterTopFish + 10) f.y = _waterTopFish + 10;
     if (f.y > _aqH - 20) f.y = _aqH - 20;
+    // 口から泡(個体差ある間隔)
+    if (f.discovered && _aqFrame % (f.bubbleInterval || 120) === 0) {
+      spawnFishBubble(f.x, f.y, f.size * 95, f.vx);
+    }
 
     var img = _rpgFishImages[f.id];
-    var baseSize = f.size * 75; // PNG用サイズ(50→75 大きく)
+    var baseSize = f.size * 95; // 75 → 95 (約+27%)
 
     // 未発見の魚は影のように描画
     if (!f.discovered) {
@@ -11152,21 +11234,17 @@ function drawOcean() {
       ctx.fillText('?', f.x, f.y - baseSize * 0.35);
       ctx.restore();
     } else {
-      ctx.save();
-      ctx.translate(f.x, f.y);
-      var flip2 = f.vx > 0 ? -1 : 1; // 画像は左向きなので右に泳ぐときは反転
-      ctx.scale(flip2, 1);
-      var bob2 = Math.sin(f.tailPhase) * 1.5;
       if (img) {
-        ctx.drawImage(img, -baseSize/2, -baseSize/2 + bob2, baseSize, baseSize);
+        drawLivingFish(ctx, img, f.x, f.y, baseSize, f.vx, f.tailPhase, f.breathPhase, f.breathAmp);
       } else {
-        // フォールバック楕円
+        ctx.save();
+        ctx.translate(f.x, f.y);
         ctx.beginPath();
         ctx.ellipse(0, 0, baseSize * 0.35, baseSize * 0.18, 0, 0, Math.PI * 2);
         ctx.fillStyle = 'hsl(' + f.hue + ',60%,50%)';
         ctx.fill();
+        ctx.restore();
       }
-      ctx.restore();
 
       // レア以上は光彩
       if (f.rarity === 'legend' || f.rarity === 'ultra') {
@@ -11193,6 +11271,9 @@ function drawOcean() {
 
   // 主人公の魚を描画
   drawHeroFish(ctx);
+
+  // 魚の口から出る呼吸の泡
+  drawAndUpdateFishBubbles(ctx);
 
   requestAnimationFrame(drawOcean);
 }
@@ -11227,15 +11308,11 @@ function drawCompanions(ctx) {
     if (isEgg) {
       drawEggShape(ctx, c.x, c.y, s * 0.75, c.tailPhase);
     } else {
+      c.breathPhase = (c.breathPhase || 0) + 0.022;
       var cImg = _companionImageCache[c.variantId] || fallbackImg;
-      ctx.save();
-      ctx.globalAlpha = 0.85;
-      ctx.translate(c.x, c.y);
-      var flip = c.vx > 0.05 ? -1 : 1;
-      ctx.scale(flip, 1);
-      var bob = Math.sin(c.tailPhase) * 1.5;
-      ctx.drawImage(cImg, -s/2, -s/2 + bob, s, s);
-      ctx.restore();
+      drawLivingFish(ctx, cImg, c.x, c.y, s, c.vx, c.tailPhase, c.breathPhase, c.breathAmp || 0.04, 0.85);
+      // 仲間も時々呼吸の泡
+      if (_aqFrame % (c.bubbleInterval || 150) === 0) spawnFishBubble(c.x, c.y, s, c.vx);
     }
 
     // ニックネーム吹き出し
@@ -11316,14 +11393,10 @@ function drawHeroFish(ctx) {
 
   // 主人公PNG画像があれば使う
   if (_rpgHeroImage) {
-    var hs = 88;
-    ctx.save();
-    ctx.translate(f.x, f.y);
-    var _flip = f.vx > 0.05 ? -1 : 1; // 画像は左向き、右進行時は反転
-    ctx.scale(_flip, 1);
-    var _bob = Math.sin(f.tailPhase) * 2;
-    ctx.drawImage(_rpgHeroImage, -hs/2, -hs/2 + _bob, hs, hs);
-    ctx.restore();
+    var hs = 104; // 88 → 104 (約+18%)
+    drawLivingFish(ctx, _rpgHeroImage, f.x, f.y, hs, f.vx, f.tailPhase, f.breathPhase, 0.05);
+    // 主人公の口から呼吸泡
+    if (_aqFrame % 110 === 0) spawnFishBubble(f.x, f.y, hs, f.vx);
 
     // 名前表示(吹き出し): ニックネーム1本化
     var _ownName = (currentUser && currentUser.nickname) || (_rpg && _rpg.progress && _rpg.progress.fish_name) || '';

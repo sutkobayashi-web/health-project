@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260418_heroconfirm">
+<html data-app-version="20260418_nocache">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -10755,7 +10755,7 @@ function resizeAquarium() {
 
 function loadAdventureData() {
   if (!currentUser) return;
-  fetch('/api/aquarium/?uid=' + currentUser.uid, { headers: { 'x-user-id': currentUser.uid } })
+  fetch('/api/aquarium/?uid=' + currentUser.uid + '&_=' + Date.now(), { headers: { 'x-user-id': currentUser.uid }, cache: 'no-store' })
     .then(function(r) { return r.json(); })
     .then(function(data) {
       if (!data.success) return;

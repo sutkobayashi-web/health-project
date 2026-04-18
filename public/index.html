@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260418_toggle">
+<html data-app-version="20260418_layoutfix">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -5769,6 +5769,9 @@ var _chatHistoryOpen = false;
 function _setBottomNavVisible(visible) {
   var bn = document.getElementById('bottom-nav');
   if (bn) bn.style.display = visible ? 'flex' : 'none';
+  // padding-bottom も連動させて入力バー/水槽が viewport bottom に貼り付くように
+  var screen = document.getElementById('buddy-chat-screen');
+  if (screen) screen.style.paddingBottom = visible ? 'var(--bnav-pad)' : '0';
 }
 
 function openChatHistory() {

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260418_bgs">
+<html data-app-version="20260418_chat2">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -962,7 +962,7 @@
     <!-- 入力バー（冒険画面では非表示、広場から天の声画面に入ると表示） -->
     <div id="text-input-bar" style="display:none;flex-shrink:0;background:rgba(10,30,50,0.95);border-top:1px solid rgba(255,255,255,0.1);padding:8px 12px;">
       <div style="display:flex;align-items:center;gap:6px;">
-        <button id="chat-back-btn" onclick="returnToRpgMode()" style="display:none;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.3);color:rgba(255,255,255,0.85);font-size:13px;cursor:pointer;align-items:center;justify-content:center;flex-shrink:0;font-family:inherit;" title="RPGに戻る"><i class="fas fa-arrow-left"></i></button>
+        <button id="chat-back-btn" onclick="returnToRpgMode()" style="display:flex;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.3);color:rgba(255,255,255,0.85);font-size:13px;cursor:pointer;align-items:center;justify-content:center;flex-shrink:0;font-family:inherit;" title="入力バーを閉じる"><i class="fas fa-times"></i></button>
         <span id="header-voice-btn" style="cursor:pointer;color:white;background:linear-gradient(135deg,#a78bfa,#7c3aed);height:38px;padding:0 12px;border-radius:19px;display:flex;align-items:center;justify-content:center;gap:4px;font-size:0.72rem;font-weight:700;flex-shrink:0;box-shadow:0 2px 8px rgba(124,58,237,0.3);" onclick="startContinuousVoiceFromInput()"><i class="fas fa-microphone"></i>音声</span>
         <input type="text" id="buddy-input" placeholder="メッセージを入力..." style="flex:1;border:1px solid rgba(255,255,255,0.2);border-radius:20px;padding:10px 14px;font-size:0.88rem;outline:none;background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.9);" onkeydown="if(event.key==='Enter')sendBuddyMessage()" onfocus="onBuddyInputFocus()" onblur="onBuddyInputBlur()">
         <button onclick="sendBuddyMessage()" style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#0ea5e9,#0284c7);color:white;border:none;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fas fa-paper-plane"></i></button>
@@ -5802,8 +5802,8 @@ function showChatToast(role, text) {
     ';color:#fff;padding:8px 12px;border-radius:14px;font-size:0.82rem;line-height:1.5;box-shadow:0 4px 14px rgba(0,0,0,0.35);' +
     'border:1px solid rgba(255,255,255,0.12);max-width:88%;align-self:' + (isAI ? 'flex-start' : 'flex-end') + ';' +
     'opacity:0;transform:translateY(10px);transition:opacity 0.3s ease, transform 0.3s ease;cursor:pointer;';
-  var preview = (text || '').replace(/<[^>]+>/g, '').replace(/\n/g, ' ').slice(0, 80);
-  if (text && text.length > 80) preview += '…';
+  var preview = (text || '').replace(/<[^>]+>/g, '').replace(/\n/g, ' ').slice(0, 200);
+  if (text && text.length > 200) preview += '…';
   bubble.textContent = preview;
   bubble.onclick = function() { openChatHistory(); };
   area.appendChild(bubble);
@@ -5812,12 +5812,13 @@ function showChatToast(role, text) {
     bubble.style.opacity = '1';
     bubble.style.transform = 'translateY(0)';
   });
-  // 6秒後にフェードアウト
+  // 表示時間: 文字数に応じて 8〜18秒（短文は早めに、長文はじっくり）
+  var displayMs = Math.min(18000, Math.max(8000, preview.length * 120));
   setTimeout(function() {
     bubble.style.opacity = '0';
     bubble.style.transform = 'translateY(10px)';
     setTimeout(function() { if (bubble.parentNode) bubble.parentNode.removeChild(bubble); }, 350);
-  }, 6000);
+  }, displayMs);
   // 同時に表示するトーストは最大3件
   while (area.children.length > 3) area.removeChild(area.firstChild);
 }
@@ -12086,8 +12087,7 @@ function showBackToRpgButton() {
 }
 
 function hideBackToRpgButton() {
-  var chatBack = document.getElementById('chat-back-btn');
-  if (chatBack) chatBack.style.display = 'none';
+  // chat-back-btn は常時表示（入力バー閉じる導線として常に必要）
   var voiceBack = document.getElementById('voice-back-btn');
   if (voiceBack) voiceBack.style.display = 'none';
 }

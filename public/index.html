@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260418_sharedlist">
+<html data-app-version="20260418_clockscatter">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -12606,16 +12606,13 @@ function drawClockMode() {
   var avoidR = Math.min(_clockW, _clockH) * 0.3;
 
   // エリアの魚(背景的に泳ぐ) - 発見済みは主人公を追従
-  _clockModeAreaFish.forEach(function(af) {
-    af.tailPhase += 0.05;
-    if (_clockModeFrame % 120 === 0) {
-      if (af.discovered && _clockModeFish) {
-        af.targetX = Math.max(30, Math.min(_clockW - 30, _clockModeFish.x + (Math.random() - 0.5) * 200));
-        af.targetY = Math.max(60, Math.min(_clockH - 60, _clockModeFish.y + (Math.random() - 0.5) * 150));
-      } else {
-        af.targetX = 30 + Math.random() * (_clockW - 60);
-        af.targetY = 60 + Math.random() * (_clockH - 160);
-      }
+  _clockModeAreaFish.forEach(function(af, afIdx) {
+    af.tailPhase += 0.05 * (af.pace || 1);
+    if (!af._cmRetarget) af._cmRetarget = 80 + Math.floor(Math.random() * 100);
+    if ((_clockModeFrame + afIdx * 19) % af._cmRetarget === 0) {
+      // 待ち受け画面: 全魚画面全体に散らす(発見済みクラスタリング廃止)
+      af.targetX = 30 + Math.random() * (_clockW - 60);
+      af.targetY = 60 + Math.random() * (_clockH - 160);
     }
     var adx = af.targetX - af.x, ady = af.targetY - af.y;
     var ad = Math.sqrt(adx*adx + ady*ady);
@@ -12662,9 +12659,10 @@ function drawClockMode() {
   // 仲間の魚(各自のvariant画像使用)/ 0歩は卵として漂う
   var fallbackForCompanion = _rpgHeroBase || _rpgHeroImage;
   if (fallbackForCompanion) {
-    _clockModeCompanions.forEach(function(c) {
+    _clockModeCompanions.forEach(function(c, cIdx) {
       c.tailPhase += c.is_egg ? 0.015 : 0.045;
-      if (_clockModeFrame % 150 === 0 && !c.is_egg) {
+      if (!c._cmRetarget) c._cmRetarget = 130 + Math.floor(Math.random() * 120);
+      if (!c.is_egg && (_clockModeFrame + cIdx * 27) % c._cmRetarget === 0) {
         c.targetX = 30 + Math.random() * (_clockW - 60);
         c.targetY = 60 + Math.random() * (_clockH - 160);
       }

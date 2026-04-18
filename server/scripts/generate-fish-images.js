@@ -31,7 +31,7 @@ const ITEMS = [
   { file: 'hero_type_14', prompt: BASE_STYLE + ' Vermillion red phoenix-style fish with flame-like fins, golden eye.' },
   { file: 'hero_type_15', prompt: BASE_STYLE + ' Pale moonlight white-blue fish with crescent-moon mark on its side.' },
   { file: 'hero_type_16', prompt: BASE_STYLE + ' Golden traveler fish with glowing yellow body, brass-trimmed fins.' },
-  { file: 'hero_type_17', prompt: BASE_STYLE + ' Pure snow-white fish with light blue accents, delicate translucent fins.' },
+  { file: 'hero_type_17', prompt: BASE_STYLE + ' Snow fish with strong navy-blue outline, body in pale icy lavender (NOT white), bright cyan accents on fins. Body must be clearly colored, never pure white.' },
   { file: 'hero_type_18', prompt: BASE_STYLE + ' Deep purple fish with cloudy lavender pattern, mystical aura.' },
   { file: 'hero_type_19', prompt: BASE_STYLE + ' Turquoise guardian fish with armor-plate scales, strong jaw.' },
   { file: 'hero_type_20', prompt: BASE_STYLE + ' Sky-blue swift whirlwind fish with sweeping wing-like fins.' },
@@ -55,7 +55,7 @@ const ITEMS = [
   { file: 'rpg_43', prompt: BASE_STYLE + ' Tuna (Maguro), large torpedo-shaped silver-blue body, powerful tail.' },
   { file: 'rpg_44', prompt: BASE_STYLE + ' Bonito (Katsuo), slim silver fish with horizontal stripes on belly.' },
   { file: 'rpg_45', prompt: BASE_STYLE + ' Mahi-mahi (Shiira), iridescent blue-green-yellow rainbow body, blunt forehead.' },
-  { file: 'rpg_46', prompt: BASE_STYLE + ' Sailfish (Bashokajiki) with huge sail-like dorsal fin spread, pointed bill.' },
+  { file: 'rpg_46', prompt: BASE_STYLE + ' Sailfish (Bashokajiki) with huge sail-like dorsal fin spread, pointed bill. Body in deep ocean blue with dark navy outline, dorsal fin in bright purple. Body must NOT be white or silver.' },
   { file: 'rpg_47', prompt: BASE_STYLE + ' Whale shark (Jinbeezame), massive grey-blue body with white polka dot pattern.' },
   { file: 'rpg_48', prompt: BASE_STYLE + ' Killer whale (Shachi/Orca), iconic black body with white belly patches.' },
   // 第4章 (深海) - rare/ultra
@@ -64,7 +64,7 @@ const ITEMS = [
   { file: 'rpg_51', prompt: BASE_STYLE + ' Megamouth shark, massive rounded head, gigantic open mouth, dark grey body.' },
   { file: 'rpg_52', prompt: BASE_STYLE + ' Barreleye fish (Demenigisu), translucent dome head with green tubular eyes inside.' },
   { file: 'rpg_53', prompt: BASE_STYLE + ' Frilled shark (Rabuka), eel-like long body, frilly gill slits, ancient look.' },
-  { file: 'rpg_54', prompt: BASE_STYLE + ' Hagfish (Nutaunagi), pale slimy primitive eel-like body.' },
+  { file: 'rpg_54', prompt: BASE_STYLE + ' Hagfish (Nutaunagi), primitive eel-like body in dark muted purple-grey with dark outline. Glossy slimy texture. Body must NOT be white or pale.' },
   // 第5章 (海淵) - ultra/legend
   { file: 'rpg_55', prompt: BASE_STYLE + ' Mystical "Origin of Life" creature, glowing green-cyan microbial fish form, hydrothermal vent aesthetic.' },
   { file: 'rpg_56', prompt: BASE_STYLE + ' Bioluminescent "Abyss Butterfly" fish, large translucent wing-like fins glowing purple-pink.' },

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260418_seaevents">
+<html data-app-version="20260418_herofix">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -11717,15 +11717,27 @@ function confirmHeroChange() {
     if (m0) m0.remove();
     return;
   }
+  var t = (typeof getToken === 'function') ? getToken() : '';
   fetch('/api/aquarium/hero-variant', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-user-id': currentUser.uid },
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': t ? ('Bearer ' + t) : '',
+      'x-user-id': currentUser.uid
+    },
     body: JSON.stringify({ uid: currentUser.uid, variant: variant })
-  }).then(function(r) { return r.json(); }).catch(function() {});
-  loadHeroVariant(variant);
+  }).then(function(r) { return r.json(); }).then(function(res) {
+    if (!res || res.error) {
+      alert('保存できませんでした。再度お試しください。');
+      return;
+    }
+    loadHeroVariant(variant);
+    if (typeof addNarration === 'function') addNarration('...色が変わったな。新しい気分で行こう。');
+  }).catch(function(e) {
+    alert('通信エラー: ' + (e && e.message || e));
+  });
   var m = document.getElementById('hero-change-modal');
   if (m) m.remove();
-  if (typeof addNarration === 'function') addNarration('...色が変わったな。新しい気分で行こう。');
 }
 
 // 互換: 旧API名 (どこかから呼ばれている場合に備え保持、ただし1段で確定はしない)

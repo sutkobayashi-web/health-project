@@ -406,7 +406,7 @@ router.post('/avatar-color', authUser, (req, res) => {
 router.post('/hero-variant', authUser, (req, res) => {
   const { variant } = req.body;
   const v = parseInt(variant);
-  if (!v || v < 1 || v > 8) return res.status(400).json({ error: 'variantは1〜8' });
+  if (!v || v < 1 || v > 20) return res.status(400).json({ error: 'variantは1〜20' });
   const db = getDb();
   // 行がなければ作る
   const exists = db.prepare('SELECT 1 FROM adventure_progress WHERE user_id = ?').get(req.uid);

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260418_endkw">
+<html data-app-version="20260418_qfix">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -12074,8 +12074,8 @@ function answerRpgQuestion(choiceId) {
 
   // 5秒後にフェード → もっと話したい人向けの続きUIに差し替え
   setTimeout(function() {
-    // 返信文がまだあれば、アイドル入口に置き換え
-    showRpgIdleEntry();
+    // 返信を消して水槽に戻る (旧: showRpgIdleEntry で入力バーを開いていたが廃止)
+    if (typeof hideRpgOverlay === 'function') hideRpgOverlay();
   }, 5000);
 }
 

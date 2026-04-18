@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260418_rpgdialog">
+<html data-app-version="20260418_avatarfix">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -10649,7 +10649,13 @@ function loadAdventureData() {
       // UI更新を先に（ラベルの「読み込み中...」を早く解消）
       updateRpgUI();
 
-      // 初回: 主人公未選択ならオープニング（hero_variant ≠ default の固定検出はせずlocalStorageで判定）
+      // 既存ユーザー(fish_name 設定済み or 歩数あり)はオンボーディング済みとみなす
+      var alreadyOnboarded = data.progress && (data.progress.fish_name ||
+        (data.progress.total_steps && data.progress.total_steps > 0));
+      if (alreadyOnboarded) {
+        try { localStorage.setItem('co_heart_rpg_started', '1'); } catch (e) {}
+      }
+      // 真の新規ユーザーのみオープニングを表示
       if (!localStorage.getItem('co_heart_rpg_started') && !window._rpgOpeningShown) {
         window._rpgOpeningShown = true;
         showAdventureOpening();
@@ -11361,6 +11367,8 @@ function drawHeroFishFallback(ctx) {
 
 // ===== 冒険オープニング =====
 function showAdventureOpening() {
+  // 既に選択済みのvariantをデフォルトに（誤タップでリセットさせない）
+  _selectedHeroVariant = (typeof _rpgCurrentVariant !== 'undefined' && _rpgCurrentVariant) ? _rpgCurrentVariant : 1;
   var overlay = document.createElement('div');
   overlay.id = 'egg-opening';
   overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:linear-gradient(180deg,#0ea5e9 0%,#0891b2 30%,#0a3d6b 70%,#041e35 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;overflow-y:auto;';
@@ -11418,8 +11426,8 @@ function skipIntroStory() {
   if (skipBtn) skipBtn.style.display = 'none';
 }
 
-// 魚選択時のハイライト
-var _selectedHeroVariant = 1;
+// 魚選択時のハイライト（デフォルトは現在のvariantを引き継いで誤タップでリセットされないように）
+var _selectedHeroVariant = (typeof _rpgCurrentVariant !== 'undefined' && _rpgCurrentVariant) ? _rpgCurrentVariant : 1;
 function selectHeroVariant(variant) {
   _selectedHeroVariant = variant;
   document.querySelectorAll('.hero-choice').forEach(function(el) {

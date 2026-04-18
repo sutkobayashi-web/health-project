@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260418_qfix">
+<html data-app-version="20260418_navcolor">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -4233,39 +4233,39 @@ function hideLoading() { document.getElementById('loading-overlay').style.displa
 /* ボトムナビゲーションバー */
 #bottom-nav {
   position: fixed; bottom: 0; left: 0; right: 0; z-index: 2500;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-top: none;
+  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%); border-top: 1px solid rgba(255,255,255,0.08);
   display: flex; justify-content: space-around; align-items: center;
   padding: 4px 0 calc(8px + env(safe-area-inset-bottom, 8px));
-  box-shadow: 0 -2px 12px rgba(0,0,0,0.08);
+  box-shadow: 0 -2px 14px rgba(0,0,0,0.35);
   height: var(--bnav-pad); box-sizing: border-box;
 }
 .bnav-item {
-  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
   padding: 6px 8px; cursor: pointer; position: relative;
-  transition: all 0.15s; border-radius: 8px; min-width: 56px;
+  transition: all 0.15s; border-radius: 8px; min-width: 48px;
   -webkit-tap-highlight-color: transparent;
 }
-.bnav-item:active { transform: scale(0.9); background: rgba(255,255,255,0.15); }
+.bnav-item:active { transform: scale(0.9); background: rgba(255,255,255,0.1); }
 .bnav-item .bnav-icon {
-  font-size: 1.15rem; color: rgba(255,255,255,0.55); transition: color 0.15s;
+  font-size: 1.18rem; color: rgba(255,255,255,0.65); transition: color 0.15s;
 }
 .bnav-item .bnav-label {
-  font-size: 0.58rem; font-weight: 600; color: rgba(255,255,255,0.55); white-space: nowrap;
+  font-size: 0.6rem; font-weight: 700; color: rgba(255,255,255,0.7); white-space: nowrap; letter-spacing: 0.02em;
 }
+/* アクティブ状態: 白＋上部アクセントバー(4px)で強調 */
+.bnav-item.active { background: rgba(255,255,255,0.07); }
 .bnav-item.active .bnav-icon, .bnav-item.active .bnav-label { color: #fff; }
-#bnav-buddy .bnav-icon, #bnav-buddy .bnav-label { color: #00e5ff; }
-#bnav-menu .bnav-icon, #bnav-menu .bnav-label { color: #00e676; }
-#bnav-inbox .bnav-icon, #bnav-inbox .bnav-label { color: #ffea00; }
-#bnav-challenge .bnav-icon, #bnav-challenge .bnav-label { color: #ff9100; }
-#bnav-mypage .bnav-icon, #bnav-mypage .bnav-label { color: #e040fb; }
-#bnav-post .bnav-icon, #bnav-post .bnav-label { color: #f472b6; }
-#bnav-buddy.active .bnav-icon, #bnav-buddy.active .bnav-label { color: #fff; }
-#bnav-menu.active .bnav-icon, #bnav-menu.active .bnav-label { color: #fff; }
-#bnav-inbox.active .bnav-icon, #bnav-inbox.active .bnav-label { color: #fff; }
-#bnav-challenge.active .bnav-icon, #bnav-challenge.active .bnav-label { color: #fff; }
-#bnav-mypage.active .bnav-icon, #bnav-mypage.active .bnav-label { color: #fff; }
-#bnav-post.active .bnav-icon, #bnav-post.active .bnav-label { color: #fff; }
-.bnav-item { min-width: 48px; padding: 6px 4px; }
+.bnav-item.active::before {
+  content: ''; position: absolute; top: -1px; left: 12%; right: 12%; height: 3px;
+  background: #38bdf8; border-radius: 0 0 3px 3px;
+}
+/* タブごとのアクティブアクセント色(コントラスト確保した明るい色のみ) */
+#bnav-buddy.active::before     { background: #38bdf8; } /* sky 400 */
+#bnav-menu.active::before      { background: #4ade80; } /* green 400 */
+#bnav-inbox.active::before     { background: #fbbf24; } /* amber 400 */
+#bnav-challenge.active::before { background: #fb923c; } /* orange 400 */
+#bnav-mypage.active::before    { background: #c4b5fd; } /* violet 300 */
+#bnav-post.active::before      { background: #f472b6; } /* pink 400 */
 .bnav-badge {
   position: absolute; top: 0; right: 4px;
   background: #ff1744; color: white;

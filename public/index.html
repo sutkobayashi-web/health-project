@@ -660,6 +660,8 @@
       <i class="fas fa-user-circle" style="font-size:18px;"></i>
       <div style="flex:1;font-weight:800;font-size:0.95rem;">設定</div>
     </div>
+    <!-- スクロール領域: 全コンテンツを内包 -->
+    <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;">
     <!-- プロフィールカード -->
     <div style="padding:12px 18px;background:linear-gradient(180deg,#f5f0ff,#fff);border-bottom:1px solid #eee;">
       <div style="display:flex;align-items:center;gap:14px;">
@@ -744,8 +746,9 @@
     </div>
     <div id="my-memos-list" style="padding:0 12px;max-height:0;overflow:hidden;transition:max-height 0.3s ease;"></div>
     <!-- 投稿一覧 -->
-    <div style="padding:8px 12px 4px;font-size:0.78rem;font-weight:700;color:#999;flex-shrink:0;"><i class="fas fa-history"></i> 投稿履歴</div>
-    <div id="my-posts-list" style="flex:1;overflow-y:auto;padding:0 12px 12px;"></div>
+    <div style="padding:8px 12px 4px;font-size:0.78rem;font-weight:700;color:#999;"><i class="fas fa-history"></i> 投稿履歴</div>
+    <div id="my-posts-list" style="padding:0 12px 12px;"></div>
+    </div><!-- /スクロール領域 -->
   </div>
 </div>
 
@@ -2359,6 +2362,8 @@ function onLoginSuccess() {
   loadMyUnread();
   setInterval(loadMyUnread, 60000);
   initBpCard();
+  // 通知デフォルトON（初回のみ自動でブラウザ許可ダイアログ→購読）
+  setTimeout(function() { if (typeof autoEnablePushOnFirstLogin === 'function') autoEnablePushOnFirstLogin(); }, 2500);
   // オンライン状態をサーバーに送信（60秒ごと）
   startUserHeartbeat();
   // タブ状態復元
@@ -12538,6 +12543,42 @@ async function togglePushSubscription() {
     console.error('Push subscription error:', e);
     alert('エラー: ' + e.message);
   }
+}
+
+// 初回ログイン時に通知をデフォルトONにする（1回のみ。拒否されても再要請しない）
+async function autoEnablePushOnFirstLogin() {
+  try {
+    if (localStorage.getItem('co_heart_push_auto_tried')) return;
+    if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) return;
+    if (Notification.permission !== 'default') {
+      // 既に許可/拒否済み → 状態だけボタンに反映して終了
+      localStorage.setItem('co_heart_push_auto_tried', '1');
+      updatePushButton(null);
+      return;
+    }
+    var reg = await navigator.serviceWorker.ready;
+    var existing = await reg.pushManager.getSubscription();
+    if (existing) {
+      localStorage.setItem('co_heart_push_auto_tried', '1');
+      updatePushButton(true);
+      return;
+    }
+    var perm = await Notification.requestPermission();
+    localStorage.setItem('co_heart_push_auto_tried', '1');
+    if (perm !== 'granted') { updatePushButton(false); return; }
+    var keyRes = await fetch('/api/push/public-key').then(function(r){return r.json();});
+    if (!keyRes.publicKey) return;
+    var sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(keyRes.publicKey)
+    });
+    var plainSub = JSON.parse(JSON.stringify(sub));
+    await fetch('/api/push/subscribe', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ uid: currentUser && currentUser.uid, subscription: plainSub })
+    });
+    updatePushButton(true);
+  } catch (e) { /* silent: アラートは出さない */ }
 }
 
 async function updatePushButton(subscribed) {

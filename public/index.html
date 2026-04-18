@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260418_chatactions">
+<html data-app-version="20260418_navhide">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -923,8 +923,8 @@
       </div>
       <!-- 新着トースト領域 (transient) -->
       <div id="chat-toast-area" style="position:absolute;left:0;right:0;bottom:8px;z-index:6;pointer-events:none;display:flex;flex-direction:column;align-items:stretch;gap:6px;padding:0 12px 0;"></div>
-      <!-- 右上 アクションスタック (履歴/書く) -->
-      <div id="chat-actions" style="position:absolute;top:60px;right:10px;z-index:7;display:flex;flex-direction:column;gap:8px;">
+      <!-- 左下 アクションスタック (履歴/書く) -->
+      <div id="chat-actions" style="position:absolute;bottom:14px;left:10px;z-index:7;display:flex;flex-direction:column;gap:8px;">
         <button id="chat-history-btn" onclick="openChatHistory()" title="会話の履歴" style="position:relative;width:42px;height:42px;border-radius:50%;background:rgba(8,24,42,0.78);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,0.25);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 2px 8px rgba(0,0,0,0.3);">
           <i class="fas fa-comments"></i>
           <span id="chat-unread-badge" style="display:none;position:absolute;top:-3px;right:-3px;background:#ef4444;color:#fff;font-size:0.55rem;font-weight:900;min-width:16px;height:16px;border-radius:8px;padding:0 4px;line-height:16px;text-align:center;border:2px solid #0a3d6b;">0</span>
@@ -5769,6 +5769,11 @@ function dismissBuddySetupPrompt(checkbox) {
 var _chatUnreadCount = 0;
 var _chatHistoryOpen = false;
 
+function _setBottomNavVisible(visible) {
+  var bn = document.getElementById('bottom-nav');
+  if (bn) bn.style.display = visible ? 'flex' : 'none';
+}
+
 function openChatHistory() {
   var ov = document.getElementById('chat-history-overlay');
   if (!ov) return;
@@ -5776,6 +5781,7 @@ function openChatHistory() {
   _chatHistoryOpen = true;
   _chatUnreadCount = 0;
   updateChatUnreadBadge();
+  _setBottomNavVisible(false);
   setTimeout(function() {
     var msgs = document.getElementById('buddy-messages');
     if (msgs) msgs.scrollTop = msgs.scrollHeight;
@@ -5785,6 +5791,7 @@ function closeChatHistory() {
   var ov = document.getElementById('chat-history-overlay');
   if (ov) ov.style.display = 'none';
   _chatHistoryOpen = false;
+  _setBottomNavVisible(true);
 }
 
 // テキスト入力バーを開く（✏ボタンから）
@@ -5792,6 +5799,7 @@ function openTextInputBar() {
   var bar = document.getElementById('text-input-bar');
   if (!bar) return;
   bar.style.display = 'block';
+  _setBottomNavVisible(false);
   // 入力欄を即フォーカス（テンキー出る）— ユーザーが明示的に「書く」を押した時のみ
   setTimeout(function() {
     var input = document.getElementById('buddy-input');
@@ -12134,6 +12142,7 @@ function returnToRpgMode() {
     if (typeof toggleVoiceMode === 'function') toggleVoiceMode();
   }
   hideBackToRpgButton();
+  if (typeof _setBottomNavVisible === 'function') _setBottomNavVisible(true);
   // ユーザーが明示的に閉じた以上、自動再表示はしない（書く/話すは別エントリから）
 }
 

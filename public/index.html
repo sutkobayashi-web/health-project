@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260418_back2">
+<html data-app-version="20260418_noidle">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -12062,14 +12062,10 @@ function dismissRpgFollowup() {
   if (el) el.remove();
 }
 
-// 質問なしの静かなときの常時入口: デフォルトで書く状態に移行
+// 質問なしの静かなときの常時入口: 自動で入力バーを開かない（✏書くボタンが明示エントリ）
 function showRpgIdleEntry() {
-  var bar = document.getElementById('text-input-bar');
-  if (bar && bar.style.display !== 'none') return;
-  var vp = document.getElementById('voice-mode-panel');
-  if (vp && vp.style.display !== 'none') return;
-  // 書く/話す選択を挟まず、直接テキスト入力状態へ
-  if (typeof escapeToFreeText === 'function') escapeToFreeText();
+  // 自動展開は廃止 — ユーザーが ✏ボタンをタップした時のみ openTextInputBar() で開く
+  return;
 }
 
 // 音声ボタン(テキスト入力バー左)から1タップ連続会話を起動

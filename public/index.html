@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260418_navhide">
+<html data-app-version="20260418_back2">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -913,13 +913,10 @@
       <div id="aq-voice" style="display:none;"></div>
 
       <!-- 履歴フル表示用 buddy-messages はオーバーレイ内に格納 -->
-      <div id="chat-history-overlay" style="display:none;position:absolute;top:0;left:0;right:0;bottom:0;z-index:8;background:rgba(8,24,42,0.94);backdrop-filter:blur(6px);flex-direction:column;">
-        <div style="padding:12px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,0.1);flex-shrink:0;background:rgba(8,24,42,0.98);">
-          <i class="fas fa-comments" style="color:#67e8f9;font-size:1rem;"></i>
-          <div style="flex:1;font-weight:800;color:#fff;font-size:0.95rem;">会話の履歴</div>
-          <button onclick="closeChatHistory()" style="background:linear-gradient(135deg,#0ea5e9,#0891b2);border:none;color:#fff;padding:8px 16px;border-radius:18px;cursor:pointer;font-size:0.8rem;font-weight:800;display:flex;align-items:center;gap:6px;font-family:inherit;"><i class="fas fa-arrow-left"></i> 海へ戻る</button>
-        </div>
+      <div id="chat-history-overlay" onclick="if(event.target===this)closeChatHistory();" style="display:none;position:absolute;top:0;left:0;right:0;bottom:0;z-index:8;background:rgba(8,24,42,0.94);backdrop-filter:blur(6px);flex-direction:column;">
+        <button onclick="closeChatHistory()" style="background:linear-gradient(135deg,#0ea5e9,#0891b2);border:none;color:#fff;padding:12px 18px;cursor:pointer;font-size:0.9rem;font-weight:800;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit;flex-shrink:0;width:100%;border-bottom:2px solid rgba(255,255,255,0.15);"><i class="fas fa-arrow-left"></i> 海へ戻る</button>
         <div id="buddy-messages" style="flex:1;overflow-y:auto;overscroll-behavior:contain;padding:16px 14px;display:flex;flex-direction:column;gap:10px;"></div>
+        <button onclick="closeChatHistory()" style="background:rgba(14,165,233,0.85);border:none;color:#fff;padding:14px;cursor:pointer;font-size:0.88rem;font-weight:800;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit;flex-shrink:0;width:100%;border-top:1px solid rgba(255,255,255,0.15);"><i class="fas fa-arrow-down"></i> 海へ戻る</button>
       </div>
       <!-- 新着トースト領域 (transient) -->
       <div id="chat-toast-area" style="position:absolute;left:0;right:0;bottom:8px;z-index:6;pointer-events:none;display:flex;flex-direction:column;align-items:stretch;gap:6px;padding:0 12px 0;"></div>
@@ -5778,6 +5775,7 @@ function openChatHistory() {
   var ov = document.getElementById('chat-history-overlay');
   if (!ov) return;
   ov.style.display = 'flex';
+  ov.style.flexDirection = 'column';
   _chatHistoryOpen = true;
   _chatUnreadCount = 0;
   updateChatUnreadBadge();

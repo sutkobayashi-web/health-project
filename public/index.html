@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260418_nostatus">
+<html data-app-version="20260418_pushdefaulton">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -12905,26 +12905,24 @@ async function togglePushSubscription() {
 }
 
 // 初回ログイン時に通知をデフォルトONにする（1回のみ。拒否されても再要請しない）
+// 通知デフォルトON: 毎回ログイン時に未購読なら自動購読を試行
 async function autoEnablePushOnFirstLogin() {
   try {
-    if (localStorage.getItem('co_heart_push_auto_tried')) return;
     if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) return;
-    if (Notification.permission !== 'default') {
-      // 既に許可/拒否済み → 状態だけボタンに反映して終了
-      localStorage.setItem('co_heart_push_auto_tried', '1');
-      updatePushButton(null);
-      return;
-    }
     var reg = await navigator.serviceWorker.ready;
     var existing = await reg.pushManager.getSubscription();
-    if (existing) {
-      localStorage.setItem('co_heart_push_auto_tried', '1');
-      updatePushButton(true);
-      return;
+    if (existing) { updatePushButton(true); return; } // 既に購読済み
+
+    // permission確認（denied=ブラウザがブロック中、default=未確認、granted=許可済み）
+    if (Notification.permission === 'denied') { updatePushButton(false); return; }
+
+    // default の場合: ブラウザのpermission requestを発火（OS/ブラウザのダイアログが出る）
+    if (Notification.permission === 'default') {
+      var perm = await Notification.requestPermission();
+      if (perm !== 'granted') { updatePushButton(false); return; }
     }
-    var perm = await Notification.requestPermission();
-    localStorage.setItem('co_heart_push_auto_tried', '1');
-    if (perm !== 'granted') { updatePushButton(false); return; }
+
+    // granted: 購読を発行してサーバーに登録
     var keyRes = await fetch('/api/push/public-key').then(function(r){return r.json();});
     if (!keyRes.publicKey) return;
     var sub = await reg.pushManager.subscribe({
@@ -12933,11 +12931,15 @@ async function autoEnablePushOnFirstLogin() {
     });
     var plainSub = JSON.parse(JSON.stringify(sub));
     await fetch('/api/push/subscribe', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + (typeof getToken === 'function' ? getToken() : '')
+      },
       body: JSON.stringify({ uid: currentUser && currentUser.uid, subscription: plainSub })
     });
     updatePushButton(true);
-  } catch (e) { /* silent: アラートは出さない */ }
+  } catch (e) { /* silent */ }
 }
 
 async function updatePushButton(subscribed) {

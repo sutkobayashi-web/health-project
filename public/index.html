@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260418_fullswim">
+<html data-app-version="20260418_scatter">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -11104,17 +11104,13 @@ function drawOcean() {
   var _waterTopFish = (AREA_WATER_LEVEL && _rpg && _rpg.area) ? (AREA_WATER_LEVEL[_rpg.area.id] || 0) * _aqH : 0;
   _rpgAreaFish.forEach(function(f) {
     f.tailPhase += 0.06;
-    if (_aqFrame % 80 === 0) {
-      if (f.discovered && _rpgFish) {
-        // 発見済みは主人公の周囲を回遊(プレミアム挙動)
-        f.targetX = Math.max(20, Math.min(_aqW - 20, _rpgFish.x + (Math.random() - 0.5) * 180));
-        var _ymin1 = _waterTopFish + 10;
-        f.targetY = Math.max(_ymin1, Math.min(_aqH - 30, _rpgFish.y + (Math.random() - 0.5) * 140));
-      } else {
-        f.targetX = 20 + Math.random() * (_aqW - 40);
-        var _ymin = _waterTopFish + 10;
-        f.targetY = _ymin + Math.random() * Math.max(20, _aqH - 50 - _waterTopFish);
-      }
+    // 個体差: 各魚が独立した周期で目標を再設定(60〜140frame)
+    if (!f._retargetPeriod) f._retargetPeriod = 60 + Math.floor(Math.random() * 80);
+    if ((_aqFrame + (f.id || 0) * 17) % f._retargetPeriod === 0) {
+      // 全魚: 画面全体を自由に泳ぐ(発見済みクラスタリング廃止)
+      f.targetX = 20 + Math.random() * (_aqW - 40);
+      var _ymin = _waterTopFish + 10;
+      f.targetY = _ymin + Math.random() * Math.max(20, _aqH - 50 - _waterTopFish);
     }
     var dx = f.targetX - f.x, dy = f.targetY - f.y;
     var dist = Math.sqrt(dx*dx + dy*dy);
@@ -11206,12 +11202,13 @@ function drawCompanions(ctx) {
   if (!fallbackImg || _rpgCompanions.length === 0) return;
   var waterTop = (AREA_WATER_LEVEL && _rpg && _rpg.area) ? (AREA_WATER_LEVEL[_rpg.area.id] || 0) * _aqH : 0;
   // 同じエリアに居る他ユーザー = 各自独立に泳ぐ(主人公にorbitしない)
-  _rpgCompanions.forEach(function(c) {
+  _rpgCompanions.forEach(function(c, idx) {
     var isEgg = !c.total_steps || c.total_steps === 0;
     c.tailPhase += isEgg ? 0.018 : 0.05;
-    if (_aqFrame % 150 === 0 && !isEgg) {
+    if (!c._retargetPeriod) c._retargetPeriod = 110 + Math.floor(Math.random() * 100);
+    if (!isEgg && (_aqFrame + idx * 23) % c._retargetPeriod === 0) {
       c.targetX = 20 + Math.random() * (_aqW - 40);
-      c.targetY = (waterTop + 40) + Math.random() * Math.max(30, _aqH - 80 - waterTop);
+      c.targetY = (waterTop + 20) + Math.random() * Math.max(30, _aqH - 50 - waterTop);
     }
     if (!isEgg) {
       var dx = c.targetX - c.x, dy = c.targetY - c.y;

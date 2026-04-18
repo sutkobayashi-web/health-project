@@ -58,8 +58,8 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 魚画像はブラウザHTTPキャッシュも完全バイパスして必ず最新を取る
-  if (req.url.includes('/fish/')) {
+  // 魚画像と背景画像はブラウザHTTPキャッシュも完全バイパスして必ず最新を取る
+  if (req.url.includes('/fish/') || req.url.includes('/bg/')) {
     event.respondWith(
       fetch(req, { cache: 'reload' }).then((res) => {
         const clone = res.clone();

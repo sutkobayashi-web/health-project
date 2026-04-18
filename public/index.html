@@ -10422,7 +10422,7 @@ function openStampModal(companion) {
   html += '<div style="background:#0d2440;border:1px solid rgba(255,255,255,0.15);border-radius:16px;padding:22px;max-width:320px;width:100%;color:#fff;">';
   html += '<div style="text-align:center;margin-bottom:14px;">';
   html += '<div style="font-size:11px;color:rgba(255,255,255,0.5);">スタンプを送る</div>';
-  html += '<div style="font-size:15px;font-weight:800;margin-top:2px;">' + escapeHtml(companion.nickname) + (companion.fish_name ? ' <span style="font-size:11px;color:rgba(255,255,255,0.4);">(' + escapeHtml(companion.fish_name) + ')</span>' : '') + '</div>';
+  html += '<div style="font-size:15px;font-weight:800;margin-top:2px;">' + escapeHtml(companion.nickname) + '</div>';
   var cSteps = (typeof companion.total_steps === 'number') ? companion.total_steps : 0;
   var cIsEgg = !cSteps;
   html += '<div style="margin-top:8px;display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:' + (cIsEgg ? 'rgba(253,224,71,0.15)' : 'rgba(253,224,71,0.1)') + ';border:1px solid ' + (cIsEgg ? 'rgba(253,224,71,0.35)' : 'rgba(253,224,71,0.25)') + ';border-radius:999px;font-size:12px;font-weight:800;color:#fde68a;">';
@@ -10521,8 +10521,8 @@ function loadAdventureData() {
       // UI更新を先に（ラベルの「読み込み中...」を早く解消）
       updateRpgUI();
 
-      // 初回: 名前がなければオープニング
-      if (!data.progress.fish_name && !window._rpgOpeningShown) {
+      // 初回: 主人公未選択ならオープニング（hero_variant ≠ default の固定検出はせずlocalStorageで判定）
+      if (!localStorage.getItem('co_heart_rpg_started') && !window._rpgOpeningShown) {
         window._rpgOpeningShown = true;
         showAdventureOpening();
       }
@@ -11139,9 +11139,10 @@ function drawHeroFish(ctx) {
     ctx.drawImage(_rpgHeroImage, -hs/2, -hs/2 + _bob, hs, hs);
     ctx.restore();
 
-    // 名前表示(吹き出し)
-    if (_rpg && _rpg.progress.fish_name) {
-      drawNameBubble(ctx, _rpg.progress.fish_name, f.x, f.y - hs/2 - 2, { fontSize: 12, bg: 'rgba(245,158,11,0.9)', border: 'rgba(255,255,255,0.7)' });
+    // 名前表示(吹き出し): ニックネーム1本化
+    var _ownName = (currentUser && currentUser.nickname) || (_rpg && _rpg.progress && _rpg.progress.fish_name) || '';
+    if (_ownName) {
+      drawNameBubble(ctx, _ownName, f.x, f.y - hs/2 - 2, { fontSize: 12, bg: 'rgba(245,158,11,0.9)', border: 'rgba(255,255,255,0.7)' });
     }
     // ⭐マーク
     ctx.save();
@@ -11224,8 +11225,9 @@ function drawHeroFishFallback(ctx) {
   ctx.restore();
 
   // 名前表示(吹き出し) — Canvas fallback hero
-  if (_rpg && _rpg.progress.fish_name) {
-    drawNameBubble(ctx, _rpg.progress.fish_name, f.x, f.y - s - 6, { fontSize: 11, bg: 'rgba(245,158,11,0.9)', border: 'rgba(255,255,255,0.7)' });
+  var _ownName2 = (currentUser && currentUser.nickname) || (_rpg && _rpg.progress && _rpg.progress.fish_name) || '';
+  if (_ownName2) {
+    drawNameBubble(ctx, _ownName2, f.x, f.y - s - 6, { fontSize: 11, bg: 'rgba(245,158,11,0.9)', border: 'rgba(255,255,255,0.7)' });
   }
 }
 
@@ -11250,15 +11252,9 @@ function showAdventureOpening() {
       '<div id="egg-story" style="color:rgba(255,255,255,0.9);font-size:14px;line-height:1.8;text-align:center;min-height:100px;"></div>' +
       '<button id="egg-skip-intro" onclick="skipIntroStory()" style="margin-top:8px;background:none;border:1px solid rgba(255,255,255,0.2);border-radius:8px;color:rgba(255,255,255,0.5);font-size:11px;padding:6px 14px;cursor:pointer;">スキップ ▸</button>' +
       '<div id="hero-select-area" style="display:none;margin-top:16px;">' +
-        '<div style="color:rgba(255,255,255,0.85);font-size:13px;margin-bottom:10px;">🐟 あなたの魚を選んでね</div>' +
+        '<div style="color:rgba(255,255,255,0.85);font-size:13px;margin-bottom:10px;">🐟 あなたの分身を選んでね</div>' +
         '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;justify-items:center;margin-bottom:14px;">' + variantsHtml + '</div>' +
-        '<button onclick="confirmHeroSelection()" style="width:100%;padding:12px;background:linear-gradient(135deg,#0ea5e9,#0891b2);border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;">この魚に決める</button>' +
-      '</div>' +
-      '<div id="egg-name-area" style="display:none;margin-top:16px;">' +
-        '<div style="color:rgba(255,255,255,0.6);font-size:12px;margin-bottom:8px;">この魚に名前をつけてあげて</div>' +
-        '<input type="text" id="egg-name-input" placeholder="例: ネオン、ブルー、ポチ" maxlength="20" style="width:100%;padding:14px 16px;background:rgba(255,255,255,0.1);border:2px solid rgba(255,255,255,0.25);border-radius:14px;color:#fff;font-size:16px;font-weight:600;text-align:center;outline:none;" onfocus="this.style.borderColor=\'rgba(74,222,128,0.6)\'" onblur="this.style.borderColor=\'rgba(255,255,255,0.25)\'">' +
-        '<button onclick="submitAdventureName()" style="width:100%;margin-top:12px;padding:14px;background:linear-gradient(135deg,#0ea5e9,#0891b2);border:none;border-radius:14px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(14,165,233,0.3);">冒険に出発！</button>' +
-        '<button onclick="skipAdventureName()" style="width:100%;margin-top:8px;padding:10px;background:none;border:1px solid rgba(255,255,255,0.2);border-radius:10px;color:rgba(255,255,255,0.5);font-size:12px;cursor:pointer;">あとで決める</button>' +
+        '<button onclick="confirmHeroSelection()" style="width:100%;padding:12px;background:linear-gradient(135deg,#0ea5e9,#0891b2);border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;">この魚で冒険に出発！</button>' +
       '</div>' +
     '</div>';
 
@@ -11311,7 +11307,7 @@ function selectHeroVariant(variant) {
   });
 }
 
-// 魚選択確定 → 名前入力へ
+// 魚選択確定 → 即冒険開始（名前入力ステップは廃止）
 function confirmHeroSelection() {
   fetch('/api/aquarium/hero-variant', {
     method: 'POST',
@@ -11319,9 +11315,8 @@ function confirmHeroSelection() {
     body: JSON.stringify({ uid: currentUser.uid, variant: _selectedHeroVariant })
   }).then(function(r) { return r.json(); }).catch(function() {});
   loadHeroVariant(_selectedHeroVariant);
-  document.getElementById('hero-select-area').style.display = 'none';
-  document.getElementById('egg-name-area').style.display = 'block';
-  setTimeout(function() { var inp = document.getElementById('egg-name-input'); if (inp) inp.focus(); }, 200);
+  try { localStorage.setItem('co_heart_rpg_started', '1'); } catch (e) {}
+  closeAdventureOpening(null);
 }
 
 // 設定/マイページから主人公を変更
@@ -12442,8 +12437,8 @@ function drawClockMode() {
     var bob = Math.sin(f.tailPhase) * 2;
     ctx.drawImage(_rpgHeroImage, -hs/2, -hs/2 + bob, hs, hs);
     ctx.restore();
-    // 主人公の名前ラベル(金色背景で目立たせる)
-    var heroName = _rpg && _rpg.progress && _rpg.progress.fish_name;
+    // 主人公の名前ラベル(金色背景で目立たせる) — ニックネーム1本化
+    var heroName = (currentUser && currentUser.nickname) || (_rpg && _rpg.progress && _rpg.progress.fish_name) || '';
     if (heroName) {
       drawNameBubble(ctx, heroName, f.x, f.y - hs/2 - 2, {
         fontSize: 13,
@@ -12843,7 +12838,7 @@ function openSharedOcean() {
         }
 
         html += '<div style="flex:1;min-width:0;">';
-        html += '<div style="font-size:13px;font-weight:700;color:' + (isEgg ? 'rgba(255,255,255,0.7)' : '#fff') + ';">' + e.nickname + (e.fish_name && !isEgg ? ' <span style="font-size:10px;color:rgba(255,255,255,0.4);">(' + e.fish_name + ')</span>' : '') + '</div>';
+        html += '<div style="font-size:13px;font-weight:700;color:' + (isEgg ? 'rgba(255,255,255,0.7)' : '#fff') + ';">' + e.nickname + '</div>';
         html += '<div style="font-size:10px;color:rgba(255,255,255,0.5);">' + (isEgg ? '🥚 まだ卵（一歩踏み出せば孵化）' : (e.area_name + ' ' + e.depth)) + '</div>';
         html += '</div>';
 

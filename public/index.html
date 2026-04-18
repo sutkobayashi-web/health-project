@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260418_norank">
+<html data-app-version="20260418_nostatus">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -656,25 +656,17 @@
     </div>
     <!-- スクロール領域: 全コンテンツを内包 -->
     <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;">
-    <!-- プロフィールカード（自分のアバター廃止／全体タップでランキングへ） -->
-    <div style="padding:12px 18px;background:linear-gradient(180deg,#f5f0ff,#fff);border-bottom:1px solid #eee;cursor:pointer;" onclick="showRanking();">
-      <div style="display:flex;align-items:center;gap:8px;">
-        <div style="flex:1;min-width:0;">
-          <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
-            <span style="font-weight:800;font-size:1.05rem;color:#2c3e50;" id="mypage-nickname">--</span>
-            <span id="mypage-dept" style="font-size:0.6rem;font-weight:700;color:#667eea;background:#eef0ff;padding:1px 7px;border-radius:10px;"></span>
-            <!-- mypage-rank(王冠等のマイルバッジ)は削除: マイル情報カードで重複表示 -->
-            <span id="mypage-rank" style="display:none;"></span>
-          </div>
-          <div style="display:flex;align-items:center;gap:4px;margin-top:5px;flex-wrap:wrap;">
-            <span id="mypage-streak" style="font-size:0.62rem;font-weight:700;color:#ef4444;background:linear-gradient(135deg,#fef2f2,#fecaca);padding:3px 8px;border-radius:8px;border:1px solid #fca5a5;white-space:nowrap;">🔥 0日</span>
-            <span id="mypage-coin" style="display:none;">0マイル</span>
-            <span id="mypage-coin-badge" style="display:none;">🌱</span>
-          </div>
-        </div>
-        <i class="fas fa-trophy" style="color:#f59e0b;font-size:1.1rem;flex-shrink:0;opacity:0.85;"></i>
-        <i class="fas fa-chevron-right" style="color:#bbb;font-size:0.75rem;flex-shrink:0;"></i>
+    <!-- プロフィールカード（ニックネーム+部署のみ。ランキングへの導線/王冠/トロフィー全削除） -->
+    <div style="padding:12px 18px;background:linear-gradient(180deg,#f5f0ff,#fff);border-bottom:1px solid #eee;">
+      <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
+        <span style="font-weight:800;font-size:1.05rem;color:#2c3e50;" id="mypage-nickname">--</span>
+        <span id="mypage-dept" style="font-size:0.6rem;font-weight:700;color:#667eea;background:#eef0ff;padding:1px 7px;border-radius:10px;"></span>
       </div>
+      <!-- 旧JS参照用の隠しspan（削除しないとupdateProfileCard等が落ちる可能性） -->
+      <span id="mypage-rank" style="display:none;"></span>
+      <span id="mypage-streak" style="display:none;"></span>
+      <span id="mypage-coin" style="display:none;"></span>
+      <span id="mypage-coin-badge" style="display:none;"></span>
     </div>
     <!-- マイル情報カード（旧:木の育成 を置換） -->
     <div id="mypage-miles-card" style="margin:8px 18px;padding:14px;background:linear-gradient(135deg,#fffde7,#fff9c4);border-radius:14px;border:1.5px solid #ffe082;display:none;">

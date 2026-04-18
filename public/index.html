@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260418_talkbtn">
+<html data-app-version="20260418_endkw">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -7829,7 +7829,7 @@ function _startOneShot() {
 
     if (finalText.trim()) {
       // 終了キーワード検知（完全一致のみ。誤爆防止のため endsWith は使わない）
-      var endWords = ['おわり', '終了', 'ストップ'];
+      var endWords = ['おわり', '終わり', '終了', 'ストップ', 'stop', 'STOP'];
       var trimmed = finalText.trim().replace(/[。．.！!？?\s]+$/, '');
       var isEnd = endWords.indexOf(trimmed) !== -1;
       if (isEnd) {

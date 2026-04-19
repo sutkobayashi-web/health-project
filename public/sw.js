@@ -58,14 +58,17 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 魚画像と背景画像はブラウザHTTPキャッシュも完全バイパスして必ず最新を取る
+  // 魚画像と背景画像はcache-first（イミュータブル想定、版が変わればCACHE_NAMEごと差し替わる）
   if (req.url.includes('/fish/') || req.url.includes('/bg/')) {
     event.respondWith(
-      fetch(req, { cache: 'reload' }).then((res) => {
-        const clone = res.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(req, clone));
-        return res;
-      }).catch(() => caches.match(req))
+      caches.match(req).then((cached) => {
+        if (cached) return cached;
+        return fetch(req).then((res) => {
+          const clone = res.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(req, clone));
+          return res;
+        });
+      })
     );
     return;
   }

@@ -79,15 +79,21 @@ app.use('/api/auth/admin-login', authLimiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// 静的ファイル配信 (HTML はキャッシュ無効化)
+// 静的ファイル配信
+// HTML: 常に再検証(no-cache, ETag有効) / JS/CSS: ?v= でバージョン付のため短時間キャッシュ可 / 画像(/fish/,/bg/,/img/): 長期キャッシュ
 app.use(express.static(path.join(__dirname, '..', 'public'), {
-  etag: false,
-  lastModified: false,
+  etag: true,
+  lastModified: true,
   setHeaders: (res, filePath) => {
-    if (filePath.endsWith('.html') || filePath.endsWith('.js') || filePath.endsWith('.css')) {
-      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-      res.setHeader('Pragma', 'no-cache');
-      res.setHeader('Expires', '0');
+    if (filePath.endsWith('.html')) {
+      // 再検証必須だが304可。クライアント版管理(data-app-version)で整合
+      res.setHeader('Cache-Control', 'no-cache');
+    } else if (filePath.endsWith('.js') || filePath.endsWith('.css')) {
+      // URLに?v=が付くため短時間キャッシュ可（版更新時はURL変化で即切替）
+      res.setHeader('Cache-Control', 'public, max-age=300, must-revalidate');
+    } else if (/\/(fish|bg|img)\//.test(filePath.replace(/\\/g, '/')) || /\.(png|jpg|jpeg|webp|svg|woff2?)$/i.test(filePath)) {
+      // 画像・フォントは長期キャッシュ（版更新時はCACHE_NAME切替で破棄）
+      res.setHeader('Cache-Control', 'public, max-age=2592000, immutable');
     }
   }
 }));
@@ -406,9 +412,7 @@ app.get('/whitepaper', (req, res) => {
 app.get('*', (req, res) => {
   if (req.path.startsWith('/api/')) return;
   if (req.path.startsWith('/uploads/')) return res.status(404).end();
-  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-  res.setHeader('Pragma', 'no-cache');
-  res.setHeader('Expires', '0');
+  res.setHeader('Cache-Control', 'no-cache');
   res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
 });
 

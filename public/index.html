@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-app-version="20260419_perf1">
+<html data-app-version="20260419_visit1">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -10740,11 +10740,14 @@ function resizeAquarium() {
 
 function loadAdventureData() {
   if (!currentUser) return;
+  // 訪問中ID退避（reload後に再適用）
+  var visitAreaId = (_rpgVisit && _rpgVisit.area) ? _rpgVisit.area.id : null;
   fetch('/api/aquarium/?uid=' + currentUser.uid + '&_=' + Date.now(), { headers: { 'x-user-id': currentUser.uid }, cache: 'no-store' })
     .then(function(r) { return r.json(); })
     .then(function(data) {
       if (!data.success) return;
       _rpg = data;
+      _rpgVisit = null; // 一旦解除（下で再エンター）
 
       // 現在エリアの背景を即ロード(エリア固有→章フォールバック)
       if (data.area && data.area.id) preloadAreaBgImage(data.area.id);
@@ -10788,6 +10791,10 @@ function loadAdventureData() {
           else showRpgIdleEntry();
         }
       }, 1500);
+      // 訪問中だった場合は再エンター（data取得後のcurrent_areaに該当しないエリアのみ）
+      if (visitAreaId && visitAreaId !== data.progress.current_area) {
+        setTimeout(function(){ enterVisitArea(visitAreaId); }, 50);
+      }
     }).catch(function(e){ console.error('loadAdventureData error:', e); });
 }
 
@@ -13229,6 +13236,7 @@ function openRpgMap() {
 
   var allAreas = _rpg.all_areas || [];
   var currentChapter = 0;
+  var visitingId = (_rpgVisit && _rpgVisit.area) ? _rpgVisit.area.id : null;
 
   allAreas.forEach(function(area) {
     // 章見出し
@@ -13241,12 +13249,15 @@ function openRpgMap() {
 
     var isCurrent = area.id === _rpg.progress.current_area;
     var isUnlocked = area.unlocked;
-    var borderColor = isCurrent ? '#22d3ee' : isUnlocked ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.05)';
-    var bgOpacity = isCurrent ? 0.15 : isUnlocked ? 0.06 : 0.02;
+    var isVisiting = area.id === visitingId;
+    var canVisit = isUnlocked && !isCurrent;
+    var borderColor = isVisiting ? '#fbbf24' : isCurrent ? '#22d3ee' : isUnlocked ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.05)';
+    var bgOpacity = (isCurrent || isVisiting) ? 0.15 : isUnlocked ? 0.06 : 0.02;
+    var cardClick = canVisit ? ' onclick="enterVisitArea(\'' + area.id + '\')" style="cursor:pointer;"' : '';
 
-    html += '<div style="background:rgba(255,255,255,' + bgOpacity + ');border:1px solid ' + borderColor + ';border-radius:12px;padding:12px;margin-bottom:8px;display:flex;align-items:center;gap:12px;">';
+    html += '<div' + cardClick + ' style="background:rgba(255,255,255,' + bgOpacity + ');border:1px solid ' + borderColor + ';border-radius:12px;padding:12px;margin-bottom:8px;display:flex;align-items:center;gap:12px;' + (canVisit ? 'cursor:pointer;' : '') + '">';
 
-    // 深度アイ���ン
+    // 深度アイコン
     html += '<div style="width:40px;height:40px;border-radius:50%;background:' + (area.bgColor || '#0ea5e9') + ';display:flex;align-items:center;justify-content:center;flex-shrink:0;">';
     html += '<span style="font-size:10px;color:#fff;font-weight:700;">' + area.depth + '</span>';
     html += '</div>';
@@ -13259,9 +13270,13 @@ function openRpgMap() {
     }
     html += '</div>';
 
-    if (isCurrent) {
+    if (isVisiting) {
+      html += '<div style="font-size:10px;color:#fbbf24;font-weight:700;flex-shrink:0;"><i class="fas fa-umbrella-beach"></i> 訪問中</div>';
+    } else if (isCurrent) {
       html += '<div style="font-size:10px;color:#22d3ee;font-weight:700;flex-shrink:0;">現在地</div>';
-    } else if (!isUnlocked) {
+    } else if (canVisit) {
+      html += '<div style="font-size:10px;color:#fbbf24;font-weight:700;flex-shrink:0;padding:4px 10px;border-radius:12px;background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.35);"><i class="fas fa-umbrella-beach"></i> 遊びに行く</div>';
+    } else {
       html += '<div style="font-size:10px;color:rgba(255,255,255,0.2);flex-shrink:0;">🔒</div>';
     }
 
@@ -13271,6 +13286,77 @@ function openRpgMap() {
   html += '</div>';
   overlay.innerHTML = html;
   document.body.appendChild(overlay);
+}
+
+// ===== 過去エリア訪問モード =====
+// _rpgVisit が非nullなら訪問中。元データは _rpgVisit.original に退避。
+var _rpgVisit = null;
+
+function enterVisitArea(areaId) {
+  if (!_rpg || !currentUser) return;
+  if (areaId === _rpg.progress.current_area) return; // 現在地は訪問不要
+  if (typeof track === 'function') track('rpg_visit_past_area', areaId);
+  fetch('/api/aquarium/area-view?area_id=' + encodeURIComponent(areaId) + '&_=' + Date.now(),
+    { headers: { 'x-user-id': currentUser.uid }, cache: 'no-store' })
+    .then(function(r){ return r.json(); })
+    .then(function(d) {
+      if (!d.success) { alert(d.msg || 'このエリアには行けません'); return; }
+      // 元データが未退避なら保存（再訪問時は上書きしない）
+      if (!_rpgVisit) {
+        _rpgVisit = {
+          original: {
+            area: _rpg.area,
+            area_fish: _rpg.area_fish,
+            chapter_name: _rpg.chapter_name,
+          },
+        };
+      }
+      // 訪問先データに差し替え
+      _rpg.area = d.area;
+      _rpg.area_fish = d.area_fish;
+      _rpg.chapter_name = d.chapter_name;
+      _rpgVisit.area = d.area;
+      // 背景と魚をプリロード
+      preloadAreaBgImage(d.area.id);
+      preloadBgImage(d.area.chapter);
+      (d.area_fish || []).forEach(function(f){ preloadFishImage(f.id); });
+      // 再描画
+      updateRpgUI();
+      initAreaFish(d.area_fish || []);
+      showVisitBanner(d.area);
+      // 海図を閉じる
+      var mapOv = document.getElementById('rpg-map-overlay'); if (mapOv) mapOv.remove();
+      // 語り部に一言
+      addNarration('（' + d.area.name + ' に遊びに来た。懐かしい景色だ…）');
+    }).catch(function(e){ console.error('enterVisitArea error:', e); alert('通信エラー'); });
+}
+
+function exitVisitArea() {
+  if (!_rpgVisit || !_rpgVisit.original) return;
+  if (typeof track === 'function') track('rpg_visit_exit');
+  _rpg.area = _rpgVisit.original.area;
+  _rpg.area_fish = _rpgVisit.original.area_fish;
+  _rpg.chapter_name = _rpgVisit.original.chapter_name;
+  _rpgVisit = null;
+  if (_rpg.area && _rpg.area.id) preloadAreaBgImage(_rpg.area.id);
+  if (_rpg.area && _rpg.area.chapter) preloadBgImage(_rpg.area.chapter);
+  (_rpg.area_fish || []).forEach(function(f){ preloadFishImage(f.id); });
+  updateRpgUI();
+  initAreaFish(_rpg.area_fish || []);
+  var banner = document.getElementById('rpg-visit-banner'); if (banner) banner.remove();
+  addNarration('現在地に戻ってきた。');
+}
+
+function showVisitBanner(area) {
+  var old = document.getElementById('rpg-visit-banner'); if (old) old.remove();
+  var container = document.getElementById('aquarium-container');
+  if (!container) return;
+  var banner = document.createElement('div');
+  banner.id = 'rpg-visit-banner';
+  banner.style.cssText = 'position:absolute;top:8px;left:50%;transform:translateX(-50%);z-index:20;background:rgba(251,191,36,0.95);color:#5c3a00;padding:6px 12px 6px 14px;border-radius:20px;font-size:11px;font-weight:800;display:flex;align-items:center;gap:8px;box-shadow:0 2px 10px rgba(0,0,0,0.4);max-width:calc(100% - 24px);';
+  banner.innerHTML = '<i class="fas fa-umbrella-beach"></i><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + area.name + ' に訪問中</span>' +
+    '<button onclick="exitVisitArea()" style="background:#5c3a00;color:#fde68a;border:none;padding:3px 10px;border-radius:10px;font-size:10px;font-weight:800;cursor:pointer;flex-shrink:0;">現在地に戻る</button>';
+  container.appendChild(banner);
 }
 
 // ===== みんなの海 =====

@@ -443,6 +443,33 @@ router.post('/hero-variant', authUser, (req, res) => {
   res.json({ success: true, variant: v });
 });
 
+// ---------- API: 過去エリア訪問ビュー（読み取り専用・進捗不変） ----------
+router.get('/area-view', authUser, (req, res) => {
+  const areaId = String(req.query.area_id || '').trim();
+  const area = RPG_AREAS.find(a => a.id === areaId);
+  if (!area) return res.status(404).json({ success: false, msg: 'エリアが見つかりません' });
+
+  const db = getDb();
+  const progress = db.prepare('SELECT total_steps, current_area FROM adventure_progress WHERE user_id = ?').get(req.uid);
+  if (!progress) return res.status(400).json({ success: false, msg: '冒険未開始' });
+
+  // 解放済みのみ訪問可（未到達エリアはブロック）
+  if (progress.total_steps < area.stepsRequired) {
+    return res.status(403).json({ success: false, msg: 'このエリアはまだ到達していません' });
+  }
+
+  const discovered = db.prepare('SELECT fish_id FROM rpg_fish_discovery WHERE user_id = ?').all(req.uid).map(d => d.fish_id);
+  const areaFish = RPG_FISH.filter(f => f.area === areaId);
+
+  res.json({
+    success: true,
+    area,
+    chapter_name: CHAPTER_NAMES[area.chapter],
+    area_fish: areaFish.map(f => ({ id: f.id, name: f.name, rarity: f.rarity, hue: f.hue, desc: f.desc, discovered: discovered.indexOf(f.id) !== -1 })),
+    is_current: area.id === progress.current_area,
+  });
+});
+
 // ---------- 歩数OCR ----------
 router.post('/steps-ocr', authUser, async (req, res) => {
   try {
